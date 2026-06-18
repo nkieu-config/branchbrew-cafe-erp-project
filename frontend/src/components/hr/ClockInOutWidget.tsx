@@ -77,19 +77,19 @@ export function ClockInOutWidget() {
   if (loading) return null;
 
   return (
-    <div className="p-4 border-t border-slate-200 bg-slate-50 flex flex-col items-center">
+    <div className="p-4 border-t border-slate-200/30 bg-white/10 flex flex-col items-center">
       {activeRecord ? (
-        <div className="w-full space-y-2">
-          <div className="flex items-center justify-between text-emerald-600 font-semibold text-sm">
-            <span className="flex items-center gap-1"><CheckCircle2 size={16}/> Clocked In</span>
-            <span className="font-mono">{elapsed}</span>
+        <div className="w-full space-y-3 p-3 bg-white/40 rounded-xl border border-white/60 shadow-sm backdrop-blur-sm">
+          <div className="flex items-center justify-between text-emerald-600 font-bold text-sm">
+            <span className="flex items-center gap-1.5"><CheckCircle2 size={16} className="animate-pulse"/> Active Shift</span>
+            <span className="font-mono bg-white/60 px-2 py-0.5 rounded text-emerald-700">{elapsed}</span>
           </div>
-          <Button onClick={handleClockOut} className="w-full bg-slate-800 hover:bg-slate-900" size="sm">
+          <Button onClick={handleClockOut} className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-lg interactive-item shadow-md border border-slate-700" size="sm">
             Clock Out
           </Button>
         </div>
       ) : (
-        <Button onClick={handleClockIn} className="w-full bg-emerald-600 hover:bg-emerald-700" size="sm">
+        <Button onClick={handleClockIn} className="w-full bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl interactive-item shadow-md border border-emerald-400" size="default">
           <Clock size={16} className="mr-2" /> Clock In
         </Button>
       )}
