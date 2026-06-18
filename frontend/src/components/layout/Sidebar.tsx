@@ -1,27 +1,63 @@
-import Link from 'next/link';
-import { Home, ShoppingCart, Package } from 'lucide-react';
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { LayoutDashboard, ShoppingCart, Package, Coffee, Settings, Truck } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
+
+const navItems = [
+  { name: "Dashboard", href: "/", icon: LayoutDashboard },
+  { name: "Point of Sale", href: "/pos", icon: ShoppingCart },
+  { name: "Inventory", href: "/inventory", icon: Package },
+  { name: "Procurement", href: "/procurement", icon: Truck },
+];
 
 export function Sidebar() {
+  const pathname = usePathname();
+  const { user, logout } = useAuth();
+
+  if (pathname === '/login') return null;
+
   return (
-    <aside className="w-64 bg-slate-900 text-white min-h-screen flex flex-col p-4 shadow-xl">
-      <div className="text-2xl font-bold mb-8 text-center tracking-wider text-amber-500 mt-4">CafeSync ERP</div>
-      <nav className="flex-1 space-y-2">
-        <Link href="/" className="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-800 hover:text-amber-400 transition-colors">
-          <Home size={20} />
-          <span>Dashboard</span>
-        </Link>
-        <Link href="/pos" className="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-800 hover:text-amber-400 transition-colors">
-          <ShoppingCart size={20} />
-          <span>Point of Sale (POS)</span>
-        </Link>
-        <Link href="/inventory" className="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-800 hover:text-amber-400 transition-colors">
-          <Package size={20} />
-          <span>Inventory</span>
-        </Link>
-      </nav>
-      <div className="mt-auto p-4 text-xs text-slate-500 text-center">
-        v1.0.0 Portfolio Project
+    <div className="w-64 bg-white border-r h-screen flex flex-col z-40 relative">
+      <div className="h-16 flex items-center px-6 border-b">
+        <Coffee className="w-6 h-6 text-orange-600 mr-2" />
+        <span className="font-bold text-xl text-slate-800">CafeSync</span>
       </div>
-    </aside>
+      
+      {user && (
+        <div className="px-6 py-4 border-b bg-slate-50">
+          <p className="text-sm font-semibold">{user.name}</p>
+          <p className="text-xs text-slate-500">{user.branch || 'Headquarters (All Branches)'}</p>
+        </div>
+      )}
+
+      <nav className="flex-1 p-4 space-y-1">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={`flex items-center px-4 py-3 rounded-lg transition-colors ${
+                isActive
+                  ? "bg-orange-50 text-orange-600 font-medium"
+                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+              }`}
+            >
+              <item.icon className="w-5 h-5 mr-3" />
+              {item.name}
+            </Link>
+          );
+        })}
+      </nav>
+      
+      <div className="p-4 border-t">
+        <Button variant="outline" className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50" onClick={logout}>
+          Logout
+        </Button>
+      </div>
+    </div>
   );
 }

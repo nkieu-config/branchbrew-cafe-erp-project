@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class OrdersService {
   constructor(private prisma: PrismaService) {}
 
-  async createOrder(data: { userId: number; items: { productId: number; quantity: number }[] }) {
+  async createOrder(data: { userId: number; branchId: number; items: { productId: number; quantity: number }[] }) {
     // We must do this in a transaction to ensure data integrity
     return this.prisma.$transaction(async (tx) => {
       let totalAmount = 0;
@@ -34,35 +34,36 @@ export class OrdersService {
         }
       }
 
-      // 2. Verify stock and deduct
+      // 2. Verify stock in BranchInventory and deduct
       for (const [ingredientId, neededQty] of ingredientRequirements.entries()) {
-        const ingredient = await tx.ingredient.findUnique({
-          where: { id: ingredientId },
+        const branchInventory = await tx.branchInventory.findUnique({
+          where: { branchId_ingredientId: { branchId: data.branchId, ingredientId } },
+          include: { ingredient: true }
         });
 
-        if (!ingredient) {
-          throw new BadRequestException(`Ingredient ID ${ingredientId} not found`);
+        if (!branchInventory) {
+          throw new BadRequestException(`Ingredient ID ${ingredientId} not found in this branch`);
         }
 
-        if (ingredient.stock < neededQty) {
+        if (branchInventory.stock < neededQty) {
           throw new BadRequestException(
-            `Not enough stock for ${ingredient.name}. Needed: ${neededQty}, Available: ${ingredient.stock}`
+            `Not enough stock for ${branchInventory.ingredient.name} at this branch. Needed: ${neededQty}, Available: ${branchInventory.stock}`
           );
         }
 
         // Deduct stock
-        await tx.ingredient.update({
-          where: { id: ingredientId },
-          data: { stock: ingredient.stock - neededQty },
+        await tx.branchInventory.update({
+          where: { id: branchInventory.id },
+          data: { stock: branchInventory.stock - neededQty },
         });
       }
 
       // 3. Create the Order
       const order = await tx.order.create({
         data: {
-          userId: data.userId, // Normally this comes from JWT token
+          userId: data.userId, // Normally comes from JWT token
+          branchId: data.branchId, // Normally comes from JWT token
           totalAmount,
-          status: 'COMPLETED',
           items: {
             create: await Promise.all(data.items.map(async (item) => {
               const product = await tx.product.findUnique({ where: { id: item.productId } });
@@ -82,10 +83,10 @@ export class OrdersService {
   }
 
   async findAll() {
-    return this.prisma.order.findMany({ include: { items: true } });
+    return this.prisma.order.findMany({ include: { items: true, branch: true } });
   }
 
   async findOne(id: number) {
-    return this.prisma.order.findUnique({ where: { id }, include: { items: true } });
+    return this.prisma.order.findUnique({ where: { id }, include: { items: true, branch: true } });
   }
 }

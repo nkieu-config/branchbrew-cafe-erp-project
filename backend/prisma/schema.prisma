@@ -1,31 +1,65 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-}
-
-enum Role {
-  ADMIN
-  STAFF
-}
-
-enum OrderStatus {
-  PENDING
-  COMPLETED
-  CANCELLED
+  provider = "postgresql"
 }
 
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
-  name      String
+  name      String?
   password  String
   role      Role     @default(STAFF)
+  branchId  Int?
+  branch    Branch?  @relation(fields: [branchId], references: [id])
   orders    Order[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  SUPER_ADMIN
+  MANAGER
+  STAFF
+}
+
+model Branch {
+  id             Int               @id @default(autoincrement())
+  name           String
+  location       String?
+  users          User[]
+  orders         Order[]
+  inventories    BranchInventory[]
+  purchaseOrders PurchaseOrder[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+}
+
+model Ingredient {
+  id                 Int                 @id @default(autoincrement())
+  name               String
+  unit               String
+  globalMinStock     Int                 @default(0)
+  recipeItems        RecipeItem[]
+  branchInventories  BranchInventory[]
+  purchaseOrderItems PurchaseOrderItem[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+}
+
+model BranchInventory {
+  id           Int        @id @default(autoincrement())
+  branchId     Int
+  branch       Branch     @relation(fields: [branchId], references: [id])
+  ingredientId Int
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  stock        Float      @default(0)
+  minStock     Float      @default(0)
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([branchId, ingredientId])
 }
 
 model Product {
@@ -39,45 +73,72 @@ model Product {
   updatedAt   DateTime     @updatedAt
 }
 
-model Ingredient {
-  id          Int          @id @default(autoincrement())
-  name        String
-  unit        String       // e.g., "g", "ml", "pcs"
-  stock       Float        @default(0)
-  minStock    Float        @default(10)
-  recipeItems RecipeItem[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-}
-
 model RecipeItem {
   id           Int        @id @default(autoincrement())
   productId    Int
-  ingredientId Int
-  quantity     Float      // amount of ingredient used
   product      Product    @relation(fields: [productId], references: [id])
+  ingredientId Int
   ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
-
-  @@unique([productId, ingredientId])
+  quantity     Float
 }
 
 model Order {
   id          Int         @id @default(autoincrement())
-  userId      Int
   totalAmount Float
-  status      OrderStatus @default(COMPLETED)
+  userId      Int
   user        User        @relation(fields: [userId], references: [id])
+  branchId    Int
+  branch      Branch      @relation(fields: [branchId], references: [id])
   items       OrderItem[]
   createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
 }
 
 model OrderItem {
   id        Int     @id @default(autoincrement())
   orderId   Int
-  productId Int
-  quantity  Int
-  price     Float   // Price at the time of purchase
   order     Order   @relation(fields: [orderId], references: [id])
+  productId Int
   product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+}
+
+model Supplier {
+  id             Int             @id @default(autoincrement())
+  name           String
+  contactEmail   String?
+  phone          String?
+  purchaseOrders PurchaseOrder[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model PurchaseOrder {
+  id         Int                 @id @default(autoincrement())
+  poNumber   String              @unique
+  branchId   Int
+  branch     Branch              @relation(fields: [branchId], references: [id])
+  supplierId Int
+  supplier   Supplier            @relation(fields: [supplierId], references: [id])
+  status     POStatus            @default(PENDING)
+  items      PurchaseOrderItem[]
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+}
+
+enum POStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  RECEIVED
+}
+
+model PurchaseOrderItem {
+  id                Int           @id @default(autoincrement())
+  poId              Int
+  purchaseOrder     PurchaseOrder @relation(fields: [poId], references: [id])
+  ingredientId      Int
+  ingredient        Ingredient    @relation(fields: [ingredientId], references: [id])
+  quantityRequested Float
+  unitPrice         Float
 }

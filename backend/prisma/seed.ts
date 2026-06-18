@@ -10,43 +10,91 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   console.log('Cleaning existing data...');
   // Clean up
+  await prisma.purchaseOrderItem.deleteMany();
+  await prisma.purchaseOrder.deleteMany();
+  await prisma.supplier.deleteMany();
   await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();
   await prisma.recipeItem.deleteMany();
   await prisma.product.deleteMany();
+  await prisma.branchInventory.deleteMany();
   await prisma.ingredient.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.branch.deleteMany();
 
-  console.log('Seeding database...');
+  console.log('Seeding database with Multi-Branch Data...');
 
-  // 1. Create a User (Admin/Staff)
-  const user = await prisma.user.create({
+  // 1. Create Branches
+  const mainBranch = await prisma.branch.create({
+    data: { name: 'Siam Paragon Branch', location: 'Bangkok' },
+  });
+  
+  const secondBranch = await prisma.branch.create({
+    data: { name: 'Asok Branch', location: 'Bangkok' },
+  });
+
+  // 2. Create Users
+  const admin = await prisma.user.create({
     data: {
-      email: 'staff@cafesync.com',
-      name: 'John Staff',
-      password: 'password123', // In a real app, hash this!
-      role: 'STAFF',
+      email: 'admin@cafesync.com',
+      name: 'Super Admin',
+      password: 'password123', // Will be hashed in the Auth step
+      role: 'SUPER_ADMIN',
     },
   });
 
-  // 2. Create Ingredients
+  const staff = await prisma.user.create({
+    data: {
+      email: 'staff.siam@cafesync.com',
+      name: 'Siam Cashier',
+      password: 'password123',
+      role: 'STAFF',
+      branchId: mainBranch.id,
+    },
+  });
+
+  // 3. Create Ingredients (Global Dictionary)
   const coffeeBeans = await prisma.ingredient.create({
-    data: { name: 'Espresso Beans', unit: 'g', stock: 5000, minStock: 1000 },
+    data: { name: 'Espresso Beans', unit: 'g', globalMinStock: 1000 },
   });
   
   const milk = await prisma.ingredient.create({
-    data: { name: 'Whole Milk', unit: 'ml', stock: 10000, minStock: 2000 },
+    data: { name: 'Whole Milk', unit: 'ml', globalMinStock: 2000 },
   });
 
   const cup = await prisma.ingredient.create({
-    data: { name: 'Paper Cup', unit: 'pcs', stock: 500, minStock: 100 },
+    data: { name: 'Paper Cup', unit: 'pcs', globalMinStock: 100 },
   });
 
   const syrup = await prisma.ingredient.create({
-    data: { name: 'Vanilla Syrup', unit: 'ml', stock: 1000, minStock: 200 },
+    data: { name: 'Vanilla Syrup', unit: 'ml', globalMinStock: 200 },
   });
 
-  // 3. Create Products and Recipes
+  // 4. Create Branch Inventories (Stock per branch)
+  await prisma.branchInventory.createMany({
+    data: [
+      { branchId: mainBranch.id, ingredientId: coffeeBeans.id, stock: 5000, minStock: 1000 },
+      { branchId: mainBranch.id, ingredientId: milk.id, stock: 10000, minStock: 2000 },
+      { branchId: mainBranch.id, ingredientId: cup.id, stock: 500, minStock: 100 },
+      { branchId: mainBranch.id, ingredientId: syrup.id, stock: 1000, minStock: 200 },
+      // Second branch has less stock
+      { branchId: secondBranch.id, ingredientId: coffeeBeans.id, stock: 2000, minStock: 1000 },
+      { branchId: secondBranch.id, ingredientId: milk.id, stock: 3000, minStock: 2000 },
+      { branchId: secondBranch.id, ingredientId: cup.id, stock: 150, minStock: 100 },
+      { branchId: secondBranch.id, ingredientId: syrup.id, stock: 500, minStock: 200 },
+    ],
+  });
+
+  // 5. Create Suppliers
+  const supplier1 = await prisma.supplier.create({
+    data: { name: 'Global Coffee Beans Roaster', contactEmail: 'sales@gcr.com', phone: '0812345678' },
+  });
+
+  const supplier2 = await prisma.supplier.create({
+    data: { name: 'Thai Dairy Farm', contactEmail: 'order@thaidairy.com', phone: '0898765432' },
+  });
+
+  // 6. Create Products and Recipes
   await prisma.product.create({
     data: {
       name: 'Espresso',
@@ -70,22 +118,6 @@ async function main() {
         create: [
           { ingredientId: coffeeBeans.id, quantity: 18 },
           { ingredientId: milk.id, quantity: 150 },
-          { ingredientId: cup.id, quantity: 1 },
-        ],
-      },
-    },
-  });
-
-  await prisma.product.create({
-    data: {
-      name: 'Vanilla Latte',
-      price: 95,
-      category: 'Coffee',
-      recipeItems: {
-        create: [
-          { ingredientId: coffeeBeans.id, quantity: 18 },
-          { ingredientId: milk.id, quantity: 150 },
-          { ingredientId: syrup.id, quantity: 15 },
           { ingredientId: cup.id, quantity: 1 },
         ],
       },
