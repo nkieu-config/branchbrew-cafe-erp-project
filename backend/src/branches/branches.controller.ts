@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, ParseIntPipe, Request, UseGuards } from '@nestjs/common';
 import { BranchesService } from './branches.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -15,5 +15,23 @@ export class BranchesController {
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.branchesService.findOne(id);
+  }
+
+  @Post('transfers')
+  createTransfer(@Body() data: any, @Request() req: any) {
+    return this.branchesService.createTransfer({
+      ...data,
+      requestedById: req.user.userId
+    });
+  }
+
+  @Get(':id/transfers')
+  getTransfers(@Param('id', ParseIntPipe) id: number) {
+    return this.branchesService.getTransfers(id);
+  }
+
+  @Post('transfers/:id/accept')
+  acceptTransfer(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    return this.branchesService.acceptTransfer(id, req.user.userId);
   }
 }

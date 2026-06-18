@@ -5,12 +5,10 @@ import { PrismaService } from '../prisma/prisma.service';
 export class ProcurementService {
   constructor(private prisma: PrismaService) {}
 
-  // Suppliers
   findAllSuppliers() {
     return this.prisma.supplier.findMany();
   }
 
-  // Purchase Orders
   findAllPOs() {
     return this.prisma.purchaseOrder.findMany({
       include: { supplier: true, branch: true, items: { include: { ingredient: true } } }
@@ -36,7 +34,7 @@ export class ProcurementService {
     });
   }
 
-  async receivePO(poId: number) {
+  async receivePO(poId: number, expiryDates?: { ingredientId: number, date: string }[]) {
     return this.prisma.$transaction(async (tx) => {
       const po = await tx.purchaseOrder.findUnique({
         where: { id: poId },
@@ -46,8 +44,25 @@ export class ProcurementService {
       if (!po) throw new BadRequestException('PO not found');
       if (po.status === 'RECEIVED') throw new BadRequestException('PO already received');
 
-      // Update BranchInventory
+      // 1. Update BranchInventory (Cached Total)
+      // 2. Create InventoryBatch (FIFO Log)
       for (const item of po.items) {
+        // Create Batch
+        const expiryDateStr = expiryDates?.find(e => e.ingredientId === item.ingredientId)?.date;
+        const expiryDate = expiryDateStr ? new Date(expiryDateStr) : null;
+        
+        await tx.inventoryBatch.create({
+          data: {
+            branchId: po.branchId,
+            ingredientId: item.ingredientId,
+            quantity: item.quantityRequested,
+            expiryDate: expiryDate,
+            poId: po.id,
+            status: 'ACTIVE'
+          }
+        });
+
+        // Update Cached BranchInventory
         const inventory = await tx.branchInventory.findUnique({
           where: { branchId_ingredientId: { branchId: po.branchId, ingredientId: item.ingredientId } }
         });
@@ -63,7 +78,7 @@ export class ProcurementService {
               branchId: po.branchId,
               ingredientId: item.ingredientId,
               stock: item.quantityRequested,
-              minStock: 0 // Default
+              minStock: 0
             }
           });
         }

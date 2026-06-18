@@ -52,3 +52,8 @@ export const getPurchaseOrders = () => fetchAPI('/purchase-orders');
 export const getSuppliers = () => fetchAPI('/suppliers');
 export const getBranches = () => fetchAPI('/branches');
 export const getBranch = (id: number) => fetchAPI(`/branches/${id}`);
+
+// Transfers
+export const createTransfer = (data: any) => fetchAPI(`/branches/transfers`, { method: 'POST', body: JSON.stringify(data) });
+export const getTransfers = (branchId: number) => fetchAPI(`/branches/${branchId}/transfers`);
+export const acceptTransfer = (transferId: number) => fetchAPI(`/branches/transfers/${transferId}/accept`, { method: 'POST' });

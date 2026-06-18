@@ -15,6 +15,9 @@ model User {
   branchId  Int?
   branch    Branch?  @relation(fields: [branchId], references: [id])
   orders    Order[]
+  transfersRequested StockTransfer[] @relation("TransferRequestedBy")
+  transfersApproved  StockTransfer[] @relation("TransferApprovedBy")
+  auditLogs AuditLog[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -33,6 +36,9 @@ model Branch {
   orders         Order[]
   inventories    BranchInventory[]
   purchaseOrders PurchaseOrder[]
+  inventoryBatches InventoryBatch[]
+  transfersOut   StockTransfer[]   @relation("TransferFrom")
+  transfersIn    StockTransfer[]   @relation("TransferTo")
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 }
@@ -45,6 +51,8 @@ model Ingredient {
   recipeItems        RecipeItem[]
   branchInventories  BranchInventory[]
   purchaseOrderItems PurchaseOrderItem[]
+  inventoryBatches   InventoryBatch[]
+  stockTransfers     StockTransfer[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -60,6 +68,63 @@ model BranchInventory {
   updatedAt    DateTime   @updatedAt
 
   @@unique([branchId, ingredientId])
+}
+
+model InventoryBatch {
+  id           Int        @id @default(autoincrement())
+  branchId     Int
+  branch       Branch     @relation(fields: [branchId], references: [id])
+  ingredientId Int
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  quantity     Float
+  expiryDate   DateTime?
+  poId         Int?
+  purchaseOrder PurchaseOrder? @relation(fields: [poId], references: [id])
+  status       BatchStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+enum BatchStatus {
+  ACTIVE
+  DEPLETED
+  EXPIRED
+}
+
+model StockTransfer {
+  id              Int        @id @default(autoincrement())
+  fromBranchId    Int
+  fromBranch      Branch     @relation("TransferFrom", fields: [fromBranchId], references: [id])
+  toBranchId      Int
+  toBranch        Branch     @relation("TransferTo", fields: [toBranchId], references: [id])
+  ingredientId    Int
+  ingredient      Ingredient @relation(fields: [ingredientId], references: [id])
+  quantity        Float
+  status          TransferStatus @default(PENDING)
+  requestedById   Int
+  requestedBy     User       @relation("TransferRequestedBy", fields: [requestedById], references: [id])
+  approvedById    Int?
+  approvedBy      User?      @relation("TransferApprovedBy", fields: [approvedById], references: [id])
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
+enum TransferStatus {
+  PENDING
+  SHIPPED
+  COMPLETED
+  CANCELLED
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  action      String
+  targetType  String   // e.g. "InventoryBatch", "Order", "StockTransfer"
+  targetId    Int?
+  details     String?  // JSON string or text details
+  createdAt   DateTime @default(now())
 }
 
 model Product {
@@ -122,6 +187,7 @@ model PurchaseOrder {
   supplier   Supplier            @relation(fields: [supplierId], references: [id])
   status     POStatus            @default(PENDING)
   items      PurchaseOrderItem[]
+  inventoryBatches InventoryBatch[]
   createdAt  DateTime            @default(now())
   updatedAt  DateTime            @updatedAt
 }
