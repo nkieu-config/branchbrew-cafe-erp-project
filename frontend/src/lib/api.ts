@@ -51,3 +51,4 @@ export const getOrders = () => fetchAPI('/orders');
 export const getPurchaseOrders = () => fetchAPI('/purchase-orders');
 export const getSuppliers = () => fetchAPI('/suppliers');
 export const getBranches = () => fetchAPI('/branches');
+export const getBranch = (id: number) => fetchAPI(`/branches/${id}`);

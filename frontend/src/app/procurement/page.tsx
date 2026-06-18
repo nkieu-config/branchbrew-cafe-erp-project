@@ -1,0 +1,114 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { getPurchaseOrders, fetchAPI } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Plus, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
+
+export default function ProcurementPage() {
+  const { user, activeBranchId } = useAuth();
+  const [pos, setPos] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadPOs();
+  }, [activeBranchId, user]);
+
+  const loadPOs = async () => {
+    try {
+      const data = await getPurchaseOrders();
+      // Filter by active branch unless Super Admin wants to see all
+      if (user?.role === 'SUPER_ADMIN' && !activeBranchId) {
+        setPos(data);
+      } else if (activeBranchId) {
+        setPos(data.filter((po: any) => po.branchId === activeBranchId));
+      } else {
+        setPos(data);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const receivePO = async (poId: number) => {
+    try {
+      await fetchAPI(`/purchase-orders/${poId}/receive`, { method: 'POST' });
+      toast.success("Purchase Order received! Inventory updated.");
+      loadPOs();
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-800">Procurement</h1>
+          <p className="text-slate-500">Manage purchase orders and supplier deliveries.</p>
+        </div>
+        <Button className="bg-blue-600 hover:bg-blue-700">
+          <Plus className="w-4 h-4 mr-2" />
+          Create PO
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Purchase Orders</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>PO Number</TableHead>
+                <TableHead>Branch</TableHead>
+                <TableHead>Supplier</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pos.map((po) => (
+                <TableRow key={po.id}>
+                  <TableCell className="font-medium">{po.poNumber}</TableCell>
+                  <TableCell>{po.branch.name}</TableCell>
+                  <TableCell>{po.supplier.name}</TableCell>
+                  <TableCell>
+                    <Badge variant={po.status === 'RECEIVED' ? 'default' : 'secondary'} className={po.status === 'RECEIVED' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}>
+                      {po.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {po.status === 'PENDING' && (
+                      <Button size="sm" variant="outline" className="text-green-600 hover:text-green-700 hover:bg-green-50" onClick={() => receivePO(po.id)}>
+                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                        Receive Goods
+                      </Button>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+              {pos.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-slate-500 py-8">
+                    No purchase orders found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

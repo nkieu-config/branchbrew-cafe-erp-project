@@ -2,12 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { getProducts, createOrder } from "@/lib/api";
+import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Coffee, ShoppingBag } from "lucide-react";
 
 export default function POSPage() {
+  const { user, activeBranchId } = useAuth();
   const [products, setProducts] = useState<any[]>([]);
   const [cart, setCart] = useState<{ product: any; quantity: number }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,11 +41,15 @@ export default function POSPage() {
 
   const handleCheckout = async () => {
     if (cart.length === 0) return;
+    if (!activeBranchId) {
+      toast.error("Please select a branch first (Super Admins currently cannot checkout without a branch).");
+      return;
+    }
+    
     try {
       const items = cart.map(item => ({ productId: item.product.id, quantity: item.quantity }));
-      // Using a dummy userId (1) for now since we haven't implemented full Auth
-      await createOrder({ userId: 1, items });
-      toast.success("Order completed successfully! Ingredients have been deducted.");
+      await createOrder({ userId: user?.id as number, branchId: activeBranchId, items });
+      toast.success("Order completed successfully! Inventory has been deducted.");
       setCart([]);
     } catch (err: any) {
       toast.error("Checkout failed: " + err.message);
