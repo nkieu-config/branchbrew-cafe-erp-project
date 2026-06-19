@@ -16,7 +16,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   }, [token, pathname, router]);
 
   if (!token && pathname !== '/login') {
-    return <div className="h-screen w-full flex items-center justify-center text-slate-500">Redirecting to login...</div>;
+    return <div className="h-screen w-full flex items-center justify-center text-slate-500">Redirecting to login…</div>;
   }
 
   return <>{children}</>;
