@@ -89,3 +89,16 @@ export const getMyShifts = () => fetchAPI('/hr/shifts/me');
 export const getPayroll = (branchId: number, month: number, year: number) => fetchAPI(`/hr/payroll?branchId=${branchId}&month=${month}&year=${year}`);
 export const updateHourlyRate = (userId: number, hourlyRate: number) => fetchAPI(`/hr/users/${userId}/rate`, { method: 'PATCH', body: JSON.stringify({ hourlyRate }) });
 export const getHrUsers = (branchId?: number) => fetchAPI(`/hr/users${branchId ? `?branchId=${branchId}` : ''}`);
+
+// Waste & Costing
+export const getBranchInventory = () => fetchAPI('/ingredients/inventory/branch');
+export const recordWaste = (data: { ingredientId: number; quantity: number; reason: string }) => fetchAPI('/ingredients/waste', { method: 'POST', body: JSON.stringify(data) });
+export const getWasteLogs = () => fetchAPI('/ingredients/waste/logs');
+
+// Finance & Settlement
+export const createExpense = (data: { amount: number; category: string; description?: string }) => fetchAPI('/finance/expenses', { method: 'POST', body: JSON.stringify(data) });
+export const getExpenses = (date?: string) => fetchAPI(`/finance/expenses${date ? `?date=${date}` : ''}`);
+export const getExpectedCash = () => fetchAPI('/finance/settlements/expected');
+export const submitSettlement = (actualCash: number) => fetchAPI('/finance/settlements', { method: 'POST', body: JSON.stringify({ actualCash }) });
+export const getSettlements = () => fetchAPI('/finance/settlements');
+export const approveSettlement = (id: number) => fetchAPI(`/finance/settlements/${id}/approve`, { method: 'PATCH' });

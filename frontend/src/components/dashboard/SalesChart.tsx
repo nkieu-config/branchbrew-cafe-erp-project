@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { useTheme } from "next-themes"
 import {
   Area,
@@ -24,10 +25,19 @@ const data = [
 export function SalesChart() {
   const { theme } = useTheme()
   const isDark = theme === "dark"
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  if (!isMounted) {
+    return <div className="h-[350px] w-full animate-pulse bg-slate-100 dark:bg-slate-800/50 rounded-xl" />
+  }
 
   return (
-    <div className="h-[350px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="h-[350px] w-full min-h-[350px] min-w-0">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={350}>
         <AreaChart
           data={data}
           margin={{
