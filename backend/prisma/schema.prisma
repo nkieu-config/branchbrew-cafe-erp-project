@@ -21,6 +21,9 @@ model User {
   auditLogs AuditLog[]
   shifts    Shift[]
   attendanceRecords AttendanceRecord[]
+  wasteLogs         WasteLog[]
+  expenses          Expense[]
+  shiftSettlements  ShiftSettlement[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -44,6 +47,9 @@ model Branch {
   transfersIn    StockTransfer[]   @relation("TransferTo")
   shifts         Shift[]
   attendanceRecords AttendanceRecord[]
+  wasteLogs         WasteLog[]
+  expenses          Expense[]
+  shiftSettlements  ShiftSettlement[]
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 }
@@ -52,12 +58,14 @@ model Ingredient {
   id                 Int                 @id @default(autoincrement())
   name               String
   unit               String
+  costPerUnit        Float               @default(0)
   globalMinStock     Int                 @default(0)
   recipeItems        RecipeItem[]
   branchInventories  BranchInventory[]
   purchaseOrderItems PurchaseOrderItem[]
   inventoryBatches   InventoryBatch[]
   stockTransfers     StockTransfer[]
+  wasteLogs          WasteLog[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -195,6 +203,7 @@ model Order {
   totalAmount    Float
   discountAmount Float       @default(0)
   netAmount      Float       @default(0)
+  totalCogs      Float       @default(0)
   pointsEarned   Int         @default(0)
   pointsRedeemed Int         @default(0)
   userId         Int
@@ -283,4 +292,50 @@ model AttendanceRecord {
   totalHours Float?   // Calculated on clock out
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+}
+
+model WasteLog {
+  id           Int        @id @default(autoincrement())
+  branchId     Int
+  branch       Branch     @relation(fields: [branchId], references: [id])
+  ingredientId Int
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  quantity     Float
+  reason       String
+  recordedById Int
+  recordedBy   User       @relation(fields: [recordedById], references: [id])
+  createdAt    DateTime   @default(now())
+}
+
+model Expense {
+  id           Int      @id @default(autoincrement())
+  branchId     Int
+  branch       Branch   @relation(fields: [branchId], references: [id])
+  amount       Float
+  category     String
+  description  String?
+  recordedById Int
+  recordedBy   User     @relation(fields: [recordedById], references: [id])
+  createdAt    DateTime @default(now())
+}
+
+model ShiftSettlement {
+  id            Int      @id @default(autoincrement())
+  branchId      Int
+  branch        Branch   @relation(fields: [branchId], references: [id])
+  date          DateTime @default(now()) @db.Date
+  expectedCash  Float
+  actualCash    Float
+  difference    Float
+  status        SettlementStatus @default(PENDING)
+  submittedById Int
+  submittedBy   User     @relation(fields: [submittedById], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+enum SettlementStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
