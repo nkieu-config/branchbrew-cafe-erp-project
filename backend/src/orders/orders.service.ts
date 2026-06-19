@@ -15,13 +15,14 @@ export class OrdersService {
   }) {
     return this.prisma.$transaction(async (tx) => {
       let totalAmount = 0;
+      let totalCogs = 0;
 
       const ingredientRequirements = new Map<number, number>();
 
       for (const item of data.items) {
         const product = await tx.product.findUnique({
           where: { id: item.productId },
-          include: { recipeItems: true },
+          include: { recipeItems: { include: { ingredient: true } } },
         });
 
         if (!product) throw new BadRequestException(`Product with ID ${item.productId} not found`);
@@ -32,6 +33,8 @@ export class OrdersService {
           const totalNeeded = recipe.quantity * item.quantity;
           const currentNeeded = ingredientRequirements.get(recipe.ingredientId) || 0;
           ingredientRequirements.set(recipe.ingredientId, currentNeeded + totalNeeded);
+          
+          totalCogs += (recipe.ingredient.costPerUnit * totalNeeded);
         }
       }
 
@@ -139,6 +142,7 @@ export class OrdersService {
           totalAmount,
           discountAmount,
           netAmount,
+          totalCogs,
           pointsEarned,
           pointsRedeemed,
           customerId,
