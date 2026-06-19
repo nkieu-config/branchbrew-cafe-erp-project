@@ -24,6 +24,7 @@ model User {
   wasteLogs         WasteLog[]
   expenses          Expense[]
   shiftSettlements  ShiftSettlement[]
+  payslips          Payslip[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -50,6 +51,7 @@ model Branch {
   wasteLogs         WasteLog[]
   expenses          Expense[]
   shiftSettlements  ShiftSettlement[]
+  payrollRuns       PayrollRun[]
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
 }
@@ -338,4 +340,40 @@ enum SettlementStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+model PayrollRun {
+  id          Int      @id @default(autoincrement())
+  month       Int
+  year        Int
+  status      PayrollStatus @default(DRAFT)
+  branchId    Int?
+  branch      Branch?  @relation(fields: [branchId], references: [id])
+  payslips    Payslip[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum PayrollStatus {
+  DRAFT
+  APPROVED
+  PAID
+}
+
+model Payslip {
+  id             Int        @id @default(autoincrement())
+  payrollRunId   Int
+  payrollRun     PayrollRun @relation(fields: [payrollRunId], references: [id])
+  userId         Int
+  user           User       @relation(fields: [userId], references: [id])
+  standardHours  Float      @default(0)
+  otHours        Float      @default(0)
+  basePay        Float      @default(0)
+  otPay          Float      @default(0)
+  grossPay       Float      @default(0)
+  taxDeduction   Float      @default(0)
+  socialSecurity Float      @default(0)
+  netPay         Float      @default(0)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 }
