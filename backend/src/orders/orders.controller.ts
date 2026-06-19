@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Body, Param, ParseIntPipe, UseGuards, Request, Query, Patch } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CreateOrderDto } from './dto/create-order.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('orders')
@@ -8,7 +9,7 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Post()
-  create(@Body() createOrderDto: any, @Request() req: any) {
+  create(@Body() createOrderDto: CreateOrderDto, @Request() req: any) {
     // Inject userId and branchId from JWT token payload (req.user is set by Passport)
     const data = {
       ...createOrderDto,

@@ -79,10 +79,11 @@ model BranchInventory {
   ingredientId Int
   ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
   stock        Float      @default(0)
-  minStock     Float      @default(0)
+  minStock     Int
   updatedAt    DateTime   @updatedAt
 
   @@unique([branchId, ingredientId])
+  @@index([branchId])
 }
 
 model InventoryBatch {
@@ -98,6 +99,9 @@ model InventoryBatch {
   status       BatchStatus @default(ACTIVE)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+
+  @@index([branchId, ingredientId, status])
+  @@index([expiryDate])
 }
 
 enum BatchStatus {
@@ -226,6 +230,10 @@ model Order {
   promotion      Promotion?  @relation(fields: [promotionId], references: [id])
   items          OrderItem[]
   createdAt      DateTime    @default(now())
+
+  @@index([branchId])
+  @@index([userId])
+  @@index([createdAt])
 }
 
 model OrderItem {
