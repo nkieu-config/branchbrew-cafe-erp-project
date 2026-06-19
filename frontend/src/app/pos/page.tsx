@@ -8,8 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Coffee, ShoppingBag, User, Ticket, Award, Search, X } from "lucide-react";
+import { Coffee, ShoppingBag, User, Ticket, Award, Search, X, Printer, Plus } from "lucide-react";
 import { AnimatedPage } from "@/components/animated-page";
+import { Receipt } from "@/components/pos/Receipt";
+import { useReactToPrint } from "react-to-print";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useRef } from "react";
 
 export default function POSPage() {
   const { user, activeBranchId } = useAuth();
@@ -25,6 +29,16 @@ export default function POSPage() {
   // Promo State
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<any>(null);
+
+  // Receipt & Success State
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [completedOrder, setCompletedOrder] = useState<any>(null);
+  const receiptRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = useReactToPrint({
+    contentRef: receiptRef,
+    documentTitle: `Receipt-${completedOrder?.id || 'new'}`,
+  });
 
   useEffect(() => {
     getProducts()
@@ -111,7 +125,7 @@ export default function POSPage() {
     
     try {
       const items = cart.map(item => ({ productId: item.product.id, quantity: item.quantity }));
-      await createOrder({ 
+      const orderData = await createOrder({ 
         userId: user?.id as number, 
         branchId: activeBranchId, 
         items,
@@ -119,7 +133,21 @@ export default function POSPage() {
         promotionCode: appliedPromo?.code,
         pointsToRedeem: pointsToRedeem > 0 ? pointsToRedeem : undefined
       });
+      
       toast.success("Order completed successfully!");
+      
+      // Prepare receipt data
+      setCompletedOrder({
+        id: orderData.id,
+        cashier: user?.name,
+        customerName: customer?.name,
+        items: cart,
+        subtotal,
+        discount: totalDiscount,
+        netTotal
+      });
+      setShowSuccess(true);
+      
       setCart([]);
       handleClearCRM();
       setAppliedPromo(null);
@@ -295,6 +323,45 @@ export default function POSPage() {
           </Button>
         </div>
       </div>
+
+      {/* Success & Print Dialog */}
+      <Dialog open={showSuccess} onOpenChange={(open) => {
+        if (!open) setShowSuccess(false);
+      }}>
+        <DialogContent className="sm:max-w-[400px] bg-slate-100 dark:bg-slate-900">
+          <DialogHeader>
+            <DialogTitle className="text-center text-emerald-600 text-2xl font-bold flex flex-col items-center gap-2">
+              <Award className="w-12 h-12" />
+              Order Completed!
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="py-4 flex justify-center">
+            {/* Hidden Receipt Component to be printed */}
+            <div className="hidden">
+              <Receipt ref={receiptRef} order={completedOrder} branchName="Branch" />
+            </div>
+            
+            {/* Preview */}
+            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm text-sm text-center w-full max-w-[250px] rounded text-slate-900 dark:text-slate-100">
+              <p className="font-bold border-b border-slate-200 dark:border-slate-700 pb-2 mb-2">Receipt Preview</p>
+              <p>Total: ฿{completedOrder?.netTotal?.toFixed(2)}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Order #{completedOrder?.id}</p>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-col gap-2">
+            <Button onClick={() => handlePrint()} className="w-full h-12 text-lg bg-emerald-500 hover:bg-emerald-600">
+              <Printer className="w-5 h-5 mr-2" />
+              Print Receipt
+            </Button>
+            <Button variant="outline" onClick={() => setShowSuccess(false)} className="w-full h-12 text-lg">
+              <Plus className="w-5 h-5 mr-2" />
+              New Order
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AnimatedPage>
   );
 }
