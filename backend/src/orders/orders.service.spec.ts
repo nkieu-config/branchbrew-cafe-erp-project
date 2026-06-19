@@ -8,6 +8,8 @@ describe('OrdersService', () => {
   let service: OrdersService;
   let prisma: MockPrismaService;
 
+  const TEST_BRANCH_ID = 2;
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -30,7 +32,7 @@ describe('OrdersService', () => {
   describe('createOrder', () => {
     const mockOrderData = {
       userId: 1,
-      branchId: 1,
+      branchId: TEST_BRANCH_ID,
       items: [{ productId: 1, quantity: 2 }],
     };
 
@@ -64,7 +66,7 @@ describe('OrdersService', () => {
       // Mock BranchInventory to have insufficient stock (needs 40g for 2 Lattes, only has 10g)
       prisma.branchInventory.findUnique.mockResolvedValue({
         id: 1,
-        branchId: 1,
+        branchId: TEST_BRANCH_ID,
         ingredientId: 1,
         stock: 10,
         minStock: 50,
@@ -92,7 +94,7 @@ describe('OrdersService', () => {
 
       prisma.branchInventory.findUnique.mockResolvedValue({
         id: 1,
-        branchId: 1,
+        branchId: TEST_BRANCH_ID,
         ingredientId: 1,
         stock: 100, // Sufficient stock
       } as any);

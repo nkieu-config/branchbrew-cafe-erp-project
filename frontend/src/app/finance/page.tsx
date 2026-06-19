@@ -11,9 +11,11 @@ import { toast } from "sonner"
 import { Download } from "lucide-react"
 import { exportSales } from "@/lib/api"
 
+import { Settlement, Expense } from "@/types"
+
 export default function FinanceDashboardPage() {
-  const [settlements, setSettlements] = useState<any[]>([])
-  const [expenses, setExpenses] = useState<any[]>([])
+  const [settlements, setSettlements] = useState<Settlement[]>([])
+  const [expenses, setExpenses] = useState<Expense[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { token, activeBranchId } = useAuth()
 

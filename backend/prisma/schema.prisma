@@ -126,6 +126,10 @@ model StockTransfer {
   approvedBy      User?      @relation("TransferApprovedBy", fields: [approvedById], references: [id])
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
+
+  @@index([fromBranchId])
+  @@index([toBranchId])
+  @@index([status])
 }
 
 enum TransferStatus {
@@ -244,6 +248,9 @@ model OrderItem {
   product   Product @relation(fields: [productId], references: [id])
   quantity  Int
   price     Float
+
+  @@index([orderId])
+  @@index([productId])
 }
 
 model Supplier {
@@ -323,6 +330,9 @@ model WasteLog {
   recordedById Int
   recordedBy   User       @relation(fields: [recordedById], references: [id])
   createdAt    DateTime   @default(now())
+
+  @@index([branchId])
+  @@index([createdAt])
 }
 
 model Expense {
@@ -335,6 +345,9 @@ model Expense {
   recordedById Int
   recordedBy   User     @relation(fields: [recordedById], references: [id])
   createdAt    DateTime @default(now())
+
+  @@index([branchId])
+  @@index([createdAt])
 }
 
 model ShiftSettlement {

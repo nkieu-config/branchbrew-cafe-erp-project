@@ -45,18 +45,20 @@ describe('HrService', () => {
       // Base: 1600, OT: 192 * 300 = 57600, Gross: 59200.
       // SS (5%): 2960 -> Cap at 750. Tax (3%): 1776. Net: 59200 - 750 - 1776 = 56674.
 
+      const mockBranchId = 2;
+
       prisma.attendanceRecord.findMany.mockResolvedValue([
         {
           id: 1,
           userId: 1,
-          branchId: 1,
+          branchId: mockBranchId,
           totalHours: 10,
           user: { id: 1, hourlyRate: 100 },
         },
         {
           id: 2,
           userId: 2,
-          branchId: 1,
+          branchId: mockBranchId,
           totalHours: 200,
           user: { id: 2, hourlyRate: 2000 }, // High rate to trigger SS cap
         },
@@ -64,7 +66,7 @@ describe('HrService', () => {
 
       prisma.payrollRun.create.mockResolvedValue({ id: 2 } as any);
 
-      await service.generatePayrollRun(1, 6, 2026);
+      await service.generatePayrollRun(mockBranchId, 6, 2026);
 
       expect(prisma.payrollRun.create).toHaveBeenCalledWith(
         expect.objectContaining({

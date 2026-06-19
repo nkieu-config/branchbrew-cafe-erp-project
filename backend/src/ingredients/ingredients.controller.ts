@@ -38,18 +38,6 @@ export class IngredientsController {
     return this.ingredientsService.getBranchInventory(branchId);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Post('waste')
-  recordWaste(@Body() body: { ingredientId: number; quantity: number; reason: string }, @Request() req: any) {
-    const branchId = req.user.branchId || 1;
-    return this.ingredientsService.recordWaste({
-      branchId,
-      ingredientId: body.ingredientId,
-      quantity: body.quantity,
-      reason: body.reason,
-      recordedById: req.user.userId
-    });
-  }
 
   @UseGuards(JwtAuthGuard)
   @Get('waste/logs')

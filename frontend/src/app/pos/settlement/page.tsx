@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Calculator, Wallet } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 
+import { SettlementExpected } from "@/types"
+
 export default function SettlementPage() {
-  const [expected, setExpected] = useState<any>(null)
+  const [expected, setExpected] = useState<SettlementExpected | null>(null)
   const [actualCash, setActualCash] = useState<string>("")
   const [isLoading, setIsLoading] = useState(true)
   const { activeBranchId } = useAuth()

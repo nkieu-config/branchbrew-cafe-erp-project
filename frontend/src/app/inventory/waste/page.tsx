@@ -2,14 +2,16 @@
 
 import { useState, useEffect } from "react"
 import { AnimatedPage } from "@/components/animated-page"
-import { getBranchInventory, recordWaste, getWasteLogs, getBranch } from "@/lib/api"
+import { getBranchInventory, reportWaste, getWasteLogs, getBranch } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Trash2, AlertCircle } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 
+import { BranchInventory, WasteLog } from "@/types"
+
 export default function WasteLogPage() {
-  const [inventory, setInventory] = useState<any[]>([])
-  const [logs, setLogs] = useState<any[]>([])
+  const [inventory, setInventory] = useState<BranchInventory[]>([])
+  const [logs, setLogs] = useState<WasteLog[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { activeBranchId } = useAuth()
 
@@ -48,9 +50,9 @@ export default function WasteLogPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.ingredientId || !form.quantity || !form.reason) return
+    if (!form.ingredientId || !form.quantity || !form.reason || !activeBranchId) return
     try {
-      await recordWaste({
+      await reportWaste(activeBranchId, {
         ingredientId: parseInt(form.ingredientId),
         quantity: parseFloat(form.quantity),
         reason: form.reason

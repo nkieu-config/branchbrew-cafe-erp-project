@@ -80,10 +80,6 @@ export const validatePromotion = (code: string, subtotal: number) => fetchAPI('/
 
 // Waste
 export const getWasteLogs = (branchId?: number) => fetchAPI(`/ingredients/waste/logs${branchId ? `?branchId=${branchId}` : ''}`);
-export const recordWaste = (data: any) => fetchAPI('/ingredients/waste', {
-  method: 'POST',
-  body: JSON.stringify(data)
-});
 
 // HR
 export const clockIn = (branchId: number) => fetchAPI('/hr/clock-in', { method: 'POST', body: JSON.stringify({ branchId }) });
