@@ -1,9 +1,10 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { EventsGateway } from '../events/events.gateway';
 
 @Injectable()
 export class OrdersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private eventsGateway: EventsGateway) {}
 
   async createOrder(data: { 
     userId: number; 
@@ -158,8 +159,11 @@ export class OrdersService {
             }))
           }
         },
-        include: { items: true, customer: true, promotion: true },
+        include: { items: { include: { product: true } }, customer: true, promotion: true },
       });
+
+      // Emit WebSocket event for KDS
+      this.eventsGateway.emitOrderCreated(order);
 
       return order;
     });
@@ -195,9 +199,14 @@ export class OrdersService {
   }
 
   async updateOrderStatus(orderId: number, status: any) {
-    return this.prisma.order.update({
+    const updated = await this.prisma.order.update({
       where: { id: orderId },
       data: { status }
     });
+    
+    // Emit WebSocket event to notify clients (POS/KDS)
+    this.eventsGateway.emitOrderStatusUpdated(orderId, status);
+    
+    return updated;
   }
 }

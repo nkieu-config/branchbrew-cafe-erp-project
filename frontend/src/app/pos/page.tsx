@@ -103,6 +103,7 @@ export default function POSPage() {
 
   const handleCheckout = async () => {
     if (cart.length === 0) return;
+    
     if (!activeBranchId) {
       toast.error("Please select a branch first.");
       return;

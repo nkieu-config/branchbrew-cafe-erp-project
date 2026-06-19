@@ -15,6 +15,7 @@ import { CustomersModule } from './customers/customers.module';
 import { PromotionsModule } from './promotions/promotions.module';
 import { HrModule } from './hr/hr.module';
 import { FinanceModule } from './finance/finance.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { FinanceModule } from './finance/finance.module';
       ttl: 60000,
       limit: 60,
     }]),
-    PrismaModule, ProductsModule, IngredientsModule, OrdersModule, AuthModule, BranchesModule, ProcurementModule, CustomersModule, PromotionsModule, HrModule, FinanceModule
+    PrismaModule, ProductsModule, IngredientsModule, OrdersModule, AuthModule, BranchesModule, ProcurementModule, CustomersModule, PromotionsModule, HrModule, FinanceModule, EventsModule
   ],
   controllers: [AppController],
   providers: [

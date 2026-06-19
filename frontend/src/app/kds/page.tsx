@@ -1,25 +1,19 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { AnimatedPage } from "@/components/animated-page"
 import { getKdsOrders, updateOrderStatus } from "@/lib/api"
 import { useAuth } from "@/context/AuthContext"
+import { useSocket } from "@/context/SocketContext"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, Clock, Play } from "lucide-react"
 
 export default function KdsPage() {
   const { activeBranchId } = useAuth()
+  const { socket, isConnected } = useSocket()
   const [orders, setOrders] = useState<any[]>([])
 
-  useEffect(() => {
-    if (!activeBranchId) return
-    
-    fetchOrders()
-    const interval = setInterval(fetchOrders, 5000)
-    return () => clearInterval(interval)
-  }, [activeBranchId])
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     if (!activeBranchId) return
     try {
       const data = await getKdsOrders(activeBranchId)
@@ -27,7 +21,47 @@ export default function KdsPage() {
     } catch (err) {
       console.error(err)
     }
-  }
+  }, [activeBranchId])
+
+  useEffect(() => {
+    if (!activeBranchId) return
+    
+    fetchOrders()
+    // We no longer strictly need polling, but we can keep a slow fallback interval
+    const interval = setInterval(fetchOrders, 30000)
+    return () => clearInterval(interval)
+  }, [activeBranchId, fetchOrders])
+
+  useEffect(() => {
+    if (!socket || !activeBranchId) return
+
+    const handleOrderCreated = (newOrder: any) => {
+      // Only show orders for the current branch
+      if (newOrder.branchId === activeBranchId) {
+        // Use functional state update to avoid stale closure
+        setOrders((prev) => [...prev, newOrder])
+      }
+    }
+
+    const handleOrderStatusUpdated = (data: { orderId: number, status: string }) => {
+      setOrders((prev) => {
+        if (data.status === 'COMPLETED') {
+          return prev.filter(o => o.id !== data.orderId)
+        }
+        return prev.map(o => o.id === data.orderId ? { ...o, status: data.status } : o)
+      })
+    }
+
+    socket.on('orderCreated', handleOrderCreated)
+    socket.on('orderStatusUpdated', handleOrderStatusUpdated)
+
+    return () => {
+      socket.off('orderCreated', handleOrderCreated)
+      socket.off('orderStatusUpdated', handleOrderStatusUpdated)
+    }
+  }, [socket, activeBranchId])
+
+  // Removed old fetchOrders to prevent duplicate
 
   const handleUpdateStatus = async (orderId: number, status: string) => {
     try {

@@ -12,6 +12,8 @@ const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500
 
 import { ThemeProvider } from "@/components/theme-provider";
 
+import { SocketProvider } from "@/context/SocketContext";
+
 export const metadata: Metadata = {
   title: "QafaCafe ERP",
   description: "Enterprise POS and Management Dashboard",
@@ -27,16 +29,18 @@ export default function RootLayout({
       <body className={`${plusJakarta.className} flex min-h-screen bg-slate-50 dark:bg-slate-950 bg-[url('/bg-pattern.svg')] dark:bg-none bg-fixed text-slate-900 dark:text-slate-50 antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <AuthProvider>
-            <ProtectedRoute>
-              <Sidebar />
-              <main className="flex-1 overflow-auto h-screen relative z-10 flex flex-col">
-                <Topbar />
-                <div className="flex-1 p-4 md:p-6 lg:p-8">
-                  {children}
-                </div>
-              </main>
-              <Toaster />
-            </ProtectedRoute>
+            <SocketProvider>
+              <ProtectedRoute>
+                <Sidebar />
+                <main className="flex-1 overflow-auto h-screen relative z-10 flex flex-col">
+                  <Topbar />
+                  <div className="flex-1 p-4 md:p-6 lg:p-8">
+                    {children}
+                  </div>
+                </main>
+                <Toaster />
+              </ProtectedRoute>
+            </SocketProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>
