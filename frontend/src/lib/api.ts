@@ -86,7 +86,9 @@ export const createShift = (data: any) => fetchAPI('/hr/shifts', { method: 'POST
 export const getShiftsByBranch = (branchId: number) => fetchAPI(`/hr/shifts/branch/${branchId}`);
 export const getMyShifts = () => fetchAPI('/hr/shifts/me');
 
-export const getPayroll = (branchId: number, month: number, year: number) => fetchAPI(`/hr/payroll?branchId=${branchId}&month=${month}&year=${year}`);
+export const generatePayrollRun = (branchId: number, month: number, year: number) => fetchAPI('/hr/payroll/generate', { method: 'POST', body: JSON.stringify({ branchId, month, year }) });
+export const getPayrollRuns = (branchId: number) => fetchAPI(`/hr/payroll-runs?branchId=${branchId}`);
+export const approvePayrollRun = (id: number) => fetchAPI(`/hr/payroll-runs/${id}/approve`, { method: 'PATCH' });
 export const updateHourlyRate = (userId: number, hourlyRate: number) => fetchAPI(`/hr/users/${userId}/rate`, { method: 'PATCH', body: JSON.stringify({ hourlyRate }) });
 export const getHrUsers = (branchId?: number) => fetchAPI(`/hr/users${branchId ? `?branchId=${branchId}` : ''}`);
 
