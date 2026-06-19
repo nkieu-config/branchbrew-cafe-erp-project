@@ -10,6 +10,8 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   console.log('Cleaning existing data...');
   // Clean up
+  await prisma.attendanceRecord.deleteMany();
+  await prisma.shift.deleteMany();
   await prisma.purchaseOrderItem.deleteMany();
   await prisma.purchaseOrder.deleteMany();
   await prisma.supplier.deleteMany();
@@ -17,6 +19,7 @@ async function main() {
   await prisma.order.deleteMany();
   await prisma.recipeItem.deleteMany();
   await prisma.product.deleteMany();
+  await prisma.inventoryBatch.deleteMany();
   await prisma.branchInventory.deleteMany();
   await prisma.ingredient.deleteMany();
   await prisma.user.deleteMany();

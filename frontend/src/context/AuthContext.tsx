@@ -48,6 +48,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(newToken);
     setUser(newUser);
     setActiveBranchId(newUser.branchId || null);
+    router.push('/');
+    toast.success('Logged in successfully');
   };
 
   const logout = () => {

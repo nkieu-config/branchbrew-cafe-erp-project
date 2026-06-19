@@ -26,7 +26,14 @@ export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
     throw new Error(errorData.message || 'An error occurred while fetching data');
   }
 
-  return response.json();
+  const text = await response.text();
+  if (!text || text.trim() === '') return null;
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    console.error('Failed to parse JSON response:', text);
+    return null;
+  }
 }
 
 // Auth
