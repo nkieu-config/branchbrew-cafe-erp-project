@@ -39,7 +39,7 @@ async function main() {
   // 2. Create Users
   const admin = await prisma.user.create({
     data: {
-      email: 'admin@cafesync.com',
+      email: 'admin@qafacafe.com',
       name: 'Super Admin',
       password: 'password123', // Will be hashed in the Auth step
       role: 'SUPER_ADMIN',
@@ -48,7 +48,7 @@ async function main() {
 
   const staff = await prisma.user.create({
     data: {
-      email: 'staff.siam@cafesync.com',
+      email: 'staff.siam@qafacafe.com',
       name: 'Siam Cashier',
       password: 'password123',
       role: 'STAFF',

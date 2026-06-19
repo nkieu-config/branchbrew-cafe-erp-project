@@ -13,7 +13,7 @@ const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500
 import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
-  title: "CafeSync ERP",
+  title: "QafaCafe ERP",
   description: "Enterprise POS and Management Dashboard",
 };
 

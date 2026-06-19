@@ -29,7 +29,7 @@ export function Sidebar() {
         <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center mr-3 shadow-sm">
           <Coffee className="w-5 h-5 text-white" />
         </div>
-        <span className="font-extrabold text-xl tracking-tight bg-gradient-to-br from-slate-800 to-slate-500 dark:from-slate-100 dark:to-slate-400 bg-clip-text text-transparent">CafeSync</span>
+        <span className="font-extrabold text-xl tracking-tight bg-gradient-to-br from-slate-800 to-slate-500 dark:from-slate-100 dark:to-slate-400 bg-clip-text text-transparent">QafaCafe</span>
       </div>
       
       {user && (

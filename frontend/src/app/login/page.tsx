@@ -43,7 +43,7 @@ export default function LoginPage() {
             <div className="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
               <Coffee className="w-5 h-5" />
             </div>
-            <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">CafeSync</span>
+            <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">QafaCafe</span>
           </div>
 
           <div className="mb-10">
@@ -58,7 +58,7 @@ export default function LoginPage() {
                 id="email" 
                 name="email"
                 type="email" 
-                placeholder="name@cafesync.com" 
+                placeholder="name@qafacafe.com" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 autoComplete="username"
@@ -96,8 +96,8 @@ export default function LoginPage() {
           <div className="mt-12 p-6 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-sm text-slate-500 dark:text-slate-400">
             <p className="font-semibold text-slate-700 dark:text-slate-300 mb-2">Demo Access</p>
             <div className="space-y-1.5 font-mono text-xs">
-              <div className="flex justify-between"><span>Admin:</span> <span className="text-slate-900 dark:text-white">admin@cafesync.com</span></div>
-              <div className="flex justify-between"><span>Staff:</span> <span className="text-slate-900 dark:text-white">staff.siam@cafesync.com</span></div>
+              <div className="flex justify-between"><span>Admin:</span> <span className="text-slate-900 dark:text-white">admin@qafacafe.com</span></div>
+              <div className="flex justify-between"><span>Staff:</span> <span className="text-slate-900 dark:text-white">staff.siam@qafacafe.com</span></div>
               <div className="flex justify-between mt-2 pt-2 border-t border-slate-200 dark:border-slate-800"><span>Password:</span> <span className="text-slate-900 dark:text-white">password123</span></div>
             </div>
           </div>
@@ -120,7 +120,7 @@ export default function LoginPage() {
           <div className="glass-panel border-white/10 p-10 rounded-3xl backdrop-blur-2xl bg-white/5 shadow-2xl">
             <h2 className="text-3xl font-bold text-white mb-4">Enterprise Grade Efficiency</h2>
             <p className="text-slate-300 leading-relaxed mb-8">
-              CafeSync streamlines your operations from point-of-sale to inventory and human resources, giving you the clarity needed to scale.
+              QafaCafe streamlines your operations from point-of-sale to inventory and human resources, giving you the clarity needed to scale.
             </p>
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-white/5 p-4 rounded-xl border border-white/10">
