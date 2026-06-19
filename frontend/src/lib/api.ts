@@ -106,3 +106,27 @@ export const getExpectedCash = () => fetchAPI('/finance/settlements/expected');
 export const submitSettlement = (actualCash: number) => fetchAPI('/finance/settlements', { method: 'POST', body: JSON.stringify({ actualCash }) });
 export const getSettlements = () => fetchAPI('/finance/settlements');
 export const approveSettlement = (id: number) => fetchAPI(`/finance/settlements/${id}/approve`, { method: 'PATCH' });
+
+export const exportSales = async (token: string, startDate?: Date, endDate?: Date) => {
+  const params = new URLSearchParams()
+  if (startDate) params.append('startDate', startDate.toISOString())
+  if (endDate) params.append('endDate', endDate.toISOString())
+
+  const res = await fetch(`${API_URL}/finance/export/sales?${params.toString()}`, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+  
+  if (!res.ok) throw new Error("Failed to export sales")
+  
+  const blob = await res.blob()
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `sales-export-${new Date().toISOString().split('T')[0]}.csv`
+  document.body.appendChild(a)
+  a.click()
+  window.URL.revokeObjectURL(url)
+  document.body.removeChild(a)
+}

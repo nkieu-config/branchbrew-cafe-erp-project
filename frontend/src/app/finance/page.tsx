@@ -6,10 +6,16 @@ import { getSettlements, getExpenses, approveSettlement } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, DollarSign, ArrowUpRight } from "lucide-react"
 
+import { useAuth } from "@/context/AuthContext"
+import { toast } from "sonner"
+import { Download } from "lucide-react"
+import { exportSales } from "@/lib/api"
+
 export default function FinanceDashboardPage() {
   const [settlements, setSettlements] = useState<any[]>([])
   const [expenses, setExpenses] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const { token } = useAuth()
 
   useEffect(() => {
     fetchData()
@@ -40,6 +46,17 @@ export default function FinanceDashboardPage() {
     }
   }
 
+  const handleExport = async () => {
+    if (!token) return
+    try {
+      toast.info("Exporting sales...")
+      await exportSales(token)
+      toast.success("Export successful!")
+    } catch (error) {
+      toast.error("Export failed")
+    }
+  }
+
   return (
     <AnimatedPage className="max-w-[1600px] w-full mx-auto space-y-6">
       <div className="flex justify-between items-end">
@@ -47,6 +64,10 @@ export default function FinanceDashboardPage() {
           <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 text-balance">Finance & Settlement</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Review end-of-day settlements and petty cash expenses.</p>
         </div>
+        <Button onClick={handleExport} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
+          <Download className="w-4 h-4 mr-2" />
+          Export Sales (CSV)
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
