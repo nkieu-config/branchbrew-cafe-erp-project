@@ -75,28 +75,28 @@ export default function HrDashboardPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2 mb-2">
-          <UserSquare2 className="text-emerald-600" /> Human Resources
+        <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-2">
+          <UserSquare2 className="text-emerald-600 dark:text-emerald-500" /> Human Resources
         </h1>
-        <p className="text-slate-500">Manage time, attendance, and payroll.</p>
+        <p className="text-slate-500 dark:text-slate-400">Manage time, attendance, and payroll.</p>
       </div>
 
-      <div className="flex gap-4 border-b border-slate-200 pb-2">
+      <div className="flex gap-4 border-b border-slate-200 dark:border-slate-800 pb-2">
         <button 
-          className={`pb-2 px-1 font-semibold ${activeTab === 'timesheet' ? 'border-b-2 border-emerald-600 text-emerald-600' : 'text-slate-500'}`}
+          className={`pb-2 px-1 font-semibold ${activeTab === 'timesheet' ? 'border-b-2 border-emerald-600 text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}
           onClick={() => setActiveTab('timesheet')}
         >
           My Timesheet
         </button>
         <button 
-          className={`pb-2 px-1 font-semibold ${activeTab === 'shifts' ? 'border-b-2 border-emerald-600 text-emerald-600' : 'text-slate-500'}`}
+          className={`pb-2 px-1 font-semibold ${activeTab === 'shifts' ? 'border-b-2 border-emerald-600 text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}
           onClick={() => setActiveTab('shifts')}
         >
           My Shifts
         </button>
         {user?.role !== 'STAFF' && (
           <button 
-            className={`pb-2 px-1 font-semibold ${activeTab === 'payroll' ? 'border-b-2 border-emerald-600 text-emerald-600' : 'text-slate-500'}`}
+            className={`pb-2 px-1 font-semibold ${activeTab === 'payroll' ? 'border-b-2 border-emerald-600 text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}
             onClick={() => setActiveTab('payroll')}
           >
             Payroll Calculator (Manager)
@@ -104,7 +104,7 @@ export default function HrDashboardPage() {
         )}
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden min-h-[400px]">
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden min-h-[400px]">
         {activeTab === 'timesheet' && (
           <Table>
             <TableHeader>
@@ -124,27 +124,27 @@ export default function HrDashboardPage() {
                   <TableCell>{a.clockOut ? new Date(a.clockOut).toLocaleTimeString() : '-'}</TableCell>
                   <TableCell>{formatDuration(a.totalHours)}</TableCell>
                   <TableCell>
-                    {a.clockOut ? <Badge variant="outline" className="bg-slate-100 text-slate-700">Completed</Badge> 
-                      : <Badge variant="outline" className="bg-emerald-100 text-emerald-700 border-emerald-300 animate-pulse">Active</Badge>}
+                    {a.clockOut ? <Badge variant="outline" className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">Completed</Badge> 
+                      : <Badge variant="outline" className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 animate-pulse">Active</Badge>}
                   </TableCell>
                 </TableRow>
               ))}
-              {attendance.length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-400">No records found</TableCell></TableRow>}
+              {attendance.length === 0 && <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-400 dark:text-slate-500">No records found</TableCell></TableRow>}
             </TableBody>
           </Table>
         )}
 
         {activeTab === 'shifts' && (
-          <div className="p-8 text-center text-slate-500">
-            <Calendar className="w-12 h-12 mx-auto text-slate-300 mb-4" />
-            <h3 className="text-lg font-semibold text-slate-700">Shift Scheduling Coming Soon</h3>
+          <div className="p-8 text-center text-slate-500 dark:text-slate-400">
+            <Calendar className="w-12 h-12 mx-auto text-slate-300 dark:text-slate-700 mb-4" />
+            <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200">Shift Scheduling Coming Soon</h3>
             <p>You currently have no assigned shifts.</p>
           </div>
         )}
 
         {activeTab === 'payroll' && (
           <div className="p-6 space-y-6">
-            {!activeBranchId && <div className="text-red-500 text-center font-bold">Please select a branch to view payroll.</div>}
+            {!activeBranchId && <div className="text-red-500 dark:text-red-400 text-center font-bold">Please select a branch to view payroll.</div>}
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
@@ -165,7 +165,7 @@ export default function HrDashboardPage() {
                         <TableRow key={p.userId}>
                           <TableCell className="font-semibold">{p.name}</TableCell>
                           <TableCell className="text-right">{p.totalHours.toFixed(2)} hrs</TableCell>
-                          <TableCell className="text-right font-bold text-emerald-600">฿{p.totalPay.toLocaleString()}</TableCell>
+                          <TableCell className="text-right font-mono tabular-nums font-bold text-emerald-600 dark:text-emerald-400">฿{p.totalPay.toLocaleString()}</TableCell>
                         </TableRow>
                       ))}
                       {payroll.length === 0 && <TableRow><TableCell colSpan={3} className="text-center py-4">No payroll data for this month</TableCell></TableRow>}
@@ -176,7 +176,7 @@ export default function HrDashboardPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2"><Settings className="text-slate-500" /> Hourly Rates Config</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2"><Settings className="text-slate-500 dark:text-slate-400" /> Hourly Rates Config</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -192,7 +192,7 @@ export default function HrDashboardPage() {
                         <TableRow key={s.id}>
                           <TableCell>
                             <div className="font-medium">{s.name}</div>
-                            <div className="text-xs text-slate-500">{s.role}</div>
+                            <div className="text-xs text-slate-500 dark:text-slate-400">{s.role}</div>
                           </TableCell>
                           <TableCell className="font-mono">฿{s.hourlyRate}</TableCell>
                           <TableCell>

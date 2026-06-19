@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { AnimatedPage } from "@/components/animated-page";
 
 export default function PromotionsPage() {
   const [promotions, setPromotions] = useState<any[]>([]);
@@ -49,7 +50,7 @@ export default function PromotionsPage() {
         discountValue: Number(discountValue),
         minPurchase: minPurchase ? Number(minPurchase) : undefined
       });
-      toast.success("Promotion created successfully!");
+      toast.success("Promotion created successfully…");
       setOpen(false);
       setCode("");
       setDescription("");
@@ -73,23 +74,19 @@ export default function PromotionsPage() {
     }
   }
 
-  if (loading) return <div className="p-10 text-center">Loading Promotions...</div>;
+  if (loading) return <div className="p-10 text-center">Loading Promotions…</div>;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <AnimatedPage className="w-full max-w-[1600px] mx-auto space-y-6">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2 mb-2">
-            <TicketPercent className="text-pink-600" /> Promotions
-          </h1>
-          <p className="text-slate-500">Manage discount codes and marketing campaigns.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Promotions</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage discount codes and marketing campaigns.</p>
         </div>
         
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-pink-600 hover:bg-pink-700">
-              <Plus className="w-4 h-4 mr-2" /> New Promo Code
-            </Button>
+          <DialogTrigger render={<Button className="bg-pink-600 hover:bg-pink-700" />}>
+            <Plus className="w-4 h-4 mr-2" /> New Promo Code
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -126,14 +123,14 @@ export default function PromotionsPage() {
                 <Input type="number" min="0" value={minPurchase} onChange={(e) => setMinPurchase(e.target.value)} placeholder="0" />
               </div>
               <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700" disabled={isSubmitting}>
-                {isSubmitting ? "Creating..." : "Create Promotion"}
+                {isSubmitting ? "Creating…" : "Create Promotion"}
               </Button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -153,22 +150,22 @@ export default function PromotionsPage() {
                     onCheckedChange={() => handleToggle(p.id, p.isActive)} 
                   />
                 </TableCell>
-                <TableCell className="font-mono font-bold text-slate-700">{p.code}</TableCell>
-                <TableCell>{p.description}</TableCell>
-                <TableCell className="font-semibold text-emerald-600">
+                <TableCell className="font-mono font-bold text-slate-700 dark:text-slate-300">{p.code}</TableCell>
+                <TableCell className="tabular-nums">{p.description}</TableCell>
+                <TableCell className="font-semibold text-emerald-600 dark:text-emerald-400">
                   {p.discountType === 'PERCENTAGE' ? `${p.discountValue}%` : `฿${p.discountValue}`}
                 </TableCell>
-                <TableCell className="text-slate-500">
+                <TableCell className="text-slate-500 dark:text-slate-400">
                   {p.minPurchase ? `฿${p.minPurchase}` : 'None'}
                 </TableCell>
               </TableRow>
             ))}
             {promotions.length === 0 && (
-              <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-400">No promotions found</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-400 dark:text-slate-500">No promotions found</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
       </div>
-    </div>
+    </AnimatedPage>
   );
 }

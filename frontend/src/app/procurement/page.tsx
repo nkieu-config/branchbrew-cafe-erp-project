@@ -53,8 +53,8 @@ export default function ProcurementPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">Procurement</h1>
-          <p className="text-slate-500">Manage purchase orders and supplier deliveries.</p>
+          <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">Procurement</h1>
+          <p className="text-slate-500 dark:text-slate-400">Manage purchase orders and supplier deliveries.</p>
         </div>
         <Button className="bg-blue-600 hover:bg-blue-700">
           <Plus className="w-4 h-4 mr-2" />
@@ -84,13 +84,13 @@ export default function ProcurementPage() {
                   <TableCell>{po.branch.name}</TableCell>
                   <TableCell>{po.supplier.name}</TableCell>
                   <TableCell>
-                    <Badge variant={po.status === 'RECEIVED' ? 'default' : 'secondary'} className={po.status === 'RECEIVED' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}>
+                    <Badge variant={po.status === 'RECEIVED' ? 'default' : 'secondary'} className={po.status === 'RECEIVED' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'}>
                       {po.status}
                     </Badge>
                   </TableCell>
                   <TableCell>
                     {po.status === 'PENDING' && (
-                      <Button size="sm" variant="outline" className="text-green-600 hover:text-green-700 hover:bg-green-50" onClick={() => receivePO(po.id)}>
+                      <Button size="sm" variant="outline" className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/30" onClick={() => receivePO(po.id)}>
                         <CheckCircle2 className="w-4 h-4 mr-2" />
                         Receive Goods
                       </Button>
@@ -100,7 +100,7 @@ export default function ProcurementPage() {
               ))}
               {pos.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-slate-500 py-8">
+                  <TableCell colSpan={5} className="text-center text-slate-500 dark:text-slate-400 py-8">
                     No purchase orders found.
                   </TableCell>
                 </TableRow>

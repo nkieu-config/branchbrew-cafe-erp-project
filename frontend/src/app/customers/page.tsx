@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import { AnimatedPage } from "@/components/animated-page";
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<any[]>([]);
@@ -54,20 +56,16 @@ export default function CustomersPage() {
   if (loading) return <div className="p-10 text-center">Loading Customers...</div>;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <AnimatedPage className="w-full max-w-[1600px] mx-auto space-y-6">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2 mb-2">
-            <Users className="text-blue-600" /> Member Database
-          </h1>
-          <p className="text-slate-500">Manage loyalty members, points, and tiers.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Member Database</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage loyalty members, points, and tiers.</p>
         </div>
         
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <UserPlus className="w-4 h-4 mr-2" /> Register Member
-            </Button>
+          <DialogTrigger render={<Button className="bg-blue-600 hover:bg-blue-700" />}>
+            <UserPlus className="w-4 h-4 mr-2" /> Register Member
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -90,7 +88,7 @@ export default function CustomersPage() {
         </Dialog>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -106,25 +104,26 @@ export default function CustomersPage() {
               <TableRow key={c.id}>
                 <TableCell className="font-mono">{c.phone}</TableCell>
                 <TableCell className="font-semibold">{c.name}</TableCell>
-                <TableCell className="text-amber-600 font-bold">{c.points.toLocaleString()} pts</TableCell>
+                <TableCell className="text-amber-600 dark:text-amber-500 font-bold">{c.points.toLocaleString()} pts</TableCell>
                 <TableCell>
-                  <Badge variant="outline" className={
-                    c.tier === 'PLATINUM' ? 'bg-slate-800 text-white' :
-                    c.tier === 'GOLD' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' :
-                    c.tier === 'SILVER' ? 'bg-slate-100 text-slate-800 border-slate-300' : ''
-                  }>
+                  <Badge variant="outline" className={cn(
+                    "text-[10px] uppercase font-bold tracking-wider py-0.5 px-2",
+                    c.tier === 'PLATINUM' ? 'bg-slate-800 dark:bg-slate-100 text-white dark:text-slate-900' :
+                    c.tier === 'GOLD' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-500 border-yellow-300 dark:border-yellow-800' :
+                    c.tier === 'SILVER' ? 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700' : ''
+                  )}>
                     {c.tier}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-slate-500">{new Date(c.createdAt).toLocaleDateString()}</TableCell>
+                <TableCell className="text-slate-500 dark:text-slate-400">{new Date(c.createdAt).toLocaleDateString()}</TableCell>
               </TableRow>
             ))}
             {customers.length === 0 && (
-              <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-400">No members found</TableCell></TableRow>
+              <TableRow><TableCell colSpan={5} className="text-center py-8 text-slate-400 dark:text-slate-500">No members found</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
       </div>
-    </div>
+    </AnimatedPage>
   );
 }

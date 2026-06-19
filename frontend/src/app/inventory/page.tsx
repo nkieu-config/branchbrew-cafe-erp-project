@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import { AnimatedPage } from "@/components/animated-page";
 
 export default function InventoryPage() {
   const { activeBranchId } = useAuth();
@@ -59,7 +61,7 @@ export default function InventoryPage() {
         ingredientId: Number(transferIngredient),
         quantity: Number(transferQty)
       });
-      toast.success("Transfer requested successfully!");
+      toast.success("Transfer requested successfully…");
       fetchInventory();
     } catch (err: any) {
       toast.error(err.message);
@@ -78,7 +80,7 @@ export default function InventoryPage() {
     }
   };
 
-  if (loading) return <div className="p-10 text-center">Loading Inventory...</div>;
+  if (loading) return <div className="p-10 text-center">Loading Inventory…</div>;
 
   if (!activeBranchId) {
     return (
@@ -89,20 +91,16 @@ export default function InventoryPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
+    <AnimatedPage className="w-full max-w-[1600px] mx-auto space-y-6">
       <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2 mb-2">
-            <PackageOpen className="text-amber-600" /> Inventory & Lots
-          </h1>
-          <p className="text-slate-500">Track raw materials and manage FIFO batches.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Inventory & Lots</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Track raw materials and manage FIFO batches.</p>
         </div>
         
         <Dialog>
-          <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <ArrowRightLeft className="w-4 h-4 mr-2" /> Stock Transfer
-            </Button>
+          <DialogTrigger render={<Button className="bg-blue-600 hover:bg-blue-700" />}>
+            <ArrowRightLeft className="w-4 h-4 mr-2" /> Stock Transfer
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -142,7 +140,7 @@ export default function InventoryPage() {
                 <Input type="number" min="1" step="0.1" value={transferQty} onChange={(e) => setTransferQty(e.target.value)} required />
               </div>
               <Button type="submit" className="w-full" disabled={isTransferring}>
-                {isTransferring ? "Processing..." : "Initiate Transfer"}
+                {isTransferring ? "Processing…" : "Initiate Transfer"}
               </Button>
             </form>
           </DialogContent>
@@ -150,8 +148,8 @@ export default function InventoryPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-4 bg-slate-50 border-b font-bold text-slate-800">Total Stock (Aggregated)</div>
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <div className="p-4 bg-slate-50 dark:bg-slate-950/50 border-b border-slate-200 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-100">Total Stock (Aggregated)</div>
           <Table>
             <TableHeader>
               <TableRow>
@@ -164,11 +162,11 @@ export default function InventoryPage() {
               {inventories.map((inv) => (
                 <TableRow key={inv.id}>
                   <TableCell className="font-semibold">{inv.ingredient.name}</TableCell>
-                  <TableCell>{inv.stock} {inv.ingredient.unit}</TableCell>
+                  <TableCell className="tabular-nums">{inv.stock} {inv.ingredient.unit}</TableCell>
                   <TableCell>
                     {inv.stock <= inv.minStock ? (
-                      <Badge variant="destructive">Low</Badge>
-                    ) : <Badge className="bg-emerald-500">Good</Badge>}
+                      <Badge variant="destructive" className="text-[10px] uppercase font-bold tracking-wider py-0.5 px-2">Low</Badge>
+                    ) : <Badge className="bg-emerald-500 text-[10px] uppercase font-bold tracking-wider py-0.5 px-2">Good</Badge>}
                   </TableCell>
                 </TableRow>
               ))}
@@ -176,8 +174,8 @@ export default function InventoryPage() {
           </Table>
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-4 bg-slate-50 border-b font-bold text-slate-800">Active Batches (FIFO)</div>
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <div className="p-4 bg-slate-50 dark:bg-slate-950/50 border-b border-slate-200 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-100">Active Batches (FIFO)</div>
           <Table>
             <TableHeader>
               <TableRow>
@@ -190,20 +188,20 @@ export default function InventoryPage() {
               {batches.map((b) => (
                 <TableRow key={b.id}>
                   <TableCell>{b.ingredient.name}</TableCell>
-                  <TableCell>{b.quantity} {b.ingredient.unit}</TableCell>
-                  <TableCell className="text-xs text-slate-500">{new Date(b.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell className="tabular-nums">{b.quantity} {b.ingredient.unit}</TableCell>
+                  <TableCell className="text-xs text-slate-500 dark:text-slate-400">{new Date(b.createdAt).toLocaleDateString()}</TableCell>
                 </TableRow>
               ))}
               {batches.length === 0 && (
-                <TableRow><TableCell colSpan={3} className="text-center py-4 text-slate-400">No active batches</TableCell></TableRow>
+                <TableRow><TableCell colSpan={3} className="text-center py-4 text-slate-400 dark:text-slate-500">No active batches</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mt-8">
-        <div className="p-4 bg-slate-50 border-b font-bold text-slate-800">Pending Transfers</div>
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden mt-8">
+        <div className="p-4 bg-slate-50 dark:bg-slate-950/50 border-b border-slate-200 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-100">Pending Transfers</div>
         <Table>
           <TableHeader>
             <TableRow>
@@ -221,30 +219,33 @@ export default function InventoryPage() {
                 <TableCell>{t.fromBranch.name}</TableCell>
                 <TableCell>{t.toBranch.name}</TableCell>
                 <TableCell>{t.ingredient.name}</TableCell>
-                <TableCell>{t.quantity}</TableCell>
+                <TableCell className="tabular-nums">{t.quantity}</TableCell>
                 <TableCell>
-                  <Badge variant={t.status === 'COMPLETED' ? 'default' : 'secondary'} className={t.status === 'COMPLETED' ? 'bg-green-100 text-green-700' : ''}>
+                  <Badge variant={t.status === 'COMPLETED' ? 'default' : 'secondary'} className={cn(
+                    "text-[10px] uppercase font-bold tracking-wider py-0.5 px-2",
+                    t.status === 'COMPLETED' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : ''
+                  )}>
                     {t.status}
                   </Badge>
                 </TableCell>
                 <TableCell>
                   {t.status === 'PENDING' && t.toBranchId === activeBranchId && (
-                    <Button size="sm" variant="outline" className="text-green-600 hover:bg-green-50" onClick={() => handleAcceptTransfer(t.id)}>
+                    <Button size="sm" variant="outline" className="text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30" onClick={() => handleAcceptTransfer(t.id)}>
                       <CheckCircle2 className="w-4 h-4 mr-1" /> Accept
                     </Button>
                   )}
                   {t.status === 'PENDING' && t.fromBranchId === activeBranchId && (
-                    <span className="text-xs text-slate-400">Waiting for {t.toBranch.name}</span>
+                    <span className="text-xs text-slate-400 dark:text-slate-500">Waiting for {t.toBranch.name}</span>
                   )}
                 </TableCell>
               </TableRow>
             ))}
             {transfers.length === 0 && (
-              <TableRow><TableCell colSpan={6} className="text-center py-6 text-slate-400">No transfers history</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center py-6 text-slate-400 dark:text-slate-500">No transfers history</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
       </div>
-    </div>
+    </AnimatedPage>
   );
 }
