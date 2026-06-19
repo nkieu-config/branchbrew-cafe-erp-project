@@ -5,21 +5,26 @@ import { AnimatedPage } from "@/components/animated-page"
 import { getExpectedCash, submitSettlement, createExpense } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Calculator, Wallet } from "lucide-react"
+import { useAuth } from "@/context/AuthContext"
 
 export default function SettlementPage() {
   const [expected, setExpected] = useState<any>(null)
   const [actualCash, setActualCash] = useState<string>("")
   const [isLoading, setIsLoading] = useState(true)
+  const { activeBranchId } = useAuth()
 
   const [expenseForm, setExpenseForm] = useState({ amount: "", category: "", description: "" })
 
   useEffect(() => {
-    fetchExpected()
-  }, [])
+    if (activeBranchId) {
+      fetchExpected()
+    }
+  }, [activeBranchId])
 
   const fetchExpected = async () => {
+    if (!activeBranchId) return;
     try {
-      const data = await getExpectedCash()
+      const data = await getExpectedCash(activeBranchId)
       setExpected(data)
     } catch (error) {
       console.error(error)
@@ -30,9 +35,9 @@ export default function SettlementPage() {
 
   const handleSettlement = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!actualCash) return
+    if (!actualCash || !activeBranchId) return
     try {
-      await submitSettlement(parseFloat(actualCash))
+      await submitSettlement(activeBranchId, parseFloat(actualCash))
       alert("Settlement submitted successfully for HQ approval.")
       setActualCash("")
     } catch (error: any) {
@@ -42,9 +47,9 @@ export default function SettlementPage() {
 
   const handleExpense = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!expenseForm.amount || !expenseForm.category) return
+    if (!expenseForm.amount || !expenseForm.category || !activeBranchId) return
     try {
-      await createExpense({
+      await createExpense(activeBranchId, {
         amount: parseFloat(expenseForm.amount),
         category: expenseForm.category,
         description: expenseForm.description

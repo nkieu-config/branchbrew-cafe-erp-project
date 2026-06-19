@@ -78,6 +78,13 @@ export const createPromotion = (data: any) => fetchAPI('/promotions', { method: 
 export const togglePromotion = (id: number, isActive: boolean) => fetchAPI(`/promotions/${id}/toggle`, { method: 'PATCH', body: JSON.stringify({ isActive }) });
 export const validatePromotion = (code: string, subtotal: number) => fetchAPI('/promotions/validate', { method: 'POST', body: JSON.stringify({ code, subtotal }) });
 
+// Waste
+export const getWasteLogs = (branchId?: number) => fetchAPI(`/ingredients/waste/logs${branchId ? `?branchId=${branchId}` : ''}`);
+export const recordWaste = (data: any) => fetchAPI('/ingredients/waste', {
+  method: 'POST',
+  body: JSON.stringify(data)
+});
+
 // HR
 export const clockIn = (branchId: number) => fetchAPI('/hr/clock-in', { method: 'POST', body: JSON.stringify({ branchId }) });
 export const clockOut = () => fetchAPI('/hr/clock-out', { method: 'POST' });
@@ -95,20 +102,39 @@ export const updateHourlyRate = (userId: number, hourlyRate: number) => fetchAPI
 export const getHrUsers = (branchId?: number) => fetchAPI(`/hr/users${branchId ? `?branchId=${branchId}` : ''}`);
 
 // Waste & Costing
-export const getBranchInventory = () => fetchAPI('/ingredients/inventory/branch');
-export const recordWaste = (data: { ingredientId: number; quantity: number; reason: string }) => fetchAPI('/ingredients/waste', { method: 'POST', body: JSON.stringify(data) });
-export const getWasteLogs = () => fetchAPI('/ingredients/waste/logs');
+export const getBranchInventory = (branchId?: number) => fetchAPI(`/ingredients/inventory/branch${branchId ? `?branchId=${branchId}` : ''}`);
 
 // Finance & Settlement
-export const createExpense = (data: { amount: number; category: string; description?: string }) => fetchAPI('/finance/expenses', { method: 'POST', body: JSON.stringify(data) });
-export const getExpenses = (date?: string) => fetchAPI(`/finance/expenses${date ? `?date=${date}` : ''}`);
-export const getExpectedCash = () => fetchAPI('/finance/settlements/expected');
-export const submitSettlement = (actualCash: number) => fetchAPI('/finance/settlements', { method: 'POST', body: JSON.stringify({ actualCash }) });
-export const getSettlements = () => fetchAPI('/finance/settlements');
+export const createExpense = (branchId: number, data: { amount: number; category: string; description?: string }) => fetchAPI('/finance/expenses', { method: 'POST', body: JSON.stringify({ branchId, ...data }) });
+export const getExpenses = (branchId?: number, date?: string) => {
+  const params = new URLSearchParams();
+  if (branchId) params.append('branchId', branchId.toString());
+  if (date) params.append('date', date);
+  const qs = params.toString();
+  return fetchAPI(`/finance/expenses${qs ? `?${qs}` : ''}`);
+};
+export const getExpectedCash = (branchId?: number) => fetchAPI(`/finance/settlements/expected${branchId ? `?branchId=${branchId}` : ''}`);
+export const submitSettlement = (branchId: number, actualCash: number) => fetchAPI('/finance/settlements', { method: 'POST', body: JSON.stringify({ branchId, actualCash }) });
+export const getSettlements = (branchId?: number) => fetchAPI(`/finance/settlements${branchId ? `?branchId=${branchId}` : ''}`);
 export const approveSettlement = (id: number) => fetchAPI(`/finance/settlements/${id}/approve`, { method: 'PATCH' });
 
-export const exportSales = async (token: string, startDate?: Date, endDate?: Date) => {
+export async function addInventoryBatch(branchId: number, data: { ingredientId: number, quantity: number, expiryDate?: string }) {
+  return fetchAPI(`/branches/${branchId}/batches`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function reportWaste(branchId: number, data: { batchId?: number, ingredientId: number, quantity: number, reason: string }) {
+  return fetchAPI(`/branches/${branchId}/waste`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export const exportSales = async (token: string, branchId?: number, startDate?: Date, endDate?: Date) => {
   const params = new URLSearchParams()
+  if (branchId) params.append('branchId', branchId.toString())
   if (startDate) params.append('startDate', startDate.toISOString())
   if (endDate) params.append('endDate', endDate.toISOString())
 

@@ -2,14 +2,16 @@
 
 import { useState, useEffect } from "react"
 import { AnimatedPage } from "@/components/animated-page"
-import { getBranchInventory, recordWaste, getWasteLogs } from "@/lib/api"
+import { getBranchInventory, recordWaste, getWasteLogs, getBranch } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Trash2, AlertCircle } from "lucide-react"
+import { useAuth } from "@/context/AuthContext"
 
 export default function WasteLogPage() {
   const [inventory, setInventory] = useState<any[]>([])
   const [logs, setLogs] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const { activeBranchId } = useAuth()
 
   const [form, setForm] = useState({
     ingredientId: "",
@@ -18,17 +20,24 @@ export default function WasteLogPage() {
   })
 
   useEffect(() => {
-    fetchData()
-  }, [])
+    if (activeBranchId) {
+      fetchData()
+    } else {
+      setInventory([])
+      setLogs([])
+      setIsLoading(false)
+    }
+  }, [activeBranchId])
 
   const fetchData = async () => {
+    if (!activeBranchId) return;
     setIsLoading(true)
     try {
-      const [invData, logData] = await Promise.all([
-        getBranchInventory(),
-        getWasteLogs()
+      const [branchData, logData] = await Promise.all([
+        getBranch(activeBranchId),
+        getWasteLogs(activeBranchId)
       ])
-      setInventory(invData || [])
+      setInventory(branchData.inventories || [])
       setLogs(logData || [])
     } catch (error) {
       console.error(error)

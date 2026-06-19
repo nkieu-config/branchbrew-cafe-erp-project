@@ -9,32 +9,35 @@ export class FinanceController {
   constructor(private readonly financeService: FinanceService) {}
 
   @Post('expenses')
-  createExpense(@Body() body: { amount: number; category: string; description?: string }, @Request() req: any) {
-    const branchId = req.user.branchId || 1;
+  createExpense(@Body() body: { branchId?: number; amount: number; category: string; description?: string }, @Request() req: any) {
+    const branchId = body.branchId || req.user.branchId || 1;
     return this.financeService.createExpense({ ...body, branchId, recordedById: req.user.userId });
   }
 
   @Get('expenses')
-  getExpenses(@Request() req: any, @Query('date') date?: string) {
-    const branchId = req.user.branchId || 1;
+  getExpenses(@Request() req: any, @Query('date') date?: string, @Query('branchId') branchIdQuery?: string) {
+    const branchId = branchIdQuery ? parseInt(branchIdQuery) : (req.user.branchId || 1);
     return this.financeService.getExpenses(branchId, date ? new Date(date) : undefined);
   }
 
   @Get('settlements/expected')
-  getExpectedCash(@Request() req: any) {
-    const branchId = req.user.branchId || 1;
+  getExpectedCash(@Request() req: any, @Query('branchId') branchIdQuery?: string) {
+    const branchId = branchIdQuery ? parseInt(branchIdQuery) : (req.user.branchId || 1);
     return this.financeService.calculateExpectedCash(branchId, new Date());
   }
 
   @Post('settlements')
-  submitSettlement(@Body() body: { actualCash: number }, @Request() req: any) {
-    const branchId = req.user.branchId || 1;
+  submitSettlement(@Body() body: { branchId?: number; actualCash: number }, @Request() req: any) {
+    const branchId = body.branchId || req.user.branchId || 1;
     return this.financeService.submitSettlement({ branchId, actualCash: body.actualCash, submittedById: req.user.userId });
   }
 
   @Get('settlements')
-  getSettlements(@Request() req: any) {
-    const branchId = req.user.role === 'SUPER_ADMIN' ? undefined : (req.user.branchId || 1);
+  getSettlements(@Request() req: any, @Query('branchId') branchIdQuery?: string) {
+    let branchId = branchIdQuery ? parseInt(branchIdQuery) : undefined;
+    if (req.user.role !== 'SUPER_ADMIN' && !branchId) {
+      branchId = req.user.branchId || 1;
+    }
     return this.financeService.getSettlements(branchId);
   }
 
@@ -48,10 +51,13 @@ export class FinanceController {
     @Request() req: any,
     @Res() res: Response,
     @Query('startDate') startDate?: string,
-    @Query('endDate') endDate?: string
+    @Query('endDate') endDate?: string,
+    @Query('branchId') branchIdQuery?: string
   ) {
-    // SUPER_ADMIN can export all or specific branch. Others only their branch.
-    const branchId = req.user.role === 'SUPER_ADMIN' ? undefined : (req.user.branchId || 1);
+    let branchId = branchIdQuery ? parseInt(branchIdQuery) : undefined;
+    if (req.user.role !== 'SUPER_ADMIN' && !branchId) {
+      branchId = req.user.branchId || 1;
+    }
     
     const csvData = await this.financeService.exportSales(
       branchId, 

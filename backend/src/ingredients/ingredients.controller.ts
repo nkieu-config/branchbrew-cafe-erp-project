@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards, Request, Query } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { IngredientsService } from './ingredients.service';
 
@@ -33,8 +33,8 @@ export class IngredientsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('inventory/branch')
-  getBranchInventory(@Request() req: any) {
-    const branchId = req.user.branchId || 1; // Fallback to 1 for admin testing
+  getBranchInventory(@Request() req: any, @Query('branchId') branchIdQuery?: string) {
+    const branchId = branchIdQuery ? parseInt(branchIdQuery) : (req.user.branchId || 1);
     return this.ingredientsService.getBranchInventory(branchId);
   }
 
@@ -53,8 +53,8 @@ export class IngredientsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('waste/logs')
-  getWasteLogs(@Request() req: any) {
-    const branchId = req.user.branchId || 1;
+  getWasteLogs(@Request() req: any, @Query('branchId') branchIdQuery?: string) {
+    const branchId = branchIdQuery ? parseInt(branchIdQuery) : (req.user.branchId || 1);
     return this.ingredientsService.getWasteLogs(branchId);
   }
 }

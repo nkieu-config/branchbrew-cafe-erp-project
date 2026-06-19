@@ -15,18 +15,18 @@ export default function FinanceDashboardPage() {
   const [settlements, setSettlements] = useState<any[]>([])
   const [expenses, setExpenses] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const { token } = useAuth()
+  const { token, activeBranchId } = useAuth()
 
   useEffect(() => {
     fetchData()
-  }, [])
+  }, [activeBranchId])
 
   const fetchData = async () => {
     setIsLoading(true)
     try {
       const [settleData, expData] = await Promise.all([
-        getSettlements(),
-        getExpenses()
+        getSettlements(activeBranchId || undefined),
+        getExpenses(activeBranchId || undefined)
       ])
       setSettlements(settleData || [])
       setExpenses(expData || [])
@@ -50,7 +50,7 @@ export default function FinanceDashboardPage() {
     if (!token) return
     try {
       toast.info("Exporting sales...")
-      await exportSales(token)
+      await exportSales(token, activeBranchId || undefined)
       toast.success("Export successful!")
     } catch (error) {
       toast.error("Export failed")
