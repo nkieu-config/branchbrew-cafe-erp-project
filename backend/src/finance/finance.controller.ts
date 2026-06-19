@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Patch, Param, ParseIntPipe, UseGuards, Request, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, ParseIntPipe, UseGuards, Request, Query, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FinanceService } from './finance.service';
 
@@ -40,5 +41,26 @@ export class FinanceController {
   @Patch('settlements/:id/approve')
   approveSettlement(@Param('id', ParseIntPipe) id: number) {
     return this.financeService.approveSettlement(id);
+  }
+
+  @Get('export/sales')
+  async exportSales(
+    @Request() req: any,
+    @Res() res: Response,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string
+  ) {
+    // SUPER_ADMIN can export all or specific branch. Others only their branch.
+    const branchId = req.user.role === 'SUPER_ADMIN' ? undefined : (req.user.branchId || 1);
+    
+    const csvData = await this.financeService.exportSales(
+      branchId, 
+      startDate ? new Date(startDate) : undefined, 
+      endDate ? new Date(endDate) : undefined
+    );
+    
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="sales-export.csv"');
+    res.send(csvData);
   }
 }

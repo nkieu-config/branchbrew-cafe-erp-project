@@ -97,4 +97,49 @@ export class FinanceService {
       data: { status: 'APPROVED' }
     });
   }
+
+  async exportSales(branchId?: number, startDate?: Date, endDate?: Date): Promise<string> {
+    const { Parser } = require('json2csv');
+    
+    const where: any = {};
+    if (branchId) where.branchId = branchId;
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      start.setHours(0,0,0,0);
+      const end = new Date(endDate);
+      end.setHours(23,59,59,999);
+      where.createdAt = { gte: start, lte: end };
+    }
+
+    const orders = await this.prisma.order.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        branch: { select: { name: true } },
+        user: { select: { name: true } },
+        customer: { select: { name: true, phone: true } },
+      }
+    });
+
+    if (orders.length === 0) {
+      return '';
+    }
+
+    const flatOrders = orders.map(order => ({
+      OrderID: order.id,
+      Date: order.createdAt.toISOString(),
+      Branch: order.branch.name,
+      Cashier: order.user.name,
+      Customer: order.customer ? order.customer.name : 'Walk-in',
+      Status: order.status,
+      TotalAmount: order.totalAmount,
+      Discount: order.discountAmount,
+      NetAmount: order.netAmount,
+      PointsEarned: order.pointsEarned,
+      PointsRedeemed: order.pointsRedeemed
+    }));
+
+    const json2csvParser = new Parser();
+    return json2csvParser.parse(flatOrders);
+  }
 }
