@@ -1,0 +1,21 @@
+{
+  "name": "erp",
+  "version": "1.0.0",
+  "description": "Enterprise ERP Root",
+  "private": true,
+  "scripts": {
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "frontend/**/*.{ts,tsx}": [
+      "bash -c 'npm run type-check --prefix frontend'"
+    ],
+    "backend/**/*.ts": [
+      "bash -c 'npm run type-check --prefix backend'"
+    ]
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.3.0"
+  }
+}

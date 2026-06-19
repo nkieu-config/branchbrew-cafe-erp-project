@@ -50,7 +50,7 @@ export const createProduct = (data: { name: string; price: number; category: str
   fetchAPI('/products', { method: 'POST', body: JSON.stringify(data) });
 
 // Orders
-export const createOrder = (data: { userId: number; branchId: number; items: { productId: number; quantity: number }[] }) => 
+export const createOrder = (data: { userId: number; branchId: number; items: { productId: number; quantity: number }[]; customerPhone?: string; promotionCode?: string; pointsToRedeem?: number }) => 
   fetchAPI('/orders', { method: 'POST', body: JSON.stringify(data) });
 export const getOrders = () => fetchAPI('/orders');
 export const getKdsOrders = (branchId: number) => fetchAPI(`/orders/kds?branchId=${branchId}`);

@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion, Transition } from "framer-motion"
 import { ReactNode } from "react"
 
 const pageVariants = {
@@ -9,7 +9,7 @@ const pageVariants = {
   out: { opacity: 0, y: -15 }
 }
 
-const pageTransition = {
+const pageTransition: Transition = {
   type: "tween",
   ease: "easeOut",
   duration: 0.3

@@ -20,6 +20,7 @@ export default function KdsPage() {
   }, [activeBranchId])
 
   const fetchOrders = async () => {
+    if (!activeBranchId) return
     try {
       const data = await getKdsOrders(activeBranchId)
       setOrders(data || [])
