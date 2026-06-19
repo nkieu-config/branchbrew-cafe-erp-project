@@ -26,6 +26,10 @@ export class ProductsService {
     return this.prisma.product.findUnique({ where: { id }, include: { recipeItems: true } });
   }
 
+  async update(id: number, data: any) {
+    return this.prisma.product.update({ where: { id }, data });
+  }
+
   async remove(id: number) {
     // Need to delete recipe items first because of foreign key constraints
     await this.prisma.recipeItem.deleteMany({ where: { productId: id } });

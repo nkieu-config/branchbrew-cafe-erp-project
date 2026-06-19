@@ -1,8 +1,10 @@
 import { Controller, Get, Post, Body, Param, ParseIntPipe, Patch, UseGuards, Request, Query } from '@nestjs/common';
 import { HrService } from './hr.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('hr')
 export class HrController {
   constructor(private readonly hrService: HrService) {}
@@ -27,6 +29,7 @@ export class HrController {
     return this.hrService.getActiveClockIn(req.user.userId);
   }
 
+  @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('shifts')
   createShift(@Body() data: { userId: number; branchId: number; startTime: string; endTime: string }) {
     return this.hrService.createShift(data);
@@ -42,6 +45,7 @@ export class HrController {
     return this.hrService.getMyShifts(req.user.userId);
   }
 
+  @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('payroll/generate')
   generatePayrollRun(
     @Body('branchId', ParseIntPipe) branchId: number, 
@@ -51,16 +55,19 @@ export class HrController {
     return this.hrService.generatePayrollRun(branchId, month, year);
   }
 
+  @Roles('SUPER_ADMIN', 'MANAGER')
   @Get('payroll-runs')
   getPayrollRuns(@Query('branchId', ParseIntPipe) branchId: number) {
     return this.hrService.getPayrollRuns(branchId);
   }
 
+  @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('payroll-runs/:id/approve')
   approvePayrollRun(@Param('id', ParseIntPipe) id: number) {
     return this.hrService.approvePayrollRun(id);
   }
 
+  @Roles('SUPER_ADMIN')
   @Patch('users/:userId/rate')
   updateHourlyRate(@Param('userId', ParseIntPipe) userId: number, @Body('hourlyRate') hourlyRate: number) {
     return this.hrService.updateHourlyRate(userId, Number(hourlyRate));

@@ -7,20 +7,22 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ClockInOutWidget } from "@/components/hr/ClockInOutWidget";
 
+import { RoleGuard } from "@/components/RoleGuard";
+
 const navItems = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Point of Sale", href: "/pos", icon: ShoppingCart },
-  { name: "POS Settlement", href: "/pos/settlement", icon: Wallet },
-  { name: "Inventory", href: "/inventory", icon: Package },
-  { name: "Waste Log", href: "/inventory/waste", icon: Trash2 },
-  { name: "Procurement", href: "/procurement", icon: Truck },
-  { name: "Customers", href: "/customers", icon: Users },
-  { name: "Promotions", href: "/promotions", icon: TicketPercent },
-  { name: "Kitchen Display", href: "/kds", icon: ChefHat },
-  { name: "Employee Directory", href: "/hr/employees", icon: UserSquare2 },
-  { name: "Payroll Management", href: "/hr/payroll", icon: Banknote },
-  { name: "Finance HQ", href: "/finance", icon: Wallet },
-  { name: "Reports & Costing", href: "/reports/costing", icon: BarChart3 },
+  { name: "Dashboard", href: "/", icon: LayoutDashboard, roles: ["SUPER_ADMIN", "MANAGER"] },
+  { name: "Point of Sale", href: "/pos", icon: ShoppingCart, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
+  { name: "POS Settlement", href: "/pos/settlement", icon: Wallet, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
+  { name: "Inventory", href: "/inventory", icon: Package, roles: ["SUPER_ADMIN", "MANAGER"] },
+  { name: "Waste Log", href: "/inventory/waste", icon: Trash2, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
+  { name: "Procurement", href: "/procurement", icon: Truck, roles: ["SUPER_ADMIN", "MANAGER"] },
+  { name: "Customers", href: "/customers", icon: Users, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
+  { name: "Promotions", href: "/promotions", icon: TicketPercent, roles: ["SUPER_ADMIN", "MANAGER"] },
+  { name: "Kitchen Display", href: "/kds", icon: ChefHat, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
+  { name: "Employee Directory", href: "/hr/employees", icon: UserSquare2, roles: ["SUPER_ADMIN", "MANAGER"] },
+  { name: "Payroll Management", href: "/hr/payroll", icon: Banknote, roles: ["SUPER_ADMIN", "MANAGER"] },
+  { name: "Finance HQ", href: "/finance", icon: Wallet, roles: ["SUPER_ADMIN"] },
+  { name: "Reports & Costing", href: "/reports/costing", icon: BarChart3, roles: ["SUPER_ADMIN", "MANAGER"] },
 ];
 
 export function Sidebar() {
@@ -54,18 +56,19 @@ export function Sidebar() {
           const isReallyActive = activeItem ? item.href === activeItem.href : (item.href === '/' && pathname === '/');
           
           return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={`flex items-center px-3 py-2.5 rounded-xl transition-colors duration-300 font-semibold text-sm ${
-                isReallyActive
-                  ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shadow-sm border border-emerald-100 dark:border-emerald-500/20"
-                  : "text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-100 interactive-item border border-transparent"
-              }`}
-            >
-              <item.icon className={`w-4 h-4 mr-2.5 transition-colors ${isReallyActive ? 'text-emerald-500 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`} />
-              {item.name}
-            </Link>
+            <RoleGuard key={item.name} allowedRoles={item.roles}>
+              <Link
+                href={item.href}
+                className={`flex items-center px-3 py-2.5 rounded-xl transition-colors duration-300 font-semibold text-sm ${
+                  isReallyActive
+                    ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shadow-sm border border-emerald-100 dark:border-emerald-500/20"
+                    : "text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-100 interactive-item border border-transparent"
+                }`}
+              >
+                <item.icon className={`w-4 h-4 mr-2.5 transition-colors ${isReallyActive ? 'text-emerald-500 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`} />
+                {item.name}
+              </Link>
+            </RoleGuard>
           );
         })}
       </nav>

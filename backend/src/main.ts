@@ -5,7 +5,7 @@ import { PrismaService } from './prisma/prisma.service';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 
-import { WinstonModule } from 'nest-winston';
+import { WinstonModule, utilities as nestWinstonModuleUtilities } from 'nest-winston';
 import * as winston from 'winston';
 
 async function bootstrap() {
@@ -16,7 +16,7 @@ async function bootstrap() {
           format: winston.format.combine(
             winston.format.timestamp(),
             winston.format.ms(),
-            winston.format.nestLike('ERP-API', {
+            nestWinstonModuleUtilities.format.nestLike('ERP-API', {
               colors: true,
               prettyPrint: true,
             }),
