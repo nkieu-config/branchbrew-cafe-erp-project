@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common';
 import { AccountingService } from './accounting.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -17,8 +17,14 @@ export class AccountingController {
 
   @Get('journal-entries')
   @Roles('SUPER_ADMIN', 'MANAGER')
-  async getJournalEntries() {
-    return this.accountingService.getJournalEntries();
+  async getJournalEntries(@Query('branchId') branchId?: string) {
+    return this.accountingService.getJournalEntries(branchId ? parseInt(branchId) : undefined);
+  }
+
+  @Get('profit-loss')
+  @Roles('SUPER_ADMIN', 'MANAGER')
+  async getProfitLoss(@Query('branchId') branchId?: string) {
+    return this.accountingService.getProfitLoss(branchId ? parseInt(branchId) : undefined);
   }
 
   @Post('seed')

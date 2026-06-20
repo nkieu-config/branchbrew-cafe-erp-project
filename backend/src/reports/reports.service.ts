@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class ReportsService {
@@ -10,17 +11,19 @@ export class ReportsService {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     
-    const orders = await this.prisma.order.findMany({
-      where: {
-        createdAt: { gte: sevenDaysAgo },
-        status: { in: ['COMPLETED', 'PENDING', 'PREPARING'] }, // Count all valid orders
-        ...(branchId && { branchId }),
-      },
-      select: {
-        netAmount: true,
-        createdAt: true,
-      }
-    });
+    const branchFilter = branchId ? Prisma.sql`AND "branchId" = ${branchId}` : Prisma.empty;
+
+    const results = await this.prisma.$queryRaw<{ date: string; total: number }[]>`
+      SELECT 
+        to_char("createdAt", 'YYYY-MM-DD') as date,
+        SUM("netAmount") as total
+      FROM "Order"
+      WHERE "createdAt" >= ${sevenDaysAgo}
+      AND "status" IN ('COMPLETED', 'PENDING', 'PREPARING')
+      ${branchFilter}
+      GROUP BY 1
+      ORDER BY 1 ASC
+    `;
 
     const dailyMap = new Map<string, number>();
     for (let i = 6; i >= 0; i--) {
@@ -30,10 +33,9 @@ export class ReportsService {
       dailyMap.set(dateStr, 0);
     }
 
-    for (const order of orders) {
-      const dateStr = order.createdAt.toISOString().split('T')[0];
-      if (dailyMap.has(dateStr)) {
-        dailyMap.set(dateStr, dailyMap.get(dateStr)! + order.netAmount);
+    for (const row of results) {
+      if (dailyMap.has(row.date)) {
+        dailyMap.set(row.date, Number(row.total));
       }
     }
 
@@ -112,6 +114,82 @@ export class ReportsService {
       expenses: expenseTotal,
       payroll: payrollTotal,
       netProfit,
+    };
+  }
+
+  async getExecutiveSummary(branchId?: number) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    const whereBranch = branchId ? { branchId } : {};
+
+    // 1. Sales Today vs Yesterday
+    const salesTodayAgg = await this.prisma.order.aggregate({
+      where: { ...whereBranch, createdAt: { gte: today }, status: { in: ['COMPLETED', 'PENDING', 'PREPARING'] } },
+      _sum: { netAmount: true },
+    });
+    const salesYesterdayAgg = await this.prisma.order.aggregate({
+      where: { ...whereBranch, createdAt: { gte: yesterday, lt: today }, status: { in: ['COMPLETED', 'PENDING', 'PREPARING'] } },
+      _sum: { netAmount: true },
+    });
+
+    const salesToday = salesTodayAgg._sum.netAmount || 0;
+    const salesYesterday = salesYesterdayAgg._sum.netAmount || 0;
+    let salesGrowth = 0;
+    if (salesYesterday > 0) {
+      salesGrowth = ((salesToday - salesYesterday) / salesYesterday) * 100;
+    }
+
+    // 2. Top Branch by Sales Today
+    let topBranch: any = null;
+    if (!branchId) {
+      const branchSales = await this.prisma.order.groupBy({
+        by: ['branchId'],
+        _sum: { netAmount: true },
+        where: { createdAt: { gte: today }, status: { in: ['COMPLETED', 'PENDING', 'PREPARING'] } },
+        orderBy: { _sum: { netAmount: 'desc' } },
+        take: 1,
+      });
+
+      if (branchSales.length > 0) {
+        const branch = await this.prisma.branch.findUnique({ where: { id: branchSales[0].branchId } });
+        if (branch) {
+          topBranch = {
+            id: branch.id,
+            name: branch.name,
+            totalSales: branchSales[0]._sum.netAmount || 0,
+          };
+        }
+      }
+    }
+
+    // 3. Low Stock Alerts
+    const inventories = await this.prisma.branchInventory.findMany({
+      where: whereBranch,
+      include: { ingredient: true, branch: true },
+    });
+
+    const alerts = inventories
+      .filter(inv => inv.stock <= inv.minStock)
+      .sort((a, b) => (a.stock - a.minStock) - (b.stock - b.minStock))
+      .slice(0, 5)
+      .map(inv => ({
+        id: inv.id,
+        ingredientName: inv.ingredient.name,
+        branchName: inv.branch.name,
+        stock: inv.stock,
+        minStock: inv.minStock,
+      }));
+
+    return {
+      salesToday,
+      salesYesterday,
+      salesGrowth,
+      topBranch,
+      lowStockAlerts: alerts,
     };
   }
 }

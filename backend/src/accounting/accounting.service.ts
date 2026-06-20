@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AccountingService {
@@ -13,8 +14,9 @@ export class AccountingService {
     });
   }
 
-  async getJournalEntries(limit = 50) {
+  async getJournalEntries(branchId?: number, limit = 50) {
     return this.prisma.journalEntry.findMany({
+      where: branchId ? { branchId } : {},
       orderBy: { date: 'desc' },
       take: limit,
       include: {
@@ -28,6 +30,7 @@ export class AccountingService {
   }
 
   async createJournalEntry(data: {
+    branchId?: number;
     date?: Date;
     reference?: string;
     description: string;
@@ -57,6 +60,7 @@ export class AccountingService {
     // 3. Create the journal entry
     return this.prisma.journalEntry.create({
       data: {
+        branchId: data.branchId,
         date: data.date || new Date(),
         reference: data.reference,
         description: data.description,
@@ -98,5 +102,55 @@ export class AccountingService {
     }
     
     this.logger.log('Default accounts seeded.');
+  }
+
+  async getProfitLoss(branchId?: number) {
+    const branchFilter = branchId ? Prisma.sql`AND je."branchId" = ${branchId}` : Prisma.empty;
+    
+    // Use raw SQL to group by month and account type directly in the database
+    // This prevents loading thousands of rows into Node.js memory
+    const results = await this.prisma.$queryRaw<
+      { month: string; type: string; total_credit: number; total_debit: number }[]
+    >`
+      SELECT 
+        to_char(je."date", 'YYYY-MM') as month,
+        a."type" as type,
+        SUM(jel.credit) as total_credit,
+        SUM(jel.debit) as total_debit
+      FROM "JournalEntryLine" jel
+      INNER JOIN "JournalEntry" je ON jel."journalEntryId" = je.id
+      INNER JOIN "Account" a ON jel."accountId" = a.id
+      WHERE a."type" IN ('REVENUE', 'EXPENSE')
+      ${branchFilter}
+      GROUP BY 1, 2
+      ORDER BY 1 ASC
+    `;
+
+    const monthlyData = new Map<string, { revenue: number; expense: number }>();
+
+    // Initialize map with last 6 months to ensure we have data points
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const mStr = d.toISOString().slice(0, 7);
+      monthlyData.set(mStr, { revenue: 0, expense: 0 });
+    }
+
+    for (const row of results) {
+      if (!monthlyData.has(row.month)) {
+        monthlyData.set(row.month, { revenue: 0, expense: 0 });
+      }
+      
+      const stats = monthlyData.get(row.month)!;
+      if (row.type === 'REVENUE') {
+        stats.revenue += (Number(row.total_credit) - Number(row.total_debit));
+      } else if (row.type === 'EXPENSE') {
+        stats.expense += (Number(row.total_debit) - Number(row.total_credit));
+      }
+    }
+
+    return Array.from(monthlyData.entries())
+      .map(([month, data]) => ({ month, ...data }))
+      .sort((a, b) => a.month.localeCompare(b.month));
   }
 }

@@ -24,4 +24,10 @@ export class ReportsController {
     const branchId = branchIdQuery ? parseInt(branchIdQuery) : undefined;
     return this.reportsService.getProfitLoss(branchId);
   }
+
+  @Get('executive-summary')
+  getExecutiveSummary(@Query('branchId') branchIdQuery?: string) {
+    const branchId = branchIdQuery ? parseInt(branchIdQuery) : undefined;
+    return this.reportsService.getExecutiveSummary(branchId);
+  }
 }
