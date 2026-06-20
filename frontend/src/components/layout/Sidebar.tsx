@@ -12,18 +12,13 @@ import { RoleGuard } from "@/components/RoleGuard";
 const navItems = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard, roles: ["SUPER_ADMIN", "MANAGER"] },
   { name: "Point of Sale", href: "/pos", icon: ShoppingCart, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
-  { name: "POS Settlement", href: "/pos/settlement", icon: Wallet, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
-  { name: "Inventory", href: "/inventory", icon: Package, roles: ["SUPER_ADMIN", "MANAGER"] },
-  { name: "Waste Log", href: "/inventory/waste", icon: Trash2, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
-  { name: "Procurement", href: "/procurement", icon: Truck, roles: ["SUPER_ADMIN", "MANAGER"] },
-  { name: "Equipment", href: "/procurement/equipment", icon: Wrench, roles: ["SUPER_ADMIN", "MANAGER"] },
-  { name: "Customers", href: "/customers", icon: Users, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
-  { name: "Promotions", href: "/promotions", icon: TicketPercent, roles: ["SUPER_ADMIN", "MANAGER"] },
   { name: "Kitchen Display", href: "/kds", icon: ChefHat, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
-  { name: "Human Resources", href: "/hr", icon: Users, roles: ["SUPER_ADMIN", "MANAGER"] },
+  { name: "Inventory", href: "/inventory", icon: Package, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
+  { name: "Procurement", href: "/procurement", icon: Truck, roles: ["SUPER_ADMIN", "MANAGER"] },
+  { name: "CRM & Marketing", href: "/crm", icon: Users, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
+  { name: "Human Resources", href: "/hr", icon: UserSquare2, roles: ["SUPER_ADMIN", "MANAGER"] },
   { name: "Finance HQ", href: "/finance", icon: Wallet, roles: ["SUPER_ADMIN"] },
-  { name: "Reports & Costing", href: "/reports/costing", icon: BarChart3, roles: ["SUPER_ADMIN", "MANAGER"] },
-  { name: "Advanced Analytics", href: "/reports/analytics", icon: TrendingUp, roles: ["SUPER_ADMIN", "MANAGER"] },
+  { name: "Reports & Analytics", href: "/reports", icon: BarChart3, roles: ["SUPER_ADMIN", "MANAGER"] },
 ];
 
 export function Sidebar() {
