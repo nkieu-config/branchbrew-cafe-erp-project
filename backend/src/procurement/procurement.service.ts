@@ -1,15 +1,29 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { AccountingService } from '../accounting/accounting.service';
+import { OnEvent } from '@nestjs/event-emitter';
+import { OrderCreatedEvent } from '../orders/events/order-created.event';
 
 @Injectable()
 export class ProcurementService {
+  private readonly logger = new Logger(ProcurementService.name);
+
   constructor(
     private prisma: PrismaService,
     private auditService: AuditService,
     private accountingService: AccountingService
   ) {}
+
+  @OnEvent('order.created', { async: true })
+  async handleOrderCreated(event: OrderCreatedEvent) {
+    this.logger.log(`Handling order.created event for Order ${event.order.id}`);
+    for (const ingredientId of event.ingredientRequirements.keys()) {
+      this.checkAndAutoReorder(event.branchId, ingredientId).catch(err => 
+        this.logger.error(`Failed to auto-reorder ingredient ${ingredientId}:`, err)
+      );
+    }
+  }
 
   findAllSuppliers() {
     return this.prisma.supplier.findMany();

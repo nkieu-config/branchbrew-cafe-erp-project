@@ -1,12 +1,44 @@
 import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { OnEvent } from '@nestjs/event-emitter';
+import { OrderCreatedEvent } from '../orders/events/order-created.event';
 
 @Injectable()
 export class AccountingService {
   private readonly logger = new Logger(AccountingService.name);
 
   constructor(private prisma: PrismaService) {}
+
+  @OnEvent('order.created', { async: true })
+  async handleOrderCreated(event: OrderCreatedEvent) {
+    this.logger.log(`Handling order.created event for Accounting (Order ${event.order.id})`);
+    
+    const { order } = event;
+    const netAmount = order.netAmount;
+    const totalCogs = order.totalCogs;
+
+    // Post Accounting Journal Entry
+    if (netAmount > 0 || totalCogs > 0) {
+      try {
+        await this.createJournalEntry({
+          branchId: order.branchId,
+          reference: `ORD-${order.id}`,
+          description: `Sales Revenue and COGS for Order ${order.id}`,
+          lines: [
+            { accountCode: '1010', debit: netAmount, credit: 0, description: 'Cash received' },
+            { accountCode: '4010', debit: 0, credit: netAmount, description: 'Sales Revenue' },
+            ...(totalCogs > 0 ? [
+              { accountCode: '5010', debit: totalCogs, credit: 0, description: 'Cost of Goods Sold' },
+              { accountCode: '1030', debit: 0, credit: totalCogs, description: 'Inventory reduction' }
+            ] : [])
+          ]
+        });
+      } catch (err) {
+        this.logger.error(`[Accounting] Failed to post auto-journal entry for order ${order.id}:`, err);
+      }
+    }
+  }
 
   async getChartOfAccounts() {
     return this.prisma.account.findMany({

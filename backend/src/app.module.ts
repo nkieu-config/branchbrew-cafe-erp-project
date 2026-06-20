@@ -7,6 +7,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ProductsModule } from './products/products.module';
 import { IngredientsModule } from './ingredients/ingredients.module';
 import { OrdersModule } from './orders/orders.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 import { AuthModule } from './auth/auth.module';
 import { BranchesModule } from './branches/branches.module';
@@ -29,6 +30,7 @@ import { ProductionModule } from './production/production.module';
       ttl: 60000,
       limit: 60,
     }]),
+    EventEmitterModule.forRoot(),
     PrismaModule, ProductsModule, IngredientsModule, OrdersModule, AuthModule, BranchesModule, ProcurementModule, CustomersModule, PromotionsModule, HrModule, FinanceModule, EventsModule, EquipmentModule, ScheduleModule.forRoot(), ReportsModule, AuditModule, AccountingModule, ProductionModule
   ],
   controllers: [AppController],

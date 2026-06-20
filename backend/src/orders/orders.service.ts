@@ -1,18 +1,17 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventsGateway } from '../events/events.gateway';
-import { ProcurementService } from '../procurement/procurement.service';
-import { CustomersService } from '../customers/customers.service';
-import { AccountingService } from '../accounting/accounting.service';
+// Services decoupled via Event Emitter
+
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { OrderCreatedEvent } from './events/order-created.event';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private prisma: PrismaService, 
-    private eventsGateway: EventsGateway, 
-    private procurementService: ProcurementService,
-    private customersService: CustomersService,
-    private accountingService: AccountingService
+    private eventsGateway: EventsGateway,
+    private eventEmitter: EventEmitter2
   ) {}
 
   async createOrder(data: { 
@@ -190,33 +189,11 @@ export class OrdersService {
       // Emit WebSocket event for KDS
       this.eventsGateway.emitOrderCreated(order);
 
-      // Async triggers
-      setTimeout(() => {
-        for (const ingredientId of ingredientRequirements.keys()) {
-          this.procurementService.checkAndAutoReorder(data.branchId, ingredientId).catch(err => console.error(err));
-        }
-        if (customerId) {
-          this.customersService.checkAndUpdateTier(customerId).catch(err => console.error(err));
-        }
-        
-        // Post Accounting Journal Entry
-        if (netAmount > 0 || totalCogs > 0) {
-          this.accountingService.createJournalEntry({
-            branchId: order.branchId,
-            reference: `ORD-${order.id}`,
-            description: `Sales Revenue and COGS for Order ${order.id}`,
-            lines: [
-              { accountCode: '1010', debit: netAmount, credit: 0, description: 'Cash received' },
-              { accountCode: '4010', debit: 0, credit: netAmount, description: 'Sales Revenue' },
-              ...(totalCogs > 0 ? [
-                { accountCode: '5010', debit: totalCogs, credit: 0, description: 'Cost of Goods Sold' },
-                { accountCode: '1030', debit: 0, credit: totalCogs, description: 'Inventory reduction' }
-              ] : [])
-            ]
-          }).catch(err => console.error('[Accounting] Failed to post auto-journal entry for order:', err));
-        }
-
-      }, 0);
+      // Trigger Domain Events to decouple Procurement, Customers, and Accounting
+      this.eventEmitter.emit(
+        'order.created', 
+        new OrderCreatedEvent(order, ingredientRequirements, data.branchId, customerId)
+      );
 
       return order;
     });

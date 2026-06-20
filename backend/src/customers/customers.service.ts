@@ -1,10 +1,24 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Tier } from '@prisma/client';
+import { OnEvent } from '@nestjs/event-emitter';
+import { OrderCreatedEvent } from '../orders/events/order-created.event';
 
 @Injectable()
 export class CustomersService {
+  private readonly logger = new Logger(CustomersService.name);
+
   constructor(private prisma: PrismaService) {}
+
+  @OnEvent('order.created', { async: true })
+  async handleOrderCreated(event: OrderCreatedEvent) {
+    if (event.customerId) {
+      this.logger.log(`Handling order.created event for CRM Customer ${event.customerId}`);
+      this.checkAndUpdateTier(event.customerId).catch(err => 
+        this.logger.error(`Failed to update tier for customer ${event.customerId}:`, err)
+      );
+    }
+  }
 
   async create(data: { name: string; phone: string }) {
     const existing = await this.prisma.customer.findUnique({ where: { phone: data.phone } });
