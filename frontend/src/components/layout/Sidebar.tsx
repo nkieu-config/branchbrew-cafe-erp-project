@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ShoppingCart, Package, Coffee, Settings, Truck, Users, TicketPercent, UserSquare2, BarChart3, Wallet, Trash2, Banknote, ChefHat, Wrench, TrendingUp } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, Coffee, Settings, Truck, Users, TicketPercent, UserSquare2, BarChart3, Wallet, Trash2, Banknote, ChefHat, Wrench, TrendingUp, Landmark } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ClockInOutWidget } from "@/components/hr/ClockInOutWidget";
@@ -13,8 +13,10 @@ const navItems = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard, roles: ["SUPER_ADMIN", "MANAGER"] },
   { name: "Point of Sale", href: "/pos", icon: ShoppingCart, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
   { name: "Kitchen Display", href: "/kds", icon: ChefHat, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
+  { name: "Central Kitchen", href: "/kitchen", icon: ChefHat, roles: ["SUPER_ADMIN", "MANAGER"] },
   { name: "Inventory", href: "/inventory", icon: Package, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
   { name: "Procurement", href: "/procurement", icon: Truck, roles: ["SUPER_ADMIN", "MANAGER"] },
+  { name: "Accounting", href: "/accounting", icon: Landmark, roles: ["SUPER_ADMIN", "MANAGER"] },
   { name: "CRM & Marketing", href: "/crm", icon: Users, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
   { name: "Human Resources", href: "/hr", icon: UserSquare2, roles: ["SUPER_ADMIN", "MANAGER"] },
   { name: "Finance HQ", href: "/finance", icon: Wallet, roles: ["SUPER_ADMIN"] },
