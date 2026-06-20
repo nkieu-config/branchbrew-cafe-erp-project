@@ -77,13 +77,8 @@ export default function PromotionsPage() {
   if (loading) return <div className="p-10 text-center">Loading Promotions…</div>;
 
   return (
-    <AnimatedPage className="w-full max-w-[1600px] mx-auto space-y-6">
-      <div className="flex justify-between items-end">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Promotions</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage discount codes and marketing campaigns.</p>
-        </div>
-        
+    <div className="w-full space-y-6">
+      <div className="flex justify-end items-end">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger render={<Button className="bg-pink-600 hover:bg-pink-700" />}>
             <Plus className="w-4 h-4 mr-2" /> New Promo Code
@@ -166,6 +161,6 @@ export default function PromotionsPage() {
           </TableBody>
         </Table>
       </div>
-    </AnimatedPage>
+    </div>
   );
 }

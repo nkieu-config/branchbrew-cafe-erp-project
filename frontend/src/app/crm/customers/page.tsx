@@ -77,12 +77,7 @@ export default function CustomersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">Customers & Loyalty</h1>
-          <p className="text-slate-500 dark:text-slate-400">Manage your members, points, and tiers.</p>
-        </div>
-        
+      <div className="flex justify-end items-center">
         <Dialog>
           <DialogTrigger render={<Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md" />}>
             <UserPlus className="w-4 h-4 mr-2" />
