@@ -31,12 +31,7 @@ export default function CostingReportPage() {
   const margin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0
 
   return (
-    <AnimatedPage className="max-w-[1600px] w-full mx-auto space-y-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 text-balance">Costing & Profitability</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Real-time COGS and Gross Profit analysis.</p>
-      </div>
-
+    <div className="w-full space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="glass-panel p-6 rounded-2xl relative overflow-hidden">
           <div className="flex justify-between items-start mb-4">
@@ -115,6 +110,6 @@ export default function CostingReportPage() {
           </div>
         )}
       </div>
-    </AnimatedPage>
+    </div>
   )
 }

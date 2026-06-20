@@ -49,11 +49,7 @@ export default function AnalyticsDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">Advanced Analytics</h1>
-          <p className="text-slate-500 dark:text-slate-400">Track performance, sales trends, and profitability.</p>
-        </div>
+      <div className="flex flex-col sm:flex-row justify-end items-start sm:items-center gap-4">
         <div className="w-full sm:w-64">
           <Select value={selectedBranch} onValueChange={(val) => setSelectedBranch(val || "ALL")}>
             <SelectTrigger className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
