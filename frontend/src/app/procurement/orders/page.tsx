@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getPurchaseOrders, fetchAPI } from "@/lib/api";
+import { getPurchaseOrders, fetchAPI, approvePurchaseOrder, rejectPurchaseOrder, receivePurchaseOrder } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, CheckCircle2 } from "lucide-react";
+import { Plus, CheckCircle2, XCircle, CheckSquare } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ProcurementPage() {
@@ -37,17 +37,49 @@ export default function ProcurementPage() {
     }
   };
 
-  const receivePO = async (poId: number) => {
+  const handleApprove = async (poId: number) => {
     try {
-      await fetchAPI(`/purchase-orders/${poId}/receive`, { method: 'POST' });
+      await approvePurchaseOrder(poId);
+      toast.success("Purchase Order approved successfully!");
+      loadPOs();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to approve PO");
+    }
+  };
+
+  const handleReject = async (poId: number) => {
+    try {
+      await rejectPurchaseOrder(poId);
+      toast.success("Purchase Order rejected.");
+      loadPOs();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to reject PO");
+    }
+  };
+
+  const handleReceive = async (poId: number) => {
+    try {
+      await receivePurchaseOrder(poId);
       toast.success("Purchase Order received! Inventory updated.");
       loadPOs();
     } catch (error: any) {
-      toast.error(error.message);
+      toast.error(error.message || "Failed to receive PO");
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "APPROVED": return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
+      case "RECEIVED": return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300";
+      case "PENDING": return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300";
+      case "DRAFT": return "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300";
+      default: return "bg-slate-100 text-slate-800";
     }
   };
 
   if (loading) return <div>Loading...</div>;
+
+  const canApprove = user?.role === "SUPER_ADMIN" || user?.role === "MANAGER";
 
   return (
     <div className="space-y-6">
@@ -72,7 +104,7 @@ export default function ProcurementPage() {
                 <TableHead>Branch</TableHead>
                 <TableHead>Supplier</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Action</TableHead>
+                <TableHead className="text-right">Action</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -87,17 +119,32 @@ export default function ProcurementPage() {
                   <TableCell>{po.branch.name}</TableCell>
                   <TableCell>{po.supplier.name}</TableCell>
                   <TableCell>
-                    <Badge variant={po.status === 'RECEIVED' ? 'default' : 'secondary'} className={po.status === 'RECEIVED' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'}>
+                    <Badge variant="secondary" className={getStatusBadge(po.status)}>
                       {po.status}
                     </Badge>
                   </TableCell>
-                  <TableCell>
-                    {po.status === 'PENDING' && (
-                      <Button size="sm" variant="outline" className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-900/30" onClick={() => receivePO(po.id)}>
-                        <CheckCircle2 className="w-4 h-4 mr-2" />
-                        Receive Goods
-                      </Button>
-                    )}
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      {po.status === 'PENDING' && canApprove && (
+                        <>
+                          <Button size="sm" variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50 dark:border-blue-800/50 dark:hover:bg-blue-900/30" onClick={() => handleApprove(po.id)}>
+                            <CheckSquare className="w-4 h-4 mr-1.5" />
+                            Approve
+                          </Button>
+                          <Button size="sm" variant="outline" className="text-rose-600 border-rose-200 hover:bg-rose-50 dark:border-rose-800/50 dark:hover:bg-rose-900/30" onClick={() => handleReject(po.id)}>
+                            <XCircle className="w-4 h-4 mr-1.5" />
+                            Reject
+                          </Button>
+                        </>
+                      )}
+                      
+                      {po.status === 'APPROVED' && (
+                        <Button size="sm" variant="outline" className="text-emerald-600 border-emerald-200 hover:bg-emerald-50 dark:border-emerald-800/50 dark:hover:bg-emerald-900/30" onClick={() => handleReceive(po.id)}>
+                          <CheckCircle2 className="w-4 h-4 mr-1.5" />
+                          Receive Goods
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

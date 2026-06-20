@@ -1,9 +1,13 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class ProcurementService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private auditService: AuditService
+  ) {}
 
   findAllSuppliers() {
     return this.prisma.supplier.findMany();
@@ -11,12 +15,13 @@ export class ProcurementService {
 
   findAllPOs() {
     return this.prisma.purchaseOrder.findMany({
-      include: { supplier: true, branch: true, items: { include: { ingredient: true } } }
+      include: { supplier: true, branch: true, items: { include: { ingredient: true } } },
+      orderBy: { createdAt: 'desc' }
     });
   }
 
-  async createPO(data: { branchId: number, supplierId: number, items: { ingredientId: number, quantity: number, price: number }[] }) {
-    return this.prisma.purchaseOrder.create({
+  async createPO(data: { branchId: number, supplierId: number, items: { ingredientId: number, quantity: number, price: number }[] }, userId?: number) {
+    const po = await this.prisma.purchaseOrder.create({
       data: {
         poNumber: `PO-${Date.now()}`,
         branchId: data.branchId,
@@ -32,9 +37,43 @@ export class ProcurementService {
       },
       include: { items: true }
     });
+
+    if (userId) {
+      await this.auditService.logAction(userId, 'CREATE_PO', 'PurchaseOrder', po.id, { poNumber: po.poNumber });
+    }
+
+    return po;
   }
 
-  async receivePO(poId: number, expiryDates?: { ingredientId: number, date: string }[]) {
+  async approvePO(poId: number, userId: number) {
+    const po = await this.prisma.purchaseOrder.findUnique({ where: { id: poId } });
+    if (!po) throw new BadRequestException('PO not found');
+    if (po.status !== 'PENDING') throw new BadRequestException(`Cannot approve PO with status ${po.status}`);
+
+    const updatedPo = await this.prisma.purchaseOrder.update({
+      where: { id: poId },
+      data: { status: 'APPROVED' }
+    });
+
+    await this.auditService.logAction(userId, 'APPROVE_PO', 'PurchaseOrder', poId, { poNumber: po.poNumber });
+    return updatedPo;
+  }
+
+  async rejectPO(poId: number, userId: number) {
+    const po = await this.prisma.purchaseOrder.findUnique({ where: { id: poId } });
+    if (!po) throw new BadRequestException('PO not found');
+    if (po.status !== 'PENDING') throw new BadRequestException(`Cannot reject PO with status ${po.status}`);
+
+    const updatedPo = await this.prisma.purchaseOrder.update({
+      where: { id: poId },
+      data: { status: 'DRAFT' } // Send back to draft or Cancelled. Using DRAFT so it can be edited.
+    });
+
+    await this.auditService.logAction(userId, 'REJECT_PO', 'PurchaseOrder', poId, { poNumber: po.poNumber });
+    return updatedPo;
+  }
+
+  async receivePO(poId: number, userId?: number, expiryDates?: { ingredientId: number, date: string }[]) {
     return this.prisma.$transaction(async (tx) => {
       const po = await tx.purchaseOrder.findUnique({
         where: { id: poId },
@@ -43,6 +82,7 @@ export class ProcurementService {
 
       if (!po) throw new BadRequestException('PO not found');
       if (po.status === 'RECEIVED') throw new BadRequestException('PO already received');
+      if (po.status !== 'APPROVED') throw new BadRequestException('PO must be APPROVED before receiving items');
 
       // 1. Update BranchInventory (Cached Total)
       // 2. Create InventoryBatch (FIFO Log)
@@ -85,10 +125,16 @@ export class ProcurementService {
       }
 
       // Mark PO as RECEIVED
-      return tx.purchaseOrder.update({
+      const updatedPo = await tx.purchaseOrder.update({
         where: { id: poId },
         data: { status: 'RECEIVED' }
       });
+
+      if (userId) {
+        await this.auditService.logAction(userId, 'RECEIVE_PO', 'PurchaseOrder', poId, { poNumber: po.poNumber });
+      }
+
+      return updatedPo;
     });
   }
 

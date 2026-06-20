@@ -58,9 +58,15 @@ export const updateOrderStatus = (orderId: number, status: string) => fetchAPI(`
 
 // Procurement & Branches
 export const getPurchaseOrders = () => fetchAPI('/purchase-orders');
+export const approvePurchaseOrder = (id: number) => fetchAPI(`/purchase-orders/${id}/approve`, { method: 'PATCH' });
+export const rejectPurchaseOrder = (id: number) => fetchAPI(`/purchase-orders/${id}/reject`, { method: 'PATCH' });
+export const receivePurchaseOrder = (id: number) => fetchAPI(`/purchase-orders/${id}/receive`, { method: 'POST' });
 export const getSuppliers = () => fetchAPI('/suppliers');
 export const getBranches = () => fetchAPI('/branches');
 export const getBranch = (id: number) => fetchAPI(`/branches/${id}`);
+
+// Audit Trail
+export const getAuditLogs = (limit = 100, offset = 0) => fetchAPI(`/audit?limit=${limit}&offset=${offset}`);
 
 // Transfers
 export const createTransfer = (data: any) => fetchAPI(`/branches/transfers`, { method: 'POST', body: JSON.stringify(data) });

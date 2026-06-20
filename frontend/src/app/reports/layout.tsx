@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { AnimatedPage } from "@/components/animated-page"
 import { useAuth } from "@/context/AuthContext"
-import { BarChart3, TrendingUp } from "lucide-react"
+import { BarChart3, TrendingUp, ClipboardList } from "lucide-react"
 
 export default function ReportsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -12,8 +12,9 @@ export default function ReportsLayout({ children }: { children: React.ReactNode 
   const role = user?.role;
 
   const tabs = [
-    { name: "Costing & Profitability", path: "/reports/costing", icon: BarChart3, roles: ["SUPER_ADMIN", "MANAGER"] },
-    { name: "Advanced Analytics", path: "/reports/analytics", icon: TrendingUp, roles: ["SUPER_ADMIN", "MANAGER"] },
+    { name: "Analytics Dashboard", path: "/reports/analytics", icon: BarChart3, roles: ["SUPER_ADMIN", "MANAGER"] },
+    { name: "Costing & Margin", path: "/reports/costing", icon: TrendingUp, roles: ["SUPER_ADMIN", "MANAGER"] },
+    { name: "System Audit Logs", path: "/reports/audit", icon: ClipboardList, roles: ["SUPER_ADMIN"] },
   ]
 
   return (
