@@ -34,7 +34,7 @@ export function Topbar() {
   if (pathname === '/login') return null;
 
   return (
-    <header className="h-16 flex items-center justify-between px-4 md:px-8 bg-transparent mb-4 z-20 relative">
+    <header className="h-16 shrink-0 flex items-center justify-between px-4 md:px-8 bg-transparent mb-4 z-20 relative">
       <div className="flex items-center text-sm font-medium text-slate-500 dark:text-slate-400">
         <span className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer">QafaCafe</span>
         <span className="mx-2 text-slate-300 dark:text-slate-600">/</span>
