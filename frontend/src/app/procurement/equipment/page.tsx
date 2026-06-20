@@ -46,12 +46,13 @@ export default function EquipmentPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!activeBranchId) return toast.error("Please select a branch first");
     try {
       await createEquipment({
         branchId: activeBranchId,
         name,
         type,
-        serialNumber: serial
+        status: "OPERATIONAL"
       });
       toast.success("Equipment registered successfully!");
       setName(""); setSerial("");
@@ -68,8 +69,8 @@ export default function EquipmentPage() {
       await logMaintenance(selectedEqId, {
         description: maintDesc,
         cost: Number(maintCost),
-        nextMaintenanceDate: maintNextDate || undefined,
-        newStatus: 'ACTIVE'
+        performedBy: "Admin",
+        date: new Date().toISOString()
       });
       toast.success("Maintenance logged successfully!");
       setMaintDesc(""); setMaintCost(""); setMaintNextDate("");

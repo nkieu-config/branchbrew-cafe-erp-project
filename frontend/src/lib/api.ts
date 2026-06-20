@@ -1,3 +1,13 @@
+import type { 
+  LoginDTO, 
+  CreateCustomerDTO, 
+  CreatePromotionDTO, 
+  CreateShiftDTO, 
+  CreateTransferDTO,
+  EquipmentDTO,
+  LogMaintenanceDTO
+} from '../types/schemas';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
@@ -37,7 +47,7 @@ export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
 }
 
 // Auth
-export const loginApi = (data: any) => fetchAPI('/auth/login', { method: 'POST', body: JSON.stringify(data) });
+export const loginApi = (data: LoginDTO) => fetchAPI('/auth/login', { method: 'POST', body: JSON.stringify(data) });
 
 // Ingredients
 export const getIngredients = () => fetchAPI('/ingredients');
@@ -70,17 +80,17 @@ export const getBranch = (id: number) => fetchAPI(`/branches/${id}`);
 export const getAuditLogs = (limit = 100, offset = 0) => fetchAPI(`/audit?limit=${limit}&offset=${offset}`);
 
 // Transfers
-export const createTransfer = (data: any) => fetchAPI(`/branches/transfers`, { method: 'POST', body: JSON.stringify(data) });
+export const createTransfer = (data: CreateTransferDTO) => fetchAPI(`/branches/transfers`, { method: 'POST', body: JSON.stringify(data) });
 export const getTransfers = (branchId: number) => fetchAPI(`/branches/${branchId}/transfers`);
 export const acceptTransfer = (transferId: number) => fetchAPI(`/branches/transfers/${transferId}/accept`, { method: 'POST' });
 
 // Customers
 export const getCustomerByPhone = (phone: string) => fetchAPI(`/customers/phone/${phone}`);
-export const createCustomer = (data: any) => fetchAPI('/customers', { method: 'POST', body: JSON.stringify(data) });
+export const createCustomer = (data: CreateCustomerDTO) => fetchAPI('/customers', { method: 'POST', body: JSON.stringify(data) });
 
 // Promotions
 export const getPromotions = () => fetchAPI('/promotions');
-export const createPromotion = (data: any) => fetchAPI('/promotions', { method: 'POST', body: JSON.stringify(data) });
+export const createPromotion = (data: CreatePromotionDTO) => fetchAPI('/promotions', { method: 'POST', body: JSON.stringify(data) });
 export const togglePromotion = (id: number, isActive: boolean) => fetchAPI(`/promotions/${id}/toggle`, { method: 'PATCH', body: JSON.stringify({ isActive }) });
 export const validatePromotion = (code: string, subtotal: number) => fetchAPI('/promotions/validate', { method: 'POST', body: JSON.stringify({ code, subtotal }) });
 
@@ -93,7 +103,7 @@ export const clockOut = () => fetchAPI('/hr/clock-out', { method: 'POST' });
 export const getMyAttendance = () => fetchAPI('/hr/attendance/me');
 export const getActiveClockIn = () => fetchAPI('/hr/attendance/status');
 
-export const createShift = (data: any) => fetchAPI('/hr/shifts', { method: 'POST', body: JSON.stringify(data) });
+export const createShift = (data: CreateShiftDTO) => fetchAPI('/hr/shifts', { method: 'POST', body: JSON.stringify(data) });
 export const getShiftsByBranch = (branchId: number) => fetchAPI(`/hr/shifts/branch/${branchId}`);
 export const getMyShifts = () => fetchAPI('/hr/shifts/me');
 
@@ -218,9 +228,9 @@ export const exportSales = async (token: string, branchId?: number, startDate?: 
 
 // Equipment
 export const getEquipment = (branchId?: number) => fetchAPI(`/equipment${branchId ? `?branchId=${branchId}` : ''}`);
-export const createEquipment = (data: any) => fetchAPI('/equipment', { method: 'POST', body: JSON.stringify(data) });
-export const updateEquipment = (id: number, data: any) => fetchAPI(`/equipment/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
-export const logMaintenance = (equipmentId: number, data: any) => fetchAPI(`/equipment/${equipmentId}/maintenance`, { method: 'POST', body: JSON.stringify(data) });
+export const createEquipment = (data: EquipmentDTO) => fetchAPI('/equipment', { method: 'POST', body: JSON.stringify(data) });
+export const updateEquipment = (id: number, data: Partial<EquipmentDTO>) => fetchAPI(`/equipment/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
+export const logMaintenance = (equipmentId: number, data: LogMaintenanceDTO) => fetchAPI(`/equipment/${equipmentId}/maintenance`, { method: 'POST', body: JSON.stringify(data) });
 
 // Customers
 export const getCustomers = (search?: string) => fetchAPI(`/customers${search ? `?search=${encodeURIComponent(search)}` : ''}`);

@@ -11,6 +11,9 @@ import { useAuth } from "@/context/AuthContext"
 import { DndContext, DragOverlay, closestCorners, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent } from "@dnd-kit/core"
 import { useDroppable, useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
+import type { ProductionOrder, Ingredient } from "@prisma/client"
+
+type ProductionOrderWithTarget = ProductionOrder & { targetIngredient: Ingredient }
 
 // Helper Components for Kanban
 function KanbanColumn({ id, title, icon, color, children }: { id: string, title: string, icon: React.ReactNode, color: string, children: React.ReactNode }) {
@@ -33,7 +36,7 @@ function KanbanColumn({ id, title, icon, color, children }: { id: string, title:
   )
 }
 
-function KanbanCard({ order, isOverlay = false }: { order: any, isOverlay?: boolean }) {
+function KanbanCard({ order, isOverlay = false }: { order: ProductionOrderWithTarget, isOverlay?: boolean }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: order.id,
     data: { order }
@@ -79,11 +82,11 @@ export default function CentralKitchenPage() {
   const { activeBranchId } = useAuth()
   const { data: ingredients = [] } = useIngredients()
   const { data: ordersData = [], isLoading } = useKitchenOrders()
-  const orders = ordersData.filter((o: any) => ['PLANNED', 'IN_PROGRESS', 'COMPLETED'].includes(o.status))
+  const orders = ordersData.filter((o: ProductionOrderWithTarget) => ['PLANNED', 'IN_PROGRESS', 'COMPLETED'].includes(o.status))
   
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [form] = Form.useForm()
-  const [activeOrder, setActiveOrder] = useState<any | null>(null);
+  const [activeOrder, setActiveOrder] = useState<ProductionOrderWithTarget | null>(null);
 
   const completeMutation = useCompleteKitchenOrder()
   const updateStatusMutation = useUpdateOrderStatus()
@@ -97,7 +100,7 @@ export default function CentralKitchenPage() {
     })
   );
 
-  const handleCreate = async (values: any) => {
+  const handleCreate = async (values: { targetIngredientId: number; quantityToProduce: number; plannedStartDate?: Date }) => {
     if (!activeBranchId) return toast.error("Please select a branch");
     try {
       await createOrderMutation.mutateAsync({
@@ -109,14 +112,14 @@ export default function CentralKitchenPage() {
       toast.success("Production order created");
       setIsModalVisible(false);
       form.resetFields();
-    } catch (error: any) {
-      toast.error(error.message || "Failed to create order");
+    } catch (error: unknown) {
+      if (error instanceof Error) toast.error(error.message || "Failed to create order");
     }
   }
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
-    const order = orders.find((o: any) => o.id === active.id);
+    const order = orders.find((o: ProductionOrderWithTarget) => o.id === active.id);
     setActiveOrder(order);
   }
 
@@ -127,7 +130,7 @@ export default function CentralKitchenPage() {
 
     const orderId = active.id as number;
     const newStatus = over.id as string;
-    const order = orders.find((o: any) => o.id === orderId);
+    const order = orders.find((o: ProductionOrderWithTarget) => o.id === orderId);
 
     if (!order || order.status === newStatus) return;
     
@@ -142,19 +145,19 @@ export default function CentralKitchenPage() {
         toast.promise(completeMutation.mutateAsync(orderId), {
           loading: 'Deducting raw materials...',
           success: 'Production completed & inventory updated!',
-          error: (err: any) => err.message || 'Failed to complete order'
+          error: (err: unknown) => (err instanceof Error ? err.message : 'Failed to complete order')
         });
       } else {
         await updateStatusMutation.mutateAsync({ id: orderId, status: newStatus });
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update status");
+    } catch (error: unknown) {
+      if (error instanceof Error) toast.error(error.message || "Failed to update status");
     }
   }
 
-  const plannedOrders = orders.filter((o: any) => o.status === 'PLANNED');
-  const inProgressOrders = orders.filter((o: any) => o.status === 'IN_PROGRESS');
-  const completedOrders = orders.filter((o: any) => o.status === 'COMPLETED');
+  const plannedOrders = orders.filter((o: ProductionOrderWithTarget) => o.status === 'PLANNED');
+  const inProgressOrders = orders.filter((o: ProductionOrderWithTarget) => o.status === 'IN_PROGRESS');
+  const completedOrders = orders.filter((o: ProductionOrderWithTarget) => o.status === 'COMPLETED');
 
   return (
     <AnimatedPage className="space-y-6 w-full">
@@ -184,15 +187,15 @@ export default function CentralKitchenPage() {
         <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <div className="flex gap-4 overflow-x-auto pb-4 h-[calc(100vh-200px)]">
             <KanbanColumn id="PLANNED" title="Planned" icon={<Clock className="w-5 h-5"/>} color="text-blue-600 bg-blue-50 dark:bg-blue-900/20">
-              {plannedOrders.map((o: any) => <KanbanCard key={o.id} order={o} />)}
+              {plannedOrders.map((o: ProductionOrderWithTarget) => <KanbanCard key={o.id} order={o} />)}
             </KanbanColumn>
             
             <KanbanColumn id="IN_PROGRESS" title="In Progress" icon={<PlayCircle className="w-5 h-5"/>} color="text-amber-600 bg-amber-50 dark:bg-amber-900/20">
-              {inProgressOrders.map((o: any) => <KanbanCard key={o.id} order={o} />)}
+              {inProgressOrders.map((o: ProductionOrderWithTarget) => <KanbanCard key={o.id} order={o} />)}
             </KanbanColumn>
 
             <KanbanColumn id="COMPLETED" title="Completed" icon={<CheckCircle2 className="w-5 h-5"/>} color="text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20">
-              {completedOrders.map((o: any) => <KanbanCard key={o.id} order={o} />)}
+              {completedOrders.map((o: ProductionOrderWithTarget) => <KanbanCard key={o.id} order={o} />)}
             </KanbanColumn>
           </div>
           <DragOverlay>

@@ -7,9 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TrendingUp, TrendingDown, DollarSign, Award, Store, AlertTriangle, GripHorizontal, CheckCircle2, Activity } from "lucide-react";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from "recharts";
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import type { Branch } from "@prisma/client";
+
+const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'];
 
 // --- Sortable Item Wrapper ---
 function SortableWidget({ id, children, className }: { id: string, children: React.ReactNode, className?: string }) {
@@ -62,19 +65,18 @@ export default function AnalyticsDashboard() {
   const loading = isLoadingSummary || isLoadingProducts;
 
   const formatCurrency = (value: number) => `฿${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'];
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (over && active.id !== over.id) {
       setWidgetOrder((items) => {
-        const oldIndex = items.indexOf(active.id);
-        const newIndex = items.indexOf(over.id);
+        const oldIndex = items.indexOf(active.id.toString());
+        const newIndex = items.indexOf(over.id.toString());
         const newOrder = arrayMove(items, oldIndex, newIndex);
         localStorage.setItem('executive_dashboard_layout', JSON.stringify(newOrder));
         return newOrder;
@@ -135,7 +137,7 @@ export default function AnalyticsDashboard() {
             <CardContent className="p-0 flex-1 overflow-y-auto">
               {summary?.lowStockAlerts?.length > 0 ? (
                 <div className="divide-y divide-rose-100 dark:divide-rose-900/30">
-                  {summary.lowStockAlerts.map((alert: any) => (
+                  {summary.lowStockAlerts.map((alert: { id: string, ingredientName: string, stock: number, minStock: number, branchName: string }) => (
                     <div key={alert.id} className="p-4 flex justify-between items-center bg-rose-50/50 dark:bg-rose-900/10">
                       <div>
                         <div className="font-bold text-slate-800 dark:text-slate-200 text-lg">{alert.ingredientName}</div>
@@ -177,7 +179,7 @@ export default function AnalyticsDashboard() {
                     labelStyle={{fontWeight: 'bold', color: '#0f172a', marginBottom: '4px'}}
                   />
                   <Bar dataKey="totalQuantity" radius={[0, 6, 6, 0]} barSize={32}>
-                    {topProducts.map((entry: any, index: number) => (
+                    {topProducts.map((entry: { name: string, quantity: number, revenue: number }, index: number) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Bar>
@@ -205,7 +207,7 @@ export default function AnalyticsDashboard() {
             </SelectTrigger>
             <SelectContent className="rounded-xl font-medium">
               <SelectItem value="ALL">All Branches (HQ Overview)</SelectItem>
-              {branches.map((b: any) => (
+              {branches.map((b: Branch) => (
                 <SelectItem key={b.id} value={b.id.toString()}>{b.name}</SelectItem>
               ))}
             </SelectContent>

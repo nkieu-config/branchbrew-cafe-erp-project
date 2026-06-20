@@ -14,11 +14,15 @@ import { cn } from "@/lib/utils";
 import { AnimatedPage } from "@/components/animated-page";
 import { format, differenceInDays } from "date-fns";
 import type { Dayjs } from "dayjs";
+import type { Ingredient, InventoryBatch, PurchaseOrder, Supplier, BranchInventory } from "@prisma/client";
+
+type InventoryWithIngredient = BranchInventory & { ingredient: Ingredient };
+type BatchWithSupplier = InventoryBatch & { purchaseOrder?: PurchaseOrder & { supplier?: Supplier } };
 
 export default function InventoryPage() {
   const { activeBranchId } = useAuth();
-  const [inventories, setInventories] = useState<any[]>([]);
-  const [batches, setBatches] = useState<any[]>([]);
+  const [inventories, setInventories] = useState<InventoryWithIngredient[]>([]);
+  const [batches, setBatches] = useState<BatchWithSupplier[]>([]);
   const [transfers, setTransfers] = useState<any[]>([]);
   const [branches, setBranches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +63,7 @@ export default function InventoryPage() {
 
   const handleCreateTransfer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!transferTarget || !transferIngredient || !transferQty) return;
+    if (!activeBranchId || !transferTarget || !transferIngredient || !transferQty) return;
     setIsTransferring(true);
     try {
       await createTransfer({
@@ -196,22 +200,23 @@ export default function InventoryPage() {
 
   // AntD Main Columns
   const inventoryColumns = [
-    {
-      title: 'Ingredient',
-      dataIndex: ['ingredient', 'name'],
+    { 
+      title: 'Ingredient Name', 
       key: 'name',
-      render: (text: string) => <span className="font-semibold">{text}</span>,
-      sorter: (a: any, b: any) => a.ingredient.name.localeCompare(b.ingredient.name),
+      sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) => a.ingredient.name.localeCompare(b.ingredient.name),
+      render: (_: any, record: InventoryWithIngredient) => (
+        <div className="font-bold text-slate-800 dark:text-slate-200">{record.ingredient.name}</div>
+      )
     },
-    {
-      title: 'Total Stock',
+    { 
+      title: 'Current Stock', 
       key: 'stock',
-      render: (_: any, record: any) => (
+      sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) => a.stock - b.stock,
+      render: (_: any, record: InventoryWithIngredient) => (
         <span className="tabular-nums font-mono">
           {Number(record.stock).toFixed(2)} {record.ingredient.unit}
         </span>
       ),
-      sorter: (a: any, b: any) => a.stock - b.stock,
     },
     {
       title: 'Status',
@@ -226,20 +231,23 @@ export default function InventoryPage() {
   ];
 
   // AntD Expanded Row Renderer
-  const expandedRowRender = (record: any) => {
-    const ingredientBatches = batches.filter(b => b.ingredientId === record.ingredientId);
-    
+  const expandedRowRender = (record: InventoryWithIngredient) => {
+    const ingredientId = record.ingredient.id;
+    const ingredientBatches = batches.filter(b => b.ingredientId === ingredientId);
+
     const batchColumns = [
-      {
-        title: 'Batch ID',
-        dataIndex: 'id',
-        key: 'id',
-        render: (id: number) => <span className="text-xs text-slate-400 font-mono">#{id}</span>
+      { title: 'Batch ID', dataIndex: 'id', key: 'id' },
+      { 
+        title: 'Supplier', 
+        key: 'supplier',
+        render: (_: any, b: BatchWithSupplier) => (
+          <span>{b.purchaseOrder?.supplier?.name || '-'}</span>
+        )
       },
-      {
-        title: 'Qty Left',
+      { 
+        title: 'Quantity (Units)', 
         key: 'quantity',
-        render: (_: any, b: any) => (
+        render: (_: any, b: BatchWithSupplier) => (
           <span className="tabular-nums font-mono font-medium">{Number(b.quantity).toFixed(2)} {record.ingredient.unit}</span>
         ),
       },
@@ -318,14 +326,15 @@ export default function InventoryPage() {
       key: 'qty',
       render: (qty: number) => <span className="tabular-nums font-mono">{qty}</span>
     },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => (
-        <Tag color={status === 'COMPLETED' ? 'success' : 'default'}>{status}</Tag>
-      )
-    },
+      {
+        title: 'Status',
+        dataIndex: 'status',
+        key: 'status',
+        render: (status: string) => {
+          const colors: Record<string, string> = { 'ACTIVE': 'green', 'DEPLETED': 'default', 'EXPIRED': 'red', 'WASTED': 'orange', 'PENDING': 'blue', 'COMPLETED': 'green' };
+          return <Tag color={colors[status] || 'default'}>{status}</Tag>;
+        }
+      },
     {
       title: 'Action',
       key: 'action',

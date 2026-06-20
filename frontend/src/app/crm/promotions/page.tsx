@@ -20,7 +20,7 @@ export default function PromotionsPage() {
   // Form State
   const [code, setCode] = useState("");
   const [description, setDescription] = useState("");
-  const [discountType, setDiscountType] = useState("PERCENTAGE");
+  const [discountType, setDiscountType] = useState<"PERCENTAGE" | "FIXED_AMOUNT">("PERCENTAGE");
   const [discountValue, setDiscountValue] = useState("");
   const [minPurchase, setMinPurchase] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -48,7 +48,8 @@ export default function PromotionsPage() {
         description, 
         discountType, 
         discountValue: Number(discountValue),
-        minPurchase: minPurchase ? Number(minPurchase) : undefined
+        minPurchase: minPurchase ? Number(minPurchase) : undefined,
+        isActive: true
       });
       toast.success("Promotion created successfully…");
       setOpen(false);
@@ -102,7 +103,7 @@ export default function PromotionsPage() {
                   <select 
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     value={discountType} 
-                    onChange={(e) => setDiscountType(e.target.value)}
+                    onChange={(e) => setDiscountType(e.target.value as "PERCENTAGE" | "FIXED_AMOUNT")}
                   >
                     <option value="PERCENTAGE">Percentage (%)</option>
                     <option value="FIXED_AMOUNT">Fixed Amount (THB)</option>
