@@ -90,11 +90,9 @@ export default function EquipmentPage() {
           <p className="text-slate-500 dark:text-slate-400">Track machines, appliances, and schedule preventative maintenance.</p>
         </div>
         <Dialog>
-          <DialogTrigger>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-4 h-4 mr-2" />
-              Register Equipment
-            </Button>
+          <DialogTrigger render={<Button className="bg-blue-600 hover:bg-blue-700" />}>
+            <Plus className="w-4 h-4 mr-2" />
+            Register Equipment
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
@@ -175,11 +173,9 @@ export default function EquipmentPage() {
                     </TableCell>
                     <TableCell>
                       <Dialog>
-                        <DialogTrigger>
-                          <Button size="sm" variant="outline" onClick={() => setSelectedEqId(eq.id)}>
-                            <Wrench className="w-4 h-4 mr-2" />
-                            Log Maint.
-                          </Button>
+                        <DialogTrigger render={<Button size="sm" variant="outline" onClick={() => setSelectedEqId(eq.id)} />}>
+                          <Wrench className="w-4 h-4 mr-2" />
+                          Log Maint.
                         </DialogTrigger>
                         <DialogContent>
                           <DialogHeader>

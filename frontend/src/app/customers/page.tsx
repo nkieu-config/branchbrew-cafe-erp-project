@@ -84,11 +84,9 @@ export default function CustomersPage() {
         </div>
         
         <Dialog>
-          <DialogTrigger>
-            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md">
-              <UserPlus className="w-4 h-4 mr-2" />
-              New Member
-            </Button>
+          <DialogTrigger render={<Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md" />}>
+            <UserPlus className="w-4 h-4 mr-2" />
+            New Member
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
