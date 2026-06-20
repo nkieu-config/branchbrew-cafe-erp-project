@@ -45,6 +45,29 @@ export class HrController {
     return this.hrService.getMyShifts(req.user.userId);
   }
 
+  // ==================== LEAVE ====================
+  @Post('leave')
+  requestLeave(@Request() req: any, @Body() data: { type: any, startDate: string, endDate: string, reason?: string }) {
+    return this.hrService.requestLeave(req.user.userId, data);
+  }
+
+  @Roles('SUPER_ADMIN', 'MANAGER')
+  @Get('leave')
+  getLeaveRequests(@Query('branchId') branchId?: string) {
+    return this.hrService.getLeaveRequests(branchId ? parseInt(branchId) : undefined);
+  }
+
+  @Get('leave/me')
+  getMyLeaveRequests(@Request() req: any) {
+    return this.hrService.getMyLeaveRequests(req.user.userId);
+  }
+
+  @Roles('SUPER_ADMIN', 'MANAGER')
+  @Patch('leave/:id/status')
+  processLeaveRequest(@Param('id', ParseIntPipe) id: number, @Body('status') status: string) {
+    return this.hrService.processLeaveRequest(id, status);
+  }
+
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('payroll/generate')
   generatePayrollRun(

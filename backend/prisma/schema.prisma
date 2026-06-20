@@ -12,15 +12,18 @@ model User {
   name      String?
   password  String
   role      Role     @default(STAFF)
+  employmentType EmploymentType @default(PART_TIME)
   branchId  Int?
   branch    Branch?  @relation(fields: [branchId], references: [id])
   hourlyRate Float   @default(0)
+  baseSalary Float   @default(0)
   orders    Order[]
   transfersRequested StockTransfer[] @relation("TransferRequestedBy")
   transfersApproved  StockTransfer[] @relation("TransferApprovedBy")
   auditLogs AuditLog[]
   shifts    Shift[]
   attendanceRecords AttendanceRecord[]
+  leaveRequests     LeaveRequest[]
   wasteLogs         WasteLog[]
   expenses          Expense[]
   shiftSettlements  ShiftSettlement[]
@@ -33,6 +36,11 @@ enum Role {
   SUPER_ADMIN
   MANAGER
   STAFF
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
 }
 
 model Branch {
@@ -302,8 +310,46 @@ model Shift {
   branch    Branch   @relation(fields: [branchId], references: [id])
   startTime DateTime
   endTime   DateTime
+  status    ShiftStatus @default(SCHEDULED)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([branchId])
+  @@index([userId])
+}
+
+enum ShiftStatus {
+  SCHEDULED
+  COMPLETED
+  ABSENT
+  CANCELLED
+}
+
+model LeaveRequest {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  type      LeaveType
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  reason    String?
+  status    LeaveStatus @default(PENDING)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+enum LeaveType {
+  SICK
+  ANNUAL
+  UNPAID
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model AttendanceRecord {
@@ -399,9 +445,11 @@ model Payslip {
   otHours        Float      @default(0)
   basePay        Float      @default(0)
   otPay          Float      @default(0)
+  bonuses        Float      @default(0)
   grossPay       Float      @default(0)
   taxDeduction   Float      @default(0)
   socialSecurity Float      @default(0)
+  otherDeductions Float     @default(0)
   netPay         Float      @default(0)
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt

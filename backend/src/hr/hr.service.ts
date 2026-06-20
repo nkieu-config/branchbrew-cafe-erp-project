@@ -83,6 +83,41 @@ export class HrService {
     });
   }
 
+  // ==================== LEAVE MANAGEMENT ====================
+  async requestLeave(userId: number, data: { type: any, startDate: string, endDate: string, reason?: string }) {
+    return this.prisma.leaveRequest.create({
+      data: {
+        userId,
+        type: data.type,
+        startDate: new Date(data.startDate),
+        endDate: new Date(data.endDate),
+        reason: data.reason
+      }
+    });
+  }
+
+  async getLeaveRequests(branchId?: number) {
+    return this.prisma.leaveRequest.findMany({
+      where: branchId ? { user: { branchId } } : {},
+      include: { user: { select: { name: true, branchId: true } } },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async getMyLeaveRequests(userId: number) {
+    return this.prisma.leaveRequest.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  async processLeaveRequest(id: number, status: any) {
+    return this.prisma.leaveRequest.update({
+      where: { id },
+      data: { status }
+    });
+  }
+
   // ==================== PAYROLL ====================
   async generatePayrollRun(branchId: number, month: number, year: number) {
     const startDate = new Date(year, month - 1, 1);
@@ -110,6 +145,8 @@ export class HrService {
         userMap.set(u.id, {
           userId: u.id,
           hourlyRate: u.hourlyRate,
+          baseSalary: u.baseSalary || 0,
+          employmentType: u.employmentType || 'PART_TIME',
           standardHours: 0,
           otHours: 0
         });
@@ -126,13 +163,22 @@ export class HrService {
     }
 
     const payslipsData = Array.from(userMap.values()).map(p => {
-      const basePay = p.standardHours * p.hourlyRate;
-      const otPay = p.otHours * p.hourlyRate * 1.5;
-      const grossPay = basePay + otPay;
+      const isFullTime = p.employmentType === 'FULL_TIME';
+      const basePay = isFullTime ? p.baseSalary : (p.standardHours * p.hourlyRate);
+      
+      // Calculate OT rate. For Full Time, we might use (baseSalary / 240) * 1.5 as OT rate, or just standard hourlyRate if defined.
+      // Let's use hourlyRate if available, else fallback
+      const otRate = p.hourlyRate > 0 ? p.hourlyRate * 1.5 : (p.baseSalary / 240) * 1.5;
+      const otPay = p.otHours * otRate;
+      
+      const bonuses = 0; // Default zero for now, can be adjusted by manager later
+      const otherDeductions = 0;
+
+      const grossPay = basePay + otPay + bonuses;
       
       const socialSecurity = Math.min(basePay * 0.05, 750);
       const taxDeduction = grossPay * 0.03;
-      const netPay = grossPay - socialSecurity - taxDeduction;
+      const netPay = grossPay - socialSecurity - taxDeduction - otherDeductions;
 
       return {
         userId: p.userId,
@@ -140,9 +186,11 @@ export class HrService {
         otHours: p.otHours,
         basePay,
         otPay,
+        bonuses,
         grossPay,
         socialSecurity,
         taxDeduction,
+        otherDeductions,
         netPay
       };
     });
