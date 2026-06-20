@@ -18,7 +18,7 @@ export class OrdersService {
   async createOrder(data: { 
     userId: number; 
     branchId: number; 
-    items: { productId: number; quantity: number }[];
+    items: { productId: number; quantity: number; notes?: string }[];
     customerPhone?: string;
     promotionCode?: string;
     pointsToRedeem?: number;
@@ -179,6 +179,7 @@ export class OrdersService {
                 productId: item.productId,
                 quantity: item.quantity,
                 price: product!.price,
+                notes: item.notes,
               };
             }))
           }
@@ -201,6 +202,7 @@ export class OrdersService {
         // Post Accounting Journal Entry
         if (netAmount > 0 || totalCogs > 0) {
           this.accountingService.createJournalEntry({
+            branchId: order.branchId,
             reference: `ORD-${order.id}`,
             description: `Sales Revenue and COGS for Order ${order.id}`,
             lines: [

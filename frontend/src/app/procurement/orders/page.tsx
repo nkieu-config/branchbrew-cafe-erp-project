@@ -1,37 +1,52 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getPurchaseOrders, fetchAPI, approvePurchaseOrder, rejectPurchaseOrder, receivePurchaseOrder } from "@/lib/api";
+import { getPurchaseOrders, createPurchaseOrder, approvePurchaseOrder, rejectPurchaseOrder, receivePurchaseOrder, getSuppliers, getIngredients } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Plus, CheckCircle2, XCircle, CheckSquare } from "lucide-react";
+import { Table, Tag, Button as AntButton, Modal, Form, Select, InputNumber, Space, Steps, Popconfirm } from "antd";
+import { Plus, CheckCircle2, XCircle, CheckSquare, Trash2, Truck } from "lucide-react";
 import { toast } from "sonner";
+import { AnimatedPage } from "@/components/animated-page";
+import { format } from "date-fns";
 
 export default function ProcurementPage() {
   const { user, activeBranchId } = useAuth();
   const [pos, setPos] = useState<any[]>([]);
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [ingredients, setIngredients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [form] = Form.useForm();
+
   useEffect(() => {
-    loadPOs();
+    loadData();
   }, [activeBranchId, user]);
 
-  const loadPOs = async () => {
+  const loadData = async () => {
+    setLoading(true);
     try {
-      const data = await getPurchaseOrders();
-      // Filter by active branch unless Super Admin wants to see all
+      const [posData, supData, ingData] = await Promise.all([
+        getPurchaseOrders(),
+        getSuppliers(),
+        getIngredients()
+      ]);
+      
       if (user?.role === 'SUPER_ADMIN' && !activeBranchId) {
-        setPos(data);
+        setPos(posData);
       } else if (activeBranchId) {
-        setPos(data.filter((po: any) => po.branchId === activeBranchId));
+        setPos(posData.filter((po: any) => po.branchId === activeBranchId));
       } else {
-        setPos(data);
+        setPos(posData);
       }
+
+      setSuppliers(supData);
+      setIngredients(ingData);
     } catch (error) {
       console.error(error);
+      toast.error("Failed to load data");
     } finally {
       setLoading(false);
     }
@@ -41,7 +56,7 @@ export default function ProcurementPage() {
     try {
       await approvePurchaseOrder(poId);
       toast.success("Purchase Order approved successfully!");
-      loadPOs();
+      loadData();
     } catch (error: any) {
       toast.error(error.message || "Failed to approve PO");
     }
@@ -51,7 +66,7 @@ export default function ProcurementPage() {
     try {
       await rejectPurchaseOrder(poId);
       toast.success("Purchase Order rejected.");
-      loadPOs();
+      loadData();
     } catch (error: any) {
       toast.error(error.message || "Failed to reject PO");
     }
@@ -61,104 +76,295 @@ export default function ProcurementPage() {
     try {
       await receivePurchaseOrder(poId);
       toast.success("Purchase Order received! Inventory updated.");
-      loadPOs();
+      loadData();
     } catch (error: any) {
       toast.error(error.message || "Failed to receive PO");
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "APPROVED": return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
-      case "RECEIVED": return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300";
-      case "PENDING": return "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300";
-      case "DRAFT": return "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300";
-      default: return "bg-slate-100 text-slate-800";
+  const handleCreateSubmit = async (values: any) => {
+    if (!activeBranchId) {
+      toast.error("Please select a branch first");
+      return;
+    }
+    if (!values.items || values.items.length === 0) {
+      toast.error("Please add at least one item");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await createPurchaseOrder({
+        branchId: activeBranchId,
+        supplierId: values.supplierId,
+        items: values.items.map((i: any) => ({
+          ingredientId: i.ingredientId,
+          quantity: i.quantity,
+          price: i.price || 0
+        }))
+      });
+      toast.success("Purchase Order created successfully");
+      setIsModalOpen(false);
+      form.resetFields();
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create PO");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  if (loading) return <div>Loading...</div>;
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "APPROVED": return "blue";
+      case "RECEIVED": return "success";
+      case "PENDING": return "warning";
+      case "DRAFT": return "default";
+      default: return "default";
+    }
+  };
+
+  const getStepCurrent = (status: string) => {
+    switch (status) {
+      case "DRAFT": return 0;
+      case "PENDING": return 1;
+      case "APPROVED": return 2;
+      case "RECEIVED": return 3;
+      default: return 0;
+    }
+  };
 
   const canApprove = user?.role === "SUPER_ADMIN" || user?.role === "MANAGER";
 
+  const columns = [
+    {
+      title: 'PO Number',
+      key: 'poNumber',
+      render: (_: any, record: any) => (
+        <div className="flex items-center gap-2">
+          <span className="font-semibold text-slate-800 dark:text-slate-200">{record.poNumber}</span>
+          {record.isAutoGenerated && <Tag color="blue" className="text-[10px]">AUTO</Tag>}
+        </div>
+      ),
+    },
+    {
+      title: 'Branch',
+      dataIndex: ['branch', 'name'],
+      key: 'branch',
+    },
+    {
+      title: 'Supplier',
+      dataIndex: ['supplier', 'name'],
+      key: 'supplier',
+    },
+    {
+      title: 'Created At',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (date: string) => format(new Date(date), 'dd MMM yyyy HH:mm'),
+    },
+    {
+      title: 'Status',
+      key: 'status',
+      render: (_: any, record: any) => (
+        <Tag color={getStatusColor(record.status)} className="px-2 py-0.5 rounded-md font-medium tracking-wide">
+          {record.status}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      align: 'right' as const,
+      render: (_: any, po: any) => (
+        <div className="flex justify-end gap-2">
+          {po.status === 'PENDING' && canApprove && (
+            <>
+              <Popconfirm title="Approve this PO?" onConfirm={() => handleApprove(po.id)}>
+                <AntButton type="primary" className="bg-blue-600 hover:bg-blue-700 border-none" size="small" icon={<CheckSquare className="w-3 h-3" />}>Approve</AntButton>
+              </Popconfirm>
+              <Popconfirm title="Reject this PO?" onConfirm={() => handleReject(po.id)}>
+                <AntButton danger size="small" icon={<XCircle className="w-3 h-3" />}>Reject</AntButton>
+              </Popconfirm>
+            </>
+          )}
+          
+          {po.status === 'APPROVED' && (
+            <Popconfirm title="Confirm receive goods?" onConfirm={() => handleReceive(po.id)}>
+              <AntButton type="primary" className="bg-emerald-500 hover:bg-emerald-600 border-none" size="small" icon={<CheckCircle2 className="w-3 h-3" />}>Receive</AntButton>
+            </Popconfirm>
+          )}
+        </div>
+      ),
+    },
+  ];
+
+  const expandedRowRender = (record: any) => {
+    const itemColumns = [
+      { title: 'Ingredient', dataIndex: ['ingredient', 'name'], key: 'name' },
+      { title: 'Quantity Req.', dataIndex: 'quantityRequested', key: 'qty', render: (val: number, rec: any) => `${val} ${rec.ingredient.unit}` },
+      { title: 'Unit Price', dataIndex: 'unitPrice', key: 'price', render: (val: number) => `฿${Number(val).toFixed(2)}` },
+      { title: 'Total', key: 'total', render: (_: any, rec: any) => `฿${(rec.quantityRequested * rec.unitPrice).toFixed(2)}` },
+    ];
+
+    const stepItems = [
+      { title: "Draft", description: "Prepared" },
+      { title: "Pending", description: "Approval" },
+      { title: "Approved", description: "Waiting Delivery" },
+      { title: "Received", description: "In Stock" }
+    ];
+
+    return (
+      <div className="p-4 bg-slate-50/50 dark:bg-slate-900/50 rounded-lg m-2 border border-slate-100 dark:border-slate-800">
+        <div className="mb-6 px-10">
+          <Steps 
+            current={getStepCurrent(record.status)} 
+            size="small"
+            status={record.status === 'DRAFT' && record.items.length > 0 && !record.isAutoGenerated ? 'error' : 'process'}
+            items={stepItems}
+          />
+        </div>
+        <Table 
+          columns={itemColumns} 
+          dataSource={record.items} 
+          rowKey="id" 
+          pagination={false} 
+          size="small" 
+          className="shadow-sm border border-slate-200 dark:border-slate-800 rounded-md overflow-hidden"
+        />
+      </div>
+    );
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <AnimatedPage className="space-y-6 w-full">
+      <div className="flex justify-between items-center mb-6">
         <div className="ml-auto">
-          <Button className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="w-4 h-4 mr-2" />
+          <AntButton 
+            type="primary" 
+            className="bg-blue-600 hover:bg-blue-700 h-10 px-4 rounded-lg shadow-sm"
+            icon={<Plus className="w-4 h-4" />}
+            onClick={() => setIsModalOpen(true)}
+            disabled={!activeBranchId}
+          >
             Create PO
-          </Button>
+          </AntButton>
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Purchase Orders</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>PO Number</TableHead>
-                <TableHead>Branch</TableHead>
-                <TableHead>Supplier</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {pos.map((po) => (
-                <TableRow key={po.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                      {po.poNumber}
-                      {po.isAutoGenerated && <Badge variant="outline" className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 text-[10px] px-1 py-0 uppercase">Auto</Badge>}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-1">
+        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-t-xl font-bold text-slate-800 dark:text-slate-100">
+          Purchase Orders
+        </div>
+        <Table 
+          columns={columns} 
+          dataSource={pos} 
+          rowKey="id"
+          loading={loading}
+          expandable={{ expandedRowRender }}
+          pagination={{ pageSize: 10 }}
+          className="w-full overflow-x-auto [&_.ant-table-thead>tr>th]:bg-slate-50 [&_.ant-table-thead>tr>th]:dark:bg-slate-900"
+        />
+      </div>
+
+      {/* Create PO Modal */}
+      <Modal
+        title={<div className="text-lg font-bold flex items-center gap-2"><Truck className="w-5 h-5 text-blue-500" /> Create Purchase Order</div>}
+        open={isModalOpen}
+        onCancel={() => { setIsModalOpen(false); form.resetFields(); }}
+        footer={null}
+        width={800}
+        destroyOnHidden
+        className="dark:[&_.ant-modal-content]:bg-slate-900"
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleCreateSubmit}
+          className="mt-6"
+        >
+          <Form.Item 
+            label="Select Supplier" 
+            name="supplierId" 
+            rules={[{ required: true, message: 'Supplier is required' }]}
+          >
+            <Select 
+              showSearch
+              placeholder="Search and select supplier"
+              optionFilterProp="children"
+              className="h-10"
+              options={suppliers.map(s => ({ value: s.id, label: s.name }))}
+            />
+          </Form.Item>
+
+          <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 mb-6">
+            <h3 className="text-sm font-semibold mb-4 text-slate-700 dark:text-slate-300">Order Items</h3>
+            <Form.List name="items">
+              {(fields, { add, remove }) => (
+                <>
+                  {fields.map(({ key, name, ...restField }) => (
+                    <div key={key} className="flex gap-4 items-start mb-4">
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'ingredientId']}
+                        rules={[{ required: true, message: 'Missing ingredient' }]}
+                        className="mb-0 flex-1"
+                      >
+                        <Select 
+                          showSearch
+                          placeholder="Ingredient"
+                          options={ingredients.map(i => ({ value: i.id, label: `${i.name} (${i.unit})` }))}
+                          onChange={(val) => {
+                            // Auto-fill price if available
+                            const ing = ingredients.find(i => i.id === val);
+                            if (ing && ing.costPerUnit) {
+                              const currentItems = form.getFieldValue('items');
+                              currentItems[name].price = ing.costPerUnit;
+                              form.setFieldsValue({ items: currentItems });
+                            }
+                          }}
+                        />
+                      </Form.Item>
+
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'quantity']}
+                        rules={[{ required: true, message: 'Missing Qty' }]}
+                        className="mb-0 w-32"
+                      >
+                        <InputNumber placeholder="Qty" min={0.1} step={0.1} className="w-full" />
+                      </Form.Item>
+
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'price']}
+                        rules={[{ required: true, message: 'Missing Price' }]}
+                        className="mb-0 w-32"
+                      >
+                        <InputNumber placeholder="Price/Unit" min={0} className="w-full" />
+                      </Form.Item>
+
+                      <AntButton type="text" danger onClick={() => remove(name)} icon={<Trash2 className="w-4 h-4"/>} />
                     </div>
-                  </TableCell>
-                  <TableCell>{po.branch.name}</TableCell>
-                  <TableCell>{po.supplier.name}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className={getStatusBadge(po.status)}>
-                      {po.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      {po.status === 'PENDING' && canApprove && (
-                        <>
-                          <Button size="sm" variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50 dark:border-blue-800/50 dark:hover:bg-blue-900/30" onClick={() => handleApprove(po.id)}>
-                            <CheckSquare className="w-4 h-4 mr-1.5" />
-                            Approve
-                          </Button>
-                          <Button size="sm" variant="outline" className="text-rose-600 border-rose-200 hover:bg-rose-50 dark:border-rose-800/50 dark:hover:bg-rose-900/30" onClick={() => handleReject(po.id)}>
-                            <XCircle className="w-4 h-4 mr-1.5" />
-                            Reject
-                          </Button>
-                        </>
-                      )}
-                      
-                      {po.status === 'APPROVED' && (
-                        <Button size="sm" variant="outline" className="text-emerald-600 border-emerald-200 hover:bg-emerald-50 dark:border-emerald-800/50 dark:hover:bg-emerald-900/30" onClick={() => handleReceive(po.id)}>
-                          <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                          Receive Goods
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {pos.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center text-slate-500 dark:text-slate-400 py-8">
-                    No purchase orders found.
-                  </TableCell>
-                </TableRow>
+                  ))}
+                  <Form.Item className="mb-0 mt-4">
+                    <AntButton type="dashed" onClick={() => add()} block icon={<Plus className="w-4 h-4" />}>
+                      Add Item
+                    </AntButton>
+                  </Form.Item>
+                </>
               )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
+            </Form.List>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <AntButton onClick={() => setIsModalOpen(false)}>Cancel</AntButton>
+            <AntButton type="primary" htmlType="submit" className="bg-blue-600" loading={submitting}>
+              Submit PO
+            </AntButton>
+          </div>
+        </Form>
+      </Modal>
+    </AnimatedPage>
   );
 }

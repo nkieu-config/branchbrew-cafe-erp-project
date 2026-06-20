@@ -1,85 +1,180 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { fetchAPI } from "@/lib/api"
 import { useAuth } from "@/context/AuthContext"
+import { fetchAPI } from "@/lib/api"
+import { Users, CalendarDays, Plus, UserPlus, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
+import { AnimatedPage } from "@/components/animated-page"
+import { Avatar, Tooltip } from "antd"
 
 export default function EmployeesShiftsPage() {
-  const { activeBranchId, user } = useAuth()
-  const role = user?.role;
+  const { user, activeBranchId } = useAuth()
   const [shifts, setShifts] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [loading, setLoading] = useState(true)
+
+  const role = user?.role
 
   useEffect(() => {
-    if (activeBranchId) {
-      fetchData()
-    }
-  }, [activeBranchId])
-
-  const fetchData = async () => {
-    setIsLoading(true)
-    try {
-      if (role === 'SUPER_ADMIN' || role === 'MANAGER') {
-        const data = await fetchAPI(`/hr/shifts/branch/${activeBranchId}`)
+    const fetchShifts = async () => {
+      setLoading(true)
+      try {
+        let data;
+        if (role === 'SUPER_ADMIN' || role === 'MANAGER') {
+          if (!activeBranchId) return;
+          data = await fetchAPI(`/hr/shifts/branch/${activeBranchId}`)
+        } else {
+          data = await fetchAPI('/hr/shifts/me')
+        }
         setShifts(data || [])
-      } else {
-        const data = await fetchAPI('/hr/shifts/me')
-        setShifts(data || [])
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoading(false)
       }
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setIsLoading(false)
     }
+    fetchShifts()
+  }, [activeBranchId, role])
+
+  if (loading) {
+    return <div className="text-center py-12 text-slate-500 font-bold">Loading shifts...</div>
   }
 
-  if (isLoading) {
-    return <div className="text-center py-12 text-slate-500">Loading shifts...</div>
+  // Group shifts by user for the Gantt view
+  // For simplicity, we just filter today's shifts or show all in a generic 06:00 to 22:00 grid
+  // We'll show the most recent or upcoming shifts (today)
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date();
+  todayEnd.setHours(23, 59, 59, 999);
+
+  const todaysShifts = shifts.filter(s => {
+    const d = new Date(s.startTime);
+    return d >= todayStart && d <= todayEnd;
+  });
+
+  const usersWithShifts = Array.from(new Set(todaysShifts.map(s => s.user?.name || 'Unknown')));
+
+  // Time blocks from 06:00 to 22:00 (16 hours)
+  const HOURS_START = 6;
+  const HOURS_END = 22;
+  const hoursRange = Array.from({ length: HOURS_END - HOURS_START + 1 }, (_, i) => i + HOURS_START);
+
+  const calculateLeftPercent = (date: string) => {
+    const d = new Date(date);
+    const h = d.getHours() + d.getMinutes() / 60;
+    if (h < HOURS_START) return 0;
+    if (h > HOURS_END) return 100;
+    return ((h - HOURS_START) / (HOURS_END - HOURS_START)) * 100;
+  }
+
+  const calculateWidthPercent = (start: string, end: string) => {
+    const s = new Date(start);
+    const e = new Date(end);
+    let sh = s.getHours() + s.getMinutes() / 60;
+    let eh = e.getHours() + e.getMinutes() / 60;
+    
+    if (sh < HOURS_START) sh = HOURS_START;
+    if (eh > HOURS_END) eh = HOURS_END;
+    
+    let width = ((eh - sh) / (HOURS_END - HOURS_START)) * 100;
+    return Math.max(0, width);
   }
 
   return (
-    <div className="animate-in fade-in zoom-in-95 duration-300">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-          {(role === 'SUPER_ADMIN' || role === 'MANAGER') ? 'Branch Shifts & Directory' : 'My Shifts'}
-        </h2>
+    <AnimatedPage className="space-y-6 w-full">
+      <div className="flex justify-between items-end mb-6">
+        <div>
+          <h1 className="text-2xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            <CalendarDays className="w-6 h-6 text-indigo-500" />
+            {(role === 'SUPER_ADMIN' || role === 'MANAGER') ? 'Shift Schedule (Gantt)' : 'My Shifts'}
+          </h1>
+          <p className="text-slate-500 font-medium">Manage and view the time-block shift schedule for today.</p>
+        </div>
         {(role === 'SUPER_ADMIN' || role === 'MANAGER') && (
-          <Button className="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-500/20">
-            <Plus className="w-4 h-4 mr-2" />
-            Create Shift
-          </Button>
+          <div className="flex gap-2">
+            <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold h-10 px-4 rounded-xl shadow-sm">
+              <Plus className="w-4 h-4 mr-2" /> Add Shift
+            </Button>
+            <Button variant="outline" className="border-slate-200 dark:border-slate-700 bg-white font-bold h-10 px-4 rounded-xl shadow-sm">
+              <UserPlus className="w-4 h-4 mr-2" /> Directory
+            </Button>
+          </div>
         )}
       </div>
-      {shifts.length === 0 ? <p className="text-slate-500">No shifts scheduled.</p> : (
-        <div className="grid gap-3">
-          {shifts.map(shift => (
-            <div key={shift.id} className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex justify-between items-center">
-              <div>
-                <div className="font-semibold text-slate-900 dark:text-slate-100">
-                  {new Date(shift.startTime).toLocaleDateString()}
-                </div>
-                <div className="text-sm text-slate-500 mt-1">
-                  {new Date(shift.startTime).toLocaleTimeString()} - {new Date(shift.endTime).toLocaleTimeString()}
-                </div>
+
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
+        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+          <h2 className="font-black text-slate-800 dark:text-slate-100 text-lg">Today's Timeline ({new Date().toLocaleDateString()})</h2>
+        </div>
+
+        {todaysShifts.length === 0 ? (
+          <div className="p-12 text-center text-slate-500 font-bold">No shifts scheduled for today.</div>
+        ) : (
+          <div className="p-4 overflow-x-auto">
+            <div className="min-w-[800px]">
+              {/* Header: Time Slots */}
+              <div className="flex ml-40 border-b border-slate-200 dark:border-slate-800 pb-2 relative">
+                {hoursRange.map(hour => (
+                  <div key={hour} className="flex-1 text-xs font-black text-slate-400 text-center relative">
+                    <span className="absolute -left-3 top-0 bg-white dark:bg-slate-900 px-1 z-10">{hour.toString().padStart(2, '0')}:00</span>
+                    {hour === HOURS_END && <span className="absolute -right-3 top-0 bg-white dark:bg-slate-900 px-1 z-10">22:00</span>}
+                  </div>
+                ))}
               </div>
-              <div className="text-right">
-                {(role === 'SUPER_ADMIN' || role === 'MANAGER') && (
-                  <div className="text-sm font-medium mb-1">{shift.user?.name}</div>
-                )}
-                <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
-                  shift.status === 'COMPLETED' ? 'bg-emerald-100 text-emerald-700' :
-                  shift.status === 'ABSENT' ? 'bg-red-100 text-red-700' :
-                  'bg-blue-100 text-blue-700'
-                }`}>
-                  {shift.status || 'SCHEDULED'}
-                </span>
+
+              {/* Body: Employees and Shifts */}
+              <div className="relative mt-4 space-y-4">
+                {/* Background Grid Lines */}
+                <div className="absolute top-0 bottom-0 left-40 right-0 flex pointer-events-none">
+                  {hoursRange.slice(0, -1).map(hour => (
+                    <div key={hour} className="flex-1 border-l border-slate-100 dark:border-slate-800/50 border-dashed" />
+                  ))}
+                </div>
+
+                {usersWithShifts.map((userName, idx) => {
+                  const userShifts = todaysShifts.filter(s => s.user?.name === userName);
+                  return (
+                    <div key={idx} className="flex items-center h-12 relative group">
+                      {/* User Column */}
+                      <div className="w-40 flex items-center gap-2 pr-4 shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-10 group-hover:bg-slate-50 transition-colors">
+                        <Avatar className="bg-indigo-500 font-bold shrink-0">{userName.charAt(0)}</Avatar>
+                        <span className="font-bold text-sm text-slate-700 dark:text-slate-200 truncate">{userName}</span>
+                      </div>
+
+                      {/* Shifts Track */}
+                      <div className="flex-1 h-full relative group-hover:bg-slate-50/50 transition-colors rounded-r-xl">
+                        {userShifts.map((shift, i) => {
+                          const left = calculateLeftPercent(shift.startTime);
+                          const width = calculateWidthPercent(shift.startTime, shift.endTime);
+                          
+                          let colorClass = "bg-indigo-500 border-indigo-600";
+                          if (shift.status === 'COMPLETED') colorClass = "bg-emerald-500 border-emerald-600";
+                          if (shift.status === 'ABSENT') colorClass = "bg-rose-500 border-rose-600";
+
+                          return (
+                            <Tooltip 
+                              key={i} 
+                              title={`${new Date(shift.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(shift.endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} (${shift.status})`}
+                            >
+                              <div 
+                                className={`absolute top-1 bottom-1 rounded-md border text-white text-[10px] font-black flex items-center justify-center overflow-hidden shadow-sm transition-all hover:scale-[1.02] cursor-pointer z-20 ${colorClass}`}
+                                style={{ left: `${left}%`, width: `${width}%` }}
+                              >
+                                {width > 10 ? shift.status : ''}
+                              </div>
+                            </Tooltip>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             </div>
-          ))}
-        </div>
-      )}
-    </div>
+          </div>
+        )}
+      </div>
+    </AnimatedPage>
   )
 }

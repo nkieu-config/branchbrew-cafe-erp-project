@@ -26,6 +26,12 @@ export class ProductionController {
   }
 
   @Roles('SUPER_ADMIN', 'MANAGER')
+  @Patch('orders/:id/status')
+  updateOrderStatus(@Param('id', ParseIntPipe) id: number, @Body() data: { status: string }) {
+    return this.productionService.updateOrderStatus(id, data.status);
+  }
+
+  @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('orders/:id/complete')
   completeOrder(@Param('id', ParseIntPipe) id: number, @Req() req: any) {
     return this.productionService.completeProductionOrder(id, req.user?.id);

@@ -8,20 +8,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Coffee, ShoppingBag, User, Ticket, Award, Search, X, Printer, Plus } from "lucide-react";
+import { Coffee, ShoppingBag, User, Ticket, Award, Search, X, Printer, Plus, Settings2 } from "lucide-react";
 import { AnimatedPage } from "@/components/animated-page";
 import { Receipt } from "@/components/pos/Receipt";
 import { useReactToPrint } from "react-to-print";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useRef } from "react";
+import { OnScreenNumpad } from "@/components/pos/OnScreenNumpad";
 
 export default function POSPage() {
   const { user, activeBranchId } = useAuth();
   const [products, setProducts] = useState<any[]>([]);
-  const [cart, setCart] = useState<{ product: any; quantity: number }[]>([]);
+  const [cart, setCart] = useState<{ id: string; product: any; quantity: number; notes?: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Modifiers State
+  const [showModifiers, setShowModifiers] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [modifierSweetness, setModifierSweetness] = useState("100%");
+  const [modifierMilk, setModifierMilk] = useState("Normal");
+  const [modifierTemp, setModifierTemp] = useState("Iced");
+
   // CRM State
+  const [showNumpad, setShowNumpad] = useState(false);
   const [customerPhone, setCustomerPhone] = useState("");
   const [customer, setCustomer] = useState<any>(null);
   const [pointsToRedeem, setPointsToRedeem] = useState<number>(0);
@@ -55,20 +64,33 @@ export default function POSPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const addToCart = (product: any) => {
-    setCart((prev) => {
-      const existing = prev.find((item) => item.product.id === product.id);
-      if (existing) {
-        return prev.map((item) =>
-          item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      }
-      return [...prev, { product, quantity: 1 }];
-    });
+  const handleProductClick = (product: any) => {
+    if (product.category.toLowerCase().includes('coffee') || product.category.toLowerCase().includes('beverage')) {
+      setSelectedProduct(product);
+      setModifierSweetness("100%");
+      setModifierMilk("Normal");
+      setModifierTemp("Iced");
+      setShowModifiers(true);
+    } else {
+      addToCart(product);
+    }
   };
 
-  const removeFromCart = (productId: number) => {
-    setCart((prev) => prev.filter((item) => item.product.id !== productId));
+  const addToCart = (product: any, notes?: string) => {
+    setCart((prev) => {
+      const existing = prev.find((item) => item.product.id === product.id && item.notes === notes);
+      if (existing) {
+        return prev.map((item) =>
+          item.id === existing.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      return [...prev, { id: Date.now().toString() + Math.random(), product, quantity: 1, notes }];
+    });
+    setShowModifiers(false);
+  };
+
+  const removeFromCart = (cartId: string) => {
+    setCart((prev) => prev.filter((item) => item.id !== cartId));
   };
 
   // Calculations
@@ -132,7 +154,7 @@ export default function POSPage() {
     }
     
     try {
-      const items = cart.map(item => ({ productId: item.product.id, quantity: item.quantity }));
+      const items = cart.map(item => ({ productId: item.product.id, quantity: item.quantity, notes: item.notes }));
       const orderData = await createOrder({ 
         userId: user?.id as number, 
         branchId: activeBranchId, 
@@ -187,7 +209,7 @@ export default function POSPage() {
             <Card 
               key={product.id} 
               className="cursor-pointer hover:border-amber-400 hover:shadow-md transition-colors active:scale-95 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
-              onClick={() => addToCart(product)}
+              onClick={() => handleProductClick(product)}
             >
               <CardHeader className="p-4 pb-2">
                 <CardTitle className="text-lg text-slate-800 dark:text-slate-200">{product.name}</CardTitle>
@@ -220,14 +242,15 @@ export default function POSPage() {
         
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {cart.map((item) => (
-            <div key={item.product.id} className="flex justify-between items-center border-b border-slate-50 dark:border-slate-800/50 pb-3">
+            <div key={item.id} className="flex justify-between items-center border-b border-slate-50 dark:border-slate-800/50 pb-3">
               <div>
                 <div className="font-semibold text-slate-800 dark:text-slate-200">{item.product.name}</div>
+                {item.notes && <div className="text-xs text-amber-600 dark:text-amber-500 font-medium mb-1 line-clamp-2">{item.notes}</div>}
                 <div className="text-sm text-slate-500 dark:text-slate-400 tabular-nums">฿{item.product.price} x {item.quantity}</div>
               </div>
               <div className="flex items-center gap-4">
                 <span className="font-bold text-slate-700 dark:text-slate-300 tabular-nums">฿{item.product.price * item.quantity}</span>
-                <Button aria-label="Remove item" variant="ghost" size="sm" className="text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 h-8 w-8 p-0" onClick={() => removeFromCart(item.product.id)}>
+                <Button aria-label="Remove item" variant="ghost" size="sm" className="text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 h-8 w-8 p-0" onClick={() => removeFromCart(item.id)}>
                   ✕
                 </Button>
               </div>
@@ -247,15 +270,13 @@ export default function POSPage() {
           {/* Customer CRM */}
           <div className="space-y-2">
             {!customer ? (
-              <div className="flex gap-2">
-                <Input 
-                  placeholder="Customer Phone" 
-                  value={customerPhone} 
-                  onChange={(e) => setCustomerPhone(e.target.value)} 
-                  className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
-                />
-                  <Button aria-label="Search customer" variant="secondary" className="dark:bg-slate-800 dark:text-slate-300" onClick={handleFindCustomer}><Search className="w-4 h-4" /></Button>
-              </div>
+              <Button 
+                variant="outline" 
+                className="w-full h-12 bg-white dark:bg-slate-900 border-dashed border-2 border-slate-300 dark:border-slate-700 text-slate-500 hover:text-amber-600 hover:border-amber-400 dark:hover:text-amber-400"
+                onClick={() => setShowNumpad(true)}
+              >
+                <Search className="w-4 h-4 mr-2" /> Find Member via Phone
+              </Button>
             ) : (
               <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 p-3 rounded-lg relative">
                 <Button aria-label="Clear customer" variant="ghost" size="sm" className="absolute top-1 right-1 h-6 w-6 p-0 text-blue-400 hover:text-blue-600 dark:hover:text-blue-300" onClick={handleClearCRM}>
@@ -441,6 +462,58 @@ export default function POSPage() {
               New Order
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modifiers Modal */}
+      <Dialog open={showModifiers} onOpenChange={setShowModifiers}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl"><Settings2 className="w-5 h-5 text-amber-500"/> Customize {selectedProduct?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-6">
+            <div className="space-y-3">
+              <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Temperature</label>
+              <div className="grid grid-cols-3 gap-2">
+                {["Hot", "Iced", "Frappe"].map(t => (
+                  <Button key={t} variant={modifierTemp === t ? 'default' : 'outline'} className={modifierTemp === t ? 'bg-amber-500 hover:bg-amber-600 font-bold' : ''} onClick={() => setModifierTemp(t)}>{t}</Button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-3">
+              <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Sweetness</label>
+              <div className="grid grid-cols-4 gap-2">
+                {["0%", "50%", "100%", "150%"].map(s => (
+                  <Button key={s} variant={modifierSweetness === s ? 'default' : 'outline'} className={modifierSweetness === s ? 'bg-amber-500 hover:bg-amber-600 font-bold' : ''} onClick={() => setModifierSweetness(s)}>{s}</Button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-3">
+              <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Milk Type</label>
+              <div className="grid grid-cols-3 gap-2">
+                {["Normal", "Oat", "Almond"].map(m => (
+                  <Button key={m} variant={modifierMilk === m ? 'default' : 'outline'} className={modifierMilk === m ? 'bg-amber-500 hover:bg-amber-600 font-bold' : ''} onClick={() => setModifierMilk(m)}>{m}</Button>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button className="w-full bg-emerald-500 hover:bg-emerald-600 h-12 text-lg font-bold" onClick={() => addToCart(selectedProduct, `${modifierTemp}, ${modifierSweetness} Sweet, ${modifierMilk} Milk`)}>
+              Add to Order
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Numpad Modal */}
+      <Dialog open={showNumpad} onOpenChange={setShowNumpad}>
+        <DialogContent className="sm:max-w-[360px] bg-transparent border-none shadow-none p-0">
+          <OnScreenNumpad 
+            value={customerPhone}
+            onChange={setCustomerPhone}
+            onClose={() => setShowNumpad(false)}
+            onSubmit={() => { setShowNumpad(false); handleFindCustomer(); }}
+          />
         </DialogContent>
       </Dialog>
     </div>

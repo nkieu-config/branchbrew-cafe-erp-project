@@ -108,53 +108,73 @@ export default function KdsPage() {
           {orders.map((order) => {
             const waitTime = getWaitTimeMinutes(order.createdAt)
             const isLate = waitTime >= 10
-            const isPreparing = order.status === 'PREPARING'
+            const isWarning = waitTime >= 5 && waitTime < 10
+
+            const headerColorClass = isLate 
+              ? 'bg-rose-600' 
+              : isWarning 
+                ? 'bg-amber-500' 
+                : 'bg-emerald-500';
+
+            const borderClass = isLate
+              ? 'border-rose-600 animate-[pulse_2s_ease-in-out_infinite]'
+              : isWarning
+                ? 'border-amber-500'
+                : 'border-emerald-500';
 
             return (
               <div 
                 key={order.id} 
-                className={`flex-shrink-0 w-[350px] bg-white dark:bg-slate-800 rounded-xl shadow-md border-2 overflow-hidden flex flex-col ${
-                  isLate ? 'border-red-500' : isPreparing ? 'border-amber-400' : 'border-slate-200 dark:border-slate-700'
-                }`}
+                className={`flex-shrink-0 w-[400px] bg-white dark:bg-slate-800 rounded-2xl shadow-xl border-4 overflow-hidden flex flex-col transition-all ${borderClass}`}
               >
                 {/* Header */}
-                <div className={`p-4 flex justify-between items-center text-white ${
-                  isLate ? 'bg-red-500' : isPreparing ? 'bg-amber-500' : 'bg-slate-800'
-                }`}>
-                  <div className="font-bold text-xl">Order #{order.id}</div>
-                  <div className="flex items-center gap-1 font-mono text-sm bg-black/20 px-2 py-1 rounded">
-                    <Clock className="w-4 h-4" />
+                <div className={`p-5 flex justify-between items-center text-white ${headerColorClass}`}>
+                  <div>
+                    <div className="font-black text-2xl tracking-wider">#{order.id}</div>
+                    <div className="text-sm opacity-90 font-medium flex items-center gap-2">
+                      {order.status === 'PREPARING' ? 'กำลังทำ (Preparing)' : 'รอคิว (Pending)'}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 font-mono text-xl font-bold bg-black/20 px-3 py-2 rounded-lg shadow-inner">
+                    <Clock className="w-6 h-6" />
                     {waitTime} min
                   </div>
                 </div>
 
                 {/* Items */}
-                <div className="p-4 flex-1 overflow-y-auto space-y-3">
+                <div className="p-5 flex-1 overflow-y-auto space-y-4">
                   {order.items.map((item: any) => (
-                    <div key={item.id} className="flex justify-between items-start text-lg font-medium border-b border-slate-100 dark:border-slate-700 pb-2">
-                      <div className="flex gap-2">
-                        <span className="text-emerald-600 dark:text-emerald-400">{item.quantity}x</span>
-                        <span className="text-slate-800 dark:text-slate-200">{item.product.name}</span>
+                    <div key={item.id} className="border-b border-slate-100 dark:border-slate-700 pb-3">
+                      <div className="flex gap-3 items-start">
+                        <span className="text-emerald-600 dark:text-emerald-400 font-black text-2xl">{item.quantity}x</span>
+                        <div className="flex flex-col">
+                          <span className="text-slate-800 dark:text-slate-100 font-black text-2xl leading-tight">{item.product.name}</span>
+                          {item.notes && (
+                            <div className="mt-2 text-xl font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/50 px-2 py-1 rounded inline-block">
+                              + {item.notes}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
 
                 {/* Actions */}
-                <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 flex gap-2">
+                <div className="p-5 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 flex gap-3">
                   {order.status === 'PENDING' && (
                     <Button 
-                      className="flex-1 bg-amber-500 hover:bg-amber-600 text-white text-lg h-14"
+                      className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-black text-2xl h-24 shadow-lg active:scale-95 transition-transform"
                       onClick={() => handleUpdateStatus(order.id, 'PREPARING')}
                     >
-                      <Play className="w-5 h-5 mr-2" /> Start
+                      <Play className="w-8 h-8 mr-2" /> START
                     </Button>
                   )}
                   <Button 
-                    className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white text-lg h-14"
+                    className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-2xl h-24 shadow-lg active:scale-95 transition-transform"
                     onClick={() => handleUpdateStatus(order.id, 'COMPLETED')}
                   >
-                    <CheckCircle2 className="w-5 h-5 mr-2" /> Done
+                    <CheckCircle2 className="w-8 h-8 mr-2" /> DONE
                   </Button>
                 </div>
               </div>

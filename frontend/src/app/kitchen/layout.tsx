@@ -16,6 +16,7 @@ export default function KitchenLayout({ children }: { children: React.ReactNode 
 
   const tabs = [
     { name: "Production Orders", path: "/kitchen", icon: ChefHat, roles: ["SUPER_ADMIN", "MANAGER"] },
+    { name: "BOM (Recipes)", path: "/kitchen/boms", icon: ListTree, roles: ["SUPER_ADMIN", "MANAGER"] },
   ]
 
   return (

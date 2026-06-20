@@ -1,16 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchAPI } from "@/lib/api";
+import { fetchAPI, getCustomer360 } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search, UserPlus, Star, Award, Crown } from "lucide-react";
+import { Search, UserPlus, Star, Award, Crown, Activity, AlertTriangle, CheckCircle2, History, Heart, ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Drawer, Progress, Spin, Divider } from "antd";
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<any[]>([]);
@@ -20,9 +21,21 @@ export default function CustomersPage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
 
+  // Customer 360 State
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
+  const [customer360, setCustomer360] = useState<any>(null);
+  const [loading360, setLoading360] = useState(false);
+
   useEffect(() => {
     loadCustomers();
   }, []);
+
+  useEffect(() => {
+    if (drawerOpen && selectedCustomerId) {
+      loadCustomer360(selectedCustomerId);
+    }
+  }, [drawerOpen, selectedCustomerId]);
 
   const loadCustomers = async (q?: string) => {
     setLoading(true);
@@ -34,6 +47,19 @@ export default function CustomersPage() {
       console.error(error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadCustomer360 = async (id: number) => {
+    setLoading360(true);
+    try {
+      const data = await getCustomer360(id);
+      setCustomer360(data);
+    } catch (error) {
+      toast.error("Failed to load customer insights");
+      setDrawerOpen(false);
+    } finally {
+      setLoading360(false);
     }
   };
 
@@ -75,91 +101,231 @@ export default function CustomersPage() {
     }
   };
 
+  const getChurnRiskColor = (risk: string) => {
+    switch (risk) {
+      case 'LOW': return 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-900/30';
+      case 'MEDIUM': return 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-900/30';
+      case 'HIGH': return 'text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-900/30';
+      default: return '';
+    }
+  };
+
+  const formatCurrency = (val: number) => `฿${val.toLocaleString()}`;
+
   return (
     <div className="space-y-6">
       <div className="flex justify-end items-center">
         <Dialog>
-          <DialogTrigger render={<Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md" />}>
-            <UserPlus className="w-4 h-4 mr-2" />
-            New Member
+          <DialogTrigger render={<Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md rounded-xl">
+              <UserPlus className="w-4 h-4 mr-2" />
+              New Member
+            </Button>}>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-md rounded-2xl">
             <DialogHeader>
-              <DialogTitle>Register Customer</DialogTitle>
+              <DialogTitle className="text-xl font-bold">Register Customer</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleCreate} className="space-y-4 pt-4">
               <div className="space-y-2">
-                <Label>Name</Label>
-                <Input value={name} onChange={e => setName(e.target.value)} required placeholder="e.g. John Doe" />
+                <Label className="font-bold">Full Name</Label>
+                <Input value={name} onChange={e => setName(e.target.value)} required placeholder="e.g. John Doe" className="rounded-xl" />
               </div>
               <div className="space-y-2">
-                <Label>Phone Number</Label>
-                <Input value={phone} onChange={e => setPhone(e.target.value)} required placeholder="e.g. 0812345678" />
+                <Label className="font-bold">Phone Number</Label>
+                <Input value={phone} onChange={e => setPhone(e.target.value)} required placeholder="e.g. 0812345678" className="rounded-xl" />
               </div>
-              <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white">Register</Button>
+              <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl h-11 text-md font-bold">Register</Button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
-      <Card className="glass-card">
-        <CardHeader className="pb-2">
-          <form onSubmit={handleSearch} className="flex gap-2 w-full max-w-sm">
+      <Card className="glass-card shadow-sm border-slate-200/60 dark:border-slate-800/60">
+        <CardHeader className="pb-4">
+          <form onSubmit={handleSearch} className="flex gap-3 w-full max-w-lg">
             <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
               <Input
                 type="search"
                 placeholder="Search by name or phone..."
-                className="pl-9 bg-white/50 dark:bg-slate-900/50"
+                className="pl-10 h-12 rounded-xl bg-white dark:bg-slate-900 shadow-sm border-slate-200 dark:border-slate-800 font-medium"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <Button type="submit" variant="secondary">Search</Button>
+            <Button type="submit" variant="secondary" className="h-12 rounded-xl px-6 font-bold shadow-sm">Search</Button>
           </form>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Customer</TableHead>
-                <TableHead>Phone</TableHead>
-                <TableHead>Tier</TableHead>
-                <TableHead>Points</TableHead>
-                <TableHead>Joined</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow><TableCell colSpan={5} className="text-center py-10">Loading...</TableCell></TableRow>
-              ) : customers.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center py-10 text-slate-500">No customers found.</TableCell></TableRow>
-              ) : (
-                customers.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell className="font-semibold text-slate-800 dark:text-slate-200">
-                      {c.name}
-                    </TableCell>
-                    <TableCell className="text-slate-500 font-mono">{c.phone}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={`flex w-fit items-center gap-1.5 px-2 py-0.5 text-xs font-bold uppercase tracking-wider ${getTierBadge(c.tier)}`}>
-                        {getTierIcon(c.tier)}
-                        {c.tier}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-bold text-lg text-emerald-600 dark:text-emerald-400">
-                      {c.points} <span className="text-xs font-medium text-slate-400">pts</span>
-                    </TableCell>
-                    <TableCell className="text-slate-500 text-sm">
-                      {new Date(c.createdAt).toLocaleDateString()}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800">
+            <Table>
+              <TableHeader className="bg-slate-50 dark:bg-slate-800/50">
+                <TableRow>
+                  <TableHead className="font-bold text-slate-700 dark:text-slate-300">Customer</TableHead>
+                  <TableHead className="font-bold text-slate-700 dark:text-slate-300">Phone</TableHead>
+                  <TableHead className="font-bold text-slate-700 dark:text-slate-300">Tier</TableHead>
+                  <TableHead className="font-bold text-slate-700 dark:text-slate-300">Points</TableHead>
+                  <TableHead className="font-bold text-slate-700 dark:text-slate-300">Joined</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow><TableCell colSpan={5} className="text-center py-10 font-medium text-slate-500">Loading customers...</TableCell></TableRow>
+                ) : customers.length === 0 ? (
+                  <TableRow><TableCell colSpan={5} className="text-center py-10 text-slate-500 font-medium">No customers found.</TableCell></TableRow>
+                ) : (
+                  customers.map((c) => (
+                    <TableRow 
+                      key={c.id} 
+                      className="cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                      onClick={() => {
+                        setSelectedCustomerId(c.id);
+                        setDrawerOpen(true);
+                      }}
+                    >
+                      <TableCell className="font-bold text-slate-800 dark:text-slate-200 text-md">
+                        {c.name}
+                      </TableCell>
+                      <TableCell className="text-slate-500 font-mono font-medium">{c.phone}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={`flex w-fit items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded-lg ${getTierBadge(c.tier)}`}>
+                          {getTierIcon(c.tier)}
+                          {c.tier}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-black text-lg text-emerald-600 dark:text-emerald-400">
+                        {c.points} <span className="text-xs font-bold text-emerald-400/70">pts</span>
+                      </TableCell>
+                      <TableCell className="text-slate-500 font-medium text-sm">
+                        {new Date(c.createdAt).toLocaleDateString()}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
+
+      {/* Customer 360 View Drawer */}
+      <Drawer
+        title={<span className="font-black text-xl">Customer 360° Profile</span>}
+        placement="right"
+        size="large"
+        onClose={() => setDrawerOpen(false)}
+        open={drawerOpen}
+        className="[&_.ant-drawer-header]:border-b-0"
+      >
+        {loading360 || !customer360 ? (
+          <div className="flex flex-col items-center justify-center h-full gap-4 text-slate-500">
+            <Spin size="large" />
+            <p className="font-medium animate-pulse">Loading insights...</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Header Profile */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-2xl font-black text-slate-800 dark:text-slate-100">{customer360.customer.name}</h3>
+                <p className="text-slate-500 font-mono font-medium">{customer360.customer.phone}</p>
+              </div>
+              <Badge variant="outline" className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-black uppercase rounded-xl ${getTierBadge(customer360.customer.tier)}`}>
+                {getTierIcon(customer360.customer.tier)}
+                {customer360.customer.tier}
+              </Badge>
+            </div>
+
+            <Divider className="my-2" />
+
+            {/* Churn Risk */}
+            <div className={`p-4 rounded-2xl border ${getChurnRiskColor(customer360.churnRisk)} flex items-start gap-3`}>
+              {customer360.churnRisk === 'LOW' ? <CheckCircle2 className="w-6 h-6 shrink-0" /> : <AlertTriangle className="w-6 h-6 shrink-0" />}
+              <div>
+                <h4 className="font-bold text-sm uppercase tracking-wider opacity-80 mb-1">Retention Status</h4>
+                <p className="font-black text-lg">
+                  {customer360.churnRisk === 'LOW' ? 'Active Customer' : customer360.churnRisk === 'MEDIUM' ? 'At Risk (Slipping Away)' : 'High Churn Risk'}
+                </p>
+                <p className="text-sm font-medium opacity-80 mt-1">
+                  Last ordered {customer360.daysSinceLastOrder} days ago
+                </p>
+              </div>
+            </div>
+
+            {/* Tier Progression */}
+            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-5 border border-slate-100 dark:border-slate-800">
+              <div className="flex justify-between items-end mb-2">
+                <div>
+                  <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">Lifetime Spend</p>
+                  <p className="text-2xl font-black text-slate-800 dark:text-slate-200 mt-1">{formatCurrency(customer360.lifetimeSpend)}</p>
+                </div>
+                {customer360.nextTier !== 'MAX' && (
+                  <div className="text-right">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Next Tier: {customer360.nextTier}</p>
+                    <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(customer360.amountToNextTier)} to go</p>
+                  </div>
+                )}
+              </div>
+              {customer360.nextTier !== 'MAX' ? (
+                <Progress 
+                  percent={parseFloat(customer360.progressPercentage.toFixed(1))} 
+                  strokeColor={{ '0%': '#10b981', '100%': '#059669' }}
+                  trailColor="#e2e8f0"
+                  className="mt-2"
+                />
+              ) : (
+                <div className="mt-3 text-sm font-bold text-purple-600 bg-purple-100 p-2 rounded-lg text-center uppercase tracking-wider">
+                  Maximum Tier Reached
+                </div>
+              )}
+            </div>
+
+            {/* Favorite Drinks */}
+            <div>
+              <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2"><Heart className="w-4 h-4 text-rose-500"/> Top Favorites</h4>
+              {customer360.favoriteDrinks.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {customer360.favoriteDrinks.map((fav: any, i: number) => (
+                    <div key={i} className="flex items-center gap-2 bg-rose-50 border border-rose-100 dark:bg-rose-900/20 dark:border-rose-800 px-3 py-1.5 rounded-full">
+                      <span className="font-bold text-rose-700 dark:text-rose-400">{fav.name}</span>
+                      <span className="bg-rose-200 text-rose-800 dark:bg-rose-800 dark:text-rose-200 text-xs font-black px-2 py-0.5 rounded-full">{fav.count}x</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-slate-500 italic">No purchase history yet.</p>
+              )}
+            </div>
+
+            {/* Recent Orders */}
+            <div>
+              <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2"><History className="w-4 h-4 text-blue-500"/> Recent Activity</h4>
+              {customer360.recentOrders?.length > 0 ? (
+                <div className="space-y-3">
+                  {customer360.recentOrders.map((order: any) => (
+                    <div key={order.id} className="flex justify-between items-center p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500">
+                          <ShoppingBag className="w-4 h-4" />
+                        </div>
+                        <div>
+                          <p className="font-bold text-slate-700 dark:text-slate-300">{new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                          <p className="text-xs text-slate-500 font-medium">{order.items.length} items</p>
+                        </div>
+                      </div>
+                      <div className="font-black text-slate-800 dark:text-slate-200">
+                        {formatCurrency(order.netAmount)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-slate-500 italic">No orders found.</p>
+              )}
+            </div>
+          </div>
+        )}
+      </Drawer>
     </div>
   );
 }

@@ -72,7 +72,8 @@ export const Receipt = forwardRef<HTMLDivElement, { order: any; branchName?: str
             {order.items?.map((item: any, idx: number) => (
               <tr key={idx}>
                 <td style={{ padding: '2px 0', verticalAlign: 'top', wordBreak: 'break-word', paddingRight: '4px' }}>
-                  {item.product.name}
+                  <div style={{ fontWeight: 'bold' }}>{item.product.name}</div>
+                  {item.notes && <div style={{ fontSize: '9px', color: '#555', marginTop: '1px' }}>- {item.notes}</div>}
                 </td>
                 <td style={{ textAlign: 'center', verticalAlign: 'top', padding: '2px 0' }}>{item.quantity}</td>
                 <td style={{ textAlign: 'right', verticalAlign: 'top', padding: '2px 0' }}>{(item.product.price * item.quantity).toFixed(2)}</td>

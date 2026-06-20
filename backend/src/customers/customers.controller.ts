@@ -31,4 +31,9 @@ export class CustomersController {
   findByPhone(@Param('phone') phone: string) {
     return this.customersService.findByPhone(phone);
   }
+
+  @Get(':id/360')
+  getCustomer360(@Param('id', ParseIntPipe) id: number) {
+    return this.customersService.getCustomer360(id);
+  }
 }

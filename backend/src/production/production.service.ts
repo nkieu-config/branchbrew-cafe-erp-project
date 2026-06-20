@@ -50,6 +50,14 @@ export class ProductionService {
     });
   }
 
+  // Update Order Status (for Kanban dragging)
+  async updateOrderStatus(orderId: number, status: string) {
+    return this.prisma.productionOrder.update({
+      where: { id: orderId },
+      data: { status: status as any }
+    });
+  }
+
   // 4. Complete a Production Order (Deduct raw materials, add finished good)
   async completeProductionOrder(orderId: number, userId?: number) {
     return this.prisma.$transaction(async (tx) => {

@@ -3,9 +3,8 @@
 import { useEffect, useState } from "react";
 import { getBranch, getTransfers, acceptTransfer, createTransfer, getBranches, addInventoryBatch, reportWaste } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { PackageOpen, ArrowRightLeft, CheckCircle2, PackagePlus, Trash2 } from "lucide-react";
+import { Table, Tag, Button as AntButton, Popconfirm, Calendar, Popover, Badge } from "antd";
+import { PackageOpen, ArrowRightLeft, CheckCircle2, PackagePlus, Trash2, CalendarDays, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -13,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { AnimatedPage } from "@/components/animated-page";
+import { format, differenceInDays } from "date-fns";
+import type { Dayjs } from "dayjs";
 
 export default function InventoryPage() {
   const { activeBranchId } = useAuth();
@@ -67,7 +68,7 @@ export default function InventoryPage() {
         ingredientId: Number(transferIngredient),
         quantity: Number(transferQty)
       });
-      toast.success("Transfer requested successfully…");
+      toast.success("Transfer requested successfully");
       fetchInventory();
     } catch (err: any) {
       toast.error(err.message);
@@ -139,37 +140,252 @@ export default function InventoryPage() {
     return daysLeft <= 3 && daysLeft >= 0;
   };
 
-  if (loading) return <div className="p-10 text-center">Loading Inventory…</div>;
+  // Pre-process batches for Heatmap
+  const expiryMap = batches.reduce((acc: any, batch: any) => {
+    if (!batch.expiryDate) return acc;
+    const dateStr = format(new Date(batch.expiryDate), 'yyyy-MM-dd');
+    if (!acc[dateStr]) acc[dateStr] = [];
+    acc[dateStr].push(batch);
+    return acc;
+  }, {});
+
+  const dateCellRender = (value: Dayjs) => {
+    const dateStr = value.format('YYYY-MM-DD');
+    const expiringBatches = expiryMap[dateStr];
+    if (!expiringBatches) return null;
+
+    const daysLeft = differenceInDays(value.toDate(), new Date());
+    
+    let colorClass = "bg-slate-200 text-slate-800";
+    let title = "Expired";
+    if (daysLeft >= 0 && daysLeft <= 1) {
+      colorClass = "bg-red-500 text-white animate-pulse shadow-red-500/50 shadow-md";
+      title = "Critical";
+    } else if (daysLeft > 1 && daysLeft <= 3) {
+      colorClass = "bg-orange-500 text-white shadow-orange-500/30 shadow-md";
+      title = "Warning";
+    } else if (daysLeft > 3 && daysLeft <= 7) {
+      colorClass = "bg-amber-400 text-amber-950";
+      title = "Notice";
+    } else if (daysLeft > 7) {
+      colorClass = "bg-emerald-100 text-emerald-800";
+      title = "Safe";
+    }
+
+    const popoverContent = (
+      <div className="max-w-xs space-y-2">
+        <div className="font-black text-slate-800 border-b pb-1 mb-2">Expiring Items</div>
+        {expiringBatches.map((b: any) => (
+          <div key={b.id} className="flex justify-between items-center text-sm gap-4">
+            <span className="font-semibold text-slate-700">{b.ingredient?.name}</span>
+            <span className="font-mono bg-slate-100 px-1 rounded">{b.quantity} {b.ingredient?.unit}</span>
+          </div>
+        ))}
+      </div>
+    );
+
+    return (
+      <Popover content={popoverContent} title={null} trigger="hover">
+        <div className={cn("w-full h-full flex flex-col items-center justify-center rounded-lg p-1 mt-1 cursor-pointer transition-transform hover:scale-110", colorClass)}>
+          <AlertCircle className="w-4 h-4 mb-1" />
+          <span className="text-[10px] font-black leading-none">{expiringBatches.length} Items</span>
+        </div>
+      </Popover>
+    );
+  };
+
+  // AntD Main Columns
+  const inventoryColumns = [
+    {
+      title: 'Ingredient',
+      dataIndex: ['ingredient', 'name'],
+      key: 'name',
+      render: (text: string) => <span className="font-semibold">{text}</span>,
+      sorter: (a: any, b: any) => a.ingredient.name.localeCompare(b.ingredient.name),
+    },
+    {
+      title: 'Total Stock',
+      key: 'stock',
+      render: (_: any, record: any) => (
+        <span className="tabular-nums font-mono">
+          {Number(record.stock).toFixed(2)} {record.ingredient.unit}
+        </span>
+      ),
+      sorter: (a: any, b: any) => a.stock - b.stock,
+    },
+    {
+      title: 'Status',
+      key: 'status',
+      render: (_: any, record: any) => {
+        if (record.stock <= record.minStock) {
+          return <Tag color="error">LOW STOCK</Tag>;
+        }
+        return <Tag color="success">GOOD</Tag>;
+      },
+    },
+  ];
+
+  // AntD Expanded Row Renderer
+  const expandedRowRender = (record: any) => {
+    const ingredientBatches = batches.filter(b => b.ingredientId === record.ingredientId);
+    
+    const batchColumns = [
+      {
+        title: 'Batch ID',
+        dataIndex: 'id',
+        key: 'id',
+        render: (id: number) => <span className="text-xs text-slate-400 font-mono">#{id}</span>
+      },
+      {
+        title: 'Qty Left',
+        key: 'quantity',
+        render: (_: any, b: any) => (
+          <span className="tabular-nums font-mono font-medium">{Number(b.quantity).toFixed(2)} {record.ingredient.unit}</span>
+        ),
+      },
+      {
+        title: 'Expiry Date',
+        key: 'expiryDate',
+        render: (_: any, b: any) => {
+          if (!b.expiryDate) return <span className="text-xs text-slate-400">No Expiry</span>;
+          const expiring = isExpiringSoon(b.expiryDate);
+          const expired = new Date(b.expiryDate).getTime() < new Date().getTime();
+          return (
+            <div className="flex items-center gap-2">
+              <span className={cn(
+                "text-sm font-medium",
+                expired ? "text-red-600" : expiring ? "text-amber-600" : "text-slate-600 dark:text-slate-400"
+              )}>
+                {format(new Date(b.expiryDate), 'dd MMM yyyy')}
+              </span>
+              {expired ? (
+                <Tag color="error" className="ml-2">Expired</Tag>
+              ) : expiring ? (
+                <Tag color="warning" className="ml-2">Soon</Tag>
+              ) : null}
+            </div>
+          );
+        }
+      },
+      {
+        title: 'Action',
+        key: 'action',
+        render: (_: any, b: any) => (
+          <AntButton 
+            type="text" 
+            danger
+            icon={<Trash2 className="w-4 h-4" />}
+            onClick={() => handleWaste(b.id, b.ingredientId, b.quantity)}
+            title="Mark as Waste/Expired"
+          />
+        ),
+      },
+    ];
+
+    return (
+      <Table 
+        columns={batchColumns} 
+        dataSource={ingredientBatches} 
+        rowKey="id"
+        pagination={false} 
+        size="small"
+        className="m-2 shadow-inner border border-slate-100 dark:border-slate-800 rounded-lg overflow-hidden bg-slate-50/50 dark:bg-slate-900/50"
+      />
+    );
+  };
+
+  // Transfers Columns
+  const transferColumns = [
+    {
+      title: 'From',
+      dataIndex: ['fromBranch', 'name'],
+      key: 'from',
+    },
+    {
+      title: 'To',
+      dataIndex: ['toBranch', 'name'],
+      key: 'to',
+    },
+    {
+      title: 'Item',
+      dataIndex: ['ingredient', 'name'],
+      key: 'item',
+      render: (text: string) => <span className="font-semibold">{text}</span>
+    },
+    {
+      title: 'Qty',
+      dataIndex: 'quantity',
+      key: 'qty',
+      render: (qty: number) => <span className="tabular-nums font-mono">{qty}</span>
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      render: (status: string) => (
+        <Tag color={status === 'COMPLETED' ? 'success' : 'default'}>{status}</Tag>
+      )
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      render: (_: any, t: any) => {
+        if (t.status === 'PENDING' && t.toBranchId === activeBranchId) {
+          return (
+            <AntButton 
+              type="primary" 
+              className="bg-emerald-500 hover:bg-emerald-600 border-none font-bold"
+              icon={<CheckCircle2 className="w-4 h-4 mr-1" />}
+              onClick={() => handleAcceptTransfer(t.id)}
+            >
+              Accept
+            </AntButton>
+          )
+        }
+        if (t.status === 'PENDING' && t.fromBranchId === activeBranchId) {
+          return <span className="text-xs font-bold text-slate-400 dark:text-slate-500">Waiting for {t.toBranch?.name}</span>
+        }
+        return null;
+      }
+    }
+  ];
+
+  if (loading) return <div className="p-10 text-center font-bold text-slate-400">Loading Inventory…</div>;
 
   if (!activeBranchId) {
     return (
-      <div className="p-10 text-center text-slate-500">
+      <div className="p-10 text-center font-bold text-slate-500 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
         Please select a branch to view its inventory.
       </div>
     );
   }
 
-  // Get unique ingredients from branch inventories to populate dropdowns
   const uniqueIngredients = inventories.map(i => i.ingredient);
 
   return (
     <AnimatedPage className="w-full space-y-6">
-      <div className="flex justify-between items-end">
+      <div className="flex justify-between items-end mb-6">
+        <div>
+          <h1 className="text-2xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            <PackageOpen className="w-6 h-6 text-emerald-600" />
+            Inventory & Stock
+          </h1>
+          <p className="text-slate-500 font-medium">Manage stock levels, transfers, and expiring batches.</p>
+        </div>
         <div className="flex gap-2 ml-auto">
-          {/* Receive Stock Button */}
           <Dialog>
-            <DialogTrigger render={<Button className="bg-emerald-600 hover:bg-emerald-700 text-white" />}>
+            <DialogTrigger render={<Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm font-bold" />}>
               <PackagePlus className="w-4 h-4 mr-2" /> Receive Stock
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="rounded-2xl">
               <DialogHeader>
-                <DialogTitle>Receive New Batch</DialogTitle>
+                <DialogTitle className="font-black text-xl">Receive New Batch</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleAddBatch} className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label>Ingredient</Label>
+                  <Label className="font-bold text-slate-700">Ingredient</Label>
                   <select 
-                    className="flex h-10 w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm"
+                    className="flex h-11 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500"
                     value={batchIngredient} 
                     onChange={(e) => setBatchIngredient(e.target.value)}
                     required
@@ -181,14 +397,14 @@ export default function InventoryPage() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Quantity</Label>
-                  <Input type="number" min="0.1" step="0.1" value={batchQty} onChange={(e) => setBatchQty(e.target.value)} required />
+                  <Label className="font-bold text-slate-700">Quantity</Label>
+                  <Input className="h-11 rounded-xl bg-slate-50" type="number" min="0.1" step="0.1" value={batchQty} onChange={(e) => setBatchQty(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
-                  <Label>Expiry Date (Optional)</Label>
-                  <Input type="date" value={batchExpiry} onChange={(e) => setBatchExpiry(e.target.value)} />
+                  <Label className="font-bold text-slate-700">Expiry Date (Optional)</Label>
+                  <Input className="h-11 rounded-xl bg-slate-50" type="date" value={batchExpiry} onChange={(e) => setBatchExpiry(e.target.value)} />
                 </div>
-                <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white" disabled={isAddingBatch}>
+                <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white h-11 font-bold rounded-xl" disabled={isAddingBatch}>
                   {isAddingBatch ? "Saving..." : "Save Batch"}
                 </Button>
               </form>
@@ -196,18 +412,18 @@ export default function InventoryPage() {
           </Dialog>
 
           <Dialog>
-            <DialogTrigger render={<Button variant="outline" className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" />}>
-              <ArrowRightLeft className="w-4 h-4 mr-2" /> Transfer
+            <DialogTrigger render={<Button variant="outline" className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm font-bold text-slate-700" />}>
+              <ArrowRightLeft className="w-4 h-4 mr-2 text-blue-500" /> Transfer
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="rounded-2xl">
               <DialogHeader>
-                <DialogTitle>Create Stock Transfer</DialogTitle>
+                <DialogTitle className="font-black text-xl">Create Stock Transfer</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleCreateTransfer} className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label>Ingredient</Label>
+                  <Label className="font-bold text-slate-700">Ingredient</Label>
                   <select 
-                    className="flex h-10 w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm"
+                    className="flex h-11 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                     value={transferIngredient} 
                     onChange={(e) => setTransferIngredient(e.target.value)}
                     required
@@ -219,9 +435,9 @@ export default function InventoryPage() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <Label>To Branch</Label>
+                  <Label className="font-bold text-slate-700">To Branch</Label>
                   <select 
-                    className="flex h-10 w-full rounded-md border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-3 py-2 text-sm"
+                    className="flex h-11 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                     value={transferTarget} 
                     onChange={(e) => setTransferTarget(e.target.value)}
                     required
@@ -233,10 +449,10 @@ export default function InventoryPage() {
                   </select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Quantity</Label>
-                  <Input type="number" min="0.1" step="0.1" value={transferQty} onChange={(e) => setTransferQty(e.target.value)} required />
+                  <Label className="font-bold text-slate-700">Quantity</Label>
+                  <Input className="h-11 rounded-xl bg-slate-50" type="number" min="0.1" step="0.1" value={transferQty} onChange={(e) => setTransferQty(e.target.value)} required />
                 </div>
-                <Button type="submit" className="w-full" disabled={isTransferring}>
+                <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700 font-bold rounded-xl text-white" disabled={isTransferring}>
                   {isTransferring ? "Processing…" : "Initiate Transfer"}
                 </Button>
               </form>
@@ -245,142 +461,64 @@ export default function InventoryPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-          <div className="p-4 bg-slate-50 dark:bg-slate-950/50 border-b border-slate-200 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-100 flex items-center justify-between">
-            <span>Total Stock (Aggregated)</span>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Heatmap Section */}
+        <div className="lg:col-span-1">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-1 h-full">
+            <div className="p-4 bg-rose-50 dark:bg-rose-900/20 rounded-t-xl font-black text-rose-800 dark:text-rose-100 flex items-center gap-2">
+              <CalendarDays className="w-5 h-5 text-rose-500" />
+              Expiry Heatmap
+            </div>
+            <div className="p-4">
+              <Calendar 
+                fullscreen={false} 
+                cellRender={(current, info) => {
+                  if (info.type === 'date') return dateCellRender(current);
+                  return info.originNode;
+                }} 
+                className="rounded-xl border border-slate-100 overflow-hidden [&_.ant-picker-calendar-date-value]:font-bold [&_.ant-picker-calendar-date-value]:text-slate-600"
+              />
+              <div className="mt-6 space-y-2">
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Legend</div>
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-700"><div className="w-3 h-3 rounded-full bg-red-500 animate-pulse shadow-sm shadow-red-500"></div> Critical (0-1 Days)</div>
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-700"><div className="w-3 h-3 rounded-full bg-orange-500 shadow-sm shadow-orange-500"></div> Warning (2-3 Days)</div>
+                <div className="flex items-center gap-2 text-sm font-medium text-slate-700"><div className="w-3 h-3 rounded-full bg-amber-400"></div> Notice (4-7 Days)</div>
+              </div>
+            </div>
           </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Ingredient</TableHead>
-                <TableHead>Total Stock</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {inventories.map((inv) => (
-                <TableRow key={inv.id}>
-                  <TableCell className="font-semibold">{inv.ingredient.name}</TableCell>
-                  <TableCell className="tabular-nums font-mono">{Number(inv.stock).toFixed(2)} {inv.ingredient.unit}</TableCell>
-                  <TableCell>
-                    {inv.stock <= inv.minStock ? (
-                      <Badge variant="destructive" className="text-[10px] uppercase font-bold tracking-wider py-0.5 px-2">Low</Badge>
-                    ) : <Badge className="bg-emerald-500 hover:bg-emerald-600 text-[10px] uppercase font-bold tracking-wider py-0.5 px-2">Good</Badge>}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-          <div className="p-4 bg-slate-50 dark:bg-slate-950/50 border-b border-slate-200 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-100 flex items-center justify-between">
-            <span>Active Batches (FIFO)</span>
+        {/* Tables Section */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-1">
+            <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-t-xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <PackageOpen className="w-5 h-5 text-emerald-500" />
+              Aggregated Stock & Batches
+            </div>
+            <Table 
+              columns={inventoryColumns} 
+              dataSource={inventories} 
+              rowKey="id"
+              expandable={{ expandedRowRender }}
+              pagination={{ pageSize: 5 }}
+              className="w-full overflow-x-auto [&_.ant-table-thead>tr>th]:bg-slate-50 [&_.ant-table-thead>tr>th]:dark:bg-slate-900"
+            />
           </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Ingredient</TableHead>
-                <TableHead>Qty Left</TableHead>
-                <TableHead>Expiry Date</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {batches.map((b) => {
-                const expiring = isExpiringSoon(b.expiryDate);
-                const expired = b.expiryDate && new Date(b.expiryDate).getTime() < new Date().getTime();
-                return (
-                  <TableRow key={b.id}>
-                    <TableCell>{b.ingredient.name}</TableCell>
-                    <TableCell className="tabular-nums font-mono">{Number(b.quantity).toFixed(2)} {b.ingredient.unit}</TableCell>
-                    <TableCell>
-                      {b.expiryDate ? (
-                        <div className="flex items-center gap-2">
-                          <span className={cn(
-                            "text-sm font-medium",
-                            expired ? "text-red-600 dark:text-red-400" : expiring ? "text-amber-600 dark:text-amber-400" : "text-slate-600 dark:text-slate-400"
-                          )}>
-                            {new Date(b.expiryDate).toLocaleDateString()}
-                          </span>
-                          {expired ? (
-                            <Badge variant="destructive" className="text-[9px] uppercase px-1 py-0">Expired</Badge>
-                          ) : expiring ? (
-                            <Badge className="bg-amber-500 hover:bg-amber-600 text-[9px] uppercase px-1 py-0">Soon</Badge>
-                          ) : null}
-                        </div>
-                      ) : (
-                        <span className="text-xs text-slate-400">No Expiry</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 h-8 w-8"
-                        onClick={() => handleWaste(b.id, b.ingredientId, b.quantity)}
-                        title="Mark as Waste/Expired"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-              {batches.length === 0 && (
-                <TableRow><TableCell colSpan={4} className="text-center py-8 text-slate-400 dark:text-slate-500">No active batches</TableCell></TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden mt-8">
-        <div className="p-4 bg-slate-50 dark:bg-slate-950/50 border-b border-slate-200 dark:border-slate-800 font-bold text-slate-800 dark:text-slate-100">Pending Transfers</div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>From</TableHead>
-              <TableHead>To</TableHead>
-              <TableHead>Item</TableHead>
-              <TableHead>Qty</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Action</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {transfers.map((t) => (
-              <TableRow key={t.id}>
-                <TableCell>{t.fromBranch.name}</TableCell>
-                <TableCell>{t.toBranch.name}</TableCell>
-                <TableCell>{t.ingredient.name}</TableCell>
-                <TableCell className="tabular-nums font-mono">{t.quantity}</TableCell>
-                <TableCell>
-                  <Badge variant={t.status === 'COMPLETED' ? 'default' : 'secondary'} className={cn(
-                    "text-[10px] uppercase font-bold tracking-wider py-0.5 px-2",
-                    t.status === 'COMPLETED' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' : ''
-                  )}>
-                    {t.status}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {t.status === 'PENDING' && t.toBranchId === activeBranchId && (
-                    <Button size="sm" variant="outline" className="text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30" onClick={() => handleAcceptTransfer(t.id)}>
-                      <CheckCircle2 className="w-4 h-4 mr-1" /> Accept
-                    </Button>
-                  )}
-                  {t.status === 'PENDING' && t.fromBranchId === activeBranchId && (
-                    <span className="text-xs text-slate-400 dark:text-slate-500">Waiting for {t.toBranch.name}</span>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-            {transfers.length === 0 && (
-              <TableRow><TableCell colSpan={6} className="text-center py-6 text-slate-400 dark:text-slate-500">No transfers history</TableCell></TableRow>
-            )}
-          </TableBody>
-        </Table>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-1">
+            <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-t-xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <ArrowRightLeft className="w-5 h-5 text-blue-500" />
+              Pending Transfers
+            </div>
+            <Table 
+              columns={transferColumns} 
+              dataSource={transfers} 
+              rowKey="id"
+              pagination={{ pageSize: 5 }}
+              className="w-full overflow-x-auto [&_.ant-table-thead>tr>th]:bg-slate-50 [&_.ant-table-thead>tr>th]:dark:bg-slate-900"
+            />
+          </div>
+        </div>
       </div>
     </AnimatedPage>
   );
