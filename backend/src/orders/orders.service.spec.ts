@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { BadRequestException } from '@nestjs/common';
 import { MockPrismaService, PrismaServiceMockProvider } from '../prisma/prisma.service.mock';
 import { EventsGateway } from '../events/events.gateway';
+import { ProcurementService } from '../procurement/procurement.service';
 
 describe('OrdersService', () => {
   let service: OrdersService;
@@ -17,6 +18,10 @@ describe('OrdersService', () => {
       server: { emit: jest.fn() },
       emitOrderCreated: jest.fn(),
     };
+    
+    const mockProcurementService = {
+      checkAndAutoReorder: jest.fn().mockResolvedValue(undefined),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -25,6 +30,10 @@ describe('OrdersService', () => {
         {
           provide: EventsGateway,
           useValue: mockEventsGateway,
+        },
+        {
+          provide: ProcurementService,
+          useValue: mockProcurementService,
         },
       ],
     }).compile();
