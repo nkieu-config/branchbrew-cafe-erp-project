@@ -1,129 +1,252 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getProductionOrders, completeProductionOrder } from "@/lib/api"
-import { Table, Tag, Button, Popconfirm } from "antd"
-import { ChefHat, CheckCircle, PackageOpen } from "lucide-react"
+import { useKitchenOrders, useIngredients, useCompleteKitchenOrder, useUpdateOrderStatus, useCreateProductionOrder } from "@/hooks/useQueries"
+import { getProductionOrders, completeProductionOrder, getIngredients, createProductionOrder, updateProductionOrderStatus } from "@/lib/api"
+import { Button, Modal, Form, Select, InputNumber, DatePicker, Spin } from "antd"
+import { ChefHat, PackageOpen, Plus, Clock, PlayCircle, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
-import { format } from "date-fns"
+import { AnimatedPage } from "@/components/animated-page"
+import { useAuth } from "@/context/AuthContext"
+import { DndContext, DragOverlay, closestCorners, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent } from "@dnd-kit/core"
+import { useDroppable, useDraggable } from "@dnd-kit/core"
+import { CSS } from "@dnd-kit/utilities"
 
-export default function CentralKitchenPage() {
-  const [orders, setOrders] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-
-  const fetchOrders = async () => {
-    try {
-      setLoading(true)
-      const data = await getProductionOrders()
-      setOrders(data)
-    } catch (error) {
-      console.error(error)
-      toast.error("Failed to load production orders")
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchOrders()
-  }, [])
-
-  const handleComplete = async (orderId: number) => {
-    try {
-      await completeProductionOrder(orderId)
-      toast.success("Production order completed successfully")
-      fetchOrders()
-    } catch (error: any) {
-      console.error(error)
-      toast.error(error.message || "Failed to complete order (check raw materials stock)")
-    }
-  }
-
-  const columns = [
-    {
-      title: 'Order No.',
-      dataIndex: 'orderNumber',
-      key: 'orderNumber',
-      render: (text: string) => <span className="font-mono font-medium">{text}</span>,
-    },
-    {
-      title: 'Target Product',
-      key: 'targetIngredient',
-      render: (_: any, record: any) => (
-        <div className="flex items-center gap-2">
-          <PackageOpen className="w-4 h-4 text-slate-400" />
-          <span className="font-semibold text-slate-700 dark:text-slate-200">
-            {record.targetIngredient?.name}
-          </span>
-        </div>
-      ),
-    },
-    {
-      title: 'Quantity',
-      key: 'quantityToProduce',
-      render: (_: any, record: any) => (
-        <span>{record.quantityToProduce} {record.targetIngredient?.unit}</span>
-      ),
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => {
-        let color = 'default';
-        if (status === 'PLANNED') color = 'blue';
-        if (status === 'IN_PROGRESS') color = 'warning';
-        if (status === 'COMPLETED') color = 'success';
-        return <Tag color={color}>{status}</Tag>
-      },
-    },
-    {
-      title: 'Planned Start',
-      dataIndex: 'plannedStartDate',
-      key: 'plannedStartDate',
-      render: (date: string) => date ? format(new Date(date), 'dd MMM yyyy') : '-',
-    },
-    {
-      title: 'Action',
-      key: 'action',
-      render: (_: any, record: any) => (
-        <div className="flex gap-2">
-          {record.status !== 'COMPLETED' && (
-            <Popconfirm
-              title="Complete Production"
-              description="Are you sure you want to complete this order? This will deduct raw materials from inventory."
-              onConfirm={() => handleComplete(record.id)}
-              okText="Yes, Complete"
-              cancelText="Cancel"
-            >
-              <Button type="primary" icon={<CheckCircle className="w-4 h-4" />} className="bg-emerald-500 hover:bg-emerald-600 border-none flex items-center gap-1">
-                Complete
-              </Button>
-            </Popconfirm>
-          )}
-        </div>
-      ),
-    },
-  ]
-
+// Helper Components for Kanban
+function KanbanColumn({ id, title, icon, color, children }: { id: string, title: string, icon: React.ReactNode, color: string, children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({ id });
   return (
-    <div className="space-y-6">
-      <div className="flex justify-end">
-        <Button type="primary" className="bg-orange-500 hover:bg-orange-600 border-none shadow-sm">
-          + New Production Order
-        </Button>
+    <div 
+      ref={setNodeRef} 
+      className={`flex flex-col min-w-[320px] max-w-[350px] flex-1 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border ${isOver ? 'border-orange-400 bg-orange-50/50 dark:bg-orange-900/20' : 'border-slate-200 dark:border-slate-800'} overflow-hidden transition-colors`}
+    >
+      <div className={`p-4 border-b border-slate-200 dark:border-slate-800 font-black text-slate-700 dark:text-slate-200 flex items-center justify-between ${color}`}>
+        <div className="flex items-center gap-2">
+          {icon}
+          <span>{title}</span>
+        </div>
       </div>
-
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-1">
-        <Table 
-          columns={columns} 
-          dataSource={orders} 
-          rowKey="id"
-          loading={loading}
-          pagination={{ pageSize: 10 }}
-          className="w-full overflow-x-auto [&_.ant-table-thead>tr>th]:bg-slate-50 [&_.ant-table-thead>tr>th]:dark:bg-slate-800"
-        />
+      <div className="p-3 flex-1 overflow-y-auto space-y-3 min-h-[500px]">
+        {children}
       </div>
     </div>
+  )
+}
+
+function KanbanCard({ order, isOverlay = false }: { order: any, isOverlay?: boolean }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: order.id,
+    data: { order }
+  });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
+      className={`bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow ${isOverlay ? 'shadow-xl scale-105 rotate-2' : ''}`}
+    >
+      <div className="flex justify-between items-start mb-2">
+        <span className="text-xs font-bold text-slate-400 font-mono bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-md">
+          {order.orderNumber}
+        </span>
+        {order.status === 'COMPLETED' && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+      </div>
+      <div className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-1">
+        <PackageOpen className="w-4 h-4 text-orange-500 shrink-0" />
+        <span className="truncate">{order.targetIngredient?.name}</span>
+      </div>
+      <div className="text-sm font-black text-slate-600 dark:text-slate-300">
+        {order.quantityToProduce} <span className="text-xs font-bold text-slate-400">{order.targetIngredient?.unit}</span>
+      </div>
+      {order.plannedStartDate && (
+        <div className="mt-3 text-xs text-slate-500 flex items-center gap-1 font-medium bg-slate-50 dark:bg-slate-900/50 w-fit px-2 py-1 rounded-md">
+          <Clock className="w-3 h-3" />
+          {new Date(order.plannedStartDate).toLocaleDateString('en-GB')}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default function CentralKitchenPage() {
+  const { activeBranchId } = useAuth()
+  const { data: ingredients = [] } = useIngredients()
+  const { data: ordersData = [], isLoading } = useKitchenOrders()
+  const orders = ordersData.filter((o: any) => ['PLANNED', 'IN_PROGRESS', 'COMPLETED'].includes(o.status))
+  
+  const [isModalVisible, setIsModalVisible] = useState(false)
+  const [form] = Form.useForm()
+  const [activeOrder, setActiveOrder] = useState<any | null>(null);
+
+  const completeMutation = useCompleteKitchenOrder()
+  const updateStatusMutation = useUpdateOrderStatus()
+  const createOrderMutation = useCreateProductionOrder()
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    })
+  );
+
+  const handleCreate = async (values: any) => {
+    if (!activeBranchId) return toast.error("Please select a branch");
+    try {
+      await createOrderMutation.mutateAsync({
+        branchId: activeBranchId,
+        targetIngredientId: values.targetIngredientId,
+        quantityToProduce: values.quantityToProduce,
+        plannedStartDate: values.plannedStartDate ? values.plannedStartDate.toISOString() : undefined
+      });
+      toast.success("Production order created");
+      setIsModalVisible(false);
+      form.resetFields();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to create order");
+    }
+  }
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { active } = event;
+    const order = orders.find((o: any) => o.id === active.id);
+    setActiveOrder(order);
+  }
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    setActiveOrder(null);
+    const { active, over } = event;
+    if (!over) return;
+
+    const orderId = active.id as number;
+    const newStatus = over.id as string;
+    const order = orders.find((o: any) => o.id === orderId);
+
+    if (!order || order.status === newStatus) return;
+    
+    // Prevent moving out of COMPLETED
+    if (order.status === 'COMPLETED') {
+      toast.error("Cannot change status of a completed order.");
+      return;
+    }
+
+    try {
+      if (newStatus === 'COMPLETED') {
+        toast.promise(completeMutation.mutateAsync(orderId), {
+          loading: 'Deducting raw materials...',
+          success: 'Production completed & inventory updated!',
+          error: (err: any) => err.message || 'Failed to complete order'
+        });
+      } else {
+        await updateStatusMutation.mutateAsync({ id: orderId, status: newStatus });
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update status");
+    }
+  }
+
+  const plannedOrders = orders.filter((o: any) => o.status === 'PLANNED');
+  const inProgressOrders = orders.filter((o: any) => o.status === 'IN_PROGRESS');
+  const completedOrders = orders.filter((o: any) => o.status === 'COMPLETED');
+
+  return (
+    <AnimatedPage className="space-y-6 w-full">
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            <ChefHat className="w-6 h-6 text-orange-500" />
+            Production Board
+          </h1>
+          <p className="text-slate-500">Drag and drop orders to update status.</p>
+        </div>
+        <div className="ml-auto">
+          <Button 
+            type="primary" 
+            className="bg-orange-500 hover:bg-orange-600 h-10 px-4 rounded-xl shadow-sm font-bold flex items-center"
+            onClick={() => setIsModalVisible(true)}
+            icon={<Plus className="w-4 h-4" />}
+          >
+            New Order
+          </Button>
+        </div>
+      </div>
+
+      {isLoading && orders.length === 0 ? (
+        <div className="py-20 flex justify-center"><Spin size="large" /></div>
+      ) : (
+        <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <div className="flex gap-4 overflow-x-auto pb-4 h-[calc(100vh-200px)]">
+            <KanbanColumn id="PLANNED" title="Planned" icon={<Clock className="w-5 h-5"/>} color="text-blue-600 bg-blue-50 dark:bg-blue-900/20">
+              {plannedOrders.map((o: any) => <KanbanCard key={o.id} order={o} />)}
+            </KanbanColumn>
+            
+            <KanbanColumn id="IN_PROGRESS" title="In Progress" icon={<PlayCircle className="w-5 h-5"/>} color="text-amber-600 bg-amber-50 dark:bg-amber-900/20">
+              {inProgressOrders.map((o: any) => <KanbanCard key={o.id} order={o} />)}
+            </KanbanColumn>
+
+            <KanbanColumn id="COMPLETED" title="Completed" icon={<CheckCircle2 className="w-5 h-5"/>} color="text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20">
+              {completedOrders.map((o: any) => <KanbanCard key={o.id} order={o} />)}
+            </KanbanColumn>
+          </div>
+          <DragOverlay>
+            {activeOrder ? <KanbanCard order={activeOrder} isOverlay /> : null}
+          </DragOverlay>
+        </DndContext>
+      )}
+
+      <Modal
+        title={<div className="font-black text-lg">Create Production Order</div>}
+        open={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={null}
+        className="rounded-2xl"
+      >
+        <Form form={form} layout="vertical" onFinish={handleCreate} className="mt-4">
+          <Form.Item
+            name="targetIngredientId"
+            label={<span className="font-bold">Target Product</span>}
+            rules={[{ required: true, message: 'Please select a target product' }]}
+          >
+            <Select
+              showSearch
+              placeholder="Select Target Product"
+              optionFilterProp="children"
+              options={ingredients.map((i: any) => ({ label: i.name, value: i.id }))}
+              className="h-11"
+            />
+          </Form.Item>
+          
+          <Form.Item
+            name="quantityToProduce"
+            label={<span className="font-bold">Quantity</span>}
+            rules={[{ required: true, message: 'Please enter quantity' }]}
+          >
+            <InputNumber className="w-full h-11 flex items-center" min={1} />
+          </Form.Item>
+
+          <Form.Item
+            name="plannedStartDate"
+            label={<span className="font-bold">Planned Date</span>}
+            rules={[{ required: true, message: 'Please select date' }]}
+          >
+            <DatePicker className="w-full h-11" />
+          </Form.Item>
+
+          <div className="flex justify-end gap-2 mt-6">
+            <Button onClick={() => setIsModalVisible(false)} className="h-11 font-bold rounded-xl">Cancel</Button>
+            <Button type="primary" htmlType="submit" className="bg-orange-500 hover:bg-orange-600 border-none h-11 font-bold rounded-xl px-6">
+              Create Order
+            </Button>
+          </div>
+        </Form>
+      </Modal>
+    </AnimatedPage>
   )
 }

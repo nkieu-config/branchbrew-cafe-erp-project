@@ -50,7 +50,7 @@ export const createProduct = (data: { name: string; price: number; category: str
   fetchAPI('/products', { method: 'POST', body: JSON.stringify(data) });
 
 // Orders
-export const createOrder = (data: { userId: number; branchId: number; items: { productId: number; quantity: number }[]; customerPhone?: string; promotionCode?: string; pointsToRedeem?: number; paymentMethod?: string; isTaxInvoiceRequested?: boolean; taxInvoiceName?: string; taxInvoiceTaxId?: string; taxInvoiceAddress?: string }) => 
+export const createOrder = (data: { userId: number; branchId: number; items: { productId: number; quantity: number; notes?: string }[]; customerPhone?: string; promotionCode?: string; pointsToRedeem?: number; paymentMethod?: string; isTaxInvoiceRequested?: boolean; taxInvoiceName?: string; taxInvoiceTaxId?: string; taxInvoiceAddress?: string }) => 
   fetchAPI('/orders', { method: 'POST', body: JSON.stringify(data) });
 export const getOrders = () => fetchAPI('/orders');
 export const getKdsOrders = (branchId: number) => fetchAPI(`/orders/kds?branchId=${branchId}`);
@@ -58,6 +58,7 @@ export const updateOrderStatus = (orderId: number, status: string) => fetchAPI(`
 
 // Procurement & Branches
 export const getPurchaseOrders = () => fetchAPI('/purchase-orders');
+export const createPurchaseOrder = (data: { branchId: number, supplierId: number, items: { ingredientId: number, quantity: number, price: number }[] }) => fetchAPI('/purchase-orders', { method: 'POST', body: JSON.stringify(data) });
 export const approvePurchaseOrder = (id: number) => fetchAPI(`/purchase-orders/${id}/approve`, { method: 'PATCH' });
 export const rejectPurchaseOrder = (id: number) => fetchAPI(`/purchase-orders/${id}/reject`, { method: 'PATCH' });
 export const receivePurchaseOrder = (id: number) => fetchAPI(`/purchase-orders/${id}/receive`, { method: 'POST' });
@@ -138,8 +139,14 @@ export const getAccounts = async () => {
   return fetchAPI('/accounting/accounts');
 };
 
-export const getJournalEntries = async () => {
-  return fetchAPI('/accounting/journal-entries');
+export const getJournalEntries = async (branchId?: number | string) => {
+  const url = branchId ? `/accounting/journal-entries?branchId=${branchId}` : '/accounting/journal-entries';
+  return fetchAPI(url);
+};
+
+export const getProfitLoss = async (branchId?: number | string) => {
+  const url = branchId ? `/accounting/profit-loss?branchId=${branchId}` : '/accounting/profit-loss';
+  return fetchAPI(url);
 };
 
 // =======================
@@ -157,6 +164,12 @@ export const createProductionOrder = async (data: { branchId: number; targetIngr
   });
 };
 
+export const updateProductionOrderStatus = async (orderId: number, status: string) => {
+  return fetchAPI(`/production/orders/${orderId}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
+};
 export const completeProductionOrder = async (orderId: number) => {
   return fetchAPI(`/production/orders/${orderId}/complete`, {
     method: 'PATCH',
@@ -211,8 +224,10 @@ export const logMaintenance = (equipmentId: number, data: any) => fetchAPI(`/equ
 
 // Customers
 export const getCustomers = (search?: string) => fetchAPI(`/customers${search ? `?search=${encodeURIComponent(search)}` : ''}`);
+export const getCustomer360 = (id: number) => fetchAPI(`/customers/${id}/360`);
 
 // Reports
 export const getSalesTrends = (branchId?: number) => fetchAPI(`/reports/sales-trends${branchId ? `?branchId=${branchId}` : ''}`);
 export const getTopProducts = (branchId?: number) => fetchAPI(`/reports/top-products${branchId ? `?branchId=${branchId}` : ''}`);
-export const getProfitLoss = (branchId?: number) => fetchAPI(`/reports/profit-loss${branchId ? `?branchId=${branchId}` : ''}`);
+
+export const getExecutiveSummary = (branchId?: number) => fetchAPI(`/reports/executive-summary${branchId ? `?branchId=${branchId}` : ''}`);
