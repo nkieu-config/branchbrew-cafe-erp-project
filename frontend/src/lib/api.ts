@@ -50,7 +50,7 @@ export const createProduct = (data: { name: string; price: number; category: str
   fetchAPI('/products', { method: 'POST', body: JSON.stringify(data) });
 
 // Orders
-export const createOrder = (data: { userId: number; branchId: number; items: { productId: number; quantity: number }[]; customerPhone?: string; promotionCode?: string; pointsToRedeem?: number }) => 
+export const createOrder = (data: { userId: number; branchId: number; items: { productId: number; quantity: number }[]; customerPhone?: string; promotionCode?: string; pointsToRedeem?: number; paymentMethod?: string; isTaxInvoiceRequested?: boolean; taxInvoiceName?: string; taxInvoiceTaxId?: string; taxInvoiceAddress?: string }) => 
   fetchAPI('/orders', { method: 'POST', body: JSON.stringify(data) });
 export const getOrders = () => fetchAPI('/orders');
 export const getKdsOrders = (branchId: number) => fetchAPI(`/orders/kds?branchId=${branchId}`);
@@ -110,7 +110,7 @@ export const getExpenses = (branchId?: number, date?: string) => {
   return fetchAPI(`/finance/expenses${qs ? `?${qs}` : ''}`);
 };
 export const getExpectedCash = (branchId?: number) => fetchAPI(`/finance/settlements/expected${branchId ? `?branchId=${branchId}` : ''}`);
-export const submitSettlement = (branchId: number, actualCash: number) => fetchAPI('/finance/settlements', { method: 'POST', body: JSON.stringify({ branchId, actualCash }) });
+export const submitSettlement = (branchId: number, actualCash: number, actualCreditCard?: number, actualQR?: number) => fetchAPI('/finance/settlements', { method: 'POST', body: JSON.stringify({ branchId, actualCash, actualCreditCard, actualQR }) });
 export const getSettlements = (branchId?: number) => fetchAPI(`/finance/settlements${branchId ? `?branchId=${branchId}` : ''}`);
 export const approveSettlement = (id: number) => fetchAPI(`/finance/settlements/${id}/approve`, { method: 'PATCH' });
 

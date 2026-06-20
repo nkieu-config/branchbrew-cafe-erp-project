@@ -61,6 +61,8 @@ export interface Expense {
 
 export interface SettlementExpected {
   expectedCash: number;
+  expectedCreditCard: number;
+  expectedQR: number;
   sales: number;
   expenses: number;
 }

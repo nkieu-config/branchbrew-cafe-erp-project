@@ -12,7 +12,7 @@ import { Coffee, ShoppingBag, User, Ticket, Award, Search, X, Printer, Plus } fr
 import { AnimatedPage } from "@/components/animated-page";
 import { Receipt } from "@/components/pos/Receipt";
 import { useReactToPrint } from "react-to-print";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { useRef } from "react";
 
 export default function POSPage() {
@@ -29,6 +29,14 @@ export default function POSPage() {
   // Promo State
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<any>(null);
+
+  // Checkout State
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'CREDIT_CARD' | 'QR_PROMPTPAY'>('CASH');
+  const [isTaxInvoiceRequested, setIsTaxInvoiceRequested] = useState(false);
+  const [taxInvoiceName, setTaxInvoiceName] = useState("");
+  const [taxInvoiceTaxId, setTaxInvoiceTaxId] = useState("");
+  const [taxInvoiceAddress, setTaxInvoiceAddress] = useState("");
 
   // Receipt & Success State
   const [showSuccess, setShowSuccess] = useState(false);
@@ -131,7 +139,12 @@ export default function POSPage() {
         items,
         customerPhone: customer?.phone,
         promotionCode: appliedPromo?.code,
-        pointsToRedeem: pointsToRedeem > 0 ? pointsToRedeem : undefined
+        pointsToRedeem: pointsToRedeem > 0 ? pointsToRedeem : undefined,
+        paymentMethod,
+        isTaxInvoiceRequested,
+        taxInvoiceName: isTaxInvoiceRequested ? taxInvoiceName : undefined,
+        taxInvoiceTaxId: isTaxInvoiceRequested ? taxInvoiceTaxId : undefined,
+        taxInvoiceAddress: isTaxInvoiceRequested ? taxInvoiceAddress : undefined,
       });
       
       toast.success("Order completed successfully!");
@@ -152,6 +165,12 @@ export default function POSPage() {
       handleClearCRM();
       setAppliedPromo(null);
       setPromoCode("");
+      setShowCheckout(false);
+      setPaymentMethod('CASH');
+      setIsTaxInvoiceRequested(false);
+      setTaxInvoiceName("");
+      setTaxInvoiceTaxId("");
+      setTaxInvoiceAddress("");
     } catch (err: any) {
       toast.error("Checkout failed: " + err.message);
     }
@@ -317,12 +336,77 @@ export default function POSPage() {
           <Button 
             className="w-full h-12 text-lg font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-lg mt-4 transition-colors" 
             disabled={cart.length === 0}
-            onClick={handleCheckout}
+            onClick={() => setShowCheckout(true)}
           >
             Confirm & Pay
           </Button>
         </div>
       </div>
+
+      {/* Checkout Dialog */}
+      <Dialog open={showCheckout} onOpenChange={setShowCheckout}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Complete Payment</DialogTitle>
+            <DialogDescription>
+              Total to pay: ฿{netTotal.toLocaleString()}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Payment Method</label>
+              <div className="grid grid-cols-3 gap-2">
+                <Button 
+                  variant={paymentMethod === 'CASH' ? 'default' : 'outline'}
+                  onClick={() => setPaymentMethod('CASH')}
+                >Cash</Button>
+                <Button 
+                  variant={paymentMethod === 'CREDIT_CARD' ? 'default' : 'outline'}
+                  onClick={() => setPaymentMethod('CREDIT_CARD')}
+                >Card</Button>
+                <Button 
+                  variant={paymentMethod === 'QR_PROMPTPAY' ? 'default' : 'outline'}
+                  onClick={() => setPaymentMethod('QR_PROMPTPAY')}
+                >QR</Button>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 mt-2 border-t pt-4">
+              <input 
+                type="checkbox" 
+                id="tax-invoice"
+                checked={isTaxInvoiceRequested}
+                onChange={(e) => setIsTaxInvoiceRequested(e.target.checked)}
+                className="rounded border-slate-300 w-4 h-4"
+              />
+              <label htmlFor="tax-invoice" className="text-sm font-medium cursor-pointer">Request e-Tax Invoice</label>
+            </div>
+            
+            {isTaxInvoiceRequested && (
+              <div className="space-y-3 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border">
+                <Input 
+                  placeholder="Company / Individual Name" 
+                  value={taxInvoiceName}
+                  onChange={(e) => setTaxInvoiceName(e.target.value)}
+                />
+                <Input 
+                  placeholder="Tax ID (13 digits)" 
+                  value={taxInvoiceTaxId}
+                  onChange={(e) => setTaxInvoiceTaxId(e.target.value)}
+                />
+                <Input 
+                  placeholder="Full Address" 
+                  value={taxInvoiceAddress}
+                  onChange={(e) => setTaxInvoiceAddress(e.target.value)}
+                />
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button onClick={handleCheckout} className="w-full bg-emerald-600 hover:bg-emerald-700">Pay ฿{netTotal.toLocaleString()}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Success & Print Dialog */}
       <Dialog open={showSuccess} onOpenChange={(open) => {

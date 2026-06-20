@@ -13,6 +13,11 @@ export class OrdersService {
     customerPhone?: string;
     promotionCode?: string;
     pointsToRedeem?: number;
+    paymentMethod?: any;
+    isTaxInvoiceRequested?: boolean;
+    taxInvoiceName?: string;
+    taxInvoiceTaxId?: string;
+    taxInvoiceAddress?: string;
   }) {
     return this.prisma.$transaction(async (tx) => {
       let totalAmount = 0;
@@ -130,6 +135,7 @@ export class OrdersService {
       
       discountAmount = Math.min(discountAmount, totalAmount);
       const netAmount = totalAmount - discountAmount;
+      const taxAmount = (netAmount * 7) / 107; // VAT 7% Inclusive
       const pointsEarned = customer ? Math.floor(netAmount / 100) : 0;
       
       if (customer && pointsEarned > 0) {
@@ -146,11 +152,17 @@ export class OrdersService {
           totalAmount,
           discountAmount,
           netAmount,
+          taxAmount,
           totalCogs,
           pointsEarned,
           pointsRedeemed,
           customerId,
           promotionId,
+          paymentMethod: data.paymentMethod || 'CASH',
+          isTaxInvoiceRequested: data.isTaxInvoiceRequested || false,
+          taxInvoiceName: data.taxInvoiceName,
+          taxInvoiceTaxId: data.taxInvoiceTaxId,
+          taxInvoiceAddress: data.taxInvoiceAddress,
           items: {
             create: await Promise.all(data.items.map(async (item) => {
               const product = await tx.product.findUnique({ where: { id: item.productId } });

@@ -27,9 +27,15 @@ export class FinanceController {
   }
 
   @Post('settlements')
-  submitSettlement(@Body() body: { branchId?: number; actualCash: number }, @Request() req: any) {
+  submitSettlement(@Body() body: { branchId?: number; actualCash: number; actualCreditCard?: number; actualQR?: number }, @Request() req: any) {
     const branchId = body.branchId || req.user.branchId || 1;
-    return this.financeService.submitSettlement({ branchId, actualCash: body.actualCash, submittedById: req.user.userId });
+    return this.financeService.submitSettlement({ 
+      branchId, 
+      actualCash: body.actualCash, 
+      actualCreditCard: body.actualCreditCard,
+      actualQR: body.actualQR,
+      submittedById: req.user.userId 
+    });
   }
 
   @Get('settlements')

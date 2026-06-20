@@ -211,6 +211,12 @@ model Promotion {
   updatedAt     DateTime     @updatedAt
 }
 
+enum PaymentMethod {
+  CASH
+  CREDIT_CARD
+  QR_PROMPTPAY
+}
+
 enum DiscountType {
   PERCENTAGE
   FIXED_AMOUNT
@@ -228,10 +234,16 @@ model Order {
   totalAmount    Float
   discountAmount Float       @default(0)
   netAmount      Float       @default(0)
+  taxAmount      Float       @default(0)
   totalCogs      Float       @default(0)
   pointsEarned   Int         @default(0)
   pointsRedeemed Int         @default(0)
   status         OrderStatus @default(PENDING)
+  paymentMethod  PaymentMethod @default(CASH)
+  isTaxInvoiceRequested Boolean @default(false)
+  taxInvoiceName String?
+  taxInvoiceTaxId String?
+  taxInvoiceAddress String?
   userId         Int
   user           User        @relation(fields: [userId], references: [id])
   branchId       Int
@@ -401,9 +413,13 @@ model ShiftSettlement {
   branchId      Int
   branch        Branch   @relation(fields: [branchId], references: [id])
   date          DateTime @default(now()) @db.Date
-  expectedCash  Float
-  actualCash    Float
-  difference    Float
+  expectedCash  Float    @default(0)
+  actualCash    Float    @default(0)
+  expectedCreditCard Float @default(0)
+  actualCreditCard Float @default(0)
+  expectedQR    Float    @default(0)
+  actualQR      Float    @default(0)
+  difference    Float    @default(0)
   status        SettlementStatus @default(PENDING)
   submittedById Int
   submittedBy   User     @relation(fields: [submittedById], references: [id])

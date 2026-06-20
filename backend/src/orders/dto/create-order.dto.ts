@@ -34,4 +34,23 @@ export class CreateOrderDto {
   @IsInt()
   @Min(0)
   pointsToRedeem?: number;
+
+  @IsOptional()
+  @IsString()
+  paymentMethod?: 'CASH' | 'CREDIT_CARD' | 'QR_PROMPTPAY';
+
+  @IsOptional()
+  isTaxInvoiceRequested?: boolean;
+
+  @IsOptional()
+  @IsString()
+  taxInvoiceName?: string;
+
+  @IsOptional()
+  @IsString()
+  taxInvoiceTaxId?: string;
+
+  @IsOptional()
+  @IsString()
+  taxInvoiceAddress?: string;
 }

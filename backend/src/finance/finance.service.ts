@@ -27,8 +27,18 @@ export class FinanceService {
     const end = new Date(date);
     end.setHours(23, 59, 59, 999);
 
-    const orders = await this.prisma.order.aggregate({
-      where: { branchId, createdAt: { gte: start, lte: end } },
+    const cashOrders = await this.prisma.order.aggregate({
+      where: { branchId, paymentMethod: 'CASH', createdAt: { gte: start, lte: end } },
+      _sum: { netAmount: true }
+    });
+
+    const creditCardOrders = await this.prisma.order.aggregate({
+      where: { branchId, paymentMethod: 'CREDIT_CARD', createdAt: { gte: start, lte: end } },
+      _sum: { netAmount: true }
+    });
+
+    const qrOrders = await this.prisma.order.aggregate({
+      where: { branchId, paymentMethod: 'QR_PROMPTPAY', createdAt: { gte: start, lte: end } },
       _sum: { netAmount: true }
     });
 
@@ -37,11 +47,17 @@ export class FinanceService {
       _sum: { amount: true }
     });
 
-    const expectedCash = (orders._sum.netAmount || 0) - (expenses._sum.amount || 0);
-    return { expectedCash, sales: orders._sum.netAmount || 0, expenses: expenses._sum.amount || 0 };
+    const expectedCash = (cashOrders._sum.netAmount || 0) - (expenses._sum.amount || 0);
+    return { 
+      expectedCash, 
+      expectedCreditCard: creditCardOrders._sum.netAmount || 0,
+      expectedQR: qrOrders._sum.netAmount || 0,
+      sales: cashOrders._sum.netAmount || 0, 
+      expenses: expenses._sum.amount || 0 
+    };
   }
 
-  async submitSettlement(data: { branchId: number; actualCash: number; submittedById: number }) {
+  async submitSettlement(data: { branchId: number; actualCash: number; actualCreditCard?: number; actualQR?: number; submittedById: number }) {
     const today = new Date();
     const existing = await this.prisma.shiftSettlement.findFirst({
       where: { 
@@ -55,7 +71,13 @@ export class FinanceService {
     }
 
     const calc = await this.calculateExpectedCash(data.branchId, new Date());
-    const difference = data.actualCash - calc.expectedCash;
+    const actualCreditCard = data.actualCreditCard || 0;
+    const actualQR = data.actualQR || 0;
+    
+    // Difference is based on total discrepancy
+    const totalExpected = calc.expectedCash + calc.expectedCreditCard + calc.expectedQR;
+    const totalActual = data.actualCash + actualCreditCard + actualQR;
+    const difference = totalActual - totalExpected;
 
     if (existing) {
       return this.prisma.shiftSettlement.update({
@@ -63,6 +85,10 @@ export class FinanceService {
         data: {
           expectedCash: calc.expectedCash,
           actualCash: data.actualCash,
+          expectedCreditCard: calc.expectedCreditCard,
+          actualCreditCard,
+          expectedQR: calc.expectedQR,
+          actualQR,
           difference,
           status: 'PENDING',
           submittedById: data.submittedById
@@ -76,6 +102,10 @@ export class FinanceService {
         date: new Date(),
         expectedCash: calc.expectedCash,
         actualCash: data.actualCash,
+        expectedCreditCard: calc.expectedCreditCard,
+        actualCreditCard,
+        expectedQR: calc.expectedQR,
+        actualQR,
         difference,
         submittedById: data.submittedById
       }
