@@ -82,14 +82,17 @@ export class CustomersService {
 
   // Calculate and update tier based on lifetime spend
   async checkAndUpdateTier(customerId: number) {
+    const agg = await this.prisma.order.aggregate({
+      where: { customerId, status: { in: ['COMPLETED', 'PENDING', 'PREPARING'] } },
+      _sum: { netAmount: true },
+    });
+
+    const lifetimeSpend = agg._sum.netAmount || 0;
+    
     const customer = await this.prisma.customer.findUnique({
       where: { id: customerId },
-      include: { orders: true },
     });
-    
     if (!customer) return;
-
-    const lifetimeSpend = customer.orders.reduce((sum, order) => sum + order.netAmount, 0);
     
     let newTier: Tier = 'REGULAR';
     if (lifetimeSpend >= 50000) newTier = 'PLATINUM';
@@ -120,13 +123,13 @@ export class CustomersService {
 
     if (!customer) throw new BadRequestException('Customer not found');
 
-    // Calculate Lifetime Spend
-    const allOrders = await this.prisma.order.findMany({
+    // Calculate Lifetime Spend via Aggregation
+    const agg = await this.prisma.order.aggregate({
       where: { customerId: id, status: { in: ['COMPLETED', 'PENDING', 'PREPARING'] } },
-      include: { items: { include: { product: true } } },
+      _sum: { netAmount: true },
     });
 
-    const lifetimeSpend = allOrders.reduce((sum, order) => sum + order.netAmount, 0);
+    const lifetimeSpend = agg._sum.netAmount || 0;
 
     // Calculate Next Tier
     let nextTier: string | null = null;
@@ -151,19 +154,21 @@ export class CustomersService {
     }
 
     // Favorite Drinks
-    const productCount: Record<string, { name: string; count: number }> = {};
-    for (const order of allOrders) {
-      for (const item of order.items) {
-        if (!productCount[item.product.id]) {
-          productCount[item.product.id] = { name: item.product.name, count: 0 };
-        }
-        productCount[item.product.id].count += item.quantity;
+    const favoriteItemsAgg = await this.prisma.orderItem.groupBy({
+      by: ['productId'],
+      _sum: { quantity: true },
+      where: { order: { customerId: id, status: { in: ['COMPLETED', 'PENDING', 'PREPARING'] } } },
+      orderBy: { _sum: { quantity: 'desc' } },
+      take: 3,
+    });
+
+    const favoriteDrinks: { name: string; count: number }[] = [];
+    for (const fav of favoriteItemsAgg) {
+      const product = await this.prisma.product.findUnique({ where: { id: fav.productId } });
+      if (product) {
+        favoriteDrinks.push({ name: product.name, count: fav._sum.quantity || 0 });
       }
     }
-    
-    const favoriteDrinks = Object.values(productCount)
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 3);
 
     // Churn Risk
     let churnRisk = 'LOW';
