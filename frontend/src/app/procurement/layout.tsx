@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { AnimatedPage } from "@/components/animated-page"
 import { useAuth } from "@/context/AuthContext"
-import { Truck, Wrench } from "lucide-react"
+import { Truck, Wrench, Store, FileText, FileCheck, PackageCheck } from "lucide-react"
 import { useTheme } from 'next-themes'
 
 export default function ProcurementLayout({ children }: { children: React.ReactNode }) {
@@ -14,8 +14,10 @@ export default function ProcurementLayout({ children }: { children: React.ReactN
   const role = user?.role;
 
   const tabs = [
-    { name: "Purchasing", path: "/procurement/orders", icon: Truck, roles: ["SUPER_ADMIN", "MANAGER"] },
-    { name: "Equipment", path: "/procurement/equipment", icon: Wrench, roles: ["SUPER_ADMIN", "MANAGER"] },
+    { name: "Vendors", path: "/procurement/vendors", icon: Store, roles: ["SUPER_ADMIN", "MANAGER"] },
+    { name: "Purchase Requests (PR)", path: "/procurement/pr", icon: FileText, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
+    { name: "Purchase Orders (PO)", path: "/procurement/po", icon: FileCheck, roles: ["SUPER_ADMIN", "MANAGER"] },
+    { name: "Goods Receipt (GRN)", path: "/procurement/grn", icon: PackageCheck, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
   ]
 
   return (

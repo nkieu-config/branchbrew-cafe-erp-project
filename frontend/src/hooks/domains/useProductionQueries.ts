@@ -16,7 +16,7 @@ export const useKitchenOrders = () => {
 export const useIngredients = () => {
   return useQuery({
     queryKey: ['ingredients'],
-    queryFn: () => fetchAPI('/inventory/ingredients'),
+    queryFn: () => fetchAPI('/ingredients'),
   });
 };
 

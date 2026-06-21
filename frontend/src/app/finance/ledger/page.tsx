@@ -216,3 +216,48 @@ export default function GeneralLedgerPage() {
     </AnimatedPage>
   )
 }
+                  formatter={(value: any, name: any) => [`฿${Number(value).toLocaleString()}`, name]}
+                />
+                <Legend wrapperStyle={{ fontWeight: 'bold', paddingTop: '20px' }} />
+                <Line 
+                  type="monotone" 
+                  name="Revenue"
+                  dataKey="revenue" 
+                  stroke="#10b981" 
+                  strokeWidth={4} 
+                  dot={{ r: 4, strokeWidth: 2 }}
+                  activeDot={{ r: 8, strokeWidth: 0 }}
+                />
+                <Line 
+                  type="monotone" 
+                  name="Expenses"
+                  dataKey="expense" 
+                  stroke="#f43f5e" 
+                  strokeWidth={4} 
+                  dot={{ r: 4, strokeWidth: 2 }}
+                  activeDot={{ r: 8, strokeWidth: 0 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
+      {/* General Ledger Table */}
+      <div className="pt-2">
+        <h2 className="font-semibold text-lg text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+          <FileText className="w-5 h-5 text-indigo-500" /> General Ledger (Journal Entries)
+        </h2>
+        <DataTable 
+          columns={columns} 
+          dataSource={entries} 
+          rowKey="id"
+          loading={loading}
+          expandable={{ expandedRowRender }}
+          pagination={{ pageSize: 20 }}
+        />
+      </div>
+
+    </AnimatedPage>
+  )
+}

@@ -4,26 +4,30 @@ import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { AnimatedPage } from "@/components/animated-page"
 import { useAuth } from "@/context/AuthContext"
-import { BookOpen, Landmark } from "lucide-react"
-import { useTheme } from 'next-themes';
+import { BookOpen, Landmark, Wallet, CreditCard, HandCoins } from "lucide-react"
 
-export default function AccountingLayout({ children }: { children: React.ReactNode }) {
+export default function FinanceLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { user } = useAuth()
-  const { resolvedTheme } = useTheme();
   const role = user?.role;
 
   const tabs = [
-    { name: "General Ledger", path: "/accounting/ledger", icon: BookOpen, roles: ["SUPER_ADMIN", "MANAGER"] },
-    { name: "Chart of Accounts", path: "/accounting/accounts", icon: Landmark, roles: ["SUPER_ADMIN", "MANAGER"] },
+    { name: "Overview", path: "/finance/overview", icon: Wallet, roles: ["SUPER_ADMIN", "MANAGER"] },
+    { name: "Accounts Payable (AP)", path: "/finance/ap", icon: CreditCard, roles: ["SUPER_ADMIN", "MANAGER"] },
+    { name: "Accounts Receivable (AR)", path: "/finance/ar", icon: HandCoins, roles: ["SUPER_ADMIN", "MANAGER"] },
+    { name: "General Ledger", path: "/finance/ledger", icon: BookOpen, roles: ["SUPER_ADMIN", "MANAGER"] },
+    { name: "Chart of Accounts", path: "/finance/accounts", icon: Landmark, roles: ["SUPER_ADMIN", "MANAGER"] },
   ]
 
   return (
       <AnimatedPage className="max-w-[1600px] w-full mx-auto space-y-6 h-full flex flex-col">
         <div className="flex justify-between items-end shrink-0">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 text-balance">Accounting</h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">General Ledger and Chart of Accounts.</p>
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 text-balance flex items-center gap-2">
+              <Landmark className="w-6 h-6 text-emerald-500" />
+              Finance & Accounting
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage HQ finances, ledger, and accounts.</p>
           </div>
         </div>
 

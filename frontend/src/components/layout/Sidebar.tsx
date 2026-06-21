@@ -2,26 +2,68 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ShoppingCart, Package, Coffee, Settings, Truck, Users, TicketPercent, UserSquare2, BarChart3, Wallet, Trash2, Banknote, ChefHat, Wrench, TrendingUp, Landmark } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, Coffee, Truck, Users, UserSquare2, BarChart3, Wallet, ChefHat, Wrench, Landmark, MonitorPlay, Settings, ShieldCheck, Building2, Gift, ClipboardList } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ClockInOutWidget } from "@/components/hr/ClockInOutWidget";
 
 import { RoleGuard } from "@/components/RoleGuard";
 
-const navItems = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard, roles: ["SUPER_ADMIN", "MANAGER"] },
-  { name: "Point of Sale", href: "/pos", icon: ShoppingCart, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
-  { name: "Kitchen Display", href: "/kds", icon: ChefHat, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
-  { name: "Central Kitchen", href: "/kitchen", icon: ChefHat, roles: ["SUPER_ADMIN", "MANAGER"] },
-  { name: "Inventory", href: "/inventory", icon: Package, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
-  { name: "Procurement", href: "/procurement", icon: Truck, roles: ["SUPER_ADMIN", "MANAGER"] },
-  { name: "Accounting", href: "/accounting", icon: Landmark, roles: ["SUPER_ADMIN", "MANAGER"] },
-  { name: "CRM & Marketing", href: "/crm", icon: Users, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
-  { name: "Human Resources", href: "/hr", icon: UserSquare2, roles: ["SUPER_ADMIN", "MANAGER"] },
-  { name: "Finance HQ", href: "/finance", icon: Wallet, roles: ["SUPER_ADMIN"] },
-  { name: "Reports & Analytics", href: "/reports", icon: BarChart3, roles: ["SUPER_ADMIN", "MANAGER"] },
+const menuGroups = [
+  {
+    group: "Overview",
+    items: [
+      { name: "Dashboard", href: "/", icon: LayoutDashboard, roles: ["SUPER_ADMIN", "MANAGER"] },
+    ]
+  },
+  {
+    group: "Sales & Operations",
+    items: [
+      { name: "Point of Sale", href: "/pos", icon: ShoppingCart, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
+      { name: "Kitchen Display", href: "/kds", icon: MonitorPlay, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
+      { name: "Product & Menu", href: "/products", icon: ClipboardList, roles: ["SUPER_ADMIN", "MANAGER"] },
+    ]
+  },
+  {
+    group: "Customers & Marketing",
+    items: [
+      { name: "CRM & Loyalty", href: "/crm", icon: Gift, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
+    ]
+  },
+  {
+    group: "Supply Chain & Production",
+    items: [
+      { name: "Inventory", href: "/inventory", icon: Package, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
+      { name: "Procurement", href: "/procurement", icon: Truck, roles: ["SUPER_ADMIN", "MANAGER"] },
+      { name: "Central Kitchen", href: "/kitchen", icon: ChefHat, roles: ["SUPER_ADMIN", "MANAGER"] },
+    ]
+  },
+  {
+    group: "Enterprise Management",
+    items: [
+      { name: "Branch Management", href: "/branches", icon: Building2, roles: ["SUPER_ADMIN"] },
+      { name: "Finance & Accounting", href: "/finance", icon: Landmark, roles: ["SUPER_ADMIN", "MANAGER"] },
+      { name: "Human Resources", href: "/hr", icon: UserSquare2, roles: ["SUPER_ADMIN", "MANAGER"] },
+      { name: "Asset Management", href: "/assets", icon: Wrench, roles: ["SUPER_ADMIN", "MANAGER"] },
+    ]
+  },
+  {
+    group: "Intelligence",
+    items: [
+      { name: "Reports & Analytics", href: "/reports", icon: BarChart3, roles: ["SUPER_ADMIN", "MANAGER"] },
+    ]
+  },
+  {
+    group: "Administration",
+    items: [
+      { name: "System Settings", href: "/settings", icon: Settings, roles: ["SUPER_ADMIN"] },
+      { name: "Users & Roles", href: "/users", icon: ShieldCheck, roles: ["SUPER_ADMIN"] },
+    ]
+  }
 ];
+
+// Flatten for routing logic
+const flatNavItems = menuGroups.flatMap(g => g.items);
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -45,28 +87,42 @@ export function Sidebar() {
         </div>
       )}
 
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
-          const activeItem = [...navItems]
-            .sort((a, b) => b.href.length - a.href.length)
-            .find(nav => pathname === nav.href || (nav.href !== '/' && pathname.startsWith(`${nav.href}/`)));
-            
-          const isReallyActive = activeItem ? item.href === activeItem.href : (item.href === '/' && pathname === '/');
-          
+      <nav className="flex-1 p-4 overflow-y-auto">
+        {menuGroups.map((group, groupIdx) => {
+          // Filter items based on user roles (hide group if empty)
+          const visibleItems = group.items.filter(item => item.roles.includes(user?.role || ''));
+          if (visibleItems.length === 0) return null;
+
           return (
-            <RoleGuard key={item.name} allowedRoles={item.roles}>
-              <Link
-                href={item.href}
-                className={`flex items-center px-3 py-2.5 rounded-xl transition-colors duration-300 font-semibold text-sm ${
-                  isReallyActive
-                    ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shadow-sm border border-emerald-100 dark:border-emerald-500/20"
-                    : "text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-100 interactive-item border border-transparent"
-                }`}
-              >
-                <item.icon className={`w-4 h-4 mr-2.5 transition-colors ${isReallyActive ? 'text-emerald-500 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`} />
-                {item.name}
-              </Link>
-            </RoleGuard>
+            <div key={group.group} className={`${groupIdx > 0 ? 'mt-6' : ''}`}>
+              <h3 className="px-3 mb-2 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                {group.group}
+              </h3>
+              <div className="space-y-1">
+                {visibleItems.map((item) => {
+                  const activeItem = [...flatNavItems]
+                    .sort((a, b) => b.href.length - a.href.length)
+                    .find(nav => pathname === nav.href || (nav.href !== '/' && pathname.startsWith(`${nav.href}/`)));
+                    
+                  const isReallyActive = activeItem ? item.href === activeItem.href : (item.href === '/' && pathname === '/');
+                  
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className={`flex items-center px-3 py-2.5 rounded-xl transition-colors duration-300 font-semibold text-sm ${
+                        isReallyActive
+                          ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shadow-sm border border-emerald-100 dark:border-emerald-500/20"
+                          : "text-slate-500 dark:text-slate-400 hover:bg-white/50 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-slate-100 interactive-item border border-transparent"
+                      }`}
+                    >
+                      <item.icon className={`w-4 h-4 mr-2.5 transition-colors ${isReallyActive ? 'text-emerald-500 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`} />
+                      {item.name}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
           );
         })}
       </nav>

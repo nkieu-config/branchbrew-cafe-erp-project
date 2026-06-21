@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useOrders } from '@/hooks/domains/useReportsQueries';
 import { useIngredients } from '@/hooks/domains/useProductionQueries';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,8 +17,10 @@ export default function DashboardPage() {
   const { data: orders = [], isLoading: loadingOrders, error: ordersError } = useOrders();
   const { data: ingredients = [], isLoading: loadingIngredients, error: ingredientsError } = useIngredients();
   
-  if (ordersError) toast.error("Failed to load orders: " + (ordersError as Error).message);
-  if (ingredientsError) toast.error("Failed to load ingredients: " + (ingredientsError as Error).message);
+  useEffect(() => {
+    if (ordersError) toast.error("Failed to load orders: " + (ordersError as Error).message);
+    if (ingredientsError) toast.error("Failed to load ingredients: " + (ingredientsError as Error).message);
+  }, [ordersError, ingredientsError]);
 
   const loading = loadingOrders || loadingIngredients;
   const revenue = orders.reduce((sum: number, o: Order) => sum + o.totalAmount, 0);
