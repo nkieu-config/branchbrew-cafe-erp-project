@@ -61,10 +61,25 @@ export class ProcurementService {
     return po;
   }
 
-  async approvePO(poId: number, userId: number) {
-    const po = await this.prisma.purchaseOrder.findUnique({ where: { id: poId } });
+  private async validatePOStatus(
+    poId: number, 
+    allowedStatuses: string[], 
+    actionName: string, 
+    txClient: any = this.prisma
+  ) {
+    const po = await txClient.purchaseOrder.findUnique({ 
+      where: { id: poId },
+      include: { items: true }
+    });
     if (!po) throw new BadRequestException('PO not found');
-    if (po.status !== 'PENDING') throw new BadRequestException(`Cannot approve PO with status ${po.status}`);
+    if (!allowedStatuses.includes(po.status)) {
+      throw new BadRequestException(`Cannot ${actionName} PO with status ${po.status}`);
+    }
+    return po;
+  }
+
+  async approvePO(poId: number, userId: number) {
+    const po = await this.validatePOStatus(poId, ['PENDING'], 'approve');
 
     const updatedPo = await this.prisma.purchaseOrder.update({
       where: { id: poId },
@@ -76,9 +91,7 @@ export class ProcurementService {
   }
 
   async rejectPO(poId: number, userId: number) {
-    const po = await this.prisma.purchaseOrder.findUnique({ where: { id: poId } });
-    if (!po) throw new BadRequestException('PO not found');
-    if (po.status !== 'PENDING') throw new BadRequestException(`Cannot reject PO with status ${po.status}`);
+    const po = await this.validatePOStatus(poId, ['PENDING'], 'reject');
 
     const updatedPo = await this.prisma.purchaseOrder.update({
       where: { id: poId },
@@ -91,14 +104,7 @@ export class ProcurementService {
 
   async receivePO(poId: number, userId?: number, expiryDates?: { ingredientId: number, date: string }[]) {
     return this.prisma.$transaction(async (tx) => {
-      const po = await tx.purchaseOrder.findUnique({
-        where: { id: poId },
-        include: { items: true }
-      });
-
-      if (!po) throw new BadRequestException('PO not found');
-      if (po.status === 'RECEIVED') throw new BadRequestException('PO already received');
-      if (po.status !== 'APPROVED') throw new BadRequestException('PO must be APPROVED before receiving items');
+      const po = await this.validatePOStatus(poId, ['APPROVED'], 'receive', tx);
 
       // 1. Update BranchInventory (Cached Total)
       // 2. Create InventoryBatch (FIFO Log)
