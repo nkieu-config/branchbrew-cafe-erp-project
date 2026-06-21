@@ -5,7 +5,6 @@ import Link from "next/link"
 import { AnimatedPage } from "@/components/animated-page"
 import { useAuth } from "@/context/AuthContext"
 import { Truck, Wrench } from "lucide-react"
-import { ConfigProvider, theme } from 'antd'
 import { useTheme } from 'next-themes'
 
 export default function ProcurementLayout({ children }: { children: React.ReactNode }) {
@@ -20,16 +19,6 @@ export default function ProcurementLayout({ children }: { children: React.ReactN
   ]
 
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: resolvedTheme === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
-        token: {
-          fontFamily: 'inherit',
-          colorPrimary: '#2563eb', // Tailwind Blue 600
-          colorBgContainer: resolvedTheme === 'dark' ? '#0f172a' : '#ffffff',
-        },
-      }}
-    >
       <AnimatedPage className="max-w-[1600px] w-full mx-auto space-y-6 h-full flex flex-col">
         <div className="flex justify-between items-end shrink-0">
           <div>
@@ -65,6 +54,5 @@ export default function ProcurementLayout({ children }: { children: React.ReactN
           {children}
         </div>
       </AnimatedPage>
-    </ConfigProvider>
   )
 }

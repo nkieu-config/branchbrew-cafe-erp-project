@@ -15,6 +15,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { SocketProvider } from "@/context/SocketContext";
 
 import QueryProvider from "@/providers/QueryProvider";
+import { AntdProvider } from "@/providers/AntdProvider";
 
 export const metadata: Metadata = {
   title: "QafaCafe ERP",
@@ -31,20 +32,22 @@ export default function RootLayout({
       <body className={`${plusJakarta.className} flex min-h-screen bg-slate-50 dark:bg-slate-950 bg-[url('/bg-pattern.svg')] dark:bg-none bg-fixed text-slate-900 dark:text-slate-50 antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <QueryProvider>
-            <AuthProvider>
-              <SocketProvider>
-                <ProtectedRoute>
-                  <Sidebar />
-                  <main className="flex-1 h-screen relative z-10 flex flex-col overflow-hidden">
-                    <Topbar />
-                    <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
-                      {children}
-                    </div>
-                  </main>
-                  <Toaster />
-                </ProtectedRoute>
-              </SocketProvider>
-            </AuthProvider>
+            <AntdProvider>
+              <AuthProvider>
+                <SocketProvider>
+                  <ProtectedRoute>
+                    <Sidebar />
+                    <main className="flex-1 h-screen relative z-10 flex flex-col overflow-hidden">
+                      <Topbar />
+                      <div className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
+                        {children}
+                      </div>
+                    </main>
+                    <Toaster />
+                  </ProtectedRoute>
+                </SocketProvider>
+              </AuthProvider>
+            </AntdProvider>
           </QueryProvider>
         </ThemeProvider>
       </body>
