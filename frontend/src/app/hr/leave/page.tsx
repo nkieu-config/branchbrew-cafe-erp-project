@@ -1,7 +1,5 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { fetchAPI } from "@/lib/api"
 import { useAuth } from "@/context/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Plus, CheckCircle, XCircle, CalendarOff } from "lucide-react"
@@ -9,45 +7,24 @@ import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
 import { LeaveRequest } from "@prisma/client"
 import { AnimatedPage } from "@/components/animated-page"
+import { useLeaveRequests, useUpdateLeaveStatus } from "@/hooks/useQueries"
+import { toast } from "sonner"
 
 export default function LeaveRequestsPage() {
   const { activeBranchId, user } = useAuth()
   const role = user?.role;
-  const [leaveRequests, setLeaveRequests] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const isManagerOrAdmin = role === 'SUPER_ADMIN' || role === 'MANAGER';
+  const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
 
-  useEffect(() => {
-    if (activeBranchId) {
-      fetchData()
-    }
-  }, [activeBranchId])
-
-  const fetchData = async () => {
-    setIsLoading(true)
-    try {
-      if (role === 'SUPER_ADMIN' || role === 'MANAGER') {
-        const data = await fetchAPI(`/hr/leave?branchId=${activeBranchId}`)
-        setLeaveRequests(data || [])
-      } else {
-        const data = await fetchAPI('/hr/leave/me')
-        setLeaveRequests(data || [])
-      }
-    } catch (err) {
-      console.error(err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const { data: leaveRequests = [], isLoading } = useLeaveRequests(branchIdNum, isManagerOrAdmin);
+  const updateLeaveStatusMutation = useUpdateLeaveStatus();
 
   const approveLeave = async (id: number, status: string) => {
     try {
-      await fetchAPI(`/hr/leave/${id}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status })
-      });
-      fetchData();
-    } catch (err) {
-      alert("Failed to update leave status");
+      await updateLeaveStatusMutation.mutateAsync({ id, status });
+      toast.success(`Leave status updated to ${status}`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update leave status");
     }
   }
 

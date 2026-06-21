@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getOrders, getIngredients } from "@/lib/api";
+import { useOrders, useIngredients } from "@/hooks/useQueries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, DollarSign, AlertTriangle, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
@@ -13,23 +12,16 @@ import { AnimatedPage } from "@/components/animated-page";
 import { motion } from "framer-motion";
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState({ revenue: 0, ordersCount: 0, lowStockCount: 0 });
-  const [loading, setLoading] = useState(true);
+  const { data: orders = [], isLoading: loadingOrders, error: ordersError } = useOrders();
+  const { data: ingredients = [], isLoading: loadingIngredients, error: ingredientsError } = useIngredients();
+  
+  if (ordersError) toast.error("Failed to load orders: " + (ordersError as Error).message);
+  if (ingredientsError) toast.error("Failed to load ingredients: " + (ingredientsError as Error).message);
 
-  useEffect(() => {
-    Promise.all([getOrders(), getIngredients()])
-      .then(([orders, ingredients]) => {
-        const revenue = orders.reduce((sum: number, o: Order) => sum + o.totalAmount, 0);
-        const lowStockCount = ingredients.filter((i: Ingredient) => i.stock <= i.minStock).length;
-        setStats({
-          revenue,
-          ordersCount: orders.length,
-          lowStockCount
-        });
-      })
-      .catch((err) => toast.error("Failed to load dashboard data: " + err.message))
-      .finally(() => setLoading(false));
-  }, []);
+  const loading = loadingOrders || loadingIngredients;
+  const revenue = orders.reduce((sum: number, o: Order) => sum + o.totalAmount, 0);
+  const lowStockCount = ingredients.filter((i: Ingredient) => i.stock <= i.minStock).length;
+  const stats = { revenue, ordersCount: orders.length, lowStockCount };
 
   if (loading) return (
     <div className="flex h-full items-center justify-center">

@@ -1,7 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { fetchAPI, generatePayrollRun, approvePayrollRun } from "@/lib/api"
+import { useState } from "react"
 import { useAuth } from "@/context/AuthContext"
 import { Table, Tag, Button as AntButton, Popconfirm, Typography } from "antd"
 import { Users, FileText, CheckCircle, Receipt } from "lucide-react"
@@ -10,58 +9,37 @@ import { AnimatedPage } from "@/components/animated-page"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
 import { PayrollRun, Payslip } from "@prisma/client";
+import { usePayrollRuns, useGeneratePayrollRun, useApprovePayrollRun } from "@/hooks/useQueries"
 
 const { Text } = Typography;
 
 export default function PayrollPage() {
   const { activeBranchId, user } = useAuth()
   const role = user?.role;
-  const [payrollRuns, setPayrollRuns] = useState<any[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [isGenerating, setIsGenerating] = useState(false)
-
-  useEffect(() => {
-    if (activeBranchId && (role === 'SUPER_ADMIN' || role === 'MANAGER')) {
-      fetchData()
-    } else {
-      setIsLoading(false)
-    }
-  }, [activeBranchId, role])
-
-  const fetchData = async () => {
-    setIsLoading(true)
-    try {
-      const data = await fetchAPI(`/hr/payroll-runs?branchId=${activeBranchId}`)
-      setPayrollRuns(data || [])
-    } catch (err) {
-      console.error(err)
-      toast.error("Failed to load payroll runs")
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
+  
+  // Only fetch if activeBranchId is set and user is MANAGER or SUPER_ADMIN
+  const { data: payrollRuns = [], isLoading } = usePayrollRuns(branchIdNum);
+  
+  const generatePayrollMutation = useGeneratePayrollRun();
+  const approvePayrollMutation = useApprovePayrollRun();
 
   const handleGenerate = async () => {
-    if (!activeBranchId) return;
-    setIsGenerating(true);
+    if (!branchIdNum) return;
     const now = new Date();
     try {
-      await generatePayrollRun(activeBranchId, now.getMonth() + 1, now.getFullYear());
+      await generatePayrollMutation.mutateAsync({ branchId: branchIdNum, month: now.getMonth() + 1, year: now.getFullYear() });
       toast.success("Payroll run generated successfully!");
-      fetchData();
-    } catch (err: unknown) {
+    } catch (err: any) {
       toast.error(err.message || "Failed to generate payroll");
-    } finally {
-      setIsGenerating(false);
     }
   };
 
   const handleApprove = async (id: number) => {
     try {
-      await approvePayrollRun(id);
-      toast.success("Payroll approved!");
-      fetchData();
-    } catch (err: unknown) {
+      await approvePayrollMutation.mutateAsync(id);
+      toast.success("Payroll run approved!");
+    } catch (err: any) {
       toast.error(err.message || "Failed to approve payroll");
     }
   };
@@ -198,10 +176,9 @@ export default function PayrollPage() {
             type="primary" 
             className="bg-violet-600 hover:bg-violet-700 h-10 px-4 rounded-lg shadow-sm font-bold"
             onClick={handleGenerate}
-            loading={isGenerating}
-            disabled={!activeBranchId}
+            disabled={generatePayrollMutation.isPending || (payrollRuns.length > 0 && payrollRuns[0].status === 'DRAFT')}
           >
-            Generate This Month's Payroll
+            {generatePayrollMutation.isPending ? "Generating..." : "Generate This Month's Payroll"}
           </AntButton>
         }
       />

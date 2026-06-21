@@ -385,3 +385,99 @@ export const useBranches = () => {
     staleTime: Infinity, // Branches rarely change
   });
 };
+
+// ==========================================
+// 💸 FINANCE & SETTLEMENT HOOKS
+// ==========================================
+
+export const useFinanceSettlements = (branchId?: number) => {
+  return useQuery({
+    queryKey: ['financeSettlements', branchId],
+    queryFn: () => fetchAPI(branchId ? `/finance/settlements?branchId=${branchId}` : '/finance/settlements'),
+  });
+};
+
+export const useFinanceExpenses = (branchId?: number) => {
+  return useQuery({
+    queryKey: ['financeExpenses', branchId],
+    queryFn: () => fetchAPI(branchId ? `/finance/expenses?branchId=${branchId}` : '/finance/expenses'),
+  });
+};
+
+export const useApproveSettlement = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => fetchAPI(`/finance/settlements/${id}/approve`, { method: 'PATCH' }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['financeSettlements'] }),
+  });
+};
+
+export const useExpectedCash = (branchId?: number) => {
+  return useQuery({
+    queryKey: ['expectedCash', branchId],
+    queryFn: () => fetchAPI(`/finance/expected-cash?branchId=${branchId}`),
+    enabled: !!branchId,
+  });
+};
+
+export const useSubmitSettlement = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { branchId: number; actualCash: number; actualCreditCard: number; actualQR: number }) => 
+      fetchAPI('/finance/settlements', { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['financeSettlements'] }),
+  });
+};
+
+export const useCreateExpense = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { branchId: number; amount: number; category: string; description?: string }) => 
+      fetchAPI('/finance/expenses', { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['financeExpenses'] }),
+  });
+};
+
+// ==========================================
+// 👥 HR (LEAVE & PAYROLL) HOOKS
+// ==========================================
+
+export const useLeaveRequests = (branchId?: number, isManagerOrAdmin?: boolean) => {
+  return useQuery({
+    queryKey: ['leaveRequests', branchId, isManagerOrAdmin],
+    queryFn: () => isManagerOrAdmin ? fetchAPI(branchId ? `/hr/leave?branchId=${branchId}` : '/hr/leave') : fetchAPI('/hr/leave/me'),
+  });
+};
+
+export const useUpdateLeaveStatus = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, status }: { id: number; status: string }) => fetchAPI(`/hr/leave/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['leaveRequests'] }),
+  });
+};
+
+export const usePayrollRuns = (branchId?: number) => {
+  return useQuery({
+    queryKey: ['payrollRuns', branchId],
+    queryFn: () => fetchAPI(`/hr/payroll-runs?branchId=${branchId}`),
+    enabled: !!branchId,
+  });
+};
+
+export const useGeneratePayrollRun = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { branchId: number; month: number; year: number }) => 
+      fetchAPI('/hr/payroll-runs/generate', { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['payrollRuns'] }),
+  });
+};
+
+export const useApprovePayrollRun = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => fetchAPI(`/hr/payroll-runs/${id}/approve`, { method: 'PATCH' }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['payrollRuns'] }),
+  });
+};

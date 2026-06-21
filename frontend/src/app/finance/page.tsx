@@ -1,51 +1,34 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { AnimatedPage } from "@/components/animated-page"
 import { PageHeader } from "@/components/shared/page-header"
-import { getSettlements, getExpenses, approveSettlement } from "@/lib/api"
+import { exportSales } from "@/lib/api"
 import { Button } from "@/components/ui/button"
-import { CheckCircle2, DollarSign, ArrowUpRight } from "lucide-react"
+import { CheckCircle2, DollarSign, ArrowUpRight, Download } from "lucide-react"
 
 import { useAuth } from "@/context/AuthContext"
 import { toast } from "sonner"
-import { Download } from "lucide-react"
-import { exportSales } from "@/lib/api"
+import { useFinanceSettlements, useFinanceExpenses, useApproveSettlement } from "@/hooks/useQueries"
 
 import { Settlement, Expense } from "@/types"
 
 export default function FinanceDashboardPage() {
-  const [settlements, setSettlements] = useState<Settlement[]>([])
-  const [expenses, setExpenses] = useState<Expense[]>([])
-  const [isLoading, setIsLoading] = useState(true)
   const { token, activeBranchId } = useAuth()
+  const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
+  
+  const { data: settlements = [], isLoading: loadingSettlements } = useFinanceSettlements(branchIdNum)
+  const { data: expenses = [], isLoading: loadingExpenses } = useFinanceExpenses(branchIdNum)
+  const approveSettlementMutation = useApproveSettlement()
 
-  useEffect(() => {
-    fetchData()
-  }, [activeBranchId])
-
-  const fetchData = async () => {
-    setIsLoading(true)
-    try {
-      const [settleData, expData] = await Promise.all([
-        getSettlements(activeBranchId || undefined),
-        getExpenses(activeBranchId || undefined)
-      ])
-      setSettlements(settleData || [])
-      setExpenses(expData || [])
-    } catch (error) {
-      console.error(error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const isLoading = loadingSettlements || loadingExpenses
 
   const handleApprove = async (id: number) => {
     try {
-      await approveSettlement(id)
-      fetchData()
+      await approveSettlementMutation.mutateAsync(id)
+      toast.success("Approved successfully")
     } catch (error) {
-      alert("Failed to approve")
+      toast.error("Failed to approve")
     }
   }
 

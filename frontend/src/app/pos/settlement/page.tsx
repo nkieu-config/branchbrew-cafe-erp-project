@@ -1,71 +1,60 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { AnimatedPage } from "@/components/animated-page"
 import { PageHeader } from "@/components/shared/page-header"
-import { getExpectedCash, submitSettlement, createExpense } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Calculator, Wallet } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
-
-import { SettlementExpected } from "@/types"
+import { toast } from "sonner"
+import { useExpectedCash, useSubmitSettlement, useCreateExpense } from "@/hooks/useQueries"
 
 export default function SettlementPage() {
-  const [expected, setExpected] = useState<SettlementExpected | null>(null)
+  const { activeBranchId } = useAuth()
+  const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
+  
   const [actualCash, setActualCash] = useState<string>("")
   const [actualCreditCard, setActualCreditCard] = useState<string>("")
   const [actualQR, setActualQR] = useState<string>("")
-  const [isLoading, setIsLoading] = useState(true)
-  const { activeBranchId } = useAuth()
-
   const [expenseForm, setExpenseForm] = useState({ amount: "", category: "", description: "" })
 
-  useEffect(() => {
-    if (activeBranchId) {
-      fetchExpected()
-    }
-  }, [activeBranchId])
-
-  const fetchExpected = async () => {
-    if (!activeBranchId) return;
-    try {
-      const data = await getExpectedCash(activeBranchId)
-      setExpected(data)
-    } catch (error) {
-      console.error(error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const { data: expected, isLoading } = useExpectedCash(branchIdNum);
+  const submitSettlementMutation = useSubmitSettlement();
+  const createExpenseMutation = useCreateExpense();
 
   const handleSettlement = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!actualCash || !activeBranchId) return
+    if (!actualCash || !branchIdNum) return
     try {
-      await submitSettlement(activeBranchId, parseFloat(actualCash), parseFloat(actualCreditCard || "0"), parseFloat(actualQR || "0"))
-      alert("Settlement submitted successfully for HQ approval.")
+      await submitSettlementMutation.mutateAsync({
+        branchId: branchIdNum,
+        actualCash: parseFloat(actualCash),
+        actualCreditCard: parseFloat(actualCreditCard || "0"),
+        actualQR: parseFloat(actualQR || "0")
+      });
+      toast.success("Settlement submitted successfully for HQ approval.")
       setActualCash("")
       setActualCreditCard("")
       setActualQR("")
-    } catch (error: unknown) {
-      alert(error.message || "Failed to submit settlement")
+    } catch (error: any) {
+      toast.error(error.message || "Failed to submit settlement")
     }
   }
 
   const handleExpense = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!expenseForm.amount || !expenseForm.category || !activeBranchId) return
+    if (!expenseForm.amount || !expenseForm.category || !branchIdNum) return
     try {
-      await createExpense(activeBranchId, {
+      await createExpenseMutation.mutateAsync({
+        branchId: branchIdNum,
         amount: parseFloat(expenseForm.amount),
         category: expenseForm.category,
         description: expenseForm.description
-      })
-      alert("Expense recorded.")
+      });
+      toast.success("Petty cash expense recorded")
       setExpenseForm({ amount: "", category: "", description: "" })
-      fetchExpected() // Refresh expected cash to reflect new expense
-    } catch (error: unknown) {
-      alert("Failed to record expense")
+    } catch (error: any) {
+      toast.error("Failed to record expense")
     }
   }
 
