@@ -4,17 +4,17 @@ import { useEffect, useState } from "react"
 import { useKitchenOrders, useIngredients, useCompleteKitchenOrder, useUpdateOrderStatus, useCreateProductionOrder } from "@/hooks/useQueries"
 import { getProductionOrders, completeProductionOrder, getIngredients, createProductionOrder, updateProductionOrderStatus } from "@/lib/api"
 import { Button, Form, Select, InputNumber, DatePicker, Spin } from "antd"
-import { PageHeader } from "@/components/shared/page-header"
 import { Ingredient } from "@prisma/client"
 import { FormModal } from "@/components/shared/form-modal"
 import { ChefHat, PackageOpen, Plus, Clock, PlayCircle, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
 import { AnimatedPage } from "@/components/animated-page"
 import { useAuth } from "@/context/AuthContext"
+import { PageHeader } from "@/components/shared/page-header";
 import { DndContext, DragOverlay, closestCorners, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent } from "@dnd-kit/core"
 import { useDroppable, useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
-import type { ProductionOrder, Ingredient } from "@prisma/client"
+import type { ProductionOrder } from "@prisma/client"
 
 type ProductionOrderWithTarget = ProductionOrder & { targetIngredient: Ingredient }
 
@@ -164,25 +164,21 @@ export default function CentralKitchenPage() {
 
   return (
     <AnimatedPage className="space-y-6 w-full">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-2xl font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
-            <ChefHat className="w-6 h-6 text-orange-500" />
-            Production Board
-          </h1>
-          <p className="text-slate-500">Drag and drop orders to update status.</p>
-        </div>
-        <div className="ml-auto">
+      <PageHeader 
+        title="Production Board"
+        icon={ChefHat}
+        description="Drag and drop orders to update status."
+        actions={
           <Button 
             type="primary" 
-            className="bg-orange-500 hover:bg-orange-600 shadow-sm font-bold flex items-center"
+            className="bg-orange-500 hover:bg-orange-600 shadow-sm font-bold flex items-center border-none"
             onClick={() => setIsModalVisible(true)}
             icon={<Plus className="w-4 h-4" />}
           >
             New Order
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {isLoading && orders.length === 0 ? (
         <div className="py-20 flex justify-center"><Spin size="large" /></div>

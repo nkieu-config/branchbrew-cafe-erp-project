@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { AnimatedPage } from "@/components/animated-page"
+import { PageHeader } from "@/components/shared/page-header"
 import { getSettlements, getExpenses, approveSettlement } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, DollarSign, ArrowUpRight } from "lucide-react"
@@ -61,16 +62,16 @@ export default function FinanceDashboardPage() {
 
   return (
     <AnimatedPage className="max-w-[1600px] w-full mx-auto space-y-6">
-      <div className="flex justify-between items-end">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100 text-balance">Finance & Settlement</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Review end-of-day settlements and petty cash expenses.</p>
-        </div>
-        <Button onClick={handleExport} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
-          <Download className="w-4 h-4 mr-2" />
-          Export Sales (CSV)
-        </Button>
-      </div>
+      <PageHeader
+        title="Finance & Settlement"
+        description="Review end-of-day settlements and petty cash expenses."
+        actions={
+          <Button onClick={handleExport} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm border-none">
+            <Download className="w-4 h-4 mr-2" />
+            Export Sales (CSV)
+          </Button>
+        }
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         

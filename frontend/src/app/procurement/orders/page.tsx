@@ -211,13 +211,13 @@ export default function ProcurementPage() {
             items={stepItems}
           />
         </div>
-        <Table 
+        <DataTable 
           columns={itemColumns} 
           dataSource={record.items} 
           rowKey="id" 
           pagination={false} 
           size="small" 
-          className="shadow-sm border border-slate-200 dark:border-slate-800 rounded-md overflow-hidden"
+          hideBorders
         />
       </div>
     );

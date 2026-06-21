@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { AnimatedPage } from "@/components/animated-page"
+import { PageHeader } from "@/components/shared/page-header"
 import { getKdsOrders, updateOrderStatus } from "@/lib/api"
 import { useAuth } from "@/context/AuthContext"
 import { useSocket } from "@/context/SocketContext"
@@ -85,18 +86,16 @@ export default function KdsPage() {
 
   return (
     <AnimatedPage className="h-full flex flex-col space-y-4">
-      <div className="flex justify-between items-center bg-slate-900 text-white p-4 rounded-xl shadow-lg">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-            Kitchen Display System (KDS)
-          </h1>
-          <p className="text-slate-400 text-sm">Real-time order queue</p>
-        </div>
-        <div className="flex items-center gap-2 text-emerald-400 font-mono">
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-          Live Sync
-        </div>
-      </div>
+      <PageHeader
+        title="Kitchen Display System (KDS)"
+        description="Real-time order queue"
+        actions={
+          <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-mono text-sm font-bold bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 rounded-full">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+            Live Sync
+          </div>
+        }
+      />
 
       <div className="flex-1 overflow-x-auto pb-4">
         <div className="flex gap-4 h-full items-start">

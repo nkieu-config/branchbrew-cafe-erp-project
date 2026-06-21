@@ -5,7 +5,7 @@ import { getOrders, getIngredients } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, DollarSign, AlertTriangle, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
-import { PageHeader } from "@/components/shared/page-header"
+import { PageHeader } from "@/components/shared/page-header";
 import { StatCard } from "@/components/shared/stat-card"
 import { Order, Ingredient } from "@prisma/client";
 import { SalesChart } from "@/components/dashboard/SalesChart";
@@ -39,10 +39,10 @@ export default function DashboardPage() {
 
   return (
     <AnimatedPage className="w-full max-w-[1600px] mx-auto space-y-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 text-balance">Dashboard Overview</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Welcome back! Here's what's happening at QafaCafe today.</p>
-      </div>
+      <PageHeader
+        title="Dashboard Overview"
+        description="Welcome back! Here's what's happening at QafaCafe today."
+      />
 
       <motion.div 
         initial={{ opacity: 0, y: 20 }}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { AnimatedPage } from "@/components/animated-page"
+import { PageHeader } from "@/components/shared/page-header"
 import { getExpectedCash, submitSettlement, createExpense } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Calculator, Wallet } from "lucide-react"
@@ -70,10 +71,10 @@ export default function SettlementPage() {
 
   return (
     <AnimatedPage className="max-w-[1200px] w-full mx-auto space-y-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 text-balance">End of Day Settlement</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Reconcile all payment channels and submit to HQ.</p>
-      </div>
+      <PageHeader
+        title="End of Day Settlement"
+        description="Reconcile all payment channels and submit to HQ."
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Settlement Form */}

@@ -1,17 +1,15 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { EventsGateway } from '../events/events.gateway';
-// Services decoupled via Event Emitter
 
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { OrderCreatedEvent } from './events/order-created.event';
+import { OrderStatusUpdatedEvent } from './events/order-status-updated.event';
 import { PaymentMethod, OrderStatus, Customer } from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private prisma: PrismaService, 
-    private eventsGateway: EventsGateway,
     private eventEmitter: EventEmitter2
   ) {}
 
@@ -148,10 +146,8 @@ export class OrdersService {
       const pointsEarned = customer ? Math.floor(netAmount / 100) : 0;
       
       if (customer && pointsEarned > 0) {
-        await tx.customer.update({
-          where: { id: customer.id },
-          data: { points: { increment: pointsEarned } }
-        });
+        // Point updates are decoupled and handled in CustomersService asynchronously
+        // via the order.created event to reduce checkout latency.
       }
 
       const order = await tx.order.create({
@@ -187,8 +183,7 @@ export class OrdersService {
         include: { items: { include: { product: true } }, customer: true, promotion: true },
       });
 
-      // Emit WebSocket event for KDS
-      this.eventsGateway.emitOrderCreated(order);
+      // Emit WebSocket event for KDS (Now decoupled via EventsGateway listening to 'order.created')
 
       // Trigger Domain Events to decouple Procurement, Customers, and Accounting
       this.eventEmitter.emit(
@@ -235,8 +230,8 @@ export class OrdersService {
       data: { status }
     });
     
-    // Emit WebSocket event to notify clients (POS/KDS)
-    this.eventsGateway.emitOrderStatusUpdated(orderId, status);
+    // Emit Event to notify decoupled systems (EventsGateway will catch this and broadcast)
+    this.eventEmitter.emit('order.status.updated', new OrderStatusUpdatedEvent(orderId, status));
     
     return updated;
   }
