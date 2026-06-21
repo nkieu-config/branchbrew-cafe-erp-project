@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { OrdersService } from './orders.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { BadRequestException } from '@nestjs/common';
@@ -32,6 +33,10 @@ describe('OrdersService', () => {
       providers: [
         OrdersService,
         PrismaServiceMockProvider,
+        {
+          provide: EventEmitter2,
+          useValue: { emit: jest.fn() },
+        },
         {
           provide: EventsGateway,
           useValue: mockEventsGateway,
@@ -164,6 +169,65 @@ describe('OrdersService', () => {
       );
 
       expect(result).toBeDefined();
+    });
+
+    it('should throw BadRequestException if promo code is invalid', async () => {
+      prisma.product.findUnique.mockResolvedValue({
+        id: 1, price: 100, recipeItems: []
+      } as any);
+
+      // Mock promo not found
+      prisma.promotion.findUnique.mockResolvedValue(null);
+
+      await expect(service.createOrder({ ...mockOrderData, promotionCode: 'INVALID' })).rejects.toThrow(
+        new BadRequestException('Invalid or inactive promotion')
+      );
+    });
+
+    it('should correctly calculate discounts for points and valid percentage promo', async () => {
+      prisma.product.findUnique.mockResolvedValue({
+        id: 1, price: 100, recipeItems: []
+      } as any);
+
+      prisma.customer.findUnique.mockResolvedValue({
+        id: 1, phone: '1234567890', points: 50
+      } as any);
+
+      prisma.promotion.findUnique.mockResolvedValue({
+        id: 1, code: 'SALE20', isActive: true, discountType: 'PERCENTAGE', discountValue: 20
+      } as any);
+
+      prisma.customer.update.mockResolvedValue({} as any);
+      
+      prisma.order.create.mockResolvedValue({ id: 1 } as any);
+
+      await service.createOrder({
+        ...mockOrderData,
+        customerPhone: '1234567890',
+        pointsToRedeem: 50,
+        promotionCode: 'SALE20'
+      });
+
+      // Total = 2 items * 100 = 200
+      // Points = 50 THB
+      // Promo = 20% of 200 = 40 THB
+      // Total Discount = 50 + 40 = 90 THB
+      // Net Amount = 200 - 90 = 110 THB
+      
+      expect(prisma.order.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            discountAmount: 90,
+            netAmount: 110,
+          })
+        })
+      );
+      
+      // Points deduction
+      expect(prisma.customer.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { points: { decrement: 50 } }
+      });
     });
   });
 });
