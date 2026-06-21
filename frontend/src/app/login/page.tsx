@@ -22,7 +22,7 @@ export default function LoginPage() {
     try {
       const response = await loginApi({ email, password });
       login(response.access_token, response.user);
-    } catch (err: unknown) {
+    } catch (err: any) {
       toast.error(err.message || "Failed to login");
     } finally {
       setLoading(false);

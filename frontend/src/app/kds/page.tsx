@@ -143,7 +143,7 @@ export default function KdsPage() {
 
                 {/* Items */}
                 <div className="p-5 flex-1 overflow-y-auto space-y-4">
-                  {order.items.map((item: OrderItem) => (
+                  {order.items.map((item: any) => (
                     <div key={item.id} className="border-b border-slate-100 dark:border-slate-700 pb-3">
                       <div className="flex gap-3 items-start">
                         <span className="text-emerald-600 dark:text-emerald-400 font-black text-2xl">{item.quantity}x</span>

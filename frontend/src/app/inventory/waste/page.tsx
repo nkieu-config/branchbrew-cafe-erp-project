@@ -73,7 +73,7 @@ export default function WasteLogPage() {
                 required
               >
                 <option value="">Select Ingredient...</option>
-                {inventory.map((inv: Ingredient) => (
+                {inventory.map((inv: any) => (
                   <option key={inv.ingredientId} value={inv.ingredientId}>
                     {inv.ingredient.name} (Stock: {inv.stock} {inv.ingredient.unit})
                   </option>

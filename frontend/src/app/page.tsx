@@ -20,7 +20,7 @@ export default function DashboardPage() {
 
   const loading = loadingOrders || loadingIngredients;
   const revenue = orders.reduce((sum: number, o: Order) => sum + o.totalAmount, 0);
-  const lowStockCount = ingredients.filter((i: Ingredient) => i.stock <= i.minStock).length;
+  const lowStockCount = ingredients.filter((i: any) => i.stock <= i.minStock).length;
   const stats = { revenue, ordersCount: orders.length, lowStockCount };
 
   if (loading) return (

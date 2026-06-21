@@ -32,7 +32,7 @@ export default function AttendancePage() {
       title: 'Clock In',
       dataIndex: 'clockIn',
       key: 'in',
-      render: (val: string, record: User) => {
+      render: (val: string, record: any) => {
         const clockInDate = new Date(val);
         const dayShift = shifts.find((s: Shift) => isSameDay(new Date(s.startTime), clockInDate));
         
@@ -98,8 +98,8 @@ export default function AttendancePage() {
         rowKey="id"
         loading={isLoading}
         pagination={{ pageSize: 10 }}
-        rowClassName={(record: Shift & { user: User }) => {
-          if (record.role === 'SUPER_ADMIN') return '';
+        rowClassName={(record: any) => {
+          if (record.user?.role === 'SUPER_ADMIN') return '';
           const clockInDate = new Date(record.clockIn);
           const dayShift = shifts.find((s: Shift) => isSameDay(new Date(s.startTime), clockInDate));
           if (dayShift) {

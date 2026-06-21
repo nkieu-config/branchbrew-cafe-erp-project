@@ -2,7 +2,7 @@ import React, { forwardRef } from 'react';
 import { Coffee } from 'lucide-react';
 import { Order, OrderItem, Product } from '@prisma/client';
 
-export const Receipt = forwardRef<HTMLDivElement, { order: Order & { items: (OrderItem & { product: Product })[]; cashier?: { name: string }; customerName?: string; subtotal?: number; discount?: number; netTotal?: number }; branchName?: string }>(
+export const Receipt = forwardRef<HTMLDivElement, { order: any; branchName?: string }>(
   ({ order, branchName }, ref) => {
     if (!order) return null;
 
@@ -70,7 +70,7 @@ export const Receipt = forwardRef<HTMLDivElement, { order: Order & { items: (Ord
             </tr>
           </thead>
           <tbody>
-            {order.items?.map((item: OrderItem & { product: Product }, idx: number) => (
+            {order.items?.map((item: any, idx: number) => (
               <tr key={idx}>
                 <td style={{ padding: '2px 0', verticalAlign: 'top', wordBreak: 'break-word', paddingRight: '4px' }}>
                   <div style={{ fontWeight: 'bold' }}>{item.product.name}</div>
