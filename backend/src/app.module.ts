@@ -16,6 +16,7 @@ import { CustomersModule } from './customers/customers.module';
 import { PromotionsModule } from './promotions/promotions.module';
 import { HrModule } from './hr/hr.module';
 import { FinanceModule } from './finance/finance.module';
+import { InventoryModule } from './inventory/inventory.module';
 import { EventsModule } from './events/events.module';
 import { EquipmentModule } from './equipment/equipment.module';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -31,7 +32,7 @@ import { ProductionModule } from './production/production.module';
       limit: 60,
     }]),
     EventEmitterModule.forRoot(),
-    PrismaModule, ProductsModule, IngredientsModule, OrdersModule, AuthModule, BranchesModule, ProcurementModule, CustomersModule, PromotionsModule, HrModule, FinanceModule, EventsModule, EquipmentModule, ScheduleModule.forRoot(), ReportsModule, AuditModule, AccountingModule, ProductionModule
+    PrismaModule, ProductsModule, IngredientsModule, OrdersModule, AuthModule, BranchesModule, ProcurementModule, CustomersModule, PromotionsModule, HrModule, FinanceModule, InventoryModule, EventsModule, EquipmentModule, ScheduleModule.forRoot(), ReportsModule, AuditModule, AccountingModule, ProductionModule
   ],
   controllers: [AppController],
   providers: [

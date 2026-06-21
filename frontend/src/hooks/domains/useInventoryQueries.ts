@@ -71,3 +71,42 @@ export const useReportWaste = () => {
   });
 };
 
+// ==========================================
+// 🚀 NEW INVENTORY MODULE HOOKS (PHASE 2)
+// ==========================================
+export function useBranchInventory(branchId?: number) {
+  return useQuery({
+    queryKey: ["inventory-balance", branchId],
+    queryFn: () => fetchAPI(`/inventory/branch/${branchId}/balance`),
+    enabled: !!branchId,
+  });
+}
+
+export function useStockIn() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { branchId: number; items: { ingredientId: number; quantity: number; expiryDate?: string }[] }) =>
+      fetchAPI(`/inventory/branch/${data.branchId}/stock-in`, {
+        method: "POST",
+        body: JSON.stringify({ items: data.items }),
+      }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["inventory-balance", variables.branchId] });
+    },
+  });
+}
+
+export function useRecordWaste() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { branchId: number; items: { ingredientId: number; quantity: number; reason: string }[] }) =>
+      fetchAPI(`/inventory/branch/${data.branchId}/waste`, {
+        method: "POST",
+        body: JSON.stringify({ items: data.items }),
+      }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["inventory-balance", variables.branchId] });
+      queryClient.invalidateQueries({ queryKey: ["wasteLogs", variables.branchId] });
+    },
+  });
+}

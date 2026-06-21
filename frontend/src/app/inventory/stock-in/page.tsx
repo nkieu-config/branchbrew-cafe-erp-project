@@ -1,31 +1,31 @@
 "use client";
 
 import { useState } from "react";
-import { useRecordWaste } from "@/hooks/domains/useInventoryQueries";
+import { useStockIn } from "@/hooks/domains/useInventoryQueries";
 import { useIngredients } from "@/hooks/domains/useProductQueries";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Trash2, Plus } from "lucide-react";
+import { ArrowDownToLine, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export default function WasteLogPage() {
+export default function StockInPage() {
   const { activeBranchId } = useAuth();
   const router = useRouter();
   
   const { data: ingredientsData } = useIngredients();
   const ingredients = (ingredientsData || []).filter((i: any) => i.isActive !== false);
   
-  const recordWasteMutation = useRecordWaste();
+  const stockInMutation = useStockIn();
 
-  const [items, setItems] = useState<{ ingredientId: number, quantity: number, reason: string }[]>([
-    { ingredientId: 0, quantity: 0, reason: "" }
+  const [items, setItems] = useState<{ ingredientId: number, quantity: number, expiryDate: string }[]>([
+    { ingredientId: 0, quantity: 0, expiryDate: "" }
   ]);
 
   const handleAddItem = () => {
-    setItems([...items, { ingredientId: 0, quantity: 0, reason: "" }]);
+    setItems([...items, { ingredientId: 0, quantity: 0, expiryDate: "" }]);
   };
 
   const handleRemoveItem = (index: number) => {
@@ -46,30 +46,25 @@ export default function WasteLogPage() {
       return;
     }
 
-    const validItems = items.filter(i => i.ingredientId > 0 && i.quantity > 0 && i.reason.trim() !== "");
+    const validItems = items.filter(i => i.ingredientId > 0 && i.quantity > 0);
     if (validItems.length === 0) {
-      toast.error("Please add at least one valid ingredient with quantity > 0 and a reason.");
+      toast.error("Please add at least one valid ingredient with quantity > 0.");
       return;
     }
 
-    if (validItems.length !== items.length && items.length > 1) {
-      const confirmProceed = confirm("Some rows have missing data and will be ignored. Proceed?");
-      if (!confirmProceed) return;
-    }
-
     try {
-      await recordWasteMutation.mutateAsync({
+      await stockInMutation.mutateAsync({
         branchId: activeBranchId,
         items: validItems.map(i => ({
           ingredientId: i.ingredientId,
           quantity: i.quantity,
-          reason: i.reason
+          expiryDate: i.expiryDate ? new Date(i.expiryDate).toISOString() : undefined
         }))
       });
-      toast.success("Waste recorded successfully!");
+      toast.success("Stock received successfully!");
       router.push("/inventory");
     } catch (err: any) {
-      toast.error(err.message || "Failed to record waste. Not enough stock?");
+      toast.error(err.message || "Failed to receive stock");
     }
   };
 
@@ -77,10 +72,10 @@ export default function WasteLogPage() {
     <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 max-w-4xl">
       <div className="mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
         <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-          <Trash2 className="w-5 h-5 text-red-500" />
-          Record Waste & Adjustments
+          <ArrowDownToLine className="w-5 h-5 text-blue-600" />
+          Good Receipt Note (GRN)
         </h2>
-        <p className="text-sm text-slate-500">Record spoiled items, spillages, or staff consumption. This will deduct from current stock.</p>
+        <p className="text-sm text-slate-500">Record new raw ingredients received from suppliers or central kitchen.</p>
       </div>
 
       <div className="space-y-4">
@@ -112,17 +107,16 @@ export default function WasteLogPage() {
               />
             </div>
 
-            <div className="w-64 space-y-2">
-              <Label>Reason</Label>
+            <div className="w-48 space-y-2">
+              <Label>Expiry Date (Optional)</Label>
               <Input 
-                type="text" 
-                placeholder="e.g. Expired, Spilled"
-                value={item.reason} 
-                onChange={(e) => handleChange(idx, 'reason', e.target.value)} 
+                type="date" 
+                value={item.expiryDate} 
+                onChange={(e) => handleChange(idx, 'expiryDate', e.target.value)} 
               />
             </div>
 
-            <Button variant="ghost" size="icon" className="h-10 w-10 text-slate-400 hover:text-red-500" onClick={() => handleRemoveItem(idx)} disabled={items.length === 1}>
+            <Button variant="ghost" size="icon" className="h-10 w-10 text-red-500" onClick={() => handleRemoveItem(idx)} disabled={items.length === 1}>
               <Trash2 className="w-4 h-4" />
             </Button>
           </div>
@@ -135,8 +129,8 @@ export default function WasteLogPage() {
 
       <div className="mt-8 flex justify-end gap-3">
         <Button variant="outline" onClick={() => router.push("/inventory")}>Cancel</Button>
-        <Button onClick={handleSubmit} className="bg-red-600 hover:bg-red-700 text-white" disabled={recordWasteMutation.isPending}>
-          {recordWasteMutation.isPending ? "Recording..." : "Confirm Waste Deduction"}
+        <Button onClick={handleSubmit} className="bg-blue-600 hover:bg-blue-700" disabled={stockInMutation.isPending}>
+          {stockInMutation.isPending ? "Saving..." : "Confirm & Receive Stock"}
         </Button>
       </div>
     </div>

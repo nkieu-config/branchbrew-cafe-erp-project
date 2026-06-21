@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { AnimatedPage } from "@/components/animated-page"
 import { useAuth } from "@/context/AuthContext"
-import { Package, Trash2 } from "lucide-react"
+import { Package, Trash2, ArrowRightLeft, ClipboardCheck } from "lucide-react"
 import { useTheme } from 'next-themes'
 
 export default function InventoryLayout({ children }: { children: React.ReactNode }) {
@@ -14,7 +14,8 @@ export default function InventoryLayout({ children }: { children: React.ReactNod
   const role = user?.role;
 
   const tabs = [
-    { name: "Stock & Transfers", path: "/inventory/stock", icon: Package, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
+    { name: "Stock Balance", path: "/inventory", icon: Package, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
+    { name: "Stock In (GRN)", path: "/inventory/stock-in", icon: ArrowRightLeft, roles: ["SUPER_ADMIN", "MANAGER"] },
     { name: "Waste Logs", path: "/inventory/waste", icon: Trash2, roles: ["SUPER_ADMIN", "MANAGER"] },
   ]
 
@@ -32,7 +33,7 @@ export default function InventoryLayout({ children }: { children: React.ReactNod
 
         <div className="flex space-x-2 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl w-fit overflow-x-auto shrink-0">
           {tabs.filter(t => t.roles.includes(role || '')).map(tab => {
-            const isActive = pathname.startsWith(tab.path)
+            const isActive = tab.path === "/inventory" ? pathname === "/inventory" : pathname.startsWith(tab.path)
             return (
               <Link
                 key={tab.path}
