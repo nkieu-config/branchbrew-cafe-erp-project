@@ -1,19 +1,17 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { useProductionBOMs, useIngredients, useCreateProductionBOM } from "@/hooks/useQueries"
-import { Button, Form, Select, InputNumber, Space, Progress, Tag } from "antd"
-import { FormModal } from "@/components/shared/form-modal"
-import { ListTree, Plus, MinusCircle, Save, AlertTriangle } from "lucide-react"
-import { toast } from "sonner"
+import { useProductionBOMs } from '@/hooks/domains/useAccountingQueries';
+import { useIngredients } from '@/hooks/domains/useProductionQueries';
+import { Button, Progress, Tag } from "antd"
+import { ListTree, Plus, AlertTriangle } from "lucide-react"
 import { AnimatedPage } from "@/components/animated-page"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
-import { Ingredient } from "@prisma/client"
+import { BOMModalForm } from "@/components/kitchen/BOMModalForm"
 
 export default function BOMPage() {
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [form] = Form.useForm();
   const { data: bomsData = [], isLoading: loadingBoms } = useProductionBOMs();
   const { data: ingredientsData = [], isLoading: loadingIng } = useIngredients();
 
@@ -47,26 +45,6 @@ export default function BOMPage() {
 
     return Object.values(grouped);
   }, [bomsData]);
-
-  const createMutation = useCreateProductionBOM();
-
-  const handleCreate = async (values: any) => {
-    try {
-      const promises = values.rawIngredients.map((item: any) => 
-        createMutation.mutateAsync({
-          targetIngredientId: values.targetIngredientId,
-          rawIngredientId: item.rawIngredientId,
-          quantityNeeded: item.quantityNeeded
-        })
-      );
-      await Promise.all(promises);
-      toast.success("BOM created successfully");
-      setIsModalVisible(false);
-      form.resetFields();
-    } catch (error: unknown) {
-      if (error instanceof Error) toast.error("Failed to create BOM");
-    }
-  }
 
   const columns: any = [
     {
@@ -105,7 +83,7 @@ export default function BOMPage() {
       render: (_: unknown, record: any) => {
         if (record.isGroup) {
           const totalRawCost = record.children.reduce((sum: number, c: any) => sum + c.totalCost, 0);
-          // Mock an estimated sale price for demonstration purposes (e.g. 150 THB, or 80 THB)
+          // Mock an estimated sale price for demonstration purposes
           const mockSalePrice = totalRawCost > 30 ? 120 : 60; 
           const foodCostPercent = (totalRawCost / mockSalePrice) * 100;
           const isWarning = foodCostPercent > 30;
@@ -116,7 +94,7 @@ export default function BOMPage() {
                 <Progress 
                   percent={parseFloat(foodCostPercent.toFixed(1))} 
                   size="small"
-                  strokeColor={isWarning ? '#ef4444' : '#10b981'} // Red if > 30%, Green otherwise
+                  strokeColor={isWarning ? '#ef4444' : '#10b981'}
                   format={(percent) => (
                     <span className={`font-black text-xs ${isWarning ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
                       {percent}%
@@ -164,76 +142,11 @@ export default function BOMPage() {
         defaultExpandAllRows={true}
       />
 
-      <FormModal
-        title="Create / Update BOM"
-        isOpen={isModalVisible}
-        onClose={() => setIsModalVisible(false)}
-        width={700}
-      >
-        <Form form={form} layout="vertical" onFinish={handleCreate} className="mt-4">
-          <Form.Item
-            name="targetIngredientId"
-            label={<span className="font-bold">Target Product (What are we making?)</span>}
-            rules={[{ required: true, message: 'Please select target product' }]}
-          >
-            <Select
-              showSearch
-              placeholder="Select Target Product"
-              optionFilterProp="children"
-              className="h-11"
-              options={ingredients.map((i: Ingredient) => ({ label: i.name, value: i.id }))}
-            />
-          </Form.Item>
-
-          <div className="mb-3 font-black text-slate-700 dark:text-slate-300">Raw Ingredients (Recipe)</div>
-          
-          <Form.List name="rawIngredients" initialValue={[{}]}>
-            {(fields, { add, remove }) => (
-              <>
-                {fields.map(({ key, name, ...restField }) => (
-                  <Space key={key} style={{ display: 'flex', marginBottom: 12 }} align="baseline" className="w-full">
-                    <Form.Item
-                      {...restField}
-                      name={[name, 'rawIngredientId']}
-                      rules={[{ required: true, message: 'Missing ingredient' }]}
-                      className="mb-0 w-[300px]"
-                    >
-                      <Select
-                        showSearch
-                        placeholder="Select Raw Ingredient"
-                        optionFilterProp="children"
-                        className="h-11"
-                        options={ingredients.map((i: Ingredient) => ({ label: `${i.name} (${i.unit})`, value: i.id }))}
-                      />
-                    </Form.Item>
-                    <Form.Item
-                      {...restField}
-                      name={[name, 'quantityNeeded']}
-                      rules={[{ required: true, message: 'Missing quantity' }]}
-                      className="mb-0 w-[150px]"
-                    >
-                      <InputNumber placeholder="Quantity" min={0.01} step={0.01} className="w-full h-11 flex items-center" />
-                    </Form.Item>
-                    <MinusCircle onClick={() => remove(name)} className="text-rose-500 hover:text-rose-700 cursor-pointer w-5 h-5 ml-2 mt-2" />
-                  </Space>
-                ))}
-                <Form.Item className="mt-4">
-                  <Button type="dashed" onClick={() => add()} block icon={<Plus className="w-4 h-4" />} className="font-bold border-slate-300">
-                    Add Raw Ingredient
-                  </Button>
-                </Form.Item>
-              </>
-            )}
-          </Form.List>
-
-          <div className="flex justify-end gap-2 mt-6">
-            <Button onClick={() => setIsModalVisible(false)} className="font-bold">Cancel</Button>
-            <Button type="primary" htmlType="submit" className="bg-orange-500 hover:bg-orange-600 border-none font-bold px-6" icon={<Save className="w-4 h-4" />}>
-              Save Recipe
-            </Button>
-          </div>
-        </Form>
-      </FormModal>
+      <BOMModalForm 
+        isOpen={isModalVisible} 
+        onClose={() => setIsModalVisible(false)} 
+        ingredients={ingredients} 
+      />
     </AnimatedPage>
   )
 }

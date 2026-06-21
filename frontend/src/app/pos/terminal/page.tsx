@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useProducts, useCreateOrder, useCustomerByPhone, useValidatePromotion } from "@/hooks/useQueries";
+import { useProducts, useCreateOrder, useCustomerByPhone, useValidatePromotion } from '@/hooks/domains/usePosQueries';
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

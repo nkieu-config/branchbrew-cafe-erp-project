@@ -9,7 +9,7 @@ import { AnimatedPage } from "@/components/animated-page"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
 import { PayrollRun, Payslip } from "@prisma/client";
-import { usePayrollRuns, useGeneratePayrollRun, useApprovePayrollRun } from "@/hooks/useQueries"
+import { usePayrollRuns, useGeneratePayrollRun, useApprovePayrollRun } from '@/hooks/domains/useHrQueries';
 
 const { Text } = Typography;
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useEquipment, useCreateEquipment, useLogMaintenance } from "@/hooks/useQueries";
+import { useEquipment, useCreateEquipment, useLogMaintenance } from '@/hooks/domains/useProcurementQueries';
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";

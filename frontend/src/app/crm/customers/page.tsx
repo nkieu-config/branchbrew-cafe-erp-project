@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useCustomers, useCustomer360, useCreateCustomer } from "@/hooks/useQueries";
+import { useCustomers, useCustomer360, useCreateCustomer } from '@/hooks/domains/useCrmQueries';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";

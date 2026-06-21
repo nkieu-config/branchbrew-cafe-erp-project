@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { getBranches, getTopProducts, getExecutiveSummary } from "@/lib/api";
-import { useBranches, useAnalyticsSummary, useTopProducts } from "@/hooks/useQueries";
+import { useBranches } from '@/hooks/domains/useGeneralQueries';
+import { useAnalyticsSummary, useTopProducts } from '@/hooks/domains/useReportsQueries';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TrendingUp, TrendingDown, DollarSign, Award, Store, AlertTriangle, GripHorizontal, CheckCircle2, Activity } from "lucide-react";

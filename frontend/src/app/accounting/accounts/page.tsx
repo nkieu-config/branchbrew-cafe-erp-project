@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { useAccounts } from "@/hooks/useQueries"
+import { useAccounts } from '@/hooks/domains/useAccountingQueries';
 import { Tag, Typography } from "antd"
 import { Landmark } from "lucide-react"
 import { toast } from "sonner"
@@ -17,7 +17,7 @@ export default function ChartOfAccountsPage() {
 
   const accountsTree = useMemo(() => {
     // Group by type to create Tree structure
-    const grouped = accountsData.reduce((acc: Account, account: Account) => {
+    const grouped = accountsData.reduce((acc: Record<string, any>, account: Account) => {
       const type = account.type;
       if (!acc[type]) {
         acc[type] = {
@@ -34,7 +34,7 @@ export default function ChartOfAccountsPage() {
     }, {});
 
     // Convert object to array and sort children by code
-    const treeData = Object.values(grouped).map((group: Account) => {
+    const treeData = Object.values(grouped).map((group: any) => {
       group.children.sort((a: Account, b: Account) => a.code.localeCompare(b.code));
       return group;
     });
@@ -48,14 +48,14 @@ export default function ChartOfAccountsPage() {
       dataIndex: 'code',
       key: 'code',
       width: 150,
-      render: (code: string, record: Account) => 
+      render: (code: string, record: any) => 
         record.isGroup ? <span className="font-semibold text-slate-800 dark:text-slate-200">{record.type}</span> : <span className="font-mono font-medium">{code}</span>,
     },
     {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
-      render: (name: string, record: Account) => 
+      render: (name: string, record: any) => 
         record.isGroup ? <span className="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">{name}</span> : <span>{name}</span>,
     },
     {
@@ -63,7 +63,7 @@ export default function ChartOfAccountsPage() {
       dataIndex: 'type',
       key: 'type',
       width: 150,
-      render: (type: string, record: Account) => {
+      render: (type: string, record: any) => {
         if (record.isGroup) return null; // Hide badge on group row to keep it clean
         let color = 'default';
         if (type === 'ASSET') color = 'blue';
@@ -85,7 +85,7 @@ export default function ChartOfAccountsPage() {
       dataIndex: 'isActive',
       key: 'isActive',
       width: 100,
-      render: (isActive: boolean, record: Account) => {
+      render: (isActive: boolean, record: any) => {
         if (record.isGroup) return null;
         return <Tag color={isActive ? 'success' : 'default'}>{isActive ? 'Active' : 'Inactive'}</Tag>
       },

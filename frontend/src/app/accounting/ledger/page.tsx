@@ -20,7 +20,8 @@ import {
   Legend
 } from "recharts"
 
-import { useBranches, useLedger, useJournalEntries } from "@/hooks/useQueries"
+import { useBranches } from '@/hooks/domains/useGeneralQueries';
+import { useLedger, useJournalEntries } from '@/hooks/domains/useAccountingQueries';
 
 export default function GeneralLedgerPage() {
   const [selectedBranch, setSelectedBranch] = useState<string>("ALL")

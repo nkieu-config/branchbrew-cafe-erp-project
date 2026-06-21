@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { usePurchaseOrders, useSuppliers, useIngredients, useCreatePurchaseOrder, useApprovePurchaseOrder, useRejectPurchaseOrder, useReceivePurchaseOrder } from "@/hooks/useQueries";
+import { usePurchaseOrders, useSuppliers, useCreatePurchaseOrder, useApprovePurchaseOrder, useRejectPurchaseOrder, useReceivePurchaseOrder } from '@/hooks/domains/useProcurementQueries';
+import { useIngredients } from '@/hooks/domains/useProductionQueries';
 import { useAuth } from "@/context/AuthContext";
 import { Table, Tag, Button as AntButton, Form, Select, InputNumber, Space, Steps, Popconfirm } from "antd";
 import { FormModal } from "@/components/shared/form-modal";

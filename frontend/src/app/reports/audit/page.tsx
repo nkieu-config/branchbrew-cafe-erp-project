@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuditLogs } from "@/hooks/useQueries";
+import { useAuditLogs } from '@/hooks/domains/useReportsQueries';
 import { Badge } from "@/components/ui/badge";
 import { ShieldAlert, User, Activity, FileText } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";

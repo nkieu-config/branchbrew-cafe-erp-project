@@ -1,7 +1,7 @@
 "use client"
 
 import { useAuth } from "@/context/AuthContext"
-import { useAttendance, useShifts } from "@/hooks/useQueries"
+import { useAttendance, useShifts } from '@/hooks/domains/useHrQueries';
 import { Table, Tag, Typography, Tooltip } from "antd"
 import { Clock, AlertCircle } from "lucide-react"
 import { AnimatedPage } from "@/components/animated-page"

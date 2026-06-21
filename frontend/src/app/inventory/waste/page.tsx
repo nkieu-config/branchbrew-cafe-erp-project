@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { AnimatedPage } from "@/components/animated-page"
-import { useBranchDetails, useWasteLogs, useReportWaste } from "@/hooks/useQueries"
+import { useBranchDetails, useWasteLogs, useReportWaste } from '@/hooks/domains/useInventoryQueries';
 import { Button } from "@/components/ui/button"
 import { Trash2, AlertCircle } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"

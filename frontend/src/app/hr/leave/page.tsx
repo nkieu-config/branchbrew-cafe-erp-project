@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
 import { LeaveRequest } from "@prisma/client"
 import { AnimatedPage } from "@/components/animated-page"
-import { useLeaveRequests, useUpdateLeaveStatus } from "@/hooks/useQueries"
+import { useLeaveRequests, useUpdateLeaveStatus } from '@/hooks/domains/useHrQueries';
 import { toast } from "sonner"
 
 export default function LeaveRequestsPage() {

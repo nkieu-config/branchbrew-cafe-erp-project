@@ -9,7 +9,7 @@ import { CheckCircle2, DollarSign, ArrowUpRight, Download } from "lucide-react"
 
 import { useAuth } from "@/context/AuthContext"
 import { toast } from "sonner"
-import { useFinanceSettlements, useFinanceExpenses, useApproveSettlement } from "@/hooks/useQueries"
+import { useFinanceSettlements, useFinanceExpenses, useApproveSettlement } from '@/hooks/domains/useFinanceQueries';
 
 import { Settlement, Expense } from "@/types"
 

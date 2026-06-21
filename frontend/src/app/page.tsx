@@ -1,6 +1,7 @@
 "use client";
 
-import { useOrders, useIngredients } from "@/hooks/useQueries";
+import { useOrders } from '@/hooks/domains/useReportsQueries';
+import { useIngredients } from '@/hooks/domains/useProductionQueries';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, DollarSign, AlertTriangle, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";

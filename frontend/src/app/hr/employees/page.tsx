@@ -1,7 +1,7 @@
 "use client"
 
 import { useAuth } from "@/context/AuthContext"
-import { useShifts } from "@/hooks/useQueries"
+import { useShifts } from '@/hooks/domains/useHrQueries';
 import { Users, CalendarDays, Plus, UserPlus, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AnimatedPage } from "@/components/animated-page"

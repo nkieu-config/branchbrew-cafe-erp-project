@@ -1,7 +1,7 @@
 "use client"
 
 import { AnimatedPage } from "@/components/animated-page"
-import { useOrders } from "@/hooks/useQueries"
+import { useOrders } from '@/hooks/domains/useReportsQueries';
 import { TrendingUp, DollarSign, Activity, BarChart3 } from "lucide-react"
 import { PageHeader } from "@/components/shared/page-header"
 import { StatCard } from "@/components/shared/stat-card"

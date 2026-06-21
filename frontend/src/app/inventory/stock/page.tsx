@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useBranchDetails, useTransfers, useCreateTransfer, useAcceptTransfer, useAddInventoryBatch, useBranches, useReportWaste } from "@/hooks/useQueries";
+import { useBranchDetails, useTransfers, useCreateTransfer, useAcceptTransfer, useAddInventoryBatch, useReportWaste } from '@/hooks/domains/useInventoryQueries';
+import { useBranches } from '@/hooks/domains/useGeneralQueries';
 import { useAuth } from "@/context/AuthContext";
 import { Table, Tag, Button as AntButton, Popconfirm, Calendar, Popover, Badge } from "antd";
 import { PackageOpen, ArrowRightLeft, CheckCircle2, PackagePlus, Trash2, CalendarDays, AlertCircle } from "lucide-react";
