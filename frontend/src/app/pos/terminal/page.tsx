@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { Product } from "@prisma/client";
 import { Coffee, ShoppingBag, User, Ticket, Award, Search, X, Printer, Plus, Settings2 } from "lucide-react";
 import { AnimatedPage } from "@/components/animated-page";
 import { Receipt } from "@/components/pos/Receipt";
@@ -20,7 +21,7 @@ export default function POSPage() {
   const { user, activeBranchId } = useAuth();
   const { data: productsData, isLoading: loading } = useProducts();
   const products = productsData || [];
-  const [cart, setCart] = useState<{ id: string; product: any; quantity: number; notes?: string }[]>([]);
+  const [cart, setCart] = useState<{ id: string; product: Product; quantity: number; notes?: string }[]>([]);
 
   // Modifiers State
   const [showModifiers, setShowModifiers] = useState(false);
@@ -61,7 +62,7 @@ export default function POSPage() {
   const getCustomerMutation = useCustomerByPhone();
   const validatePromoMutation = useValidatePromotion();
 
-  const handleProductClick = (product: any) => {
+  const handleProductClick = (product: Product) => {
     if (product.category.toLowerCase().includes('coffee') || product.category.toLowerCase().includes('beverage')) {
       setSelectedProduct(product);
       setModifierSweetness("100%");
@@ -73,7 +74,7 @@ export default function POSPage() {
     }
   };
 
-  const addToCart = (product: any, notes?: string) => {
+  const addToCart = (product: Product, notes?: string) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.product.id === product.id && item.notes === notes);
       if (existing) {
@@ -202,7 +203,7 @@ export default function POSPage() {
       {/* Products Grid */}
       <div className="flex-1 overflow-y-auto pr-2 pb-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {products.map((product: any) => (
+          {products.map((product: Product) => (
             <Card 
               key={product.id} 
               className="cursor-pointer hover:border-amber-400 hover:shadow-md transition-colors active:scale-95 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"

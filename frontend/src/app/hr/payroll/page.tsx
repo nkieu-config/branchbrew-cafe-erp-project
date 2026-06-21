@@ -9,6 +9,7 @@ import { toast } from "sonner"
 import { AnimatedPage } from "@/components/animated-page"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
+import { PayrollRun, Payslip } from "@prisma/client";
 
 const { Text } = Typography;
 
@@ -48,7 +49,7 @@ export default function PayrollPage() {
       await generatePayrollRun(activeBranchId, now.getMonth() + 1, now.getFullYear());
       toast.success("Payroll run generated successfully!");
       fetchData();
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error(err.message || "Failed to generate payroll");
     } finally {
       setIsGenerating(false);
@@ -60,7 +61,7 @@ export default function PayrollPage() {
       await approvePayrollRun(id);
       toast.success("Payroll approved!");
       fetchData();
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error(err.message || "Failed to approve payroll");
     }
   };
@@ -86,7 +87,7 @@ export default function PayrollPage() {
     {
       title: 'Period',
       key: 'period',
-      render: (_: any, record: any) => (
+      render: (_: unknown, record: PayrollRun & { payslips: Payslip[] }) => (
         <span className="font-semibold text-slate-800 dark:text-slate-200">
           Month {record.month} / {record.year}
         </span>
@@ -95,7 +96,7 @@ export default function PayrollPage() {
     {
       title: 'Payslips Generated',
       key: 'payslips',
-      render: (_: any, record: any) => (
+      render: (_: unknown, record: PayrollRun & { payslips: Payslip[] }) => (
         <div className="flex items-center gap-2">
           <FileText className="w-4 h-4 text-slate-400" />
           <span>{record.payslips?.length || 0} Employees</span>
@@ -105,8 +106,8 @@ export default function PayrollPage() {
     {
       title: 'Total Amount',
       key: 'totalAmount',
-      render: (_: any, record: any) => {
-        const total = record.payslips?.reduce((sum: number, p: any) => sum + p.netPay, 0) || 0;
+      render: (_: unknown, record: PayrollRun & { payslips: Payslip[] }) => {
+        const total = record.payslips?.reduce((sum: number, p: Payslip) => sum + p.netPay, 0) || 0;
         return <span className="font-mono font-bold">฿{total.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>;
       }
     },
@@ -120,7 +121,7 @@ export default function PayrollPage() {
       title: 'Action',
       key: 'action',
       align: 'right' as const,
-      render: (_: any, record: any) => {
+      render: (_: unknown, record: PayrollRun & { payslips: Payslip[] }) => {
         if (record.status === 'DRAFT') {
           return (
             <Popconfirm title="Approve this payroll run?" onConfirm={() => handleApprove(record.id)}>
@@ -135,7 +136,7 @@ export default function PayrollPage() {
     }
   ];
 
-  const expandedRowRender = (record: any) => {
+  const expandedRowRender = (record: PayrollRun & { payslips: Payslip[] }) => {
     const payslipColumns = [
       { title: 'Employee', dataIndex: ['user', 'name'], key: 'name', fixed: 'left' as const, width: 200, render: (name: string) => <span className="font-medium">{name}</span> },
       { title: 'Std Hrs', dataIndex: 'standardHours', key: 'std', width: 100, align: 'right' as const, render: (val: number) => <span className="font-mono text-slate-500">{val.toFixed(1)}</span> },
@@ -158,13 +159,13 @@ export default function PayrollPage() {
           size="small"
           scroll={{ x: 1200 }}
           hideBorders
-          summary={(pageData: readonly any[]) => {
+          summary={(pageData: readonly Payslip[]) => {
             let totalGross = 0;
             let totalSso = 0;
             let totalTax = 0;
             let totalNet = 0;
 
-            pageData.forEach((row: any) => {
+            pageData.forEach((row: Payslip) => {
               totalGross += row.grossPay || 0;
               totalSso += row.socialSecurity || 0;
               totalTax += row.taxDeduction || 0;

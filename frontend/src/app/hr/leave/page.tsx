@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Plus, CheckCircle, XCircle, CalendarOff } from "lucide-react"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
+import { LeaveRequest } from "@prisma/client"
 import { AnimatedPage } from "@/components/animated-page"
 
 export default function LeaveRequestsPage() {
@@ -73,7 +74,7 @@ export default function LeaveRequestsPage() {
           { 
             title: "Dates", 
             key: "dates",
-            render: (_, req: any) => `${new Date(req.startDate).toLocaleDateString()} - ${new Date(req.endDate).toLocaleDateString()}`
+            render: (_: unknown, req: LeaveRequest) => `${new Date(req.startDate).toLocaleDateString()} - ${new Date(req.endDate).toLocaleDateString()}`
           },
           { 
             title: "Status", 
@@ -92,7 +93,7 @@ export default function LeaveRequestsPage() {
           ...(role === 'SUPER_ADMIN' || role === 'MANAGER' ? [{
             title: "Actions",
             key: "actions",
-            render: (_: any, req: any) => req.status === 'PENDING' ? (
+            render: (_: unknown, req: LeaveRequest) => req.status === 'PENDING' ? (
               <div className="flex gap-2">
                 <button onClick={() => approveLeave(req.id, 'APPROVED')} className="p-1 text-emerald-600 hover:bg-emerald-50 rounded-lg">
                   <CheckCircle className="w-5 h-5" />

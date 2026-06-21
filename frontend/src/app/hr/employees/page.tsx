@@ -6,6 +6,8 @@ import { Users, CalendarDays, Plus, UserPlus, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AnimatedPage } from "@/components/animated-page"
 import { PageHeader } from "@/components/shared/page-header"
+import { DataTable } from "@/components/shared/data-table"
+import { Shift, User } from "@prisma/client"
 import { Avatar, Tooltip } from "antd"
 
 export default function EmployeesShiftsPage() {
@@ -27,12 +29,12 @@ export default function EmployeesShiftsPage() {
   const todayEnd = new Date();
   todayEnd.setHours(23, 59, 59, 999);
 
-  const todaysShifts = shifts.filter((s: any) => {
+  const todaysShifts = shifts.filter((s: Shift & { user: User }) => {
     const d = new Date(s.startTime);
     return d >= todayStart && d <= todayEnd;
   });
 
-  const usersWithShifts = Array.from(new Set(todaysShifts.map((s: any) => s.user?.name || 'Unknown'))) as string[];
+  const usersWithShifts = Array.from(new Set(todaysShifts.map((s: Shift & { user: User }) => s.user?.name || 'Unknown'))) as string[];
 
   // Time blocks from 06:00 to 22:00 (16 hours)
   const HOURS_START = 6;
@@ -110,7 +112,7 @@ export default function EmployeesShiftsPage() {
                 </div>
 
                 {usersWithShifts.map((userName: string, idx: number) => {
-                  const userShifts = todaysShifts.filter((s: any) => s.user?.name === userName);
+                  const userShifts = todaysShifts.filter((s: Shift & { user: User }) => s.user?.name === userName);
                   return (
                     <div key={idx} className="flex items-center h-12 relative group">
                       {/* User Column */}
@@ -121,7 +123,7 @@ export default function EmployeesShiftsPage() {
 
                       {/* Shifts Track */}
                       <div className="flex-1 h-full relative group-hover:bg-slate-50/50 transition-colors rounded-r-xl">
-                        {userShifts.map((shift: any, i: number) => {
+                        {userShifts.map((shift: Shift & { user: User }, i: number) => {
                           const left = calculateLeftPercent(shift.startTime);
                           const width = calculateWidthPercent(shift.startTime, shift.endTime);
                           

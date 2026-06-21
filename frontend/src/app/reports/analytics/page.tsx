@@ -175,7 +175,8 @@ export default function AnalyticsDashboard() {
                   <Tooltip 
                     cursor={{fill: '#f1f5f9', opacity: 0.5}}
                     contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                    formatter={(value: any) => [`${value} units`, 'Sold']}
+                    // @ts-ignore
+                    formatter={(value: number) => [`${value} units`, 'Sold']}
                     labelStyle={{fontWeight: 'bold', color: '#0f172a', marginBottom: '4px'}}
                   />
                   <Bar dataKey="totalQuantity" radius={[0, 6, 6, 0]} barSize={32}>

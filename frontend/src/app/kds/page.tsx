@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext"
 import { useSocket } from "@/context/SocketContext"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, Clock, Play } from "lucide-react"
+import { ProductionOrder, OrderItem } from "@prisma/client"
 
 export default function KdsPage() {
   const { activeBranchId } = useAuth()
@@ -35,7 +36,7 @@ export default function KdsPage() {
   useEffect(() => {
     if (!socket || !activeBranchId) return
 
-    const handleOrderCreated = (newOrder: any) => {
+    const handleOrderCreated = (newOrder: ProductionOrder & { items: OrderItem[] }) => {
       // Only show orders for the current branch
       if (newOrder.branchId === activeBranchId) {
         // Use functional state update to avoid stale closure
@@ -143,7 +144,7 @@ export default function KdsPage() {
 
                 {/* Items */}
                 <div className="p-5 flex-1 overflow-y-auto space-y-4">
-                  {order.items.map((item: any) => (
+                  {order.items.map((item: OrderItem) => (
                     <div key={item.id} className="border-b border-slate-100 dark:border-slate-700 pb-3">
                       <div className="flex gap-3 items-start">
                         <span className="text-emerald-600 dark:text-emerald-400 font-black text-2xl">{item.quantity}x</span>

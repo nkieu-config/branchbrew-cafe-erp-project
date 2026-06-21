@@ -4,6 +4,8 @@ import { useEffect, useState } from "react"
 import { useKitchenOrders, useIngredients, useCompleteKitchenOrder, useUpdateOrderStatus, useCreateProductionOrder } from "@/hooks/useQueries"
 import { getProductionOrders, completeProductionOrder, getIngredients, createProductionOrder, updateProductionOrderStatus } from "@/lib/api"
 import { Button, Form, Select, InputNumber, DatePicker, Spin } from "antd"
+import { PageHeader } from "@/components/shared/page-header"
+import { Ingredient } from "@prisma/client"
 import { FormModal } from "@/components/shared/form-modal"
 import { ChefHat, PackageOpen, Plus, Clock, PlayCircle, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
@@ -221,7 +223,7 @@ export default function CentralKitchenPage() {
               showSearch
               placeholder="Select Target Product"
               optionFilterProp="children"
-              options={ingredients.map((i: any) => ({ label: i.name, value: i.id }))}
+              options={ingredients.map((i: Ingredient) => ({ label: i.name, value: i.id }))}
               className="h-11"
             />
           </Form.Item>

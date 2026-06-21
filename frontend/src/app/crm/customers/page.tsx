@@ -14,6 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Drawer, Progress, Spin, Divider } from "antd";
 import { PageHeader } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
+import { Customer, Order } from "@prisma/client";
 
 export default function CustomersPage() {
   const [search, setSearch] = useState("");
@@ -155,7 +156,7 @@ export default function CustomersPage() {
             dataSource={customers}
             rowKey="id"
             loading={loading}
-            onRow={(record: any) => ({
+            onRow={(record: Customer) => ({
               onClick: () => {
                 setSelectedCustomerId(record.id);
                 setDrawerOpen(true);
@@ -245,7 +246,7 @@ export default function CustomersPage() {
               <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2"><Heart className="w-4 h-4 text-rose-500"/> Top Favorites</h4>
               {customer360.favoriteDrinks.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
-                  {customer360.favoriteDrinks.map((fav: any, i: number) => (
+                  {customer360.favoriteDrinks.map((fav: { product: { name: string }; count: number }, i: number) => (
                     <div key={i} className="flex items-center gap-2 bg-rose-50 border border-rose-100 dark:bg-rose-900/20 dark:border-rose-800 px-3 py-1.5 rounded-full">
                       <span className="font-bold text-rose-700 dark:text-rose-400">{fav.name}</span>
                       <span className="bg-rose-200 text-rose-800 dark:bg-rose-800 dark:text-rose-200 text-xs font-black px-2 py-0.5 rounded-full">{fav.count}x</span>
@@ -262,7 +263,7 @@ export default function CustomersPage() {
               <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2"><History className="w-4 h-4 text-blue-500"/> Recent Activity</h4>
               {customer360.recentOrders?.length > 0 ? (
                 <div className="space-y-3">
-                  {customer360.recentOrders.map((order: any) => (
+                  {customer360.recentOrders.map((order: Order) => (
                     <div key={order.id} className="flex justify-between items-center p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500">

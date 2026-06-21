@@ -6,13 +6,14 @@ import { TrendingUp, DollarSign, Activity, BarChart3 } from "lucide-react"
 import { PageHeader } from "@/components/shared/page-header"
 import { StatCard } from "@/components/shared/stat-card"
 import { DataTable } from "@/components/shared/data-table"
+import { Order } from "@prisma/client"
 
 export default function CostingReportPage() {
   const { data: ordersData = [], isLoading } = useOrders()
   const orders = ordersData;
 
-  const totalRevenue = orders.reduce((sum: number, o: any) => sum + (o.netAmount || 0), 0)
-  const totalCogs = orders.reduce((sum: number, o: any) => sum + (o.totalCogs || 0), 0)
+  const totalRevenue = orders.reduce((sum: number, o: Order) => sum + (o.netAmount || 0), 0)
+  const totalCogs = orders.reduce((sum: number, o: Order) => sum + (o.totalCogs || 0), 0)
   const grossProfit = totalRevenue - totalCogs
   const margin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0
 
@@ -57,7 +58,7 @@ export default function CostingReportPage() {
               title: "Profit", 
               key: "profit", 
               align: "right",
-              render: (_, record: any) => {
+              render: (_, record: Order) => {
                 const profit = record.netAmount - record.totalCogs;
                 return <span className="text-blue-500 font-medium tabular-nums">฿{profit.toFixed(2)}</span>
               }

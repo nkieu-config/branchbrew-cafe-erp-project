@@ -5,6 +5,9 @@ import { getOrders, getIngredients } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Activity, DollarSign, AlertTriangle, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/shared/page-header"
+import { StatCard } from "@/components/shared/stat-card"
+import { Order, Ingredient } from "@prisma/client";
 import { SalesChart } from "@/components/dashboard/SalesChart";
 import { AnimatedPage } from "@/components/animated-page";
 import { motion } from "framer-motion";
@@ -16,8 +19,8 @@ export default function DashboardPage() {
   useEffect(() => {
     Promise.all([getOrders(), getIngredients()])
       .then(([orders, ingredients]) => {
-        const revenue = orders.reduce((sum: number, o: any) => sum + o.totalAmount, 0);
-        const lowStockCount = ingredients.filter((i: any) => i.stock <= i.minStock).length;
+        const revenue = orders.reduce((sum: number, o: Order) => sum + o.totalAmount, 0);
+        const lowStockCount = ingredients.filter((i: Ingredient) => i.stock <= i.minStock).length;
         setStats({
           revenue,
           ordersCount: orders.length,

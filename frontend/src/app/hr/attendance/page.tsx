@@ -7,6 +7,7 @@ import { Clock, AlertCircle } from "lucide-react"
 import { AnimatedPage } from "@/components/animated-page"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
+import { User, Shift } from "@prisma/client"
 import { format, isSameDay, differenceInMinutes } from "date-fns"
 
 const { Text } = Typography;
@@ -31,9 +32,9 @@ export default function AttendancePage() {
       title: 'Clock In',
       dataIndex: 'clockIn',
       key: 'in',
-      render: (val: string, record: any) => {
+      render: (val: string, record: User) => {
         const clockInDate = new Date(val);
-        const dayShift = shifts.find((s: any) => isSameDay(new Date(s.startTime), clockInDate));
+        const dayShift = shifts.find((s: Shift) => isSameDay(new Date(s.startTime), clockInDate));
         
         let isLate = false;
         let lateMinutes = 0;
@@ -97,9 +98,10 @@ export default function AttendancePage() {
         rowKey="id"
         loading={isLoading}
         pagination={{ pageSize: 10 }}
-        rowClassName={(record: any) => {
+        rowClassName={(record: Shift & { user: User }) => {
+          if (record.role === 'SUPER_ADMIN') return '';
           const clockInDate = new Date(record.clockIn);
-          const dayShift = shifts.find((s: any) => isSameDay(new Date(s.startTime), clockInDate));
+          const dayShift = shifts.find((s: Shift) => isSameDay(new Date(s.startTime), clockInDate));
           if (dayShift) {
             const lateMinutes = differenceInMinutes(clockInDate, new Date(dayShift.startTime));
             if (lateMinutes > 15) return "bg-rose-50/50 dark:bg-rose-900/10";

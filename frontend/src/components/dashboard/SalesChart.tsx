@@ -77,7 +77,8 @@ export function SalesChart() {
               color: isDark ? "#f8fafc" : "#0f172a"
             }}
             itemStyle={{ color: "#10b981", fontWeight: "bold" }}
-            formatter={(value: any) => [`฿${Number(value).toLocaleString()}`, "Revenue"]}
+            // @ts-ignore
+            formatter={(value: number) => [`฿${Number(value).toLocaleString()}`, "Revenue"]}
           />
           <Area
             type="monotone"

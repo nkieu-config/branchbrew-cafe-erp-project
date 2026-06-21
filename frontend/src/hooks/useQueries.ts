@@ -69,7 +69,7 @@ export const useProductionBOMs = () => {
 export const useCreateProductionBOM = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: any) => fetchAPI('/production/boms', { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: unknown) => fetchAPI('/production/boms', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['productionBOMs'] }),
   });
 };
@@ -117,7 +117,7 @@ export const useUpdateOrderStatus = () => {
 export const useCreateProductionOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: any) => fetchAPI('/production/orders', { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: unknown) => fetchAPI('/production/orders', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['kitchenOrders'] });
     },
@@ -146,7 +146,7 @@ export const useCustomer360 = (id: number | null) => {
 export const useCreateCustomer = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: any) => fetchAPI('/customers', { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: unknown) => fetchAPI('/customers', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['customers'] }),
   });
 };
@@ -161,7 +161,7 @@ export const usePromotions = () => {
 export const useCreatePromotion = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: any) => fetchAPI('/promotions', { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: unknown) => fetchAPI('/promotions', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['promotions'] }),
   });
 };
@@ -197,7 +197,7 @@ export const useTransfers = (branchId?: number) => {
 export const useCreateTransfer = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: any) => fetchAPI(`/branches/transfers`, { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: unknown) => fetchAPI(`/branches/transfers`, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['transfers', variables.fromBranchId] });
       queryClient.invalidateQueries({ queryKey: ['branch', variables.fromBranchId] });
@@ -219,7 +219,7 @@ export const useAcceptTransfer = () => {
 export const useAddInventoryBatch = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ branchId, data }: { branchId: number, data: any }) => fetchAPI(`/branches/${branchId}/batches`, { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: ({ branchId, data }: { branchId: number, data: unknown }) => fetchAPI(`/branches/${branchId}/batches`, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['branch', variables.branchId] });
     },
@@ -237,7 +237,7 @@ export const useWasteLogs = (branchId?: number) => {
 export const useReportWaste = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ branchId, data }: { branchId: number, data: any }) => fetchAPI(`/ingredients/${branchId}/waste`, { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: ({ branchId, data }: { branchId: number, data: unknown }) => fetchAPI(`/ingredients/${branchId}/waste`, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['wasteLogs', variables.branchId] });
       queryClient.invalidateQueries({ queryKey: ['branch', variables.branchId] });
@@ -266,7 +266,7 @@ export const useSuppliers = () => {
 export const useCreatePurchaseOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: any) => fetchAPI('/purchase-orders', { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: unknown) => fetchAPI('/purchase-orders', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] }),
   });
 };
@@ -305,7 +305,7 @@ export const useEquipment = (branchId?: number) => {
 export const useCreateEquipment = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: any) => fetchAPI('/equipment', { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: unknown) => fetchAPI('/equipment', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: (_, variables) => queryClient.invalidateQueries({ queryKey: ['equipment', variables.branchId] }),
   });
 };
@@ -313,7 +313,7 @@ export const useCreateEquipment = () => {
 export const useLogMaintenance = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number, data: any }) => fetchAPI(`/equipment/${id}/maintenance`, { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: ({ id, data }: { id: number, data: unknown }) => fetchAPI(`/equipment/${id}/maintenance`, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['equipment'] }),
   });
 };
@@ -357,7 +357,7 @@ export const useProducts = () => {
 export const useCreateOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: any) => fetchAPI('/orders', { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: unknown) => fetchAPI('/orders', { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
   });
 };

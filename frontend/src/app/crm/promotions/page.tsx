@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { AnimatedPage } from "@/components/animated-page";
 import { PageHeader } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
+import { Promotion } from "@prisma/client";
 
 export default function PromotionsPage() {
   const { data: promotionsData, isLoading: loading } = usePromotions();
@@ -128,7 +129,7 @@ export default function PromotionsPage() {
             title: "Status",
             dataIndex: "isActive",
             key: "status",
-            render: (isActive: boolean, record: any) => (
+            render: (isActive: boolean, record: Promotion) => (
               <Switch 
                 checked={isActive} 
                 onCheckedChange={() => handleToggle(record.id, isActive)} 
@@ -140,7 +141,7 @@ export default function PromotionsPage() {
           { 
             title: "Discount", 
             key: "discount",
-            render: (_, record: any) => (
+            render: (_, record: Promotion) => (
               <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                 {record.discountType === 'PERCENTAGE' ? `${record.discountValue}%` : `฿${record.discountValue}`}
               </span>

@@ -1,7 +1,8 @@
 import React, { forwardRef } from 'react';
 import { Coffee } from 'lucide-react';
+import { Order, OrderItem, Product } from '@prisma/client';
 
-export const Receipt = forwardRef<HTMLDivElement, { order: any; branchName?: string }>(
+export const Receipt = forwardRef<HTMLDivElement, { order: Order & { items: (OrderItem & { product: Product })[]; cashier?: { name: string }; customerName?: string; subtotal?: number; discount?: number; netTotal?: number }; branchName?: string }>(
   ({ order, branchName }, ref) => {
     if (!order) return null;
 
@@ -50,7 +51,7 @@ export const Receipt = forwardRef<HTMLDivElement, { order: any; branchName?: str
             <span>Ref: #{order.id || 'N/A'}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span>Cashier: {order.cashier || 'Staff'}</span>
+            <span>Cashier: {order.cashier?.name || 'System'}</span>
             <span>POS: 01</span>
           </div>
           {order.customerName && (
@@ -69,7 +70,7 @@ export const Receipt = forwardRef<HTMLDivElement, { order: any; branchName?: str
             </tr>
           </thead>
           <tbody>
-            {order.items?.map((item: any, idx: number) => (
+            {order.items?.map((item: OrderItem & { product: Product }, idx: number) => (
               <tr key={idx}>
                 <td style={{ padding: '2px 0', verticalAlign: 'top', wordBreak: 'break-word', paddingRight: '4px' }}>
                   <div style={{ fontWeight: 'bold' }}>{item.product.name}</div>
@@ -90,7 +91,7 @@ export const Receipt = forwardRef<HTMLDivElement, { order: any; branchName?: str
           {order.discount > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>Discount</span>
-              <span>-{order.discount?.toFixed(2)}</span>
+              <span>-฿{(order.discount || 0).toFixed(2)}</span>
             </div>
           )}
           

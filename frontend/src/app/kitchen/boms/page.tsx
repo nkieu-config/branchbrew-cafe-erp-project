@@ -9,6 +9,7 @@ import { toast } from "sonner"
 import { AnimatedPage } from "@/components/animated-page"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
+import { Ingredient, BillOfMaterial } from "@prisma/client"
 
 export default function BOMPage() {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -21,7 +22,7 @@ export default function BOMPage() {
 
   const bomsGrouped = useMemo(() => {
     // Group BOMs by targetIngredientId
-    const grouped = bomsData.reduce((acc: any, bom: any) => {
+    const grouped = bomsData.reduce((acc: Record<string, any>, bom: BillOfMaterial & { rawIngredient: Ingredient; targetIngredient: Ingredient }) => {
       const targetId = bom.targetIngredientId;
       if (!acc[targetId]) {
         acc[targetId] = {
@@ -49,9 +50,9 @@ export default function BOMPage() {
 
   const createMutation = useCreateProductionBOM();
 
-  const handleCreate = async (values: any) => {
+  const handleCreate = async (values: Record<string, unknown>) => {
     try {
-      const promises = values.rawIngredients.map((item: any) => 
+      const promises = values.rawIngredients.map((item: Record<string, unknown>) => 
         createMutation.mutateAsync({
           targetIngredientId: values.targetIngredientId,
           rawIngredientId: item.rawIngredientId,
@@ -72,7 +73,7 @@ export default function BOMPage() {
       title: 'Target / Raw Ingredient',
       dataIndex: 'targetName',
       key: 'name',
-      render: (_: any, record: any) => {
+      render: (_: unknown, record: Record<string, unknown>) => {
         if (record.isGroup) {
           return <span className="font-bold text-slate-800 dark:text-slate-200 text-base">{record.targetName}</span>
         }
@@ -82,7 +83,7 @@ export default function BOMPage() {
     {
       title: 'Quantity Needed',
       key: 'quantity',
-      render: (_: any, record: any) => {
+      render: (_: unknown, record: Record<string, unknown>) => {
         if (record.isGroup) return <span className="text-slate-400 text-xs uppercase tracking-wider">Per 1 {record.targetUnit}</span>;
         return <span className="font-mono font-medium">{record.quantityNeeded} {record.rawUnit}</span>
       }
@@ -90,9 +91,9 @@ export default function BOMPage() {
     {
       title: 'Est. Cost',
       key: 'cost',
-      render: (_: any, record: any) => {
+      render: (_: unknown, record: Record<string, unknown>) => {
         if (record.isGroup) {
-          const total = record.children.reduce((sum: number, c: any) => sum + c.totalCost, 0);
+          const total = record.children.reduce((sum: number, c: Record<string, unknown>) => sum + c.totalCost, 0);
           return <span className="font-black text-rose-600 dark:text-rose-400">฿{total.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
         }
         return <span className="text-slate-500 font-mono">฿{record.totalCost.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
@@ -101,9 +102,9 @@ export default function BOMPage() {
     {
       title: 'Food Cost % (Target < 30%)',
       key: 'foodcost',
-      render: (_: any, record: any) => {
+      render: (_: unknown, record: Record<string, unknown>) => {
         if (record.isGroup) {
-          const totalRawCost = record.children.reduce((sum: number, c: any) => sum + c.totalCost, 0);
+          const totalRawCost = record.children.reduce((sum: number, c: Record<string, unknown>) => sum + c.totalCost, 0);
           // Mock an estimated sale price for demonstration purposes (e.g. 150 THB, or 80 THB)
           const mockSalePrice = totalRawCost > 30 ? 120 : 60; 
           const foodCostPercent = (totalRawCost / mockSalePrice) * 100;
@@ -180,7 +181,7 @@ export default function BOMPage() {
               placeholder="Select Target Product"
               optionFilterProp="children"
               className="h-11"
-              options={ingredients.map((i: any) => ({ label: i.name, value: i.id }))}
+              options={ingredients.map((i: Ingredient) => ({ label: i.name, value: i.id }))}
             />
           </Form.Item>
 
@@ -202,7 +203,7 @@ export default function BOMPage() {
                         placeholder="Select Raw Ingredient"
                         optionFilterProp="children"
                         className="h-11"
-                        options={ingredients.map((i: any) => ({ label: `${i.name} (${i.unit})`, value: i.id }))}
+                        options={ingredients.map((i: Ingredient) => ({ label: `${i.name} (${i.unit})`, value: i.id }))}
                       />
                     </Form.Item>
                     <Form.Item

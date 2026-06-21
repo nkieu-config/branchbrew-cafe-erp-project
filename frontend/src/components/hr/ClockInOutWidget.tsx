@@ -59,8 +59,8 @@ export function ClockInOutWidget() {
       await clockIn(activeBranchId);
       toast.success("Clocked in successfully!");
       fetchStatus();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error((err as Error).message);
     }
   };
 
@@ -69,8 +69,8 @@ export function ClockInOutWidget() {
       await clockOut();
       toast.success("Clocked out successfully!");
       fetchStatus();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error((err as Error).message);
     }
   };
 

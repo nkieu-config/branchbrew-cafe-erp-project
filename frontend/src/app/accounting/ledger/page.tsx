@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import { AnimatedPage } from "@/components/animated-page"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
+import { LedgerLog, Branch } from "@prisma/client"
 import {
   LineChart,
   Line,
@@ -68,7 +69,7 @@ export default function GeneralLedgerPage() {
     },
   ]
 
-  const expandedRowRender = (record: any) => {
+  const expandedRowRender = (record: LedgerLog) => {
     const lineColumns = [
       { title: 'Account Code', dataIndex: ['account', 'code'], key: 'code', render: (text: string) => <span className="font-mono font-bold text-slate-500">{text}</span> },
       { title: 'Account Name', dataIndex: ['account', 'name'], key: 'name', render: (text: string) => <span className="font-semibold text-slate-700">{text}</span> },
@@ -140,7 +141,7 @@ export default function GeneralLedgerPage() {
               value={selectedBranch || undefined}
               onChange={(val) => setSelectedBranch(val || "")}
               options={[
-                ...branches.map((b: any) => ({ label: b.name, value: b.id.toString() }))
+                ...branches.map((b: Branch) => ({ label: b.name, value: b.id.toString() }))
               ]}
             />
           </div>
@@ -170,7 +171,7 @@ export default function GeneralLedgerPage() {
               />
               <Tooltip 
                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }}
-                formatter={(value: any) => [`฿${Number(value).toLocaleString()}`, undefined]}
+                formatter={(value: number, name: string, log: LedgerLog) => [`฿${Number(value).toLocaleString()}`, undefined]}
               />
               <Legend wrapperStyle={{ fontWeight: 'bold', paddingTop: '20px' }} />
               <Line 

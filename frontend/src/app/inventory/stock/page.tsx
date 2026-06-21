@@ -11,9 +11,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { AnimatedPage } from "@/components/animated-page";
-import { PageHeader } from "@/components/shared/page-header";
-import { DataTable } from "@/components/shared/data-table";
+import { AnimatedPage } from "@/components/animated-page"
+import { PageHeader } from "@/components/shared/page-header"
+import { DataTable } from "@/components/shared/data-table"
+import { Branch, InventoryTransfer } from "@prisma/client";
 import { format, differenceInDays } from "date-fns";
 import type { Dayjs } from "dayjs";
 import type { Ingredient, InventoryBatch, PurchaseOrder, Supplier, BranchInventory } from "@prisma/client";
@@ -146,7 +147,7 @@ export default function InventoryPage() {
   };
 
   // Pre-process batches for Heatmap
-  const expiryMap = batches.reduce((acc: any, batch: any) => {
+  const expiryMap = batches.reduce((acc: Record<number, BatchWithSupplier[]>, batch: BatchWithSupplier) => {
     if (!batch.expiryDate) return acc;
     const dateStr = format(new Date(batch.expiryDate), 'yyyy-MM-dd');
     if (!acc[dateStr]) acc[dateStr] = [];
@@ -180,7 +181,7 @@ export default function InventoryPage() {
     const popoverContent = (
       <div className="max-w-xs space-y-2">
         <div className="font-black text-slate-800 border-b pb-1 mb-2">Expiring Items</div>
-        {expiringBatches.map((b: any) => (
+        {expiringBatches.map((b: BatchWithSupplier) => (
           <div key={b.id} className="flex justify-between items-center text-sm gap-4">
             <span className="font-semibold text-slate-700">{b.ingredient?.name}</span>
             <span className="font-mono bg-slate-100 px-1 rounded">{b.quantity} {b.ingredient?.unit}</span>
@@ -205,7 +206,7 @@ export default function InventoryPage() {
       title: 'Ingredient Name', 
       key: 'name',
       sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) => a.ingredient.name.localeCompare(b.ingredient.name),
-      render: (_: any, record: InventoryWithIngredient) => (
+      render: (_: unknown, record: InventoryWithIngredient) => (
         <div className="font-bold text-slate-800 dark:text-slate-200">{record.ingredient.name}</div>
       )
     },
@@ -213,7 +214,7 @@ export default function InventoryPage() {
       title: 'Current Stock', 
       key: 'stock',
       sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) => a.stock - b.stock,
-      render: (_: any, record: InventoryWithIngredient) => (
+      render: (_: unknown, record: InventoryWithIngredient) => (
         <span className="tabular-nums font-mono">
           {Number(record.stock).toFixed(2)} {record.ingredient.unit}
         </span>
@@ -222,7 +223,7 @@ export default function InventoryPage() {
     {
       title: 'Status',
       key: 'status',
-      render: (_: any, record: any) => {
+      render: (_: unknown, record: InventoryWithIngredient) => {
         if (record.stock <= record.minStock) {
           return <Tag color="error">LOW STOCK</Tag>;
         }
@@ -234,28 +235,28 @@ export default function InventoryPage() {
   // AntD Expanded Row Renderer
   const expandedRowRender = (record: InventoryWithIngredient) => {
     const ingredientId = record.ingredient.id;
-    const ingredientBatches = batches.filter((b: any) => b.ingredientId === ingredientId);
+    const ingredientBatches = batches.filter((b: BatchWithSupplier) => b.ingredientId === ingredientId);
 
     const batchColumns = [
       { title: 'Batch ID', dataIndex: 'id', key: 'id' },
       { 
         title: 'Supplier', 
         key: 'supplier',
-        render: (_: any, b: BatchWithSupplier) => (
+        render: (_: unknown, b: BatchWithSupplier) => (
           <span>{b.purchaseOrder?.supplier?.name || '-'}</span>
         )
       },
       { 
         title: 'Quantity (Units)', 
         key: 'quantity',
-        render: (_: any, b: BatchWithSupplier) => (
+        render: (_: unknown, b: BatchWithSupplier) => (
           <span className="tabular-nums font-mono font-medium">{Number(b.quantity).toFixed(2)} {record.ingredient.unit}</span>
         ),
       },
       {
         title: 'Expiry Date',
         key: 'expiryDate',
-        render: (_: any, b: any) => {
+        render: (_: unknown, b: BatchWithSupplier) => {
           if (!b.expiryDate) return <span className="text-xs text-slate-400">No Expiry</span>;
           const expiring = isExpiringSoon(b.expiryDate);
           const expired = new Date(b.expiryDate).getTime() < new Date().getTime();
@@ -279,7 +280,7 @@ export default function InventoryPage() {
       {
         title: 'Action',
         key: 'action',
-        render: (_: any, b: any) => (
+        render: (_: unknown, b: BatchWithSupplier) => (
           <AntButton 
             type="text" 
             danger
@@ -339,7 +340,7 @@ export default function InventoryPage() {
     {
       title: 'Action',
       key: 'action',
-      render: (_: any, t: any) => {
+      render: (_: unknown, t: InventoryTransfer) => {
         if (t.status === 'PENDING' && t.toBranchId === activeBranchId) {
           return (
             <AntButton 
@@ -398,8 +399,8 @@ export default function InventoryPage() {
                     required
                   >
                     <option value="">Select Ingredient</option>
-                    {uniqueIngredients.map((ing: any) => (
-                      <option key={ing.id} value={ing.id}>{ing.name}</option>
+                    {uniqueIngredients.map((inv: Ingredient) => (
+                      <option key={inv.id} value={inv.id}>{inv.name}</option>
                     ))}
                   </select>
                 </div>
@@ -450,7 +451,7 @@ export default function InventoryPage() {
                     required
                   >
                     <option value="">Select Branch</option>
-                    {branches.filter((b: any) => b.id !== activeBranchId).map((b: any) => (
+                    {branches.filter((b: Branch) => b.id !== activeBranchId).map((b: Branch) => (
                       <option key={b.id} value={b.id}>{b.name}</option>
                     ))}
                   </select>

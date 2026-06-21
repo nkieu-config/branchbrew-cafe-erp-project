@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ShieldAlert, User, Activity, FileText } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
+import { AuditLog, User as PrismaUser } from "@prisma/client";
 import { AnimatedPage } from "@/components/animated-page";
 
 export default function AuditLogsPage() {
@@ -41,7 +42,7 @@ export default function AuditLogsPage() {
           {
             title: "User",
             key: "user",
-            render: (_, log: any) => (
+            render: (_, log: AuditLog & { user: PrismaUser }) => (
               <div className="flex items-center gap-2">
                 <User className="w-4 h-4 text-slate-400" />
                 <span className="font-medium">{log.user?.name || log.user?.email}</span>
@@ -52,7 +53,7 @@ export default function AuditLogsPage() {
           {
             title: "Action",
             key: "action",
-            render: (_, log: any) => (
+            render: (_, log: AuditLog & { user: PrismaUser }) => (
               <Badge variant="secondary" className={getActionColor(log.action)}>
                 {log.action}
               </Badge>
@@ -61,7 +62,7 @@ export default function AuditLogsPage() {
           {
             title: "Target Module",
             key: "target",
-            render: (_, log: any) => (
+            render: (_, log: AuditLog & { user: PrismaUser }) => (
               <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
                 <Activity className="w-4 h-4 text-slate-400" />
                 <span>{log.targetType}</span>
@@ -72,7 +73,7 @@ export default function AuditLogsPage() {
           {
             title: "Details",
             key: "details",
-            render: (_, log: any) => (
+            render: (_, log: AuditLog & { user: PrismaUser }) => (
               <div className="flex items-start gap-1.5 text-sm text-slate-500 dark:text-slate-400 max-w-md truncate">
                 <FileText className="w-4 h-4 mt-0.5 shrink-0" />
                 <span>{log.details || "-"}</span>

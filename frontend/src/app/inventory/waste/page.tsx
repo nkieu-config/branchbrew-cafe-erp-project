@@ -8,8 +8,9 @@ import { Trash2, AlertCircle } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
+import { Ingredient, WasteLog, User } from "@prisma/client"
 
-import { BranchInventory, WasteLog } from "@/types"
+import { BranchInventory } from "@/types"
 
 export default function WasteLogPage() {
   const { activeBranchId } = useAuth()
@@ -72,7 +73,7 @@ export default function WasteLogPage() {
                 required
               >
                 <option value="">Select Ingredient...</option>
-                {inventory.map((inv: any) => (
+                {inventory.map((inv: Ingredient) => (
                   <option key={inv.ingredientId} value={inv.ingredientId}>
                     {inv.ingredient.name} (Stock: {inv.stock} {inv.ingredient.unit})
                   </option>
@@ -115,10 +116,10 @@ export default function WasteLogPage() {
           <DataTable 
             columns={[
               { title: "Date", dataIndex: "createdAt", key: "date", render: (val: string) => <span className="tabular-nums text-slate-600 dark:text-slate-400">{new Date(val).toLocaleString()}</span> },
-              { title: "Ingredient", dataIndex: "ingredient", key: "ing", render: (ing: any) => <span className="font-medium">{ing.name}</span> },
-              { title: "Quantity", key: "qty", render: (_, record: any) => <span className="text-red-500 font-medium tabular-nums">-{record.quantity} {record.ingredient.unit}</span> },
+              { title: "Ingredient", dataIndex: "ingredient", key: "ing", render: (ing: Ingredient) => <span className="font-medium">{ing.name}</span> },
+              { title: "Quantity", key: "qty", render: (_, record: WasteLog & { ingredient: Ingredient }) => <span className="text-red-500 font-medium tabular-nums">-{record.quantity} {record.ingredient.unit}</span> },
               { title: "Reason", dataIndex: "reason", key: "reason" },
-              { title: "Recorded By", dataIndex: "recordedBy", key: "recordedBy", render: (user: any) => user.name }
+              { title: "Recorded By", dataIndex: "recordedBy", key: "recordedBy", render: (user: User) => user.name }
             ]}
             dataSource={logs}
             rowKey="id"

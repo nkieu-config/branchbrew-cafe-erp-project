@@ -46,7 +46,7 @@ export default function SettlementPage() {
       setActualCash("")
       setActualCreditCard("")
       setActualQR("")
-    } catch (error: any) {
+    } catch (error: unknown) {
       alert(error.message || "Failed to submit settlement")
     }
   }
@@ -63,7 +63,7 @@ export default function SettlementPage() {
       alert("Expense recorded.")
       setExpenseForm({ amount: "", category: "", description: "" })
       fetchExpected() // Refresh expected cash to reflect new expense
-    } catch (error: any) {
+    } catch (error: unknown) {
       alert("Failed to record expense")
     }
   }
