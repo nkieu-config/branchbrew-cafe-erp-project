@@ -20,7 +20,7 @@ import { OnScreenNumpad } from "@/components/pos/OnScreenNumpad";
 export default function POSPage() {
   const { user, activeBranchId } = useAuth();
   const { data: productsData, isLoading: loading } = useProducts();
-  const products = productsData || [];
+  const products = (productsData || []).filter((p: any) => p.isActive !== false);
   const [cart, setCart] = useState<{ id: string; product: Product; quantity: number; notes?: string }[]>([]);
 
   // Modifiers State

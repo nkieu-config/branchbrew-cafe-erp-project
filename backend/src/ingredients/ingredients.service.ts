@@ -5,7 +5,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class IngredientsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(data: { name: string; unit: string; costPerUnit?: number; primarySupplierId?: number }) {
+  async create(data: { name: string; unit: string; costPerUnit?: number; primarySupplierId?: number; isActive?: boolean }) {
     return this.prisma.ingredient.create({ data });
   }
 
@@ -17,7 +17,7 @@ export class IngredientsService {
     return this.prisma.ingredient.findUnique({ where: { id }, include: { primarySupplier: true } });
   }
 
-  async update(id: number, data: { name?: string; unit?: string; costPerUnit?: number; primarySupplierId?: number }) {
+  async update(id: number, data: { name?: string; unit?: string; costPerUnit?: number; primarySupplierId?: number; isActive?: boolean }) {
     return this.prisma.ingredient.update({ where: { id }, data });
   }
 

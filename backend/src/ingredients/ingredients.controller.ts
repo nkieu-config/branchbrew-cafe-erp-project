@@ -8,7 +8,7 @@ export class IngredientsController {
   constructor(private readonly ingredientsService: IngredientsService) {}
 
   @Post()
-  create(@Body() createIngredientDto: { name: string; unit: string; costPerUnit?: number; primarySupplierId?: number }) {
+  create(@Body() createIngredientDto: { name: string; unit: string; costPerUnit?: number; primarySupplierId?: number; isActive?: boolean }) {
     return this.ingredientsService.create(createIngredientDto);
   }
 
@@ -23,7 +23,7 @@ export class IngredientsController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateIngredientDto: Partial<{ name: string; unit: string; costPerUnit: number; primarySupplierId: number }>) {
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateIngredientDto: Partial<{ name: string; unit: string; costPerUnit: number; primarySupplierId: number; isActive: boolean }>) {
     return this.ingredientsService.update(id, updateIngredientDto);
   }
 
