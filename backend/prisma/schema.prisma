@@ -632,3 +632,11 @@ model ProductionOrder {
   @@index([branchId])
   @@index([status])
 }
+
+model SystemSetting {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+}
