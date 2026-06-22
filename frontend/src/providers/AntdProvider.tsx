@@ -13,7 +13,7 @@ export function AntdProvider({ children }: { children: React.ReactNode }) {
         algorithm: resolvedTheme === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
           fontFamily: 'inherit',
-          colorPrimary: '#10b981', // Tailwind Emerald 500
+          colorPrimary: '#22c55e', // Tailwind Green 500 (Matches Shadcn --ring and --accent)
           colorBgContainer: resolvedTheme === 'dark' ? '#0f172a' : '#ffffff',
           borderRadius: 12,
           controlHeight: 40,
