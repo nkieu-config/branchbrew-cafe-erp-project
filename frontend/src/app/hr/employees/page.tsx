@@ -1,159 +1,178 @@
-"use client"
+"use client";
 
-import { useAuth } from "@/context/AuthContext"
-import { useShifts } from '@/hooks/domains/useHrQueries';
-import { Users, CalendarDays, Plus, UserPlus, Clock } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { AnimatedPage } from "@/components/animated-page"
-import { PageHeader } from "@/components/shared/page-header"
-import { DataTable } from "@/components/shared/data-table"
-import { Shift, User } from "@prisma/client"
-import { Avatar, Tooltip } from "antd"
+import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useHrUsers, useUpdateHourlyRate } from '@/hooks/domains/useHrQueries';
+import { Table, Tag, Typography, Button as AntButton, Form, InputNumber, Avatar } from "antd";
+import { Users, UserCog, Edit3 } from "lucide-react";
+import { FormModal } from "@/components/shared/form-modal";
+import { toast } from "sonner";
+import { AnimatedPage } from "@/components/animated-page";
+import { PageHeader } from "@/components/shared/page-header";
+import { DataTable } from "@/components/shared/data-table";
+import { User, Branch } from "@prisma/client";
 
-export default function EmployeesShiftsPage() {
-  const { user, activeBranchId } = useAuth()
-  const role = user?.role
+const { Text } = Typography;
 
-  const { data: shiftsData, isLoading: loading } = useShifts(role, activeBranchId ?? undefined)
-  const shifts = shiftsData || []
+export default function EmployeeDirectoryPage() {
+  const { user, activeBranchId } = useAuth();
+  const role = user?.role;
+  const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
+  
+  const { data: usersData, isLoading } = useHrUsers(branchIdNum);
+  const updateHourlyRateMutation = useUpdateHourlyRate();
 
-  if (loading) {
-    return <div className="text-center py-12 text-slate-500 font-bold">Loading shifts...</div>
-  }
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [form] = Form.useForm();
 
-  // Group shifts by user for the Gantt view
-  // For simplicity, we just filter today's shifts or show all in a generic 06:00 to 22:00 grid
-  // We'll show the most recent or upcoming shifts (today)
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const todayEnd = new Date();
-  todayEnd.setHours(23, 59, 59, 999);
+  const employees = usersData || [];
 
-  const todaysShifts = shifts.filter((s: Shift & { user: User }) => {
-    const d = new Date(s.startTime);
-    return d >= todayStart && d <= todayEnd;
-  });
+  const handleEditRate = (record: User) => {
+    setSelectedUser(record);
+    form.setFieldsValue({ hourlyRate: record.hourlyRate });
+    setIsModalOpen(true);
+  };
 
-  const usersWithShifts = Array.from(new Set(todaysShifts.map((s: Shift & { user: User }) => s.user?.name || 'Unknown'))) as string[];
+  const handleUpdateSubmit = async (values: any) => {
+    if (!selectedUser) return;
+    try {
+      await updateHourlyRateMutation.mutateAsync({ userId: selectedUser.id, hourlyRate: values.hourlyRate });
+      toast.success("Hourly rate updated successfully");
+      setIsModalOpen(false);
+      setSelectedUser(null);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update hourly rate");
+    }
+  };
 
-  // Time blocks from 06:00 to 22:00 (16 hours)
-  const HOURS_START = 6;
-  const HOURS_END = 22;
-  const hoursRange = Array.from({ length: HOURS_END - HOURS_START + 1 }, (_, i) => i + HOURS_START);
+  const getRoleColor = (r: string) => {
+    switch (r) {
+      case 'SUPER_ADMIN': return 'magenta';
+      case 'MANAGER': return 'purple';
+      case 'STAFF': return 'blue';
+      default: return 'default';
+    }
+  };
 
-  const calculateLeftPercent = (date: any) => {
-    const d = new Date(date);
-    const h = d.getHours() + d.getMinutes() / 60;
-    if (h < HOURS_START) return 0;
-    if (h > HOURS_END) return 100;
-    return ((h - HOURS_START) / (HOURS_END - HOURS_START)) * 100;
-  }
-
-  const calculateWidthPercent = (start: any, end: any) => {
-    const s = new Date(start);
-    const e = new Date(end);
-    let sh = s.getHours() + s.getMinutes() / 60;
-    let eh = e.getHours() + e.getMinutes() / 60;
-    
-    if (sh < HOURS_START) sh = HOURS_START;
-    if (eh > HOURS_END) eh = HOURS_END;
-    
-    let width = ((eh - sh) / (HOURS_END - HOURS_START)) * 100;
-    return Math.max(0, width);
-  }
+  const columns = [
+    {
+      title: 'Employee',
+      key: 'employee',
+      render: (_: unknown, record: User) => (
+        <div className="flex items-center gap-3">
+          <Avatar className="bg-violet-500 font-bold">{record.name?.charAt(0) || 'U'}</Avatar>
+          <div>
+            <div className="font-bold text-slate-800 dark:text-slate-200">{record.name || 'Unknown User'}</div>
+            <div className="text-xs text-slate-500">{record.email}</div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: 'Role',
+      dataIndex: 'role',
+      key: 'role',
+      render: (text: string) => <Tag color={getRoleColor(text)} className="font-bold rounded-md border-0">{text}</Tag>
+    },
+    {
+      title: 'Type',
+      dataIndex: 'employmentType',
+      key: 'type',
+      render: (text: string) => <Text className="text-slate-600">{text ? text.replace('_', ' ') : 'N/A'}</Text>
+    },
+    {
+      title: 'Branch',
+      dataIndex: ['branch', 'name'],
+      key: 'branch',
+      render: (text: string) => text ? <Tag>{text}</Tag> : <Text type="secondary">HQ / All</Text>
+    },
+    {
+      title: 'Hourly Rate',
+      dataIndex: 'hourlyRate',
+      key: 'rate',
+      align: 'right' as const,
+      render: (val: number) => <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">฿{val?.toFixed(2) || '0.00'} / hr</span>
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      align: 'right' as const,
+      render: (_: unknown, record: User) => {
+        if (role === 'SUPER_ADMIN' || role === 'MANAGER') {
+          return (
+            <AntButton 
+              type="text" 
+              className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50" 
+              icon={<Edit3 className="w-4 h-4" />}
+              onClick={() => handleEditRate(record)}
+            >
+              Edit Rate
+            </AntButton>
+          )
+        }
+        return null;
+      }
+    }
+  ];
 
   return (
     <AnimatedPage className="space-y-6 w-full">
       <PageHeader 
-        title={(role === 'SUPER_ADMIN' || role === 'MANAGER') ? 'Shift Schedule (Gantt)' : 'My Shifts'}
-        icon={CalendarDays}
-        description="Manage and view the time-block shift schedule for today."
-        actions={
-          (role === 'SUPER_ADMIN' || role === 'MANAGER') && (
-            <div className="flex gap-2">
-              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-sm">
-                <Plus className="w-4 h-4 mr-2" /> Add Employee
-              </Button>
-              <Button variant="outline" className="border-slate-200 dark:border-slate-700 bg-white font-bold shadow-sm">
-                <UserPlus className="w-4 h-4 mr-2" /> Directory
-              </Button>
-            </div>
-          )
-        }
+        title="Employee Directory"
+        icon={Users}
+        description="View staff details and manage compensation rates."
       />
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
-        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-          <h2 className="font-black text-slate-800 dark:text-slate-100 text-lg">Today's Timeline ({new Date().toLocaleDateString()})</h2>
+      <DataTable 
+        columns={columns} 
+        dataSource={employees} 
+        rowKey="id"
+        loading={isLoading}
+        pagination={{ pageSize: 15 }}
+      />
+
+      <FormModal
+        title="Edit Compensation"
+        icon={UserCog}
+        isOpen={isModalOpen}
+        onClose={() => { setIsModalOpen(false); setSelectedUser(null); }}
+      >
+        <div className="mb-6 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center gap-3">
+           <Avatar size="large" className="bg-violet-500 font-bold">{selectedUser?.name?.charAt(0)}</Avatar>
+           <div>
+             <div className="font-bold">{selectedUser?.name}</div>
+             <div className="text-sm text-slate-500">{selectedUser?.role}</div>
+           </div>
         </div>
 
-        {todaysShifts.length === 0 ? (
-          <div className="p-12 text-center text-slate-500 font-bold">No shifts scheduled for today.</div>
-        ) : (
-          <div className="p-4 overflow-x-auto">
-            <div className="min-w-[800px]">
-              {/* Header: Time Slots */}
-              <div className="flex ml-40 border-b border-slate-200 dark:border-slate-800 pb-2 relative">
-                {hoursRange.map(hour => (
-                  <div key={hour} className="flex-1 text-xs font-black text-slate-400 text-center relative">
-                    <span className="absolute -left-3 top-0 bg-white dark:bg-slate-900 px-1 z-10">{hour.toString().padStart(2, '0')}:00</span>
-                    {hour === HOURS_END && <span className="absolute -right-3 top-0 bg-white dark:bg-slate-900 px-1 z-10">22:00</span>}
-                  </div>
-                ))}
-              </div>
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleUpdateSubmit}
+        >
+          <Form.Item 
+            label="Hourly Rate (฿)" 
+            name="hourlyRate" 
+            rules={[{ required: true, message: 'Hourly rate is required' }]}
+            extra="This rate is used to calculate payroll based on total clocked hours."
+          >
+            <InputNumber 
+              className="w-full h-10 pt-1" 
+              min={0} 
+              step={1} 
+              prefix="฿" 
+            />
+          </Form.Item>
 
-              {/* Body: Employees and Shifts */}
-              <div className="relative mt-4 space-y-4">
-                {/* Background Grid Lines */}
-                <div className="absolute top-0 bottom-0 left-40 right-0 flex pointer-events-none">
-                  {hoursRange.slice(0, -1).map(hour => (
-                    <div key={hour} className="flex-1 border-l border-slate-100 dark:border-slate-800/50 border-dashed" />
-                  ))}
-                </div>
-
-                {usersWithShifts.map((userName: string, idx: number) => {
-                  const userShifts = todaysShifts.filter((s: Shift & { user: User }) => s.user?.name === userName);
-                  return (
-                    <div key={idx} className="flex items-center h-12 relative group">
-                      {/* User Column */}
-                      <div className="w-40 flex items-center gap-2 pr-4 shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-10 group-hover:bg-slate-50 transition-colors">
-                        <Avatar className="bg-indigo-500 font-bold shrink-0">{userName.charAt(0)}</Avatar>
-                        <span className="font-bold text-sm text-slate-700 dark:text-slate-200 truncate">{userName}</span>
-                      </div>
-
-                      {/* Shifts Track */}
-                      <div className="flex-1 h-full relative group-hover:bg-slate-50/50 transition-colors rounded-r-xl">
-                        {userShifts.map((shift: Shift & { user: User }, i: number) => {
-                          const left = calculateLeftPercent(shift.startTime);
-                          const width = calculateWidthPercent(shift.startTime, shift.endTime);
-                          
-                          let colorClass = "bg-indigo-500 border-indigo-600";
-                          if (shift.status === 'COMPLETED') colorClass = "bg-emerald-500 border-emerald-600";
-                          if (shift.status === 'ABSENT') colorClass = "bg-rose-500 border-rose-600";
-
-                          return (
-                            <Tooltip 
-                              key={i} 
-                              title={`${new Date(shift.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(shift.endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} (${shift.status})`}
-                            >
-                              <div 
-                                className={`absolute top-1 bottom-1 rounded-md border text-white text-[10px] font-black flex items-center justify-center overflow-hidden shadow-sm transition-all hover:scale-[1.02] cursor-pointer z-20 ${colorClass}`}
-                                style={{ left: `${left}%`, width: `${width}%` }}
-                              >
-                                {width > 10 ? shift.status : ''}
-                              </div>
-                            </Tooltip>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
+          <div className="flex justify-end gap-2 mt-8">
+            <AntButton onClick={() => { setIsModalOpen(false); setSelectedUser(null); }}>Cancel</AntButton>
+            <AntButton type="primary" htmlType="submit" className="bg-indigo-600" loading={updateHourlyRateMutation.isPending}>
+              Save Changes
+            </AntButton>
           </div>
-        )}
-      </div>
+        </Form>
+      </FormModal>
     </AnimatedPage>
-  )
+  );
 }

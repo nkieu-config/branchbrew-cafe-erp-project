@@ -1,9 +1,10 @@
 "use client"
 
 import { useAuth } from "@/context/AuthContext"
-import { useAttendance, useShifts } from '@/hooks/domains/useHrQueries';
-import { Table, Tag, Typography, Tooltip } from "antd"
-import { Clock, AlertCircle } from "lucide-react"
+import { useAttendance, useShifts, useActiveClockIn, useClockIn, useClockOut } from '@/hooks/domains/useHrQueries';
+import { Table, Tag, Typography, Tooltip, Button as AntButton } from "antd"
+import { Clock, AlertCircle, PlayCircle, StopCircle } from "lucide-react"
+import { toast } from "sonner"
 import { AnimatedPage } from "@/components/animated-page"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
@@ -13,13 +14,39 @@ import { format, isSameDay, differenceInMinutes } from "date-fns"
 const { Text } = Typography;
 
 export default function AttendancePage() {
-  const { activeBranchId } = useAuth()
+  const { user, activeBranchId } = useAuth()
   const { data: attendanceData, isLoading: loadingAtt } = useAttendance()
   const { data: shiftsData, isLoading: loadingShifts } = useShifts(activeBranchId ? 'EMPLOYEE' : undefined, activeBranchId ?? undefined)
 
+  const { data: activeClockIn, isLoading: loadingActive } = useActiveClockIn()
+  const clockInMutation = useClockIn()
+  const clockOutMutation = useClockOut()
+
   const attendance = attendanceData || []
   const shifts = shiftsData || []
-  const isLoading = loadingAtt || loadingShifts
+  const isLoading = loadingAtt || loadingShifts || loadingActive
+
+  const handleClockIn = async () => {
+    if (!activeBranchId) {
+      toast.error("Please select a branch before clocking in.");
+      return;
+    }
+    try {
+      await clockInMutation.mutateAsync(Number(activeBranchId));
+      toast.success("Clocked in successfully!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to clock in");
+    }
+  }
+
+  const handleClockOut = async () => {
+    try {
+      await clockOutMutation.mutateAsync();
+      toast.success("Clocked out successfully!");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to clock out");
+    }
+  }
 
   const columns = [
     {
@@ -91,6 +118,31 @@ export default function AttendancePage() {
       <PageHeader 
         title="My Attendance Records"
         icon={Clock}
+        actions={
+          activeClockIn?.active ? (
+            <AntButton 
+              type="primary" 
+              danger
+              className="h-10 px-6 rounded-xl font-bold tracking-wide shadow-sm"
+              icon={<StopCircle className="w-5 h-5" />}
+              loading={clockOutMutation.isPending}
+              onClick={handleClockOut}
+            >
+              Clock Out
+            </AntButton>
+          ) : (
+            <AntButton 
+              type="primary" 
+              className="bg-emerald-500 hover:bg-emerald-600 border-none h-10 px-6 rounded-xl font-bold tracking-wide shadow-sm"
+              icon={<PlayCircle className="w-5 h-5" />}
+              loading={clockInMutation.isPending}
+              onClick={handleClockIn}
+              disabled={!activeBranchId && user?.role === 'SUPER_ADMIN'}
+            >
+              Clock In
+            </AntButton>
+          )
+        }
       />
       <DataTable 
         columns={columns} 

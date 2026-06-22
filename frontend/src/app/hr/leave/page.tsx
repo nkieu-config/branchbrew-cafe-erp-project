@@ -7,8 +7,11 @@ import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
 import { LeaveRequest } from "@prisma/client"
 import { AnimatedPage } from "@/components/animated-page"
-import { useLeaveRequests, useUpdateLeaveStatus } from '@/hooks/domains/useHrQueries';
+import { useLeaveRequests, useUpdateLeaveStatus, useCreateLeave } from '@/hooks/domains/useHrQueries';
 import { toast } from "sonner"
+import { useState } from "react"
+import { FormModal } from "@/components/shared/form-modal"
+import { Form, Select, DatePicker, Input, Button as AntButton } from "antd"
 
 export default function LeaveRequestsPage() {
   const { activeBranchId, user } = useAuth()
@@ -18,6 +21,10 @@ export default function LeaveRequestsPage() {
 
   const { data: leaveRequests = [], isLoading } = useLeaveRequests(branchIdNum, isManagerOrAdmin);
   const updateLeaveStatusMutation = useUpdateLeaveStatus();
+  const createLeaveMutation = useCreateLeave();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [form] = Form.useForm();
 
   const approveLeave = async (id: number, status: string) => {
     try {
@@ -25,6 +32,22 @@ export default function LeaveRequestsPage() {
       toast.success(`Leave status updated to ${status}`);
     } catch (err: any) {
       toast.error(err.message || "Failed to update leave status");
+    }
+  }
+
+  const handleCreateLeave = async (values: any) => {
+    try {
+      await createLeaveMutation.mutateAsync({
+        type: values.type,
+        startDate: values.dates[0].toISOString(),
+        endDate: values.dates[1].toISOString(),
+        reason: values.reason
+      });
+      toast.success("Leave requested successfully");
+      setIsModalOpen(false);
+      form.resetFields();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to request leave");
     }
   }
 
@@ -38,7 +61,10 @@ export default function LeaveRequestsPage() {
         title="Leave Requests"
         icon={CalendarOff}
         actions={
-          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg shadow-emerald-500/20">
+          <Button 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg shadow-emerald-500/20"
+          >
             <Plus className="w-4 h-4 mr-2" />
             Request Leave
           </Button>
@@ -86,6 +112,58 @@ export default function LeaveRequestsPage() {
         rowKey="id"
         loading={isLoading}
       />
+
+      <FormModal
+        title="Request Leave"
+        icon={CalendarOff}
+        isOpen={isModalOpen}
+        onClose={() => { setIsModalOpen(false); form.resetFields(); }}
+      >
+        <Form
+          form={form}
+          layout="vertical"
+          onFinish={handleCreateLeave}
+          className="mt-4"
+        >
+          <Form.Item 
+            label="Leave Type" 
+            name="type" 
+            rules={[{ required: true, message: 'Please select leave type' }]}
+          >
+            <Select 
+              options={[
+                { value: 'SICK', label: 'Sick Leave' },
+                { value: 'ANNUAL', label: 'Annual Leave' },
+                { value: 'UNPAID', label: 'Unpaid Leave' }
+              ]} 
+              className="h-10"
+            />
+          </Form.Item>
+
+          <Form.Item 
+            label="Dates" 
+            name="dates" 
+            rules={[{ required: true, message: 'Please select dates' }]}
+          >
+            <DatePicker.RangePicker className="w-full h-10" />
+          </Form.Item>
+
+          <Form.Item 
+            label="Reason" 
+            name="reason" 
+            rules={[{ required: true, message: 'Please provide a reason' }]}
+          >
+            <Input.TextArea rows={4} placeholder="Briefly explain your reason..." />
+          </Form.Item>
+
+          <div className="flex justify-end gap-2 mt-8">
+            <AntButton onClick={() => setIsModalOpen(false)}>Cancel</AntButton>
+            <AntButton type="primary" htmlType="submit" className="bg-emerald-600" loading={createLeaveMutation.isPending}>
+              Submit Request
+            </AntButton>
+          </div>
+        </Form>
+      </FormModal>
     </AnimatedPage>
   )
 }
