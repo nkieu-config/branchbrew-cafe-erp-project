@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, Param, ParseIntPipe, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, ParseIntPipe, Request, UseGuards, Patch } from '@nestjs/common';
 import { BranchesService } from './branches.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 import type { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('branches')
 export class BranchesController {
   constructor(private readonly branchesService: BranchesService) {}
@@ -11,6 +13,18 @@ export class BranchesController {
   @Get()
   findAll() {
     return this.branchesService.findAll();
+  }
+
+  @Roles('SUPER_ADMIN')
+  @Post()
+  createBranch(@Body() data: { name: string; location?: string; isCentralKitchen?: boolean }) {
+    return this.branchesService.createBranch(data);
+  }
+
+  @Roles('SUPER_ADMIN')
+  @Patch(':id')
+  updateBranch(@Param('id', ParseIntPipe) id: number, @Body() data: { name?: string; location?: string; isCentralKitchen?: boolean }) {
+    return this.branchesService.updateBranch(id, data);
   }
 
   @Get(':id')

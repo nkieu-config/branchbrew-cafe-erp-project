@@ -15,6 +15,19 @@ export class BranchesService {
     });
   }
 
+  async createBranch(data: { name: string; location?: string; isCentralKitchen?: boolean }) {
+    return this.prisma.branch.create({
+      data
+    });
+  }
+
+  async updateBranch(id: number, data: { name?: string; location?: string; isCentralKitchen?: boolean }) {
+    return this.prisma.branch.update({
+      where: { id },
+      data
+    });
+  }
+
   async findOne(id: number) {
     return this.prisma.branch.findUnique({
       where: { id },

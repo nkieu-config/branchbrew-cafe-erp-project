@@ -12,3 +12,19 @@ export const useBranches = () => {
   });
 };
 
+export const useCreateBranch = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { name: string; location?: string; isCentralKitchen?: boolean }) => fetchAPI('/branches', { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['branches'] }),
+  });
+};
+
+export const useUpdateBranch = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...data }: { id: number; name?: string; location?: string; isCentralKitchen?: boolean }) => fetchAPI(`/branches/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['branches'] }),
+  });
+};
+
