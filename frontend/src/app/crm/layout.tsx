@@ -13,7 +13,6 @@ export default function CRMLayout({ children }: { children: React.ReactNode }) {
 
   const tabs = [
     { name: "Customers", path: "/crm/customers", icon: Users, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
-    { name: "Loyalty & Rewards", path: "/crm/loyalty", icon: Award, roles: ["SUPER_ADMIN", "MANAGER"] },
     { name: "Promotions", path: "/crm/promotions", icon: TicketPercent, roles: ["SUPER_ADMIN", "MANAGER"] },
   ]
 

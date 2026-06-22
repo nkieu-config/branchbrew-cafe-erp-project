@@ -13,8 +13,6 @@ export default function FinanceLayout({ children }: { children: React.ReactNode 
 
   const tabs = [
     { name: "Overview", path: "/finance/overview", icon: Wallet, roles: ["SUPER_ADMIN", "MANAGER"] },
-    { name: "Accounts Payable (AP)", path: "/finance/ap", icon: CreditCard, roles: ["SUPER_ADMIN", "MANAGER"] },
-    { name: "Accounts Receivable (AR)", path: "/finance/ar", icon: HandCoins, roles: ["SUPER_ADMIN", "MANAGER"] },
     { name: "General Ledger", path: "/finance/ledger", icon: BookOpen, roles: ["SUPER_ADMIN", "MANAGER"] },
     { name: "Chart of Accounts", path: "/finance/accounts", icon: Landmark, roles: ["SUPER_ADMIN", "MANAGER"] },
   ]
