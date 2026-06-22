@@ -16,7 +16,7 @@ export class InventoryService {
 
   async receiveStock(branchId: number, data: { items: { ingredientId: number; quantity: number; expiryDate?: Date }[] }) {
     return this.prisma.$transaction(async (tx) => {
-      const results = [];
+      const results: any[] = [];
       for (const item of data.items) {
         if (item.quantity <= 0) continue;
         
@@ -51,7 +51,7 @@ export class InventoryService {
 
   async recordWaste(branchId: number, userId: number, data: { items: { ingredientId: number; quantity: number; reason: string }[] }) {
     return this.prisma.$transaction(async (tx) => {
-      const results = [];
+      const results: any[] = [];
       for (const item of data.items) {
         if (item.quantity <= 0) continue;
         

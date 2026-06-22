@@ -7,7 +7,7 @@ import { Package, AlertTriangle } from "lucide-react";
 
 export default function InventoryBalancePage() {
   const { activeBranchId } = useAuth();
-  const { data: inventoryData, isLoading } = useBranchInventory(activeBranchId);
+  const { data: inventoryData, isLoading } = useBranchInventory(activeBranchId || undefined);
   const inventory = inventoryData || [];
 
   if (isLoading) return <div className="p-10">Loading inventory...</div>;
