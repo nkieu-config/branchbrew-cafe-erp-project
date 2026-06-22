@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext"
 import { useShifts } from '@/hooks/domains/useHrQueries';
-import { Users, CalendarDays, Plus, UserPlus, Clock } from "lucide-react"
+import { Users, CalendarDays, Plus, UserPlus, Clock, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AnimatedPage } from "@/components/animated-page"
 import { PageHeader } from "@/components/shared/page-header"
@@ -17,9 +17,7 @@ export default function EmployeesShiftsPage() {
   const { data: shiftsData, isLoading: loading } = useShifts(role, activeBranchId ?? undefined)
   const shifts = shiftsData || []
 
-  if (loading) {
-    return <div className="text-center py-12 text-slate-500 font-bold">Loading shifts...</div>
-  }
+
 
   // Group shifts by user for the Gantt view
   // For simplicity, we just filter today's shifts or show all in a generic 06:00 to 22:00 grid
@@ -87,7 +85,11 @@ export default function EmployeesShiftsPage() {
           <h2 className="font-black text-slate-800 dark:text-slate-100 text-lg">Today's Timeline ({new Date().toLocaleDateString()})</h2>
         </div>
 
-        {todaysShifts.length === 0 ? (
+        {loading ? (
+          <div className="flex h-64 items-center justify-center">
+            <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+          </div>
+        ) : todaysShifts.length === 0 ? (
           <div className="p-12 text-center text-slate-500 font-bold">No shifts scheduled for today.</div>
         ) : (
           <div className="p-4 overflow-x-auto">

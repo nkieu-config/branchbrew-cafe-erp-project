@@ -48,9 +48,7 @@ export default function PayrollPage() {
     return <div className="text-center py-12 text-slate-500">Access Denied</div>
   }
 
-  if (isLoading) {
-    return <div className="text-center py-12 text-slate-500">Loading payroll...</div>
-  }
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -184,6 +182,7 @@ export default function PayrollPage() {
       />
 
       <DataTable 
+        loading={isLoading}
         columns={columns} 
         dataSource={payrollRuns} 
         rowKey="id"

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useBranches, useCreateBranch, useUpdateBranch } from "@/hooks/domains/useGeneralQueries";
 import { AnimatedPage } from "@/components/animated-page";
 import { PageHeader } from "@/components/shared/page-header";
-import { Building2, Plus, MapPin } from "lucide-react";
+import { Building2, Plus, MapPin, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -63,7 +63,7 @@ export default function BranchesPage() {
     }
   };
 
-  if (isLoading) return <div className="p-8 text-center text-slate-500">Loading branches...</div>;
+
 
   return (
     <AnimatedPage className="space-y-6 max-w-5xl mx-auto w-full">
@@ -82,7 +82,12 @@ export default function BranchesPage() {
         }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {isLoading ? (
+        <div className="flex h-64 items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {(branches || []).map((branch: any) => (
           <div key={branch.id} className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col hover:border-emerald-500/50 transition-colors">
             <div className="flex justify-between items-start mb-4">
@@ -111,7 +116,8 @@ export default function BranchesPage() {
             </div>
           </div>
         ))}
-      </div>
+        </div>
+      )}
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[425px]">

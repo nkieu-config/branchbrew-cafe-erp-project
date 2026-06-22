@@ -51,9 +51,7 @@ export default function LeaveRequestsPage() {
     }
   }
 
-  if (isLoading) {
-    return <div className="text-center py-12 text-slate-500">Loading leave requests...</div>
-  }
+
 
   return (
     <AnimatedPage className="space-y-6 w-full">

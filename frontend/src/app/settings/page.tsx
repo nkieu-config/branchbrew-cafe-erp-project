@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useSettings, useUpdateSettings } from "@/hooks/domains/useSettingsQueries";
 import { AnimatedPage } from "@/components/animated-page";
 import { PageHeader } from "@/components/shared/page-header";
-import { Settings as SettingsIcon, Save, Store, Receipt, Calculator, Banknote } from "lucide-react";
+import { Settings as SettingsIcon, Save, Store, Receipt, Calculator, Banknote, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -41,9 +41,6 @@ export default function SettingsPage() {
     updateSettingsMutation.mutate(formData);
   };
 
-  if (isLoading) {
-    return <div className="p-8 text-center text-slate-500">Loading settings...</div>;
-  }
 
   return (
     <AnimatedPage className="space-y-6 max-w-4xl mx-auto w-full">
@@ -63,8 +60,13 @@ export default function SettingsPage() {
         }
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        
+      {isLoading ? (
+        <div className="flex h-64 items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
         {/* Company Info */}
         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 space-y-6">
           <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
@@ -148,7 +150,8 @@ export default function SettingsPage() {
           </div>
         </div>
 
-      </div>
+        </div>
+      )}
     </AnimatedPage>
   );
 }

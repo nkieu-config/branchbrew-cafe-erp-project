@@ -20,9 +20,7 @@ export default function AuditLogsPage() {
     return "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300";
   };
 
-  if (loading) {
-    return <div className="p-8 text-center text-slate-500">Loading audit trail...</div>;
-  }
+
 
   return (
     <AnimatedPage className="space-y-6 w-full">
