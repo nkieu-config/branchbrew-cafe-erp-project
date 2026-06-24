@@ -20,16 +20,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Since we seeded without bcrypt for simplicity earlier, we should handle plain text in dev 
-    // OR we should hash it in the seed script! Let's assume we compare hashes.
-    // For now, if the seed script inserted 'password123' as plain text, bcrypt.compare will fail.
-    // Let's do a fallback: if it doesn't start with $2b$, just compare raw string (ONLY FOR DEV!)
-    let isMatch = false;
-    if (user.password.startsWith('$2b$') || user.password.startsWith('$2a$')) {
-      isMatch = await bcrypt.compare(pass, user.password);
-    } else {
-      isMatch = pass === user.password;
-    }
+    const isMatch = await bcrypt.compare(pass, user.password);
 
     if (!isMatch) {
       throw new UnauthorizedException('Invalid credentials');

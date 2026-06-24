@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
+import * as bcrypt from 'bcrypt';
 
 const connectionString = process.env.DATABASE_URL;
 const pool = new Pool({ connectionString });
@@ -30,6 +31,8 @@ async function main() {
 
   console.log('Seeding database with Multi-Branch Data...');
 
+  const hashedPassword = await bcrypt.hash('password123', 10);
+
   // 1. Create Branches
   const mainBranch = await prisma.branch.create({
     data: { name: 'Siam Paragon Branch', location: 'Bangkok' },
@@ -44,7 +47,7 @@ async function main() {
     data: {
       email: 'admin@qafacafe.com',
       name: 'Super Admin',
-      password: 'password123', // Will be hashed in the Auth step
+      password: hashedPassword,
       role: 'SUPER_ADMIN',
     },
   });
@@ -53,7 +56,7 @@ async function main() {
     data: {
       email: 'staff.siam@qafacafe.com',
       name: 'Siam Cashier',
-      password: 'password123',
+      password: hashedPassword,
       role: 'STAFF',
       branchId: mainBranch.id,
     },
