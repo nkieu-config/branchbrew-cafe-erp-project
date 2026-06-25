@@ -9,13 +9,15 @@ import { Badge } from "@/components/ui/badge";
 import { Tag, Button as AntButton } from "antd";
 import { DataTable } from "@/components/shared/data-table";
 
+import type { Product } from "@/types/api";
+
 export default function ProductsPage() {
   const { data: products, isLoading } = useProducts();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
-  const handleEdit = (product: any) => {
+  const handleEdit = (product: Product) => {
     setSelectedProduct(product);
     setIsModalOpen(true);
   };
@@ -75,7 +77,7 @@ export default function ProductsPage() {
             {
               title: "Status",
               key: "isActive",
-              render: (_, record: any) => (
+              render: (_: unknown, record: Product) => (
                 record.isActive !== false ? (
                   <Tag color="success">Active</Tag>
                 ) : (
@@ -86,7 +88,7 @@ export default function ProductsPage() {
             {
               title: "Recipe Setup",
               key: "recipe",
-              render: (_, record: any) => (
+              render: (_: unknown, record: Product) => (
                 record.recipeItems && record.recipeItems.length > 0 ? (
                   <Tag color="processing">{record.recipeItems.length} ingredients</Tag>
                 ) : (
@@ -98,7 +100,7 @@ export default function ProductsPage() {
               title: "Actions",
               key: "actions",
               align: "right",
-              render: (_, record: any) => (
+              render: (_: unknown, record: Product) => (
                 <AntButton type="link" onClick={() => handleEdit(record)} icon={<Edit className="w-4 h-4" />} className="text-blue-500" />
               )
             }
@@ -113,7 +115,7 @@ export default function ProductsPage() {
       <ProductFormModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        product={selectedProduct} 
+        product={selectedProduct ?? undefined} 
       />
     </div>
   );

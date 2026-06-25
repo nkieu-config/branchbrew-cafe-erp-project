@@ -84,8 +84,9 @@ export const useEquipment = (branchId?: number) => {
 export const useCreateEquipment = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: unknown) => fetchAPI(API_ENDPOINTS.equipment.create, { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: (_, variables: any) => queryClient.invalidateQueries({ queryKey: ['equipment', variables.branchId] }),
+    mutationFn: (data: { branchId: number } & Record<string, unknown>) =>
+      fetchAPI(API_ENDPOINTS.equipment.create, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: (_, variables) => queryClient.invalidateQueries({ queryKey: ['equipment', variables.branchId] }),
   });
 };
 

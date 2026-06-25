@@ -78,7 +78,7 @@ export default function FinanceDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {settlements.map((s: any) => (
+                {settlements.map((s: Settlement) => (
                   <tr key={s.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
                     <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{new Date(s.date).toLocaleDateString()}</td>
                     <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">{s.branch?.name || 'Main'}</td>
@@ -129,7 +129,7 @@ export default function FinanceDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {expenses.map((e: any) => (
+                {expenses.map((e: Expense) => (
                   <tr key={e.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
                     <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{new Date(e.createdAt).toLocaleString()}</td>
                     <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">{e.category}</td>

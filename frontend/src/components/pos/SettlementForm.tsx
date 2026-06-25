@@ -3,8 +3,10 @@ import { Button } from "@/components/ui/button"
 import { Calculator } from "lucide-react"
 import { toast } from "sonner"
 import { useSubmitSettlement } from '@/hooks/domains/useFinanceQueries'
+import type { SettlementExpected } from '@/types/api'
+import { getErrorMessage } from '@/lib/errors'
 
-export function SettlementForm({ branchIdNum, expected }: { branchIdNum: number | undefined, expected: any }) {
+export function SettlementForm({ branchIdNum, expected }: { branchIdNum: number | undefined, expected: SettlementExpected | undefined }) {
   const [actualCash, setActualCash] = useState<string>("")
   const [actualCreditCard, setActualCreditCard] = useState<string>("")
   const [actualQR, setActualQR] = useState<string>("")
@@ -25,8 +27,8 @@ export function SettlementForm({ branchIdNum, expected }: { branchIdNum: number 
       setActualCash("")
       setActualCreditCard("")
       setActualQR("")
-    } catch (error: any) {
-      toast.error(error.message || "Failed to submit settlement")
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to submit settlement"))
     }
   }
 

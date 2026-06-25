@@ -6,6 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Package, AlertTriangle } from "lucide-react";
 import { DataTable } from "@/components/shared/data-table";
 
+import type { BranchInventory } from "@/types/api";
+
+type InventoryRow = BranchInventory & { ingredient?: { name: string; unit: string } };
+
 export default function InventoryBalancePage() {
   const { activeBranchId } = useAuth();
   const { data: inventoryData, isLoading } = useBranchInventory(activeBranchId || undefined);
@@ -31,12 +35,12 @@ export default function InventoryBalancePage() {
             {
               title: "Ingredient Name",
               key: "name",
-              render: (_, record: any) => <span className="font-medium text-slate-800 dark:text-slate-200">{record.ingredient?.name}</span>
+              render: (_: unknown, record: InventoryRow) => <span className="font-medium text-slate-800 dark:text-slate-200">{record.ingredient?.name}</span>
             },
             {
               title: "Stock Balance",
               key: "stock",
-              render: (_, record: any) => {
+              render: (_: unknown, record: InventoryRow) => {
                 const isLowStock = record.stock <= record.minStock;
                 const isOut = record.stock <= 0;
                 return (
@@ -49,12 +53,12 @@ export default function InventoryBalancePage() {
             {
               title: "Unit",
               key: "unit",
-              render: (_, record: any) => <span className="text-slate-500">{record.ingredient?.unit}</span>
+              render: (_: unknown, record: InventoryRow) => <span className="text-slate-500">{record.ingredient?.unit}</span>
             },
             {
               title: "Status",
               key: "status",
-              render: (_, record: any) => {
+              render: (_: unknown, record: InventoryRow) => {
                 const isLowStock = record.stock <= record.minStock;
                 const isOut = record.stock <= 0;
                 if (isOut) {

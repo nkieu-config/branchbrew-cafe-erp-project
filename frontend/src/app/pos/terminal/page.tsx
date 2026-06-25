@@ -17,16 +17,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { useRef } from "react";
 import { OnScreenNumpad } from "@/components/pos/OnScreenNumpad";
 import { pointsToDiscountBaht } from "@/lib/loyalty";
+import { filterActive } from "@/lib/form";
+import type { Customer, ValidatedPromotion, ReceiptOrder } from "@/types/api";
 
 export default function POSPage() {
   const { user, activeBranchId } = useAuth();
   const { data: productsData, isLoading: loading } = useProducts();
-  const products = (productsData || []).filter((p: any) => p.isActive !== false);
+  const products = filterActive<Product>((productsData || []) as Product[]);
   const [cart, setCart] = useState<{ id: string; product: Product; quantity: number; notes?: string }[]>([]);
 
   // Modifiers State
   const [showModifiers, setShowModifiers] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [modifierSweetness, setModifierSweetness] = useState("100%");
   const [modifierMilk, setModifierMilk] = useState("Normal");
   const [modifierTemp, setModifierTemp] = useState("Iced");
@@ -34,12 +36,12 @@ export default function POSPage() {
   // CRM State
   const [showNumpad, setShowNumpad] = useState(false);
   const [customerPhone, setCustomerPhone] = useState("");
-  const [customer, setCustomer] = useState<any>(null);
+  const [customer, setCustomer] = useState<Customer | null>(null);
   const [pointsToRedeem, setPointsToRedeem] = useState<number>(0);
   
   // Promo State
   const [promoCode, setPromoCode] = useState("");
-  const [appliedPromo, setAppliedPromo] = useState<any>(null);
+  const [appliedPromo, setAppliedPromo] = useState<ValidatedPromotion | null>(null);
 
   // Checkout State
   const [showCheckout, setShowCheckout] = useState(false);
@@ -51,7 +53,7 @@ export default function POSPage() {
 
   // Receipt & Success State
   const [showSuccess, setShowSuccess] = useState(false);
-  const [completedOrder, setCompletedOrder] = useState<any>(null);
+  const [completedOrder, setCompletedOrder] = useState<ReceiptOrder | null>(null);
   const receiptRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
@@ -446,7 +448,7 @@ export default function POSPage() {
           <div className="py-4 flex justify-center">
             {/* Hidden Receipt Component to be printed */}
             <div className="hidden">
-              <Receipt ref={receiptRef} order={completedOrder} branchName="Branch" />
+              {completedOrder && <Receipt ref={receiptRef} order={completedOrder} branchName="Branch" />}
             </div>
             
             {/* Preview */}
@@ -503,7 +505,7 @@ export default function POSPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button className="w-full bg-emerald-500 hover:bg-emerald-600 h-12 text-lg font-bold" onClick={() => addToCart(selectedProduct, `${modifierTemp}, ${modifierSweetness} Sweet, ${modifierMilk} Milk`)}>
+            <Button className="w-full bg-emerald-500 hover:bg-emerald-600 h-12 text-lg font-bold" onClick={() => selectedProduct && addToCart(selectedProduct, `${modifierTemp}, ${modifierSweetness} Sweet, ${modifierMilk} Milk`)}>
               Add to Order
             </Button>
           </DialogFooter>

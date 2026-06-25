@@ -365,3 +365,135 @@ export interface SettlementExpected {
   sales: number;
   expenses: number;
 }
+
+// --- Form / UI helper types ---
+
+export type UpdatePayload<T extends { id: number }> = { id: number } & Partial<Omit<T, 'id'>>;
+
+export interface StockLineItem {
+  ingredientId: number;
+  quantity: number;
+  expiryDate?: string;
+}
+
+export interface WasteLineItem {
+  ingredientId: number;
+  quantity: number;
+  reason: string;
+}
+
+export interface CreateUserPayload {
+  name: string;
+  email: string;
+  password?: string;
+  role: Role;
+  branchId: number | null;
+  employmentType: EmploymentType;
+  hourlyRate: number;
+  baseSalary: number;
+}
+
+export type UpdateUserPayload = UpdatePayload<User> & Partial<CreateUserPayload>;
+
+// --- Production BOM ---
+
+export interface ProductionBOM {
+  id: number;
+  targetIngredientId: number;
+  rawIngredientId: number;
+  quantityNeeded: number;
+  targetIngredient: Ingredient;
+  rawIngredient: Ingredient;
+}
+
+export interface BomChildRow {
+  id: number;
+  rawIngredientId: number;
+  rawName: string;
+  rawUnit: string;
+  quantityNeeded: number;
+  costPerUnit: number;
+  totalCost: number;
+}
+
+export interface BomGroupRow {
+  id: string;
+  targetName: string;
+  targetUnit: string;
+  isGroup: true;
+  children: BomChildRow[];
+}
+
+export type BomTableRow = BomGroupRow | (BomChildRow & { isGroup?: false });
+
+// --- Accounting ---
+
+export interface JournalLine {
+  id: number;
+  accountId: number;
+  debit: number;
+  credit: number;
+  description?: string | null;
+  account?: Account;
+}
+
+export interface JournalEntry {
+  id: number;
+  date: string;
+  reference?: string | null;
+  description: string;
+  status: 'DRAFT' | 'POSTED';
+  lines?: JournalLine[];
+}
+
+export interface AccountTreeGroup {
+  id: string;
+  code: string;
+  name: string;
+  type: AccountType;
+  isGroup: true;
+  children: Account[];
+}
+
+export type AccountTableRow = AccountTreeGroup | (Account & { isGroup?: false });
+
+// --- POS receipt ---
+
+export interface ReceiptCartItem {
+  product: Product;
+  quantity: number;
+  notes?: string;
+}
+
+export interface ReceiptOrder {
+  id?: number;
+  cashier?: string | { name?: string | null };
+  customerName?: string;
+  items?: ReceiptCartItem[];
+  subtotal?: number;
+  discount?: number;
+  netTotal?: number;
+}
+
+export interface ValidatedPromotion {
+  code: string;
+  type: 'PERCENTAGE' | 'FIXED_AMOUNT';
+  value: number;
+  minPurchase?: number | null;
+}
+
+// --- CRM 360 ---
+
+export type ChurnRisk = 'LOW' | 'MEDIUM' | 'HIGH';
+
+export interface Customer360 {
+  customer: Customer;
+  churnRisk: ChurnRisk;
+  daysSinceLastOrder: number;
+  lifetimeSpend: number;
+  nextTier: Tier | 'MAX';
+  amountToNextTier: number;
+  progressPercentage: number;
+  favoriteDrinks: { product: { name: string }; count: number }[];
+  recentOrders: Order[];
+}

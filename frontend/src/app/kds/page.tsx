@@ -8,12 +8,12 @@ import { useAuth } from "@/context/AuthContext"
 import { useSocket } from "@/context/SocketContext"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, Clock, Play } from "lucide-react"
-import { ProductionOrder, OrderItem } from "@/types/api"
+import { Order, OrderItem, OrderStatus } from "@/types/api"
 
 export default function KdsPage() {
   const { activeBranchId } = useAuth()
   const { socket, isConnected } = useSocket()
-  const [orders, setOrders] = useState<any[]>([])
+  const [orders, setOrders] = useState<Order[]>([])
 
   const fetchOrders = useCallback(async () => {
     if (!activeBranchId) return
@@ -37,7 +37,7 @@ export default function KdsPage() {
   useEffect(() => {
     if (!socket || !activeBranchId) return
 
-    const handleOrderCreated = (newOrder: ProductionOrder & { items: OrderItem[] }) => {
+    const handleOrderCreated = (newOrder: Order) => {
       // Only show orders for the current branch
       if (newOrder.branchId === activeBranchId) {
         // Use functional state update to avoid stale closure
@@ -45,7 +45,7 @@ export default function KdsPage() {
       }
     }
 
-    const handleOrderStatusUpdated = (data: { orderId: number, status: string }) => {
+    const handleOrderStatusUpdated = (data: { orderId: number, status: OrderStatus }) => {
       setOrders((prev) => {
         if (data.status === 'COMPLETED') {
           return prev.filter(o => o.id !== data.orderId)
@@ -143,12 +143,12 @@ export default function KdsPage() {
 
                 {/* Items */}
                 <div className="p-5 flex-1 overflow-y-auto space-y-4">
-                  {order.items.map((item: any) => (
+                  {order.items?.map((item: OrderItem) => (
                     <div key={item.id} className="border-b border-slate-100 dark:border-slate-700 pb-3">
                       <div className="flex gap-3 items-start">
                         <span className="text-emerald-600 dark:text-emerald-400 font-black text-2xl">{item.quantity}x</span>
                         <div className="flex flex-col">
-                          <span className="text-slate-800 dark:text-slate-100 font-black text-2xl leading-tight">{item.product.name}</span>
+                          <span className="text-slate-800 dark:text-slate-100 font-black text-2xl leading-tight">{item.product?.name}</span>
                           {item.notes && (
                             <div className="mt-2 text-xl font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/50 px-2 py-1 rounded inline-block">
                               + {item.notes}

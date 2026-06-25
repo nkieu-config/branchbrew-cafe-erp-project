@@ -9,13 +9,15 @@ import { Badge } from "@/components/ui/badge";
 import { Tag, Button as AntButton } from "antd";
 import { DataTable } from "@/components/shared/data-table";
 
+import type { Ingredient } from "@/types/api";
+
 export default function IngredientsPage() {
   const { data: ingredients, isLoading } = useIngredients();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedIngredient, setSelectedIngredient] = useState<any>(null);
+  const [selectedIngredient, setSelectedIngredient] = useState<Ingredient | null>(null);
 
-  const handleEdit = (ingredient: any) => {
+  const handleEdit = (ingredient: Ingredient) => {
     setSelectedIngredient(ingredient);
     setIsModalOpen(true);
   };
@@ -72,7 +74,7 @@ export default function IngredientsPage() {
             {
               title: "Status",
               key: "isActive",
-              render: (_, record: any) => (
+              render: (_: unknown, record: Ingredient) => (
                 record.isActive !== false ? (
                   <Tag color="success">Active</Tag>
                 ) : (
@@ -84,7 +86,7 @@ export default function IngredientsPage() {
               title: "Actions",
               key: "actions",
               align: "right",
-              render: (_, record: any) => (
+              render: (_: unknown, record: Ingredient) => (
                 <AntButton type="link" onClick={() => handleEdit(record)} icon={<Edit className="w-4 h-4" />} className="text-blue-500" />
               )
             }
@@ -99,7 +101,7 @@ export default function IngredientsPage() {
       <IngredientFormModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        ingredient={selectedIngredient} 
+        ingredient={selectedIngredient ?? undefined} 
       />
     </div>
   );

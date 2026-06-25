@@ -39,7 +39,7 @@ export default function EmployeesShiftsPage() {
   const HOURS_END = 22;
   const hoursRange = Array.from({ length: HOURS_END - HOURS_START + 1 }, (_, i) => i + HOURS_START);
 
-  const calculateLeftPercent = (date: any) => {
+  const calculateLeftPercent = (date: string | Date) => {
     const d = new Date(date);
     const h = d.getHours() + d.getMinutes() / 60;
     if (h < HOURS_START) return 0;
@@ -47,7 +47,7 @@ export default function EmployeesShiftsPage() {
     return ((h - HOURS_START) / (HOURS_END - HOURS_START)) * 100;
   }
 
-  const calculateWidthPercent = (start: any, end: any) => {
+  const calculateWidthPercent = (start: string | Date, end: string | Date) => {
     const s = new Date(start);
     const e = new Date(end);
     let sh = s.getHours() + s.getMinutes() / 60;

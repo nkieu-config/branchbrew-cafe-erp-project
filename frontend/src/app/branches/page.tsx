@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import type { Branch } from "@/types/api";
+import { getErrorMessage } from "@/lib/errors";
 
 export default function BranchesPage() {
   const { data: branches, isLoading } = useBranches();
@@ -19,7 +21,7 @@ export default function BranchesPage() {
   const updateMutation = useUpdateBranch();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingBranch, setEditingBranch] = useState<any>(null);
+  const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -27,12 +29,12 @@ export default function BranchesPage() {
     isCentralKitchen: false
   });
 
-  const handleEdit = (branch: any) => {
+  const handleEdit = (branch: Branch) => {
     setEditingBranch(branch);
     setFormData({
       name: branch.name,
       location: branch.location || "",
-      isCentralKitchen: branch.isCentralKitchen
+      isCentralKitchen: branch.isCentralKitchen ?? false
     });
     setIsModalOpen(true);
   };
@@ -58,8 +60,8 @@ export default function BranchesPage() {
         toast.success("Branch created successfully");
       }
       setIsModalOpen(false);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to save branch");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to save branch"));
     }
   };
 
@@ -88,7 +90,7 @@ export default function BranchesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {(branches || []).map((branch: any) => (
+        {(branches as Branch[] || []).map((branch) => (
           <div key={branch.id} className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col hover:border-emerald-500/50 transition-colors">
             <div className="flex justify-between items-start mb-4">
               <div>

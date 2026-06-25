@@ -18,7 +18,7 @@ import { DataTable } from "@/components/shared/data-table"
 import { Branch } from "@/types/api";
 import { format, differenceInDays } from "date-fns";
 import type { Dayjs } from "dayjs";
-import type { Ingredient, InventoryBatch, PurchaseOrder, Supplier, BranchInventory } from "@/types/api";
+import type { Ingredient, InventoryBatch, PurchaseOrder, Supplier, BranchInventory, StockTransfer } from "@/types/api";
 
 type InventoryWithIngredient = BranchInventory & { ingredient: Ingredient };
 type BatchWithSupplier = InventoryBatch & { purchaseOrder?: PurchaseOrder & { supplier?: Supplier } };
@@ -148,7 +148,7 @@ export default function InventoryPage() {
   };
 
   // Pre-process batches for Heatmap
-  const expiryMap = batches.reduce((acc: Record<string, any[]>, batch: any) => {
+  const expiryMap = batches.reduce((acc: Record<string, BatchWithSupplier[]>, batch: BatchWithSupplier) => {
     if (!batch.expiryDate) return acc;
     const dateStr = format(new Date(batch.expiryDate), 'yyyy-MM-dd');
     if (!acc[dateStr]) acc[dateStr] = [];
@@ -182,7 +182,7 @@ export default function InventoryPage() {
     const popoverContent = (
       <div className="max-w-xs space-y-2">
         <div className="font-black text-slate-800 border-b pb-1 mb-2">Expiring Items</div>
-        {expiringBatches.map((b: any) => (
+        {expiringBatches.map((b) => (
           <div key={b.id} className="flex justify-between items-center text-sm gap-4">
             <span className="font-semibold text-slate-700">{b.ingredient?.name}</span>
             <span className="font-mono bg-slate-100 px-1 rounded">{b.quantity} {b.ingredient?.unit}</span>
@@ -259,7 +259,7 @@ export default function InventoryPage() {
         key: 'expiryDate',
         render: (_: unknown, b: BatchWithSupplier) => {
           if (!b.expiryDate) return <span className="text-xs text-slate-400">No Expiry</span>;
-          const expiring = isExpiringSoon(b.expiryDate as any);
+          const expiring = isExpiringSoon(b.expiryDate ?? null);
           const expired = new Date(b.expiryDate).getTime() < new Date().getTime();
           return (
             <div className="flex items-center gap-2">
@@ -341,7 +341,7 @@ export default function InventoryPage() {
     {
       title: 'Action',
       key: 'action',
-      render: (_: unknown, t: any) => {
+      render: (_: unknown, t: StockTransfer) => {
         if (t.status === 'PENDING' && t.toBranchId === activeBranchId) {
           return (
             <AntButton 

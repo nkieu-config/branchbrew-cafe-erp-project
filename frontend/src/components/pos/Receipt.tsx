@@ -1,8 +1,8 @@
 import React, { forwardRef } from 'react';
 import { Coffee } from 'lucide-react';
-import { Order, OrderItem, Product } from '@/types/api';
+import type { ReceiptOrder } from '@/types/api';
 
-export const Receipt = forwardRef<HTMLDivElement, { order: any; branchName?: string }>(
+export const Receipt = forwardRef<HTMLDivElement, { order: ReceiptOrder; branchName?: string }>(
   ({ order, branchName }, ref) => {
     if (!order) return null;
 
@@ -51,7 +51,7 @@ export const Receipt = forwardRef<HTMLDivElement, { order: any; branchName?: str
             <span>Ref: #{order.id || 'N/A'}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span>Cashier: {order.cashier?.name || 'System'}</span>
+            <span>Cashier: {typeof order.cashier === 'string' ? order.cashier : order.cashier?.name || 'System'}</span>
             <span>POS: 01</span>
           </div>
           {order.customerName && (
@@ -70,7 +70,7 @@ export const Receipt = forwardRef<HTMLDivElement, { order: any; branchName?: str
             </tr>
           </thead>
           <tbody>
-            {order.items?.map((item: any, idx: number) => (
+            {order.items?.map((item, idx) => (
               <tr key={idx}>
                 <td style={{ padding: '2px 0', verticalAlign: 'top', wordBreak: 'break-word', paddingRight: '4px' }}>
                   <div style={{ fontWeight: 'bold' }}>{item.product.name}</div>
@@ -88,7 +88,7 @@ export const Receipt = forwardRef<HTMLDivElement, { order: any; branchName?: str
             <span>Subtotal</span>
             <span>{order.subtotal?.toFixed(2)}</span>
           </div>
-          {order.discount > 0 && (
+          {order.discount != null && order.discount > 0 && (
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <span>Discount</span>
               <span>-฿{(order.discount || 0).toFixed(2)}</span>

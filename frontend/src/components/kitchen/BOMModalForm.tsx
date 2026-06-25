@@ -11,13 +11,18 @@ interface BOMModalFormProps {
   ingredients: Ingredient[];
 }
 
+interface BomFormValues {
+  targetIngredientId: number;
+  rawIngredients: { rawIngredientId: number; quantityNeeded: number }[];
+}
+
 export function BOMModalForm({ isOpen, onClose, ingredients }: BOMModalFormProps) {
-  const [form] = Form.useForm();
+  const [form] = Form.useForm<BomFormValues>();
   const createMutation = useCreateProductionBOM();
 
-  const handleCreate = async (values: any) => {
+  const handleCreate = async (values: BomFormValues) => {
     try {
-      const promises = values.rawIngredients.map((item: any) => 
+      const promises = values.rawIngredients.map((item) => 
         createMutation.mutateAsync({
           targetIngredientId: values.targetIngredientId,
           rawIngredientId: item.rawIngredientId,

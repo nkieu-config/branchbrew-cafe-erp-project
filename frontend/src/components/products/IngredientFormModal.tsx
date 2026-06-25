@@ -8,7 +8,10 @@ import { Label } from "@/components/ui/label";
 import { useCreateIngredient, useUpdateIngredient } from "@/hooks/domains/useProductQueries";
 import { toast } from "sonner";
 
-export function IngredientFormModal({ isOpen, onClose, ingredient }: { isOpen: boolean, onClose: () => void, ingredient?: any }) {
+import type { Ingredient } from '@/types/api';
+import { getErrorMessage } from '@/lib/errors';
+
+export function IngredientFormModal({ isOpen, onClose, ingredient }: { isOpen: boolean, onClose: () => void, ingredient?: Ingredient }) {
   const [name, setName] = useState("");
   const [unit, setUnit] = useState("");
   const [costPerUnit, setCostPerUnit] = useState<number | "">("");
@@ -46,8 +49,8 @@ export function IngredientFormModal({ isOpen, onClose, ingredient }: { isOpen: b
         toast.success("Ingredient created successfully!");
       }
       onClose();
-    } catch (err: any) {
-      toast.error(err.message || "Operation failed");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Operation failed"));
     }
   };
 

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_ENDPOINTS } from '@/lib/endpoints';
 import { fetchAPI } from '@/lib/api';
+import type { CreateUserPayload, UpdateUserPayload } from '@/types/api';
 
 // ==========================================
 // 👥 HR HOOKS
@@ -68,7 +69,7 @@ export const useUpdateHourlyRate = () => {
 export const useCreateUser = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: any) => fetchAPI(API_ENDPOINTS.hr.createUser, { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: CreateUserPayload) => fetchAPI(API_ENDPOINTS.hr.createUser, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hrUsers'] }),
   });
 };
@@ -76,7 +77,7 @@ export const useCreateUser = () => {
 export const useUpdateUser = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...data }: any) => fetchAPI(API_ENDPOINTS.hr.updateUser(id), { method: 'PATCH', body: JSON.stringify(data) }),
+    mutationFn: ({ id, ...data }: UpdateUserPayload) => fetchAPI(API_ENDPOINTS.hr.updateUser(id), { method: 'PATCH', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hrUsers'] }),
   });
 };

@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Wallet } from "lucide-react"
 import { toast } from "sonner"
+import { getErrorMessage } from '@/lib/errors'
 import { useCreateExpense } from '@/hooks/domains/useFinanceQueries'
 
 export function ExpenseForm({ branchIdNum }: { branchIdNum: number | undefined }) {
@@ -20,8 +21,8 @@ export function ExpenseForm({ branchIdNum }: { branchIdNum: number | undefined }
       });
       toast.success("Petty cash expense recorded")
       setExpenseForm({ amount: "", category: "", description: "" })
-    } catch (error: any) {
-      toast.error("Failed to record expense")
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to record expense"))
     }
   }
 

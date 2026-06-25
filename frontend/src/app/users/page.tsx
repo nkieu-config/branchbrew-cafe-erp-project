@@ -5,7 +5,7 @@ import { useHrUsers, useCreateUser, useUpdateUser } from "@/hooks/domains/useHrQ
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { AnimatedPage } from "@/components/animated-page";
 import { PageHeader } from "@/components/shared/page-header";
-import { ShieldCheck, Plus, User, Mail, Shield, Building } from "lucide-react";
+import { ShieldCheck, Plus, User as UserIcon, Mail, Shield, Building } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tag, Button as AntButton } from "antd";
 import { DataTable } from "@/components/shared/data-table";
 import { RoleGuard } from "@/components/RoleGuard";
+import type { User, Branch, CreateUserPayload, Role, EmploymentType } from "@/types/api";
+import { getErrorMessage } from "@/lib/errors";
 
 export default function UsersPage() {
   const { data: users, isLoading: usersLoading } = useHrUsers();
@@ -24,7 +26,7 @@ export default function UsersPage() {
   const updateMutation = useUpdateUser();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<any>(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   
   const [formData, setFormData] = useState({
     name: "",
@@ -37,7 +39,7 @@ export default function UsersPage() {
     baseSalary: 0
   });
 
-  const handleEdit = (user: any) => {
+  const handleEdit = (user: User) => {
     setEditingUser(user);
     setFormData({
       name: user.name || "",
@@ -67,9 +69,13 @@ export default function UsersPage() {
     }
 
     try {
-      const payload: any = { ...formData };
-      if (!payload.password) delete payload.password; // Don't send empty password on update
-      if (payload.branchId === 0) payload.branchId = null;
+      const payload: CreateUserPayload = {
+        ...formData,
+        role: formData.role as Role,
+        employmentType: formData.employmentType as EmploymentType,
+        branchId: formData.branchId === 0 ? null : formData.branchId,
+      };
+      if (!payload.password) delete payload.password;
 
       if (editingUser) {
         await updateMutation.mutateAsync({ id: editingUser.id, ...payload });
@@ -79,8 +85,8 @@ export default function UsersPage() {
         toast.success("User created successfully");
       }
       setIsModalOpen(false);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to save user");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to save user"));
     }
   };
 
@@ -109,10 +115,10 @@ export default function UsersPage() {
             {
               title: "User",
               key: "user",
-              render: (_, record: any) => (
+              render: (_, record: User) => (
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                    <User className="w-4 h-4 text-slate-500" />
+                    <UserIcon className="w-4 h-4 text-slate-500" />
                   </div>
                   <div>
                     <div className="font-medium text-slate-800 dark:text-slate-200">{record.name || 'Unnamed User'}</div>
@@ -143,8 +149,8 @@ export default function UsersPage() {
             {
               title: "Branch",
               key: "branch",
-              render: (_, record: any) => {
-                const branchName = branches?.find((b: any) => b.id === record.branchId)?.name || "All Branches (HQ)";
+              render: (_, record: User) => {
+                const branchName = (branches as Branch[] | undefined)?.find((b) => b.id === record.branchId)?.name || "All Branches (HQ)";
                 return (
                   <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
                     <Building className="w-4 h-4 text-slate-400" />
@@ -156,7 +162,7 @@ export default function UsersPage() {
             {
               title: "Employment",
               key: "employment",
-              render: (_, record: any) => (
+              render: (_, record: User) => (
                 <div className="text-slate-600 dark:text-slate-300">
                   {record.employmentType ? record.employmentType.replace('_', ' ') : 'N/A'}
                 </div>
@@ -166,7 +172,7 @@ export default function UsersPage() {
               title: "Actions",
               key: "actions",
               align: "right",
-              render: (_, record: any) => (
+              render: (_, record: User) => (
                 <AntButton type="link" onClick={() => handleEdit(record)} className="text-blue-600 hover:text-blue-700 font-medium">
                   Edit Profile
                 </AntButton>
@@ -222,7 +228,7 @@ export default function UsersPage() {
                   onChange={(e) => setFormData({...formData, branchId: Number(e.target.value)})}
                 >
                   <option value={0}>All Branches (HQ / Admin)</option>
-                  {branches?.map((b: any) => (
+                  {(branches as Branch[] | undefined)?.map((b) => (
                     <option key={b.id} value={b.id}>{b.name}</option>
                   ))}
                 </select>

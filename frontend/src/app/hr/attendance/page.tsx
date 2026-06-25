@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext"
 import { useAttendance, useShifts, useActiveClockIn, useClockIn, useClockOut } from '@/hooks/domains/useHrQueries';
 import { Table, Tag, Typography, Tooltip, Button as AntButton } from "antd"
 import { Clock, AlertCircle, PlayCircle, StopCircle } from "lucide-react"
+import { getErrorMessage } from "@/lib/errors"
 import { toast } from "sonner"
 import { AnimatedPage } from "@/components/animated-page"
 import { PageHeader } from "@/components/shared/page-header"
@@ -12,6 +13,13 @@ import { User, Shift } from "@/types/api"
 import { format, isSameDay, differenceInMinutes } from "date-fns"
 
 const { Text } = Typography;
+
+interface AttendanceRecord {
+  id: number;
+  clockIn: string;
+  clockOut?: string | null;
+  user?: User;
+}
 
 export default function AttendancePage() {
   const { user, activeBranchId } = useAuth()
@@ -34,8 +42,8 @@ export default function AttendancePage() {
     try {
       await clockInMutation.mutateAsync(Number(activeBranchId));
       toast.success("Clocked in successfully!");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to clock in");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to clock in"));
     }
   }
 
@@ -43,8 +51,8 @@ export default function AttendancePage() {
     try {
       await clockOutMutation.mutateAsync();
       toast.success("Clocked out successfully!");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to clock out");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to clock out"));
     }
   }
 
@@ -59,7 +67,7 @@ export default function AttendancePage() {
       title: 'Clock In',
       dataIndex: 'clockIn',
       key: 'in',
-      render: (val: string, record: any) => {
+      render: (val: string, record: AttendanceRecord) => {
         const clockInDate = new Date(val);
         const dayShift = shifts.find((s: Shift) => isSameDay(new Date(s.startTime), clockInDate));
         
@@ -150,7 +158,7 @@ export default function AttendancePage() {
         rowKey="id"
         loading={isLoading}
         pagination={{ pageSize: 10 }}
-        rowClassName={(record: any) => {
+        rowClassName={(record: AttendanceRecord) => {
           if (record.user?.role === 'SUPER_ADMIN') return '';
           const clockInDate = new Date(record.clockIn);
           const dayShift = shifts.find((s: Shift) => isSameDay(new Date(s.startTime), clockInDate));

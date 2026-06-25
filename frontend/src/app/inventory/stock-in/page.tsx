@@ -10,17 +10,20 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowDownToLine, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { filterActive, updateLineItem } from "@/lib/form";
+import type { Ingredient, StockLineItem } from "@/types/api";
+import { getErrorMessage } from "@/lib/errors";
 
 export default function StockInPage() {
   const { activeBranchId } = useAuth();
   const router = useRouter();
   
   const { data: ingredientsData } = useIngredients();
-  const ingredients = (ingredientsData || []).filter((i: any) => i.isActive !== false);
+  const ingredients = filterActive((ingredientsData || []) as Ingredient[]);
   
   const stockInMutation = useStockIn();
 
-  const [items, setItems] = useState<{ ingredientId: number, quantity: number, expiryDate: string }[]>([
+  const [items, setItems] = useState<StockLineItem[]>([
     { ingredientId: 0, quantity: 0, expiryDate: "" }
   ]);
 
@@ -34,10 +37,8 @@ export default function StockInPage() {
     setItems(newItems);
   };
 
-  const handleChange = (index: number, field: string, value: any) => {
-    const newItems = [...items];
-    (newItems[index] as any)[field] = value;
-    setItems(newItems);
+  const handleChange = <K extends keyof StockLineItem>(index: number, field: K, value: StockLineItem[K]) => {
+    setItems(updateLineItem(items, index, field, value));
   };
 
   const handleSubmit = async () => {
@@ -63,8 +64,8 @@ export default function StockInPage() {
       });
       toast.success("Stock received successfully!");
       router.push("/inventory");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to receive stock");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to receive stock"));
     }
   };
 
@@ -89,7 +90,7 @@ export default function StockInPage() {
                 onChange={(e) => handleChange(idx, 'ingredientId', Number(e.target.value))}
               >
                 <option value={0}>Select ingredient...</option>
-                {ingredients.map((ing: any) => (
+                {ingredients.map((ing) => (
                   <option key={ing.id} value={ing.id}>{ing.name} ({ing.unit})</option>
                 ))}
               </select>

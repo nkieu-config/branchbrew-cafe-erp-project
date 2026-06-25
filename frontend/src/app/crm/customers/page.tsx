@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Progress } from "@/components/ui/progress";
 import { PageHeader } from "@/components/shared/page-header";
-import { Customer } from "@/types/api";
+import { Customer, Order } from "@/types/api";
 
 export default function CustomersPage() {
   const [search, setSearch] = useState("");
@@ -272,7 +272,7 @@ export default function CustomersPage() {
                 <h4 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-2"><History className="w-4 h-4 text-blue-500"/> Recent Activity</h4>
                 {customer360.recentOrders?.length > 0 ? (
                   <div className="space-y-3">
-                    {customer360.recentOrders.map((order: any) => (
+                    {customer360.recentOrders.map((order: Order) => (
                       <div key={order.id} className="flex justify-between items-center p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
                         <div className="flex items-center gap-3">
                           <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-500">
@@ -280,7 +280,7 @@ export default function CustomersPage() {
                           </div>
                           <div>
                             <p className="font-bold text-slate-700 dark:text-slate-300">{new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
-                            <p className="text-xs text-slate-500 font-medium">{order.items.length} items</p>
+                            <p className="text-xs text-slate-500 font-medium">{order.items?.length ?? 0} items</p>
                           </div>
                         </div>
                         <div className="font-black text-slate-800 dark:text-slate-200">

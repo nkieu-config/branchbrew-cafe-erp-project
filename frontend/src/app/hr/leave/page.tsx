@@ -8,6 +8,7 @@ import { DataTable } from "@/components/shared/data-table"
 import { LeaveRequest } from "@/types/api"
 import { AnimatedPage } from "@/components/animated-page"
 import { useLeaveRequests, useUpdateLeaveStatus, useCreateLeave } from '@/hooks/domains/useHrQueries';
+import { getErrorMessage } from "@/lib/errors"
 import { toast } from "sonner"
 import { useState } from "react"
 import { FormModal } from "@/components/shared/form-modal"
@@ -30,12 +31,12 @@ export default function LeaveRequestsPage() {
     try {
       await updateLeaveStatusMutation.mutateAsync({ id, status });
       toast.success(`Leave status updated to ${status}`);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update leave status");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to update leave status"));
     }
   }
 
-  const handleCreateLeave = async (values: any) => {
+  const handleCreateLeave = async (values: { type: string; dates: [Date, Date]; reason?: string }) => {
     try {
       await createLeaveMutation.mutateAsync({
         type: values.type,
@@ -46,8 +47,8 @@ export default function LeaveRequestsPage() {
       toast.success("Leave requested successfully");
       setIsModalOpen(false);
       form.resetFields();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to request leave");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to request leave"));
     }
   }
 

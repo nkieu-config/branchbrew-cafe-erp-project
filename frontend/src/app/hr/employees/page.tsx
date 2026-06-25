@@ -6,6 +6,7 @@ import { useHrUsers, useUpdateHourlyRate } from '@/hooks/domains/useHrQueries';
 import { Table, Tag, Typography, Button as AntButton, Form, InputNumber, Avatar } from "antd";
 import { Users, UserCog, Edit3 } from "lucide-react";
 import { FormModal } from "@/components/shared/form-modal";
+import { getErrorMessage } from "@/lib/errors";
 import { toast } from "sonner";
 import { AnimatedPage } from "@/components/animated-page";
 import { PageHeader } from "@/components/shared/page-header";
@@ -34,15 +35,15 @@ export default function EmployeeDirectoryPage() {
     setIsModalOpen(true);
   };
 
-  const handleUpdateSubmit = async (values: any) => {
+  const handleUpdateSubmit = async (values: { hourlyRate: number }) => {
     if (!selectedUser) return;
     try {
       await updateHourlyRateMutation.mutateAsync({ userId: selectedUser.id, hourlyRate: values.hourlyRate });
       toast.success("Hourly rate updated successfully");
       setIsModalOpen(false);
       setSelectedUser(null);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update hourly rate");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to update hourly rate"));
     }
   };
 

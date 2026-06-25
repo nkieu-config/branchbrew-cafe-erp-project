@@ -4,7 +4,8 @@ import { useState } from "react"
 import { useAuth } from "@/context/AuthContext"
 import { Table, Tag, Button as AntButton, Popconfirm, Typography } from "antd"
 import { Users, FileText, CheckCircle, Receipt } from "lucide-react"
-import { toast } from "sonner"
+import { getErrorMessage } from "@/lib/errors";
+import { toast } from "sonner";
 import { AnimatedPage } from "@/components/animated-page"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
@@ -30,8 +31,8 @@ export default function PayrollPage() {
     try {
       await generatePayrollMutation.mutateAsync({ branchId: branchIdNum, month: now.getMonth() + 1, year: now.getFullYear() });
       toast.success("Payroll run generated successfully!");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to generate payroll");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to generate payroll"));
     }
   };
 
@@ -39,8 +40,8 @@ export default function PayrollPage() {
     try {
       await approvePayrollMutation.mutateAsync(id);
       toast.success("Payroll run approved!");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to approve payroll");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to approve payroll"));
     }
   };
 

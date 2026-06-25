@@ -10,17 +10,20 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Trash2, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { filterActive, updateLineItem } from "@/lib/form";
+import type { Ingredient, WasteLineItem } from "@/types/api";
+import { getErrorMessage } from "@/lib/errors";
 
 export default function WasteLogPage() {
   const { activeBranchId } = useAuth();
   const router = useRouter();
   
   const { data: ingredientsData } = useIngredients();
-  const ingredients = (ingredientsData || []).filter((i: any) => i.isActive !== false);
+  const ingredients = filterActive((ingredientsData || []) as Ingredient[]);
   
   const recordWasteMutation = useRecordWaste();
 
-  const [items, setItems] = useState<{ ingredientId: number, quantity: number, reason: string }[]>([
+  const [items, setItems] = useState<WasteLineItem[]>([
     { ingredientId: 0, quantity: 0, reason: "" }
   ]);
 
@@ -34,10 +37,8 @@ export default function WasteLogPage() {
     setItems(newItems);
   };
 
-  const handleChange = (index: number, field: string, value: any) => {
-    const newItems = [...items];
-    (newItems[index] as any)[field] = value;
-    setItems(newItems);
+  const handleChange = <K extends keyof WasteLineItem>(index: number, field: K, value: WasteLineItem[K]) => {
+    setItems(updateLineItem(items, index, field, value));
   };
 
   const handleSubmit = async () => {
@@ -68,8 +69,8 @@ export default function WasteLogPage() {
       });
       toast.success("Waste recorded successfully!");
       router.push("/inventory");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to record waste. Not enough stock?");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to record waste. Not enough stock?"));
     }
   };
 
@@ -94,7 +95,7 @@ export default function WasteLogPage() {
                 onChange={(e) => handleChange(idx, 'ingredientId', Number(e.target.value))}
               >
                 <option value={0}>Select ingredient...</option>
-                {ingredients.map((ing: any) => (
+                {ingredients.map((ing) => (
                   <option key={ing.id} value={ing.id}>{ing.name} ({ing.unit})</option>
                 ))}
               </select>

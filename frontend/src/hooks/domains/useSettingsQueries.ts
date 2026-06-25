@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_ENDPOINTS } from '@/lib/endpoints';
 import { fetchAPI } from '@/lib/api';
+import { getErrorMessage } from '@/lib/errors';
 import { toast } from 'sonner';
 
 export const useSettings = () => {
@@ -23,8 +24,8 @@ export const useUpdateSettings = () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
       toast.success('Settings updated successfully');
     },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to update settings');
+    onError: (error: unknown) => {
+      toast.error(getErrorMessage(error, 'Failed to update settings'));
     }
   });
 };

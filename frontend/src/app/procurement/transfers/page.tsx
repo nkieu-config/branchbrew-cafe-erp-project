@@ -13,6 +13,7 @@ import { AnimatedPage } from "@/components/animated-page";
 import { PageHeader } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
 import { StockTransfer, Branch, Ingredient, User } from "@/types/api";
+import type { CreateTransferDTO } from "@/types/schemas";
 import { format } from "date-fns";
 
 export default function TransfersPage() {
@@ -36,7 +37,7 @@ export default function TransfersPage() {
   const [submitting, setSubmitting] = useState(false);
   const [form] = Form.useForm();
 
-  const handleCreateSubmit = async (values: any) => {
+  const handleCreateSubmit = async (values: CreateTransferDTO & { fromBranchId?: number }) => {
     if (!activeBranchId && !values.toBranchId) {
       toast.error("Please select a target branch");
       return;
@@ -124,7 +125,7 @@ export default function TransfersPage() {
     {
       title: 'Status',
       key: 'status',
-      render: (_: unknown, record: any) => (
+      render: (_: unknown, record: StockTransfer) => (
         <Tag color={getStatusColor(record.status)} className="px-2 py-0.5 rounded-md font-bold tracking-wide">
           {record.status}
         </Tag>
@@ -134,7 +135,7 @@ export default function TransfersPage() {
       title: 'Action',
       key: 'action',
       align: 'right' as const,
-      render: (_: unknown, record: any) => (
+      render: (_: unknown, record: StockTransfer) => (
         <div className="flex justify-end gap-2">
           {canAccept(record) && (
             <Popconfirm title="Confirm receiving this stock transfer?" onConfirm={() => handleAccept(record.id)}>

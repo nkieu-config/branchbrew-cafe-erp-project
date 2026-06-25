@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Coffee, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
+import { getErrorMessage } from "@/lib/errors";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -22,8 +23,8 @@ export default function LoginPage() {
     try {
       const response = await loginApi({ email, password });
       login(response.user);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to login");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to login"));
     } finally {
       setLoading(false);
     }

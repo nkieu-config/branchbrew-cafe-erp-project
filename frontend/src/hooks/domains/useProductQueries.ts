@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_ENDPOINTS } from '@/lib/endpoints';
 import { fetchAPI } from '@/lib/api';
+import type { Product, Ingredient, UpdatePayload } from '@/types/api';
 
 // ==========================================
 // ☕ PRODUCT & MENU HOOKS
@@ -24,7 +25,7 @@ export const useCreateProduct = () => {
 export const useUpdateProduct = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: number; [key: string]: any }) => 
+    mutationFn: ({ id, ...data }: UpdatePayload<Product>) => 
       fetchAPI(API_ENDPOINTS.products.update(id), { method: 'PATCH', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['products'] }),
   });
@@ -60,7 +61,7 @@ export const useCreateIngredient = () => {
 export const useUpdateIngredient = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: number; [key: string]: any }) => 
+    mutationFn: ({ id, ...data }: UpdatePayload<Ingredient>) => 
       fetchAPI(API_ENDPOINTS.ingredients.update(id), { method: 'PATCH', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ingredients'] }),
   });

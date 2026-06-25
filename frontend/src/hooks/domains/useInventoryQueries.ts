@@ -21,11 +21,14 @@ export const useTransfers = (branchId?: number) => {
   });
 };
 
+import type { CreateTransferDTO } from '@/types/schemas';
+
 export const useCreateTransfer = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: unknown) => fetchAPI(API_ENDPOINTS.branches.createTransfer, { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: (_, variables: any) => {
+    mutationFn: (data: CreateTransferDTO & { fromBranchId: number }) =>
+      fetchAPI(API_ENDPOINTS.branches.createTransfer, { method: 'POST', body: JSON.stringify(data) }),
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['transfers', variables.fromBranchId] });
       queryClient.invalidateQueries({ queryKey: ['branch', variables.fromBranchId] });
     },
@@ -36,7 +39,7 @@ export const useAcceptTransfer = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ transferId, branchId }: { transferId: number, branchId: number }) => fetchAPI(API_ENDPOINTS.branches.acceptTransfer(transferId), { method: 'POST' }),
-    onSuccess: (_, variables: any) => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['transfers', variables.branchId] });
       queryClient.invalidateQueries({ queryKey: ['branch', variables.branchId] });
     },
@@ -47,7 +50,7 @@ export const useAddInventoryBatch = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ branchId, data }: { branchId: number, data: unknown }) => fetchAPI(API_ENDPOINTS.branches.addBatch(branchId), { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: (_, variables: any) => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['branch', variables.branchId] });
     },
   });
@@ -65,7 +68,7 @@ export const useReportWaste = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ branchId, data }: { branchId: number, data: unknown }) => fetchAPI(API_ENDPOINTS.branches.reportWaste(branchId), { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: (_, variables: any) => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['wasteLogs', variables.branchId] });
       queryClient.invalidateQueries({ queryKey: ['branch', variables.branchId] });
     },

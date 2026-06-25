@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import { AnimatedPage } from "@/components/animated-page"
 import { PageHeader } from "@/components/shared/page-header"
 import { Branch } from "@/types/api"
+import type { JournalEntry } from "@/types/api"
 import {
   LineChart,
   Line,
@@ -73,7 +74,7 @@ export default function GeneralLedgerPage() {
     },
   ]
 
-  const expandedRowRender = (record: any) => {
+  const expandedRowRender = (record: JournalEntry) => {
     const lineColumns = [
       { title: 'Account Code', dataIndex: ['account', 'code'], key: 'code', render: (text: string) => <span className="font-mono font-bold text-slate-500">{text}</span> },
       { title: 'Account Name', dataIndex: ['account', 'name'], key: 'name', render: (text: string) => <span className="font-semibold text-slate-700">{text}</span> },
@@ -196,7 +197,7 @@ export default function GeneralLedgerPage() {
                 />
                 <Tooltip 
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)', fontWeight: 'bold' }}
-                  formatter={(value: any, name: any) => [`฿${Number(value).toLocaleString()}`, name]}
+                  formatter={(value, name) => [`฿${Number(value ?? 0).toLocaleString()}`, String(name ?? '')]}
                 />
                 <Legend wrapperStyle={{ fontWeight: 'bold', paddingTop: '20px' }} />
                 <Line 

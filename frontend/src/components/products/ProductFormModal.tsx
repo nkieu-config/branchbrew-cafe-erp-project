@@ -9,7 +9,11 @@ import { useCreateProduct, useUpdateProduct, useIngredients } from "@/hooks/doma
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 
-export function ProductFormModal({ isOpen, onClose, product }: { isOpen: boolean, onClose: () => void, product?: any }) {
+import type { Product, Ingredient } from "@/types/api";
+import { updateLineItem } from "@/lib/form";
+import { getErrorMessage } from "@/lib/errors";
+
+export function ProductFormModal({ isOpen, onClose, product }: { isOpen: boolean, onClose: () => void, product?: Product }) {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState<number | "">("");
@@ -28,7 +32,7 @@ export function ProductFormModal({ isOpen, onClose, product }: { isOpen: boolean
       setCategory(product.category);
       setPrice(product.price);
       setIsActive(product.isActive ?? true);
-      setRecipeItems(product.recipeItems?.map((ri: any) => ({
+      setRecipeItems(product.recipeItems?.map((ri) => ({
         ingredientId: ri.ingredientId,
         quantity: ri.quantity
       })) || []);
@@ -51,10 +55,8 @@ export function ProductFormModal({ isOpen, onClose, product }: { isOpen: boolean
     setRecipeItems(newItems);
   };
 
-  const handleRecipeItemChange = (index: number, field: string, value: number) => {
-    const newItems = [...recipeItems];
-    (newItems[index] as any)[field] = value;
-    setRecipeItems(newItems);
+  const handleRecipeItemChange = (index: number, field: 'ingredientId' | 'quantity', value: number) => {
+    setRecipeItems(updateLineItem(recipeItems, index, field, value));
   };
 
   const handleSubmit = async () => {
@@ -76,15 +78,15 @@ export function ProductFormModal({ isOpen, onClose, product }: { isOpen: boolean
       };
 
       if (product) {
-        await updateMutation.mutateAsync({ id: product.id, ...payload });
+        await updateMutation.mutateAsync({ id: product.id, ...payload } as Parameters<typeof updateMutation.mutateAsync>[0]);
         toast.success("Product updated successfully!");
       } else {
         await createMutation.mutateAsync(payload);
         toast.success("Product created successfully!");
       }
       onClose();
-    } catch (err: any) {
-      toast.error(err.message || "Operation failed");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Operation failed"));
     }
   };
 
@@ -147,7 +149,7 @@ export function ProductFormModal({ isOpen, onClose, product }: { isOpen: boolean
                         onChange={(e) => handleRecipeItemChange(idx, 'ingredientId', Number(e.target.value))}
                       >
                         <option value={0}>Select...</option>
-                        {ingredients.map((ing: any) => (
+                        {ingredients.map((ing: Ingredient) => (
                           <option key={ing.id} value={ing.id}>{ing.name} ({ing.unit})</option>
                         ))}
                       </select>
