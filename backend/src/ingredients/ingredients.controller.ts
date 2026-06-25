@@ -5,6 +5,7 @@ import { Roles } from '../auth/roles.decorator';
 import { IngredientsService } from './ingredients.service';
 import type { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
 import { resolveBranchId } from '../auth/branch-scope.util';
+import { CreateIngredientDto, UpdateIngredientDto } from './dto/ingredient.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('ingredients')
@@ -36,8 +37,8 @@ export class IngredientsController {
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post()
-  create(@Body() createIngredientDto: { name: string; unit: string; costPerUnit?: number; primarySupplierId?: number; isActive?: boolean }) {
-    return this.ingredientsService.create(createIngredientDto);
+  create(@Body() dto: CreateIngredientDto) {
+    return this.ingredientsService.create(dto);
   }
 
   @Get(':id')
@@ -47,8 +48,8 @@ export class IngredientsController {
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateIngredientDto: Partial<{ name: string; unit: string; costPerUnit: number; primarySupplierId: number; isActive: boolean }>) {
-    return this.ingredientsService.update(id, updateIngredientDto);
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateIngredientDto) {
+    return this.ingredientsService.update(id, dto);
   }
 
   @Roles('SUPER_ADMIN', 'MANAGER')

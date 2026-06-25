@@ -1,6 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { LeaveType, LeaveStatus } from '@prisma/client';
+import { assertBranchAccess, BranchScopedUser } from '../auth/branch-scope.util';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class HrService {
@@ -112,10 +115,19 @@ export class HrService {
     });
   }
 
-  async processLeaveRequest(id: number, status: LeaveStatus) {
+  async processLeaveRequest(id: number, status: LeaveStatus, user: BranchScopedUser) {
+    const leave = await this.prisma.leaveRequest.findUnique({
+      where: { id },
+      include: { user: { select: { branchId: true } } },
+    });
+    if (!leave) throw new NotFoundException('Leave request not found');
+    if (leave.user.branchId != null) {
+      assertBranchAccess(user, leave.user.branchId);
+    }
+
     return this.prisma.leaveRequest.update({
       where: { id },
-      data: { status }
+      data: { status },
     });
   }
 
@@ -217,10 +229,16 @@ export class HrService {
     });
   }
 
-  async approvePayrollRun(runId: number) {
+  async approvePayrollRun(runId: number, user: BranchScopedUser) {
+    const run = await this.prisma.payrollRun.findUnique({ where: { id: runId } });
+    if (!run) throw new NotFoundException('Payroll run not found');
+    if (run.branchId != null) {
+      assertBranchAccess(user, run.branchId);
+    }
+
     return this.prisma.payrollRun.update({
       where: { id: runId },
-      data: { status: 'APPROVED' }
+      data: { status: 'APPROVED' },
     });
   }
 
@@ -238,7 +256,7 @@ export class HrService {
     });
   }
 
-  async createUser(data: any) {
+  async createUser(data: CreateUserDto) {
     const bcrypt = require('bcrypt');
     const hashedPassword = await bcrypt.hash(data.password, 10);
     return this.prisma.user.create({
@@ -250,14 +268,15 @@ export class HrService {
     });
   }
 
-  async updateUser(id: number, data: any) {
-    if (data.password) {
+  async updateUser(id: number, data: UpdateUserDto) {
+    const updateData: UpdateUserDto & { password?: string } = { ...data };
+    if (updateData.password) {
       const bcrypt = require('bcrypt');
-      data.password = await bcrypt.hash(data.password, 10);
+      updateData.password = await bcrypt.hash(updateData.password, 10);
     }
     return this.prisma.user.update({
       where: { id },
-      data,
+      data: updateData,
       select: { id: true, name: true, email: true, role: true, branchId: true }
     });
   }

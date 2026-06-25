@@ -4,7 +4,15 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
-import { LeaveType, LeaveStatus } from '@prisma/client';
+import { assertBranchAccess, resolveBranchId, resolveOptionalBranchId } from '../auth/branch-scope.util';
+import { ClockInDto } from './dto/clock-in.dto';
+import { CreateShiftDto } from './dto/create-shift.dto';
+import { RequestLeaveDto } from './dto/request-leave.dto';
+import { ProcessLeaveDto } from './dto/process-leave.dto';
+import { GeneratePayrollDto } from './dto/generate-payroll.dto';
+import { UpdateHourlyRateDto } from './dto/update-hourly-rate.dto';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('hr')
@@ -12,8 +20,9 @@ export class HrController {
   constructor(private readonly hrService: HrService) {}
 
   @Post('clock-in')
-  clockIn(@Request() req: RequestWithUser, @Body('branchId', ParseIntPipe) branchId: number) {
-    return this.hrService.clockIn(req.user.userId, branchId);
+  clockIn(@Request() req: RequestWithUser, @Body() dto: ClockInDto) {
+    assertBranchAccess(req.user, dto.branchId);
+    return this.hrService.clockIn(req.user.userId, dto.branchId);
   }
 
   @Post('clock-out')
@@ -33,12 +42,14 @@ export class HrController {
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('shifts')
-  createShift(@Body() data: { userId: number; branchId: number; startTime: string; endTime: string }) {
-    return this.hrService.createShift(data);
+  createShift(@Request() req: RequestWithUser, @Body() dto: CreateShiftDto) {
+    const branchId = resolveBranchId(req.user, dto.branchId);
+    return this.hrService.createShift({ ...dto, branchId });
   }
 
   @Get('shifts/branch/:branchId')
-  getShiftsByBranch(@Param('branchId', ParseIntPipe) branchId: number) {
+  getShiftsByBranch(@Request() req: RequestWithUser, @Param('branchId', ParseIntPipe) branchId: number) {
+    assertBranchAccess(req.user, branchId);
     return this.hrService.getShiftsByBranch(branchId);
   }
 
@@ -47,16 +58,19 @@ export class HrController {
     return this.hrService.getMyShifts(req.user.userId);
   }
 
-  // ==================== LEAVE ====================
   @Post('leave')
-  requestLeave(@Request() req: RequestWithUser, @Body() data: { type: LeaveType, startDate: string, endDate: string, reason?: string }) {
-    return this.hrService.requestLeave(req.user.userId, data);
+  requestLeave(@Request() req: RequestWithUser, @Body() dto: RequestLeaveDto) {
+    return this.hrService.requestLeave(req.user.userId, dto);
   }
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Get('leave')
-  getLeaveRequests(@Query('branchId') branchId?: string) {
-    return this.hrService.getLeaveRequests(branchId ? parseInt(branchId) : undefined);
+  getLeaveRequests(@Request() req: RequestWithUser, @Query('branchId') branchId?: string) {
+    const resolvedBranchId = resolveOptionalBranchId(
+      req.user,
+      branchId ? parseInt(branchId, 10) : undefined,
+    );
+    return this.hrService.getLeaveRequests(resolvedBranchId);
   }
 
   @Get('leave/me')
@@ -66,56 +80,59 @@ export class HrController {
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('leave/:id/status')
-  processLeaveRequest(@Param('id', ParseIntPipe) id: number, @Body('status') status: LeaveStatus) {
-    return this.hrService.processLeaveRequest(id, status);
+  processLeaveRequest(
+    @Request() req: RequestWithUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ProcessLeaveDto,
+  ) {
+    return this.hrService.processLeaveRequest(id, dto.status, req.user);
   }
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('payroll/generate')
-  generatePayrollRun(
-    @Body('branchId', ParseIntPipe) branchId: number, 
-    @Body('month', ParseIntPipe) month: number, 
-    @Body('year', ParseIntPipe) year: number
-  ) {
-    return this.hrService.generatePayrollRun(branchId, month, year);
+  generatePayrollRun(@Request() req: RequestWithUser, @Body() dto: GeneratePayrollDto) {
+    assertBranchAccess(req.user, dto.branchId);
+    return this.hrService.generatePayrollRun(dto.branchId, dto.month, dto.year);
   }
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Get('payroll-runs')
-  getPayrollRuns(@Query('branchId', ParseIntPipe) branchId: number) {
+  getPayrollRuns(@Request() req: RequestWithUser, @Query('branchId', ParseIntPipe) branchId: number) {
+    assertBranchAccess(req.user, branchId);
     return this.hrService.getPayrollRuns(branchId);
   }
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('payroll-runs/:id/approve')
-  approvePayrollRun(@Param('id', ParseIntPipe) id: number) {
-    return this.hrService.approvePayrollRun(id);
+  approvePayrollRun(@Request() req: RequestWithUser, @Param('id', ParseIntPipe) id: number) {
+    return this.hrService.approvePayrollRun(id, req.user);
   }
 
   @Roles('SUPER_ADMIN')
   @Patch('users/:userId/rate')
-  updateHourlyRate(@Param('userId', ParseIntPipe) userId: number, @Body('hourlyRate') hourlyRate: number) {
-    return this.hrService.updateHourlyRate(userId, Number(hourlyRate));
+  updateHourlyRate(@Param('userId', ParseIntPipe) userId: number, @Body() dto: UpdateHourlyRateDto) {
+    return this.hrService.updateHourlyRate(userId, dto.hourlyRate);
   }
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Get('users')
   getAllUsers(@Request() req: RequestWithUser, @Query('branchId') branchId?: string) {
-    const resolvedBranchId = req.user.role === 'SUPER_ADMIN' && branchId
-      ? parseInt(branchId, 10)
-      : req.user.branchId ?? undefined;
+    const resolvedBranchId = resolveOptionalBranchId(
+      req.user,
+      branchId ? parseInt(branchId, 10) : undefined,
+    );
     return this.hrService.getAllUsers(resolvedBranchId);
   }
 
   @Roles('SUPER_ADMIN')
   @Post('users')
-  createUser(@Body() data: any) {
-    return this.hrService.createUser(data);
+  createUser(@Body() dto: CreateUserDto) {
+    return this.hrService.createUser(dto);
   }
 
   @Roles('SUPER_ADMIN')
   @Patch('users/:id')
-  updateUser(@Param('id', ParseIntPipe) id: number, @Body() data: any) {
-    return this.hrService.updateUser(id, data);
+  updateUser(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
+    return this.hrService.updateUser(id, dto);
   }
 }

@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body, Patch, Param, ParseIntPipe, UseGuards, Request, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, ParseIntPipe, UseGuards, Query } from '@nestjs/common';
 import { CustomersService } from './customers.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CreateCustomerDto, UpdateCustomerDto } from './dto/customer.dto';
 
 @Controller('customers')
 @UseGuards(JwtAuthGuard)
@@ -8,8 +9,8 @@ export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}
 
   @Post()
-  create(@Body() createCustomerDto: { name: string; phone: string }) {
-    return this.customersService.create(createCustomerDto);
+  create(@Body() dto: CreateCustomerDto) {
+    return this.customersService.create(dto);
   }
 
   @Get()
@@ -33,7 +34,7 @@ export class CustomersController {
   }
 
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateCustomerDto: Partial<{ name: string; email: string; phone: string }>) {
-    return this.customersService.update(id, updateCustomerDto);
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCustomerDto) {
+    return this.customersService.update(id, dto);
   }
 }

@@ -1,4 +1,4 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -7,6 +7,7 @@ import { PaymentMethod, OrderStatus, Customer } from '@prisma/client';
 import { InventoryHelper } from './helpers/inventory.helper';
 import { OutboxService } from '../outbox/outbox.service';
 import { toNum } from '../common/decimal.util';
+import { assertBranchAccess, BranchScopedUser } from '../auth/branch-scope.util';
 
 @Injectable()
 export class OrdersService {
@@ -170,11 +171,14 @@ export class OrdersService {
     });
   }
 
-  async findOne(id: number) {
-    return this.prisma.order.findUnique({ 
-      where: { id }, 
-      include: { items: true, branch: true, customer: true, promotion: true } 
+  async findOne(id: number, user?: BranchScopedUser) {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: { items: true, branch: true, customer: true, promotion: true },
     });
+    if (!order) throw new NotFoundException('Order not found');
+    if (user) assertBranchAccess(user, order.branchId);
+    return order;
   }
 
   // ==================== KDS (Kitchen Display System) ====================
@@ -192,10 +196,14 @@ export class OrdersService {
     });
   }
 
-  async updateOrderStatus(orderId: number, status: OrderStatus) {
+  async updateOrderStatus(orderId: number, status: OrderStatus, user?: BranchScopedUser) {
+    const existing = await this.prisma.order.findUnique({ where: { id: orderId } });
+    if (!existing) throw new NotFoundException('Order not found');
+    if (user) assertBranchAccess(user, existing.branchId);
+
     const updated = await this.prisma.order.update({
       where: { id: orderId },
-      data: { status }
+      data: { status },
     });
     
     // Emit Event to notify decoupled systems (EventsGateway will catch this and broadcast)

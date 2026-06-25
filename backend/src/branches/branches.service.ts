@@ -1,5 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { assertBranchAccess, BranchScopedUser } from '../auth/branch-scope.util';
 
 @Injectable()
 export class BranchesService {
@@ -96,10 +97,11 @@ export class BranchesService {
     });
   }
 
-  async acceptTransfer(transferId: number, approvedById: number) {
+  async acceptTransfer(transferId: number, approvedById: number, user?: BranchScopedUser) {
     return this.prisma.$transaction(async (tx) => {
       const transfer = await tx.stockTransfer.findUnique({ where: { id: transferId } });
       if (!transfer) throw new BadRequestException('Transfer not found');
+      if (user) assertBranchAccess(user, transfer.toBranchId);
       if (transfer.status !== 'PENDING') throw new BadRequestException('Transfer already processed');
 
       // Deduct from Source InventoryBatch

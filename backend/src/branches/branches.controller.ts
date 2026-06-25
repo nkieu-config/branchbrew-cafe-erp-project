@@ -4,7 +4,12 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import type { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
-import { assertBranchAccess } from '../auth/branch-scope.util';
+import { assertBranchAccess, resolveBranchId } from '../auth/branch-scope.util';
+import { CreateBranchDto } from './dto/create-branch.dto';
+import { UpdateBranchDto } from './dto/update-branch.dto';
+import { CreateTransferDto } from './dto/create-transfer.dto';
+import { AddInventoryBatchDto } from './dto/add-inventory-batch.dto';
+import { ReportWasteDto } from './dto/report-waste.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('branches')
@@ -18,33 +23,40 @@ export class BranchesController {
 
   @Roles('SUPER_ADMIN')
   @Post()
-  createBranch(@Body() data: { name: string; location?: string; isCentralKitchen?: boolean }) {
-    return this.branchesService.createBranch(data);
+  createBranch(@Body() dto: CreateBranchDto) {
+    return this.branchesService.createBranch(dto);
   }
 
   @Get('transfers/all')
-  getAllTransfers() {
-    return this.branchesService.getAllTransfers();
+  getAllTransfers(@Request() req: RequestWithUser) {
+    if (req.user.role === 'SUPER_ADMIN') {
+      return this.branchesService.getAllTransfers();
+    }
+    const branchId = resolveBranchId(req.user);
+    return this.branchesService.getTransfers(branchId);
   }
 
   @Post('transfers')
-  createTransfer(@Body() data: { fromBranchId: number, toBranchId: number, ingredientId: number, quantity: number }, @Request() req: RequestWithUser) {
-    assertBranchAccess(req.user, data.fromBranchId);
+  createTransfer(@Body() dto: CreateTransferDto, @Request() req: RequestWithUser) {
+    assertBranchAccess(req.user, dto.fromBranchId);
+    if (req.user.role !== 'SUPER_ADMIN') {
+      assertBranchAccess(req.user, dto.toBranchId);
+    }
     return this.branchesService.createTransfer({
-      ...data,
-      requestedById: req.user.userId
+      ...dto,
+      requestedById: req.user.userId,
     });
   }
 
   @Post('transfers/:id/accept')
   acceptTransfer(@Param('id', ParseIntPipe) id: number, @Request() req: RequestWithUser) {
-    return this.branchesService.acceptTransfer(id, req.user.userId);
+    return this.branchesService.acceptTransfer(id, req.user.userId, req.user);
   }
 
   @Roles('SUPER_ADMIN')
   @Patch(':id')
-  updateBranch(@Param('id', ParseIntPipe) id: number, @Body() data: { name?: string; location?: string; isCentralKitchen?: boolean }) {
-    return this.branchesService.updateBranch(id, data);
+  updateBranch(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateBranchDto) {
+    return this.branchesService.updateBranch(id, dto);
   }
 
   @Get(':id/transfers')
@@ -54,15 +66,23 @@ export class BranchesController {
   }
 
   @Post(':id/batches')
-  addInventoryBatch(@Param('id', ParseIntPipe) id: number, @Body() data: { ingredientId: number, quantity: number, expiryDate?: string }, @Request() req: RequestWithUser) {
+  addInventoryBatch(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: AddInventoryBatchDto,
+    @Request() req: RequestWithUser,
+  ) {
     assertBranchAccess(req.user, id);
-    return this.branchesService.addInventoryBatch(id, data, req.user.userId);
+    return this.branchesService.addInventoryBatch(id, dto, req.user.userId);
   }
 
   @Post(':id/waste')
-  reportWaste(@Param('id', ParseIntPipe) id: number, @Body() data: { batchId?: number, ingredientId: number, quantity: number, reason: string }, @Request() req: RequestWithUser) {
+  reportWaste(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ReportWasteDto,
+    @Request() req: RequestWithUser,
+  ) {
     assertBranchAccess(req.user, id);
-    return this.branchesService.reportWaste(id, data, req.user.userId);
+    return this.branchesService.reportWaste(id, dto, req.user.userId);
   }
 
   @Get(':id')

@@ -1,5 +1,6 @@
-import { IsInt, IsPositive, IsArray, ValidateNested, IsOptional, IsString, Min } from 'class-validator';
+import { IsInt, IsPositive, IsArray, ValidateNested, IsOptional, IsString, Min, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
+import { PaymentMethod } from '@prisma/client';
 
 export class OrderItemDto {
   @IsInt()
@@ -36,8 +37,8 @@ export class CreateOrderDto {
   pointsToRedeem?: number;
 
   @IsOptional()
-  @IsString()
-  paymentMethod?: 'CASH' | 'CREDIT_CARD' | 'QR_PROMPTPAY';
+  @IsEnum(PaymentMethod)
+  paymentMethod?: PaymentMethod;
 
   @IsOptional()
   isTaxInvoiceRequested?: boolean;

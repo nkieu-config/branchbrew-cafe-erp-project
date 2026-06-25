@@ -6,6 +6,8 @@ import { Roles } from '../auth/roles.decorator';
 import { FinanceService } from './finance.service';
 import type { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
 import { resolveBranchId } from '../auth/branch-scope.util';
+import { CreateExpenseDto } from './dto/create-expense.dto';
+import { SubmitSettlementDto } from './dto/submit-settlement.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('finance')
@@ -13,9 +15,9 @@ export class FinanceController {
   constructor(private readonly financeService: FinanceService) {}
 
   @Post('expenses')
-  createExpense(@Body() body: { branchId?: number; amount: number; category: string; description?: string }, @Request() req: RequestWithUser) {
-    const branchId = resolveBranchId(req.user, body.branchId);
-    return this.financeService.createExpense({ ...body, branchId, recordedById: req.user.userId });
+  createExpense(@Body() dto: CreateExpenseDto, @Request() req: RequestWithUser) {
+    const branchId = resolveBranchId(req.user, dto.branchId);
+    return this.financeService.createExpense({ ...dto, branchId, recordedById: req.user.userId });
   }
 
   @Get('expenses')
@@ -37,14 +39,14 @@ export class FinanceController {
   }
 
   @Post('settlements')
-  submitSettlement(@Body() body: { branchId?: number; actualCash: number; actualCreditCard?: number; actualQR?: number }, @Request() req: RequestWithUser) {
-    const branchId = resolveBranchId(req.user, body.branchId);
-    return this.financeService.submitSettlement({ 
-      branchId, 
-      actualCash: body.actualCash, 
-      actualCreditCard: body.actualCreditCard,
-      actualQR: body.actualQR,
-      submittedById: req.user.userId 
+  submitSettlement(@Body() dto: SubmitSettlementDto, @Request() req: RequestWithUser) {
+    const branchId = resolveBranchId(req.user, dto.branchId);
+    return this.financeService.submitSettlement({
+      branchId,
+      actualCash: dto.actualCash,
+      actualCreditCard: dto.actualCreditCard,
+      actualQR: dto.actualQR,
+      submittedById: req.user.userId,
     });
   }
 
@@ -58,8 +60,8 @@ export class FinanceController {
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('settlements/:id/approve')
-  approveSettlement(@Param('id', ParseIntPipe) id: number) {
-    return this.financeService.approveSettlement(id);
+  approveSettlement(@Request() req: RequestWithUser, @Param('id', ParseIntPipe) id: number) {
+    return this.financeService.approveSettlement(id, req.user);
   }
 
   @Get('export/sales')
@@ -68,18 +70,18 @@ export class FinanceController {
     @Res() res: Response,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
-    @Query('branchId') branchIdQuery?: string
+    @Query('branchId') branchIdQuery?: string,
   ) {
     const branchId = req.user.role === 'SUPER_ADMIN' && branchIdQuery
       ? parseInt(branchIdQuery, 10)
       : resolveBranchId(req.user, branchIdQuery ? parseInt(branchIdQuery, 10) : undefined);
-    
+
     const csvData = await this.financeService.exportSales(
-      branchId, 
-      startDate ? new Date(startDate) : undefined, 
-      endDate ? new Date(endDate) : undefined
+      branchId,
+      startDate ? new Date(startDate) : undefined,
+      endDate ? new Date(endDate) : undefined,
     );
-    
+
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename="sales-export.csv"');
     res.send(csvData);

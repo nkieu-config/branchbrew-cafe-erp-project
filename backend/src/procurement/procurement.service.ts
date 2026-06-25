@@ -4,6 +4,7 @@ import { AuditService } from '../audit/audit.service';
 import { AccountingService } from '../accounting/accounting.service';
 import { OnEvent } from '@nestjs/event-emitter';
 import { OrderCreatedEvent } from '../orders/events/order-created.event';
+import { assertBranchAccess, BranchScopedUser } from '../auth/branch-scope.util';
 
 @Injectable()
 export class ProcurementService {
@@ -29,10 +30,11 @@ export class ProcurementService {
     return this.prisma.supplier.findMany();
   }
 
-  findAllPOs() {
+  findAllPOs(branchId?: number) {
     return this.prisma.purchaseOrder.findMany({
+      where: branchId ? { branchId } : undefined,
       include: { supplier: true, branch: true, items: { include: { ingredient: true } } },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -78,8 +80,9 @@ export class ProcurementService {
     return po;
   }
 
-  async approvePO(poId: number, userId: number) {
+  async approvePO(poId: number, userId: number, user: BranchScopedUser) {
     const po = await this.validatePOStatus(poId, ['PENDING'], 'approve');
+    assertBranchAccess(user, po.branchId);
 
     const updatedPo = await this.prisma.purchaseOrder.update({
       where: { id: poId },
@@ -90,8 +93,9 @@ export class ProcurementService {
     return updatedPo;
   }
 
-  async rejectPO(poId: number, userId: number) {
+  async rejectPO(poId: number, userId: number, user: BranchScopedUser) {
     const po = await this.validatePOStatus(poId, ['PENDING'], 'reject');
+    assertBranchAccess(user, po.branchId);
 
     const updatedPo = await this.prisma.purchaseOrder.update({
       where: { id: poId },
@@ -102,9 +106,15 @@ export class ProcurementService {
     return updatedPo;
   }
 
-  async receivePO(poId: number, userId?: number, expiryDates?: { ingredientId: number, date: string }[]) {
+  async receivePO(
+    poId: number,
+    userId?: number,
+    expiryDates?: { ingredientId: number, date: string }[],
+    user?: BranchScopedUser,
+  ) {
     return this.prisma.$transaction(async (tx) => {
       const po = await this.validatePOStatus(poId, ['APPROVED'], 'receive', tx);
+      if (user) assertBranchAccess(user, po.branchId);
 
       // 1. Update BranchInventory (Cached Total)
       // 2. Create InventoryBatch (FIFO Log)

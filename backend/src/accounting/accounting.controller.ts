@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Query, Request } from '@nestjs/common';
 import { AccountingService } from './accounting.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
+import type { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
+import { resolveOptionalBranchId } from '../auth/branch-scope.util';
 
 @Controller('accounting')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -17,14 +19,22 @@ export class AccountingController {
 
   @Get('journal-entries')
   @Roles('SUPER_ADMIN', 'MANAGER')
-  async getJournalEntries(@Query('branchId') branchId?: string) {
-    return this.accountingService.getJournalEntries(branchId ? parseInt(branchId) : undefined);
+  async getJournalEntries(@Request() req: RequestWithUser, @Query('branchId') branchId?: string) {
+    const resolvedBranchId = resolveOptionalBranchId(
+      req.user,
+      branchId ? parseInt(branchId, 10) : undefined,
+    );
+    return this.accountingService.getJournalEntries(resolvedBranchId);
   }
 
   @Get('profit-loss')
   @Roles('SUPER_ADMIN', 'MANAGER')
-  async getProfitLoss(@Query('branchId') branchId?: string) {
-    return this.accountingService.getProfitLoss(branchId ? parseInt(branchId) : undefined);
+  async getProfitLoss(@Request() req: RequestWithUser, @Query('branchId') branchId?: string) {
+    const resolvedBranchId = resolveOptionalBranchId(
+      req.user,
+      branchId ? parseInt(branchId, 10) : undefined,
+    );
+    return this.accountingService.getProfitLoss(resolvedBranchId);
   }
 
   @Post('seed')

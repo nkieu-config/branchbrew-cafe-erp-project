@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EquipmentType, EquipmentStatus, Prisma } from '@prisma/client';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { assertBranchAccess, BranchScopedUser } from '../auth/branch-scope.util';
 
 @Injectable()
 export class EquipmentService {
@@ -44,12 +45,13 @@ export class EquipmentService {
     });
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, user?: BranchScopedUser) {
     const equipment = await this.prisma.equipment.findUnique({
       where: { id },
-      include: { branch: true, maintenanceLogs: { orderBy: { date: 'desc' } } }
+      include: { branch: true, maintenanceLogs: { orderBy: { date: 'desc' } } },
     });
     if (!equipment) throw new NotFoundException('Equipment not found');
+    if (user) assertBranchAccess(user, equipment.branchId);
     return equipment;
   }
 
@@ -73,10 +75,16 @@ export class EquipmentService {
     purchaseDate: Date;
     warrantyExpiry: Date;
     nextMaintenanceDate: Date;
-  }>) {
+  }>, user?: BranchScopedUser) {
+    if (user) {
+      const equipment = await this.prisma.equipment.findUnique({ where: { id } });
+      if (!equipment) throw new NotFoundException('Equipment not found');
+      assertBranchAccess(user, equipment.branchId);
+    }
+
     return this.prisma.equipment.update({
       where: { id },
-      data
+      data,
     });
   }
 
@@ -87,8 +95,12 @@ export class EquipmentService {
     date: Date;
     nextMaintenanceDate?: Date;
     newStatus?: EquipmentStatus;
-  }) {
+  }, user?: BranchScopedUser) {
     return this.prisma.$transaction(async (tx) => {
+      const equipment = await tx.equipment.findUnique({ where: { id: equipmentId } });
+      if (!equipment) throw new NotFoundException('Equipment not found');
+      if (user) assertBranchAccess(user, equipment.branchId);
+
       const log = await tx.maintenanceLog.create({
         data: {
           equipmentId,

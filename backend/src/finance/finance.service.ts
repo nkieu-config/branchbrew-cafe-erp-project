@@ -1,7 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { toNum } from '../common/decimal.util';
+import { assertBranchAccess, BranchScopedUser } from '../auth/branch-scope.util';
 
 @Injectable()
 export class FinanceService {
@@ -123,10 +124,14 @@ export class FinanceService {
     });
   }
 
-  async approveSettlement(id: number) {
+  async approveSettlement(id: number, user: BranchScopedUser) {
+    const settlement = await this.prisma.shiftSettlement.findUnique({ where: { id } });
+    if (!settlement) throw new NotFoundException('Settlement not found');
+    assertBranchAccess(user, settlement.branchId);
+
     return this.prisma.shiftSettlement.update({
       where: { id },
-      data: { status: 'APPROVED' }
+      data: { status: 'APPROVED' },
     });
   }
 

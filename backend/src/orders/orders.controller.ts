@@ -40,12 +40,16 @@ export class OrdersController {
   }
 
   @Patch(':id/status')
-  updateOrderStatus(@Param('id', ParseIntPipe) id: number, @Body('status') status: OrderStatus) {
-    return this.ordersService.updateOrderStatus(id, status);
+  updateOrderStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('status') status: OrderStatus,
+    @Request() req: RequestWithUser,
+  ) {
+    return this.ordersService.updateOrderStatus(id, status, req.user);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.ordersService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Request() req: RequestWithUser) {
+    return this.ordersService.findOne(id, req.user);
   }
 }

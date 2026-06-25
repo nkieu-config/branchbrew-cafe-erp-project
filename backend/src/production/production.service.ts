@@ -2,6 +2,8 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AccountingService } from '../accounting/accounting.service';
 import { toNum } from '../common/decimal.util';
+import { assertBranchAccess, BranchScopedUser } from '../auth/branch-scope.util';
+import { ProductionStatus } from '@prisma/client';
 
 @Injectable()
 export class ProductionService {
@@ -11,8 +13,9 @@ export class ProductionService {
   ) {}
 
   // 1. Get all Production Orders
-  async getProductionOrders() {
+  async getProductionOrders(branchId?: number) {
     return this.prisma.productionOrder.findMany({
+      where: branchId ? { branchId } : undefined,
       include: {
         branch: true,
         targetIngredient: true,
@@ -52,22 +55,27 @@ export class ProductionService {
   }
 
   // Update Order Status (for Kanban dragging)
-  async updateOrderStatus(orderId: number, status: string) {
+  async updateOrderStatus(orderId: number, status: ProductionStatus, user: BranchScopedUser) {
+    const order = await this.prisma.productionOrder.findUnique({ where: { id: orderId } });
+    if (!order) throw new BadRequestException('Order not found');
+    assertBranchAccess(user, order.branchId);
+
     return this.prisma.productionOrder.update({
       where: { id: orderId },
-      data: { status: status as any }
+      data: { status },
     });
   }
 
   // 4. Complete a Production Order (Deduct raw materials, add finished good)
-  async completeProductionOrder(orderId: number, userId?: number) {
+  async completeProductionOrder(orderId: number, userId?: number, user?: BranchScopedUser) {
     return this.prisma.$transaction(async (tx) => {
       const order = await tx.productionOrder.findUnique({
         where: { id: orderId },
-        include: { targetIngredient: true }
+        include: { targetIngredient: true },
       });
 
       if (!order) throw new BadRequestException('Order not found');
+      if (user) assertBranchAccess(user, order.branchId);
       if (order.status === 'COMPLETED') throw new BadRequestException('Order already completed');
 
       // Find BOM for the target ingredient
