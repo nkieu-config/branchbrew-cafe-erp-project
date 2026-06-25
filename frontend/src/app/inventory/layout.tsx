@@ -15,6 +15,7 @@ export default function InventoryLayout({ children }: { children: React.ReactNod
 
   const tabs = [
     { name: "Stock Balance", path: "/inventory", icon: Package, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
+    { name: "Batches & Expiry", path: "/inventory/stock", icon: ClipboardCheck, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
     { name: "Stock In (GRN)", path: "/inventory/stock-in", icon: ArrowRightLeft, roles: ["SUPER_ADMIN", "MANAGER"] },
     { name: "Waste Logs", path: "/inventory/waste", icon: Trash2, roles: ["SUPER_ADMIN", "MANAGER"] },
   ]

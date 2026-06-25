@@ -4,6 +4,10 @@ import { Prisma } from '@prisma/client';
 import { OnEvent } from '@nestjs/event-emitter';
 import { OrderCreatedEvent } from '../orders/events/order-created.event';
 import { toNum } from '../common/decimal.util';
+import {
+  paymentAccountLabel,
+  resolvePaymentAccountCode,
+} from './payment-accounts.util';
 
 @Injectable()
 export class AccountingService {
@@ -20,12 +24,19 @@ export class AccountingService {
     const totalCogs = toNum(order.totalCogs);
 
     if (netAmount > 0 || totalCogs > 0) {
+      const paymentAccountCode = resolvePaymentAccountCode(order.paymentMethod);
+
       await this.createJournalEntry({
         branchId: order.branchId,
         reference: `ORD-${order.id}`,
         description: `Sales Revenue and COGS for Order ${order.id}`,
         lines: [
-          { accountCode: '1010', debit: netAmount, credit: 0, description: 'Cash received' },
+          {
+            accountCode: paymentAccountCode,
+            debit: netAmount,
+            credit: 0,
+            description: paymentAccountLabel(order.paymentMethod),
+          },
           { accountCode: '4010', debit: 0, credit: netAmount, description: 'Sales Revenue' },
           ...(totalCogs > 0 ? [
             { accountCode: '5010', debit: totalCogs, credit: 0, description: 'Cost of Goods Sold' },
@@ -114,6 +125,8 @@ export class AccountingService {
       { code: '1010', name: 'Cash', type: 'ASSET' as const },
       { code: '1020', name: 'Accounts Receivable', type: 'ASSET' as const },
       { code: '1030', name: 'Inventory', type: 'ASSET' as const },
+      { code: '1040', name: 'Card Clearing', type: 'ASSET' as const },
+      { code: '1050', name: 'PromptPay Clearing', type: 'ASSET' as const },
       { code: '2010', name: 'Accounts Payable', type: 'LIABILITY' as const },
       { code: '3010', name: 'Owner Equity', type: 'EQUITY' as const },
       { code: '4010', name: 'Sales Revenue', type: 'REVENUE' as const },

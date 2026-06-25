@@ -27,8 +27,13 @@ export class InventoryHelper {
       // FIFO Deduction from InventoryBatch
       let remainingToDeduct = neededQty;
       const activeBatches = await tx.inventoryBatch.findMany({
-        where: { branchId, ingredientId, status: 'ACTIVE' },
-        orderBy: [{ expiryDate: 'asc' }, { createdAt: 'asc' }]
+        where: {
+          branchId,
+          ingredientId,
+          status: 'ACTIVE',
+          OR: [{ expiryDate: null }, { expiryDate: { gte: new Date() } }],
+        },
+        orderBy: [{ expiryDate: 'asc' }, { createdAt: 'asc' }],
       });
 
       for (const batch of activeBatches) {

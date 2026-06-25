@@ -107,4 +107,36 @@ describe('AccountingService', () => {
       }));
     });
   });
+
+  describe('handleOrderCreated', () => {
+    it('uses the payment clearing account for card sales', async () => {
+      const createSpy = jest
+        .spyOn(service, 'createJournalEntry')
+        .mockResolvedValue({ id: 1 } as any);
+
+      await service.handleOrderCreated({
+        order: {
+          id: 42,
+          branchId: 1,
+          netAmount: 150,
+          totalCogs: 30,
+          paymentMethod: 'CREDIT_CARD',
+        },
+      } as any);
+
+      expect(createSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lines: expect.arrayContaining([
+            expect.objectContaining({
+              accountCode: '1040',
+              debit: 150,
+              description: 'Card payment received',
+            }),
+          ]),
+        }),
+      );
+
+      createSpy.mockRestore();
+    });
+  });
 });

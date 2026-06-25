@@ -148,16 +148,16 @@ export default function AnalyticsDashboard() {
         return (
           <Card className="glass-card bg-gradient-to-br from-white to-rose-50/50 dark:from-slate-900 dark:to-rose-900/20 h-[300px] overflow-hidden flex flex-col border-rose-200 dark:border-rose-900/50">
             <CardHeader className="pb-3 border-b border-rose-100 dark:border-rose-900/50 shrink-0">
-              <CardTitle className="flex items-center gap-2 text-rose-700 dark:text-rose-400"><AlertTriangle className="w-5 h-5"/> Urgent Restock Alerts</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-rose-700 dark:text-rose-400"><AlertTriangle className="w-5 h-5"/> Inventory Alerts</CardTitle>
             </CardHeader>
             <CardContent className="p-0 flex-1 overflow-y-auto">
-              {summary?.lowStockAlerts?.length > 0 ? (
+              {(summary?.lowStockAlerts?.length > 0 || summary?.expiryAlerts?.length > 0) ? (
                 <div className="divide-y divide-rose-100 dark:divide-rose-900/30">
-                  {summary.lowStockAlerts.map((alert: { id: string, ingredientName: string, stock: number, minStock: number, branchName: string }) => (
-                    <div key={alert.id} className="p-4 flex justify-between items-center bg-rose-50/50 dark:bg-rose-900/10">
+                  {summary?.lowStockAlerts?.map((alert: { id: string, ingredientName: string, stock: number, minStock: number, branchName: string }) => (
+                    <div key={`low-${alert.id}`} className="p-4 flex justify-between items-center bg-rose-50/50 dark:bg-rose-900/10">
                       <div>
                         <div className="font-bold text-slate-800 dark:text-slate-200 text-lg">{alert.ingredientName}</div>
-                        <div className="text-sm font-medium text-slate-500 dark:text-slate-400">{alert.branchName}</div>
+                        <div className="text-sm font-medium text-slate-500 dark:text-slate-400">{alert.branchName} · Low stock</div>
                       </div>
                       <div className="text-right">
                         <div className="font-black text-rose-600 dark:text-rose-400 text-xl">{alert.stock}</div>
@@ -165,11 +165,23 @@ export default function AnalyticsDashboard() {
                       </div>
                     </div>
                   ))}
+                  {summary?.expiryAlerts?.map((alert: { id: number, ingredientName: string, branchName: string, quantity: number, expiryDate: string, status: string }) => (
+                    <div key={`exp-${alert.id}`} className="p-4 flex justify-between items-center bg-amber-50/50 dark:bg-amber-900/10">
+                      <div>
+                        <div className="font-bold text-slate-800 dark:text-slate-200 text-lg">{alert.ingredientName}</div>
+                        <div className="text-sm font-medium text-slate-500 dark:text-slate-400">{alert.branchName} · {alert.status === 'EXPIRED' ? 'Expired batch' : 'Expiring soon'}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-black text-amber-600 dark:text-amber-400 text-xl">{alert.quantity}</div>
+                        <div className="text-xs font-bold uppercase tracking-wider text-amber-500">{new Date(alert.expiryDate).toLocaleDateString('th-TH')}</div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <div className="p-6 text-center text-slate-500 flex flex-col items-center justify-center h-full">
                   <CheckCircle2 className="w-12 h-12 text-emerald-500 mb-3" />
-                  <span className="font-bold text-lg text-emerald-600">All stock levels are optimal.</span>
+                  <span className="font-bold text-lg text-emerald-600">Stock and expiry levels look healthy.</span>
                 </div>
               )}
             </CardContent>

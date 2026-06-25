@@ -4,6 +4,7 @@ import cookieParser from 'cookie-parser';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { OutboxProcessor } from '../src/outbox/outbox.processor';
+import { InventoryBatchExpiryProcessor } from '../src/inventory/inventory-batch-expiry.processor';
 
 export async function createE2eApp(): Promise<INestApplication<App>> {
   process.env.JWT_SECRET =
@@ -14,6 +15,8 @@ export async function createE2eApp(): Promise<INestApplication<App>> {
   })
     .overrideProvider(OutboxProcessor)
     .useValue({ handleCron: jest.fn() })
+    .overrideProvider(InventoryBatchExpiryProcessor)
+    .useValue({ markExpiredBatches: jest.fn() })
     .compile();
 
   const app = moduleFixture.createNestApplication();

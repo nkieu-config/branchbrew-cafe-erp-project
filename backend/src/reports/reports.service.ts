@@ -185,12 +185,37 @@ export class ReportsService {
         minStock: inv.minStock,
       }));
 
+    const warningDate = new Date();
+    warningDate.setDate(warningDate.getDate() + 7);
+
+    const expiringBatches = await this.prisma.inventoryBatch.findMany({
+      where: {
+        ...whereBranch,
+        expiryDate: { not: null, lte: warningDate },
+        status: { in: ['ACTIVE', 'EXPIRED'] },
+        quantity: { gt: 0 },
+      },
+      include: { ingredient: true, branch: true },
+      orderBy: { expiryDate: 'asc' },
+      take: 5,
+    });
+
+    const expiryAlerts = expiringBatches.map((batch) => ({
+      id: batch.id,
+      ingredientName: batch.ingredient.name,
+      branchName: batch.branch.name,
+      quantity: batch.quantity,
+      expiryDate: batch.expiryDate!.toISOString(),
+      status: batch.status,
+    }));
+
     return {
       salesToday,
       salesYesterday,
       salesGrowth,
       topBranch,
       lowStockAlerts: alerts,
+      expiryAlerts,
     };
   }
 }
