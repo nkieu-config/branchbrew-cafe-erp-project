@@ -28,4 +28,10 @@ describe('API_ENDPOINTS', () => {
     expect(API_ENDPOINTS.reports.executiveSummary('ALL')).toBe('/reports/executive-summary');
     expect(API_ENDPOINTS.reports.executiveSummary(4)).toBe('/reports/executive-summary?branchId=4');
   });
+
+  it('builds auth session paths', () => {
+    expect(API_ENDPOINTS.auth.login).toBe('/auth/login');
+    expect(API_ENDPOINTS.auth.logout).toBe('/auth/logout');
+    expect(API_ENDPOINTS.auth.me).toBe('/auth/me');
+  });
 });

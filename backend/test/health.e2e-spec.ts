@@ -1,28 +1,13 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
+import { createE2eApp } from './e2e-app.util';
 
 describe('Health (e2e)', () => {
   let app: INestApplication<App>;
 
   beforeEach(async () => {
-    process.env.JWT_SECRET = process.env.JWT_SECRET ?? 'test-jwt-secret-for-e2e-only-32chars';
-
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
-    );
-    await app.init();
+    app = await createE2eApp();
   });
 
   afterEach(async () => {

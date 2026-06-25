@@ -19,17 +19,23 @@ export const useSocket = () => useContext(SocketContext);
 export function SocketProvider({ children }: { children: ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const { activeBranchId, token } = useAuth();
+  const { activeBranchId, isAuthenticated, isInitialized } = useAuth();
 
   useEffect(() => {
+    if (!isInitialized || !isAuthenticated) {
+      setSocket(null);
+      setIsConnected(false);
+      return;
+    }
+
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-    
+
     const socketInstance = io(backendUrl, {
       transports: ['websocket'],
       autoConnect: true,
+      withCredentials: true,
       auth: {
         branchId: activeBranchId,
-        token,
       },
     });
 
@@ -46,7 +52,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     return () => {
       socketInstance.disconnect();
     };
-  }, [activeBranchId, token]);
+  }, [activeBranchId, isAuthenticated, isInitialized]);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected }}>

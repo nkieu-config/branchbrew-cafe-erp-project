@@ -152,7 +152,7 @@ export function Sidebar() {
       {user && <ClockInOutWidget />}
 
       <div className="p-4 border-t border-slate-200/30 dark:border-slate-800/50 shrink-0">
-        <Button variant="outline" className="w-full justify-start text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl interactive-item border-red-100 dark:border-red-900/50 bg-white/50 dark:bg-slate-900/50 transition-colors" onClick={logout}>
+        <Button variant="outline" className="w-full justify-start text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl interactive-item border-red-100 dark:border-red-900/50 bg-white/50 dark:bg-slate-900/50 transition-colors" onClick={() => void logout()}>
           Logout
         </Button>
       </div>

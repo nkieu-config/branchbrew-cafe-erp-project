@@ -15,6 +15,8 @@ export { fetchAPI, API_URL };
 // Auth
 export const loginApi = (data: LoginDTO) =>
   fetchAPI(API_ENDPOINTS.auth.login, { method: 'POST', body: JSON.stringify(data) });
+export const logoutApi = () => fetchAPI(API_ENDPOINTS.auth.logout, { method: 'POST' });
+export const getMe = () => fetchAPI(API_ENDPOINTS.auth.me);
 
 // Ingredients
 export const getIngredients = () => fetchAPI(API_ENDPOINTS.ingredients.list);
@@ -146,15 +148,13 @@ export const createProductionBOM = (data: { targetIngredientId: number; rawIngre
   fetchAPI(API_ENDPOINTS.production.createBom, { method: 'POST', body: JSON.stringify(data) });
 export const seedAccounts = () => fetchAPI(API_ENDPOINTS.accounting.seed, { method: 'POST' });
 
-export async function exportSales(token: string, branchId?: number, startDate?: Date, endDate?: Date) {
+export async function exportSales(branchId?: number, startDate?: Date, endDate?: Date) {
   const endpoint = API_ENDPOINTS.finance.exportSales(
     branchId,
     startDate?.toISOString(),
     endDate?.toISOString(),
   );
-  const res = await fetch(`${API_URL}${endpoint}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const res = await fetch(`${API_URL}${endpoint}`, { credentials: 'include' });
   if (!res.ok) throw new Error('Failed to export sales');
   const blob = await res.blob();
   const url = window.URL.createObjectURL(blob);

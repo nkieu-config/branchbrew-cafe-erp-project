@@ -7,6 +7,7 @@ import { OrderCreatedEvent } from '../orders/events/order-created.event';
 import { OrderStatusUpdatedEvent } from '../orders/events/order-status-updated.event';
 import { JwtPayload } from '../auth/interfaces/request-with-user.interface';
 import { Role } from '@prisma/client';
+import { parseAuthCookie } from '../auth/auth-cookie.util';
 
 const corsOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',')
@@ -28,7 +29,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(private readonly jwtService: JwtService) {}
 
   handleConnection(client: Socket) {
-    const token = client.handshake.auth?.token as string | undefined;
+    const token = this.extractSocketToken(client);
     if (!token) {
       this.logger.warn(`WS rejected: missing token (${client.id})`);
       client.disconnect(true);
@@ -97,5 +98,13 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return requestedBranchId ?? userBranchId ?? undefined;
     }
     return userBranchId ?? undefined;
+  }
+
+  private extractSocketToken(client: Socket): string | undefined {
+    const cookieToken = parseAuthCookie(client.handshake.headers?.cookie);
+    if (cookieToken) return cookieToken;
+
+    const authToken = client.handshake.auth?.token as string | undefined;
+    return authToken;
   }
 }

@@ -21,7 +21,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const response = await loginApi({ email, password });
-      login(response.access_token, response.user);
+      login(response.user);
     } catch (err: any) {
       toast.error(err.message || "Failed to login");
     } finally {

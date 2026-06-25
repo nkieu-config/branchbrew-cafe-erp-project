@@ -14,7 +14,7 @@ import { useFinanceSettlements, useFinanceExpenses, useApproveSettlement } from 
 import { Settlement, Expense } from "@/types"
 
 export default function FinanceDashboardPage() {
-  const { token, activeBranchId } = useAuth()
+  const { isAuthenticated, activeBranchId } = useAuth()
   const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
   
   const { data: settlements = [], isLoading: loadingSettlements } = useFinanceSettlements(branchIdNum)
@@ -33,10 +33,10 @@ export default function FinanceDashboardPage() {
   }
 
   const handleExport = async () => {
-    if (!token) return
+    if (!isAuthenticated) return
     try {
       toast.info("Exporting sales...")
-      await exportSales(token, activeBranchId || undefined)
+      await exportSales(activeBranchId || undefined)
       toast.success("Export successful!")
     } catch (error) {
       toast.error("Export failed")

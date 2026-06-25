@@ -5,15 +5,10 @@ export { API_URL };
 export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
   const url = `${API_URL}${endpoint}`;
 
-  let token: string | null = null;
-  if (typeof window !== 'undefined') {
-    token = localStorage.getItem('token');
-  }
-
   const defaultOptions: RequestInit = {
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
   };
@@ -34,6 +29,8 @@ export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
     }
     throw new Error(errorData.message || 'An error occurred while fetching data');
   }
+
+  if (response.status === 204) return null;
 
   const text = await response.text();
   if (!text || text.trim() === '') return null;

@@ -4,7 +4,6 @@ import { fetchAPI } from './api/client';
 describe('fetchAPI', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn());
-    localStorage.clear();
   });
 
   afterEach(() => {
@@ -38,8 +37,7 @@ describe('fetchAPI', () => {
     await expect(fetchAPI('/health')).resolves.toEqual({ status: 'ok' });
   });
 
-  it('attaches bearer token from localStorage', async () => {
-    localStorage.setItem('token', 'test-jwt');
+  it('sends credentials on every request', async () => {
     vi.mocked(fetch).mockResolvedValue({
       ok: true,
       text: async () => '{}',
@@ -50,10 +48,18 @@ describe('fetchAPI', () => {
     expect(fetch).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
-        headers: expect.objectContaining({
-          Authorization: 'Bearer test-jwt',
-        }),
+        credentials: 'include',
       }),
     );
+  });
+
+  it('returns null for 204 No Content', async () => {
+    vi.mocked(fetch).mockResolvedValue({
+      ok: true,
+      status: 204,
+      text: async () => '',
+    } as Response);
+
+    await expect(fetchAPI('/auth/logout', { method: 'POST' })).resolves.toBeNull();
   });
 });

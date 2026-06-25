@@ -3,6 +3,8 @@ export const API_ENDPOINTS = {
   health: '/health',
   auth: {
     login: '/auth/login',
+    logout: '/auth/logout',
+    me: '/auth/me',
   },
   orders: {
     list: (branchId?: number) =>
