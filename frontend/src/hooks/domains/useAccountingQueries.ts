@@ -8,14 +8,14 @@ import { fetchAPI } from '@/lib/api';
 export const useLedger = (branchId?: string) => {
   return useQuery({
     queryKey: ['ledger', branchId],
-    queryFn: () => fetchAPI(branchId && branchId !== "ALL" ? `/accounting/profit-loss?branchId=${branchId}` : '/accounting/profit-loss'),
+    queryFn: () => fetchAPI(API_ENDPOINTS.accounting.profitLoss(branchId)),
   });
 };
 
 export const useJournalEntries = (branchId?: string) => {
   return useQuery({
     queryKey: ['journalEntries', branchId],
-    queryFn: () => fetchAPI(branchId && branchId !== "ALL" ? `/accounting/journal-entries?branchId=${branchId}` : '/accounting/journal-entries'),
+    queryFn: () => fetchAPI(API_ENDPOINTS.accounting.journalEntries(branchId)),
   });
 };
 
@@ -30,14 +30,14 @@ export const useAccounts = () => {
 export const useProductionBOMs = () => {
   return useQuery({
     queryKey: ['productionBOMs'],
-    queryFn: () => fetchAPI('/production/boms'),
+    queryFn: () => fetchAPI(API_ENDPOINTS.production.boms),
   });
 };
 
 export const useCreateProductionBOM = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: unknown) => fetchAPI('/production/boms', { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: unknown) => fetchAPI(API_ENDPOINTS.production.createBom, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['productionBOMs'] }),
   });
 };

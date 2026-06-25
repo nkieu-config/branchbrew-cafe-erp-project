@@ -8,21 +8,21 @@ import { fetchAPI } from '@/lib/api';
 export const useFinanceSettlements = (branchId?: number) => {
   return useQuery({
     queryKey: ['financeSettlements', branchId],
-    queryFn: () => fetchAPI(branchId ? `/finance/settlements?branchId=${branchId}` : '/finance/settlements'),
+    queryFn: () => fetchAPI(API_ENDPOINTS.finance.settlements(branchId)),
   });
 };
 
 export const useFinanceExpenses = (branchId?: number) => {
   return useQuery({
     queryKey: ['financeExpenses', branchId],
-    queryFn: () => fetchAPI(branchId ? `/finance/expenses?branchId=${branchId}` : '/finance/expenses'),
+    queryFn: () => fetchAPI(API_ENDPOINTS.finance.expenses(branchId)),
   });
 };
 
 export const useApproveSettlement = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => fetchAPI(`/finance/settlements/${id}/approve`, { method: 'PATCH' }),
+    mutationFn: (id: number) => fetchAPI(API_ENDPOINTS.finance.approveSettlement(id), { method: 'PATCH' }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['financeSettlements'] }),
   });
 };
@@ -39,7 +39,7 @@ export const useSubmitSettlement = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: { branchId: number; actualCash: number; actualCreditCard: number; actualQR: number }) => 
-      fetchAPI('/finance/settlements', { method: 'POST', body: JSON.stringify(data) }),
+      fetchAPI(API_ENDPOINTS.finance.submitSettlement, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['financeSettlements'] }),
   });
 };
@@ -48,7 +48,7 @@ export const useCreateExpense = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: { branchId: number; amount: number; category: string; description?: string }) => 
-      fetchAPI('/finance/expenses', { method: 'POST', body: JSON.stringify(data) }),
+      fetchAPI(API_ENDPOINTS.finance.createExpense, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['financeExpenses'] }),
   });
 };

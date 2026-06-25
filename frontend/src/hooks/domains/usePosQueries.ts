@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { API_ENDPOINTS } from '@/lib/endpoints';
 import { fetchAPI } from '@/lib/api';
 
 // ==========================================
@@ -7,27 +8,27 @@ import { fetchAPI } from '@/lib/api';
 export const useProducts = () => {
   return useQuery({
     queryKey: ['products'],
-    queryFn: () => fetchAPI('/products'),
+    queryFn: () => fetchAPI(API_ENDPOINTS.products.list),
   });
 };
 
 export const useCreateOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: unknown) => fetchAPI('/orders', { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: unknown) => fetchAPI(API_ENDPOINTS.orders.create, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
   });
 };
 
 export const useValidatePromotion = () => {
   return useMutation({
-    mutationFn: ({ code, subtotal }: { code: string, subtotal: number }) => fetchAPI('/promotions/validate', { method: 'POST', body: JSON.stringify({ code, subtotal }) }),
+    mutationFn: ({ code, subtotal }: { code: string, subtotal: number }) => fetchAPI(API_ENDPOINTS.promotions.validate, { method: 'POST', body: JSON.stringify({ code, subtotal }) }),
   });
 };
 
 export const useCustomerByPhone = () => {
   return useMutation({
-    mutationFn: (phone: string) => fetchAPI(`/customers/phone/${phone}`),
+    mutationFn: (phone: string) => fetchAPI(API_ENDPOINTS.customers.byPhone(phone)),
   });
 };
 

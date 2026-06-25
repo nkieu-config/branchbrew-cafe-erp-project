@@ -3,7 +3,9 @@ import { Cron } from '@nestjs/schedule';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../prisma/prisma.service';
 import { OrderCreatedEvent } from '../orders/events/order-created.event';
-import { Order } from '@prisma/client';
+import { OrderStatusUpdatedEvent } from '../orders/events/order-status-updated.event';
+import { Order, OrderStatus } from '@prisma/client';
+import { MAX_OUTBOX_ATTEMPTS, OUTBOX_BATCH_SIZE } from './outbox.constants';
 
 @Injectable()
 export class OutboxProcessor {
@@ -17,9 +19,17 @@ export class OutboxProcessor {
   @Cron('*/10 * * * * *')
   async handleCron() {
     const events = await this.prisma.outboxEvent.findMany({
-      where: { status: 'PENDING' },
+      where: {
+        OR: [
+          { status: 'PENDING' },
+          {
+            status: 'FAILED',
+            attempts: { lt: MAX_OUTBOX_ATTEMPTS },
+          },
+        ],
+      },
       orderBy: { createdAt: 'asc' },
-      take: 10,
+      take: OUTBOX_BATCH_SIZE,
     });
 
     for (const event of events) {
@@ -36,10 +46,20 @@ export class OutboxProcessor {
         });
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
-        this.logger.error(`Outbox event ${event.id} failed: ${message}`);
+        const updated = await this.prisma.outboxEvent.findUnique({ where: { id: event.id } });
+        const attempts = updated?.attempts ?? MAX_OUTBOX_ATTEMPTS;
+        const willRetry = attempts < MAX_OUTBOX_ATTEMPTS;
+
+        this.logger.error(
+          `Outbox event ${event.id} (${event.eventType}) failed (attempt ${attempts}/${MAX_OUTBOX_ATTEMPTS}): ${message}`,
+        );
+
         await this.prisma.outboxEvent.update({
           where: { id: event.id },
-          data: { status: 'FAILED', lastError: message },
+          data: {
+            status: willRetry ? 'PENDING' : 'FAILED',
+            lastError: message,
+          },
         });
       }
     }
@@ -54,9 +74,22 @@ export class OutboxProcessor {
         customerId: number | null;
       };
       const map = new Map<number, number>(data.ingredientRequirements);
-      this.eventEmitter.emit(
+      await this.eventEmitter.emitAsync(
         'order.created',
         new OrderCreatedEvent(data.order, map, data.branchId, data.customerId),
+      );
+      return;
+    }
+
+    if (eventType === 'order.status.updated') {
+      const data = payload as {
+        orderId: number;
+        status: OrderStatus;
+        branchId: number;
+      };
+      await this.eventEmitter.emitAsync(
+        'order.status.updated',
+        new OrderStatusUpdatedEvent(data.orderId, data.status, data.branchId),
       );
       return;
     }

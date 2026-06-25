@@ -2,21 +2,30 @@ import { describe, it, expect } from 'vitest';
 import { API_ENDPOINTS } from './endpoints';
 
 describe('API_ENDPOINTS', () => {
-  it('uses correct finance settlement expected path', () => {
+  it('builds finance expected cash path', () => {
     expect(API_ENDPOINTS.finance.expectedCash(3)).toBe(
       '/finance/settlements/expected?branchId=3',
     );
   });
 
-  it('uses correct accounting accounts path', () => {
+  it('builds accounting accounts path', () => {
     expect(API_ENDPOINTS.accounting.accounts).toBe('/accounting/accounts');
   });
 
-  it('uses offset param for audit logs', () => {
+  it('builds audit logs path with offset', () => {
     expect(API_ENDPOINTS.audit.logs(100, 0)).toBe('/audit?limit=100&offset=0');
   });
 
-  it('uses branches waste path for legacy stock reporting', () => {
+  it('builds branch waste path', () => {
     expect(API_ENDPOINTS.branches.reportWaste(5)).toBe('/branches/5/waste');
+  });
+
+  it('builds HR payroll path', () => {
+    expect(API_ENDPOINTS.hr.payrollRuns(2)).toBe('/hr/payroll-runs?branchId=2');
+  });
+
+  it('builds optional report branch filter', () => {
+    expect(API_ENDPOINTS.reports.executiveSummary('ALL')).toBe('/reports/executive-summary');
+    expect(API_ENDPOINTS.reports.executiveSummary(4)).toBe('/reports/executive-summary?branchId=4');
   });
 });

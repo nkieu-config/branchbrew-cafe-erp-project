@@ -13,25 +13,19 @@ export class CustomersService {
 
   @OnEvent('order.created', { async: true })
   async handleOrderCreated(event: OrderCreatedEvent) {
-    if (event.customerId) {
-      this.logger.log(`Handling order.created event for CRM Customer ${event.customerId}`);
-      
-      try {
-        // Asynchronously add earned points to the customer
-        if (event.order.pointsEarned && event.order.pointsEarned > 0) {
-          await this.prisma.customer.update({
-            where: { id: event.customerId },
-            data: { points: { increment: event.order.pointsEarned } }
-          });
-          this.logger.log(`Added ${event.order.pointsEarned} points to customer ${event.customerId}`);
-        }
+    if (!event.customerId) return;
 
-        // Check and update tier based on lifetime spend
-        await this.checkAndUpdateTier(event.customerId);
-      } catch (err) {
-        this.logger.error(`Failed to process CRM logic for customer ${event.customerId}:`, err);
-      }
+    this.logger.log(`Handling order.created event for CRM Customer ${event.customerId}`);
+
+    if (event.order.pointsEarned && event.order.pointsEarned > 0) {
+      await this.prisma.customer.update({
+        where: { id: event.customerId },
+        data: { points: { increment: event.order.pointsEarned } },
+      });
+      this.logger.log(`Added ${event.order.pointsEarned} points to customer ${event.customerId}`);
     }
+
+    await this.checkAndUpdateTier(event.customerId);
   }
 
   async create(data: { name: string; phone: string }) {

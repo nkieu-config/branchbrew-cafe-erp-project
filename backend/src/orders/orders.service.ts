@@ -1,8 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { OrderStatusUpdatedEvent } from './events/order-status-updated.event';
 import { PaymentMethod, OrderStatus, Customer } from '@prisma/client';
 import { InventoryHelper } from './helpers/inventory.helper';
 import { OutboxService } from '../outbox/outbox.service';
@@ -12,8 +10,7 @@ import { assertBranchAccess, BranchScopedUser } from '../auth/branch-scope.util'
 @Injectable()
 export class OrdersService {
   constructor(
-    private prisma: PrismaService, 
-    private eventEmitter: EventEmitter2,
+    private prisma: PrismaService,
     private outboxService: OutboxService,
   ) {}
 
@@ -201,14 +198,21 @@ export class OrdersService {
     if (!existing) throw new NotFoundException('Order not found');
     if (user) assertBranchAccess(user, existing.branchId);
 
-    const updated = await this.prisma.order.update({
-      where: { id: orderId },
-      data: { status },
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.update({
+        where: { id: orderId },
+        data: { status },
+      });
+
+      await this.outboxService.enqueue(tx, 'order.status.updated', {
+        orderId: order.id,
+        status: order.status,
+        branchId: existing.branchId,
+      });
+
+      return order;
     });
-    
-    // Emit Event to notify decoupled systems (EventsGateway will catch this and broadcast)
-    this.eventEmitter.emit('order.status.updated', new OrderStatusUpdatedEvent(orderId, status));
-    
+
     return updated;
   }
 }

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { API_ENDPOINTS } from '@/lib/endpoints';
 import { fetchAPI } from '@/lib/api';
 
 // ==========================================
@@ -7,14 +8,14 @@ import { fetchAPI } from '@/lib/api';
 export const useCustomers = (search?: string) => {
   return useQuery({
     queryKey: ['customers', search],
-    queryFn: () => fetchAPI(`/customers${search ? `?search=${encodeURIComponent(search)}` : ''}`),
+    queryFn: () => fetchAPI(API_ENDPOINTS.customers.list(search)),
   });
 };
 
 export const useCustomer360 = (id: number | null) => {
   return useQuery({
     queryKey: ['customer360', id],
-    queryFn: () => fetchAPI(`/customers/${id}/360`),
+    queryFn: () => fetchAPI(API_ENDPOINTS.customers.detail360(id!)),
     enabled: !!id,
   });
 };
@@ -22,7 +23,7 @@ export const useCustomer360 = (id: number | null) => {
 export const useCreateCustomer = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: unknown) => fetchAPI('/customers', { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: unknown) => fetchAPI(API_ENDPOINTS.customers.create, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['customers'] }),
   });
 };
@@ -30,14 +31,14 @@ export const useCreateCustomer = () => {
 export const usePromotions = () => {
   return useQuery({
     queryKey: ['promotions'],
-    queryFn: () => fetchAPI('/promotions'),
+    queryFn: () => fetchAPI(API_ENDPOINTS.promotions.list),
   });
 };
 
 export const useCreatePromotion = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: unknown) => fetchAPI('/promotions', { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: unknown) => fetchAPI(API_ENDPOINTS.promotions.create, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['promotions'] }),
   });
 };
@@ -45,7 +46,7 @@ export const useCreatePromotion = () => {
 export const useTogglePromotion = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, isActive }: { id: number, isActive: boolean }) => fetchAPI(`/promotions/${id}/toggle`, { method: 'PATCH', body: JSON.stringify({ isActive }) }),
+    mutationFn: ({ id, isActive }: { id: number, isActive: boolean }) => fetchAPI(API_ENDPOINTS.promotions.toggle(id), { method: 'PATCH', body: JSON.stringify({ isActive }) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['promotions'] }),
   });
 };

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { API_ENDPOINTS } from '@/lib/endpoints';
 import { fetchAPI } from '@/lib/api';
 
 // ==========================================
@@ -9,9 +10,9 @@ export const useShifts = (role?: string, branchId?: number) => {
     queryKey: ['shifts', role, branchId],
     queryFn: () => {
       if ((role === 'SUPER_ADMIN' || role === 'MANAGER') && branchId) {
-        return fetchAPI(`/hr/shifts/branch/${branchId}`);
+        return fetchAPI(API_ENDPOINTS.hr.shiftsByBranch(branchId));
       } else {
-        return fetchAPI('/hr/shifts/me');
+        return fetchAPI(API_ENDPOINTS.hr.shiftsMe);
       }
     },
     enabled: !!role,
@@ -21,21 +22,21 @@ export const useShifts = (role?: string, branchId?: number) => {
 export const useAttendance = () => {
   return useQuery({
     queryKey: ['attendance', 'me'],
-    queryFn: () => fetchAPI('/hr/attendance/me'),
+    queryFn: () => fetchAPI(API_ENDPOINTS.hr.attendanceMe),
   });
 };
 
 export const useActiveClockIn = () => {
   return useQuery({
     queryKey: ['attendance', 'status'],
-    queryFn: () => fetchAPI('/hr/attendance/status'),
+    queryFn: () => fetchAPI(API_ENDPOINTS.hr.attendanceStatus),
   });
 };
 
 export const useClockIn = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (branchId: number) => fetchAPI('/hr/clock-in', { method: 'POST', body: JSON.stringify({ branchId }) }),
+    mutationFn: (branchId: number) => fetchAPI(API_ENDPOINTS.hr.clockIn, { method: 'POST', body: JSON.stringify({ branchId }) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['attendance'] }),
   });
 };
@@ -43,7 +44,7 @@ export const useClockIn = () => {
 export const useClockOut = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => fetchAPI('/hr/clock-out', { method: 'POST' }),
+    mutationFn: () => fetchAPI(API_ENDPOINTS.hr.clockOut, { method: 'POST' }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['attendance'] }),
   });
 };
@@ -51,7 +52,7 @@ export const useClockOut = () => {
 export const useHrUsers = (branchId?: number) => {
   return useQuery({
     queryKey: ['hrUsers', branchId],
-    queryFn: () => fetchAPI(branchId ? `/hr/users?branchId=${branchId}` : '/hr/users'),
+    queryFn: () => fetchAPI(API_ENDPOINTS.hr.users(branchId)),
   });
 };
 
@@ -59,7 +60,7 @@ export const useUpdateHourlyRate = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ userId, hourlyRate }: { userId: number; hourlyRate: number }) => 
-      fetchAPI(`/hr/users/${userId}/rate`, { method: 'PATCH', body: JSON.stringify({ hourlyRate }) }),
+      fetchAPI(API_ENDPOINTS.hr.updateHourlyRate(userId), { method: 'PATCH', body: JSON.stringify({ hourlyRate }) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hrUsers'] }),
   });
 };
@@ -67,7 +68,7 @@ export const useUpdateHourlyRate = () => {
 export const useCreateUser = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: any) => fetchAPI('/hr/users', { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: any) => fetchAPI(API_ENDPOINTS.hr.createUser, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hrUsers'] }),
   });
 };
@@ -75,7 +76,7 @@ export const useCreateUser = () => {
 export const useUpdateUser = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...data }: any) => fetchAPI(`/hr/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    mutationFn: ({ id, ...data }: any) => fetchAPI(API_ENDPOINTS.hr.updateUser(id), { method: 'PATCH', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['hrUsers'] }),
   });
 };
@@ -86,14 +87,14 @@ export const useUpdateUser = () => {
 export const useLeaveRequests = (branchId?: number, isManagerOrAdmin?: boolean) => {
   return useQuery({
     queryKey: ['leaveRequests', branchId, isManagerOrAdmin],
-    queryFn: () => isManagerOrAdmin ? fetchAPI(branchId ? `/hr/leave?branchId=${branchId}` : '/hr/leave') : fetchAPI('/hr/leave/me'),
+    queryFn: () => isManagerOrAdmin ? fetchAPI(API_ENDPOINTS.hr.leave(branchId)) : fetchAPI(API_ENDPOINTS.hr.leaveMe),
   });
 };
 
 export const useCreateLeave = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: unknown) => fetchAPI('/hr/leave', { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: unknown) => fetchAPI(API_ENDPOINTS.hr.createLeave, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['leaveRequests'] }),
   });
 };
@@ -101,7 +102,7 @@ export const useCreateLeave = () => {
 export const useUpdateLeaveStatus = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, status }: { id: number; status: string }) => fetchAPI(`/hr/leave/${id}/status`, { method: 'PATCH', body: JSON.stringify({ status }) }),
+    mutationFn: ({ id, status }: { id: number; status: string }) => fetchAPI(API_ENDPOINTS.hr.updateLeaveStatus(id), { method: 'PATCH', body: JSON.stringify({ status }) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['leaveRequests'] }),
   });
 };
@@ -109,7 +110,7 @@ export const useUpdateLeaveStatus = () => {
 export const usePayrollRuns = (branchId?: number) => {
   return useQuery({
     queryKey: ['payrollRuns', branchId],
-    queryFn: () => fetchAPI(`/hr/payroll-runs?branchId=${branchId}`),
+    queryFn: () => fetchAPI(API_ENDPOINTS.hr.payrollRuns(branchId!)),
     enabled: !!branchId,
   });
 };
@@ -118,7 +119,7 @@ export const useGeneratePayrollRun = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: { branchId: number; month: number; year: number }) => 
-      fetchAPI('/hr/payroll/generate', { method: 'POST', body: JSON.stringify(data) }),
+      fetchAPI(API_ENDPOINTS.hr.generatePayroll, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['payrollRuns'] }),
   });
 };
@@ -126,7 +127,7 @@ export const useGeneratePayrollRun = () => {
 export const useApprovePayrollRun = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => fetchAPI(`/hr/payroll-runs/${id}/approve`, { method: 'PATCH' }),
+    mutationFn: (id: number) => fetchAPI(API_ENDPOINTS.hr.approvePayrollRun(id), { method: 'PATCH' }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['payrollRuns'] }),
   });
 };

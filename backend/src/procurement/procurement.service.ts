@@ -20,9 +20,7 @@ export class ProcurementService {
   async handleOrderCreated(event: OrderCreatedEvent) {
     this.logger.log(`Handling order.created event for Order ${event.order.id}`);
     for (const ingredientId of event.ingredientRequirements.keys()) {
-      this.checkAndAutoReorder(event.branchId, ingredientId).catch(err => 
-        this.logger.error(`Failed to auto-reorder ingredient ${ingredientId}:`, err)
-      );
+      await this.checkAndAutoReorder(event.branchId, ingredientId);
     }
   }
 

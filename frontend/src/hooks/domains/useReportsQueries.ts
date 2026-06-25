@@ -8,21 +8,21 @@ import { fetchAPI } from '@/lib/api';
 export const useAnalyticsSummary = (branchId?: string) => {
   return useQuery({
     queryKey: ['analyticsSummary', branchId],
-    queryFn: () => fetchAPI(branchId && branchId !== "ALL" ? `/reports/executive-summary?branchId=${branchId}` : '/reports/executive-summary'),
+    queryFn: () => fetchAPI(API_ENDPOINTS.reports.executiveSummary(branchId)),
   });
 };
 
 export const useTopProducts = (branchId?: string) => {
   return useQuery({
     queryKey: ['topProducts', branchId],
-    queryFn: () => fetchAPI(branchId && branchId !== "ALL" ? `/reports/top-products?branchId=${branchId}` : '/reports/top-products'),
+    queryFn: () => fetchAPI(API_ENDPOINTS.reports.topProducts(branchId)),
   });
 };
 
 export const useOrders = () => {
   return useQuery({
     queryKey: ['orders'],
-    queryFn: () => fetchAPI('/orders'),
+    queryFn: () => fetchAPI(API_ENDPOINTS.orders.list()),
   });
 };
 

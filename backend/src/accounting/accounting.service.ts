@@ -14,30 +14,25 @@ export class AccountingService {
   @OnEvent('order.created', { async: true })
   async handleOrderCreated(event: OrderCreatedEvent) {
     this.logger.log(`Handling order.created event for Accounting (Order ${event.order.id})`);
-    
+
     const { order } = event;
     const netAmount = toNum(order.netAmount);
     const totalCogs = toNum(order.totalCogs);
 
-    // Post Accounting Journal Entry
     if (netAmount > 0 || totalCogs > 0) {
-      try {
-        await this.createJournalEntry({
-          branchId: order.branchId,
-          reference: `ORD-${order.id}`,
-          description: `Sales Revenue and COGS for Order ${order.id}`,
-          lines: [
-            { accountCode: '1010', debit: netAmount, credit: 0, description: 'Cash received' },
-            { accountCode: '4010', debit: 0, credit: netAmount, description: 'Sales Revenue' },
-            ...(totalCogs > 0 ? [
-              { accountCode: '5010', debit: totalCogs, credit: 0, description: 'Cost of Goods Sold' },
-              { accountCode: '1030', debit: 0, credit: totalCogs, description: 'Inventory reduction' }
-            ] : [])
-          ]
-        });
-      } catch (err) {
-        this.logger.error(`[Accounting] Failed to post auto-journal entry for order ${order.id}:`, err);
-      }
+      await this.createJournalEntry({
+        branchId: order.branchId,
+        reference: `ORD-${order.id}`,
+        description: `Sales Revenue and COGS for Order ${order.id}`,
+        lines: [
+          { accountCode: '1010', debit: netAmount, credit: 0, description: 'Cash received' },
+          { accountCode: '4010', debit: 0, credit: netAmount, description: 'Sales Revenue' },
+          ...(totalCogs > 0 ? [
+            { accountCode: '5010', debit: totalCogs, credit: 0, description: 'Cost of Goods Sold' },
+            { accountCode: '1030', debit: 0, credit: totalCogs, description: 'Inventory reduction' },
+          ] : []),
+        ],
+      });
     }
   }
 

@@ -1,55 +1,21 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { EventEmitter2 } from '@nestjs/event-emitter';
 import { OrdersService } from './orders.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { BadRequestException } from '@nestjs/common';
 import { MockPrismaService, PrismaServiceMockProvider } from '../prisma/prisma.service.mock';
-import { EventsGateway } from '../events/events.gateway';
-import { ProcurementService } from '../procurement/procurement.service';
-import { CustomersService } from '../customers/customers.service';
 import { OutboxService } from '../outbox/outbox.service';
 
 describe('OrdersService', () => {
   let service: OrdersService;
   let prisma: MockPrismaService;
-  let eventsGateway: jest.Mocked<EventsGateway>;
 
   const TEST_BRANCH_ID = 2;
 
   beforeEach(async () => {
-    const mockEventsGateway = {
-      server: { emit: jest.fn() },
-      emitOrderCreated: jest.fn(),
-    };
-    
-    const mockProcurementService = {
-      checkAndAutoReorder: jest.fn().mockResolvedValue(undefined),
-    };
-
-    const mockCustomersService = {
-      checkAndUpdateTier: jest.fn().mockResolvedValue(undefined),
-    };
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OrdersService,
         PrismaServiceMockProvider,
-        {
-          provide: EventEmitter2,
-          useValue: { emit: jest.fn() },
-        },
-        {
-          provide: EventsGateway,
-          useValue: mockEventsGateway,
-        },
-        {
-          provide: ProcurementService,
-          useValue: mockProcurementService,
-        },
-        {
-          provide: CustomersService,
-          useValue: mockCustomersService,
-        },
         {
           provide: OutboxService,
           useValue: { enqueue: jest.fn().mockResolvedValue({ id: 1 }) },

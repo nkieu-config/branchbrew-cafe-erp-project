@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { API_ENDPOINTS } from '@/lib/endpoints';
 import { fetchAPI } from '@/lib/api';
 
 // ==========================================
@@ -8,7 +9,7 @@ import { fetchAPI } from '@/lib/api';
 export const useProducts = () => {
   return useQuery({
     queryKey: ['products'],
-    queryFn: () => fetchAPI('/products'),
+    queryFn: () => fetchAPI(API_ENDPOINTS.products.list),
   });
 };
 
@@ -24,7 +25,7 @@ export const useUpdateProduct = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, ...data }: { id: number; [key: string]: any }) => 
-      fetchAPI(`/products/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+      fetchAPI(API_ENDPOINTS.products.update(id), { method: 'PATCH', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['products'] }),
   });
 };
@@ -32,7 +33,7 @@ export const useUpdateProduct = () => {
 export const useDeleteProduct = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => fetchAPI(`/products/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: number) => fetchAPI(API_ENDPOINTS.products.update(id), { method: 'DELETE' }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['products'] }),
   });
 };
@@ -44,14 +45,14 @@ export const useDeleteProduct = () => {
 export const useIngredients = () => {
   return useQuery({
     queryKey: ['ingredients'],
-    queryFn: () => fetchAPI('/ingredients'),
+    queryFn: () => fetchAPI(API_ENDPOINTS.ingredients.list),
   });
 };
 
 export const useCreateIngredient = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: unknown) => fetchAPI('/ingredients', { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: unknown) => fetchAPI(API_ENDPOINTS.ingredients.create, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ingredients'] }),
   });
 };
@@ -60,7 +61,7 @@ export const useUpdateIngredient = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, ...data }: { id: number; [key: string]: any }) => 
-      fetchAPI(`/ingredients/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+      fetchAPI(API_ENDPOINTS.ingredients.update(id), { method: 'PATCH', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ingredients'] }),
   });
 };
@@ -68,7 +69,7 @@ export const useUpdateIngredient = () => {
 export const useDeleteIngredient = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => fetchAPI(`/ingredients/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: number) => fetchAPI(API_ENDPOINTS.ingredients.update(id), { method: 'DELETE' }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['ingredients'] }),
   });
 };
