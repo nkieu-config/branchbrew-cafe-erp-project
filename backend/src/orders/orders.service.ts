@@ -8,7 +8,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import { PaymentMethod, OrderStatus, Customer } from '@prisma/client';
 import { InventoryHelper } from './helpers/inventory.helper';
 import { OutboxService } from '../outbox/outbox.service';
+import { SettingsService } from '../settings/settings.service';
 import { toNum, roundMoney } from '../common/decimal.util';
+import { inclusiveTaxAmount } from '../common/vat.util';
 import {
   assertBranchAccess,
   BranchScopedUser,
@@ -28,6 +30,7 @@ export class OrdersService {
   constructor(
     private prisma: PrismaService,
     private outboxService: OutboxService,
+    private settingsService: SettingsService,
   ) {}
 
   async createOrder(data: {
@@ -213,7 +216,8 @@ export class OrdersService {
         roundMoney(totalAmount),
       );
       const netAmount = roundMoney(totalAmount - discountAmount);
-      const taxAmount = roundMoney((netAmount * 7) / 107); // VAT 7% Inclusive
+      const vatRate = await this.settingsService.getVatRatePercent();
+      const taxAmount = inclusiveTaxAmount(netAmount, vatRate);
       const pointsEarned = customer ? Math.floor(netAmount / 100) : 0;
 
       if (customer && pointsEarned > 0) {

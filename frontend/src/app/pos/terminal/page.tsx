@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useProducts, useCreateOrder, useCustomerByPhone, useValidatePromotion, useModifiers } from '@/hooks/domains/usePosQueries';
+import { useSettings } from '@/hooks/domains/useSettingsQueries';
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,10 +20,12 @@ import { OnScreenNumpad } from "@/components/pos/OnScreenNumpad";
 import { pointsToDiscountBaht } from "@/lib/loyalty";
 import { filterActive } from "@/lib/form";
 import { toNumber, formatBaht } from "@/lib/money";
+import { parseVatRatePercent } from "@/lib/vat";
 import type { Customer, ValidatedPromotion, ReceiptOrder, ModifierGroup } from "@/types/api";
 
 export default function POSPage() {
   const { user, activeBranchId } = useAuth();
+  const { data: settings } = useSettings();
   const { data: productsData, isLoading: loading } = useProducts();
   const products = filterActive<Product>((productsData || []) as Product[]);
   const [cart, setCart] = useState<{
@@ -513,7 +516,19 @@ export default function POSPage() {
           <div className="py-4 flex justify-center">
             {/* Hidden Receipt Component to be printed */}
             <div className="hidden">
-              {completedOrder && <Receipt ref={receiptRef} order={completedOrder} branchName="Branch" />}
+              {completedOrder && (
+                <Receipt
+                  ref={receiptRef}
+                  order={completedOrder}
+                  branchName={user?.branch ?? "Branch"}
+                  settings={{
+                    companyName: settings?.companyName,
+                    taxId: settings?.taxId,
+                    vatRate: parseVatRatePercent(settings?.vatRate),
+                    receiptFooter: settings?.receiptFooter,
+                  }}
+                />
+              )}
             </div>
             
             {/* Preview */}

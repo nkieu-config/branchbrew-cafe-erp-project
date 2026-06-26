@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { parseVatRatePercent } from '../common/vat.util';
+import { fromDbSettings, toDbSettings } from './settings-keys.util';
 
 @Injectable()
 export class SettingsService {
@@ -7,14 +9,14 @@ export class SettingsService {
 
   async getAllSettings() {
     const settings = await this.prisma.systemSetting.findMany();
-    // Return as key-value pairs for easier frontend usage
-    return settings.reduce(
+    const raw = settings.reduce(
       (acc, setting) => {
         acc[setting.key] = setting.value;
         return acc;
       },
       {} as Record<string, string>,
     );
+    return fromDbSettings(raw);
   }
 
   async getSetting(key: string) {
@@ -24,8 +26,14 @@ export class SettingsService {
     return setting?.value || null;
   }
 
+  async getVatRatePercent(): Promise<number> {
+    const raw = await this.getSetting('vat_rate');
+    return parseVatRatePercent(raw);
+  }
+
   async updateSettings(data: Record<string, string>) {
-    const updates = Object.entries(data).map(async ([key, value]) => {
+    const dbData = toDbSettings(data);
+    const updates = Object.entries(dbData).map(async ([key, value]) => {
       return this.prisma.systemSetting.upsert({
         where: { key },
         update: { value },

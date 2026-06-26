@@ -261,6 +261,7 @@ async function main() {
   await prisma.systemSetting.createMany({
     data: [
       { key: 'company_name', value: 'QafaCafe Demo' },
+      { key: 'tax_id', value: '0105560000000' },
       { key: 'vat_rate', value: '7' },
       { key: 'currency', value: 'THB' },
       { key: 'receipt_footer', value: 'Thank you for visiting QafaCafe!' },

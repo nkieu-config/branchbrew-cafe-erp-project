@@ -7,6 +7,7 @@ import {
   PrismaServiceMockProvider,
 } from '../prisma/prisma.service.mock';
 import { OutboxService } from '../outbox/outbox.service';
+import { SettingsService } from '../settings/settings.service';
 
 describe('OrdersService', () => {
   let service: OrdersService;
@@ -22,6 +23,10 @@ describe('OrdersService', () => {
         {
           provide: OutboxService,
           useValue: { enqueue: jest.fn().mockResolvedValue({ id: 1 }) },
+        },
+        {
+          provide: SettingsService,
+          useValue: { getVatRatePercent: jest.fn().mockResolvedValue(7) },
         },
       ],
     }).compile();

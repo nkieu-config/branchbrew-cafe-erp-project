@@ -1,10 +1,27 @@
 import React, { forwardRef } from 'react';
 import { Coffee } from 'lucide-react';
 import type { ReceiptOrder } from '@/types/api';
+import { formatMoney } from '@/lib/money';
+import { inclusiveTaxAmount } from '@/lib/vat';
 
-export const Receipt = forwardRef<HTMLDivElement, { order: ReceiptOrder; branchName?: string }>(
-  ({ order, branchName }, ref) => {
+export interface ReceiptSettings {
+  companyName?: string;
+  taxId?: string;
+  vatRate?: number;
+  receiptFooter?: string;
+}
+
+export const Receipt = forwardRef<
+  HTMLDivElement,
+  { order: ReceiptOrder; branchName?: string; settings?: ReceiptSettings }
+>(({ order, branchName, settings }, ref) => {
     if (!order) return null;
+
+    const vatRate = settings?.vatRate ?? 7;
+    const vatAmount = inclusiveTaxAmount(order.netTotal ?? 0, vatRate);
+    const companyName = settings?.companyName || 'QAFA CAFE';
+    const taxId = settings?.taxId || '010556XXXXXX0';
+    const footer = settings?.receiptFooter || 'Thank You For Visiting!';
 
     const date = new Date().toLocaleString('th-TH', { 
       year: 'numeric', month: '2-digit', day: '2-digit', 
@@ -39,9 +56,9 @@ export const Receipt = forwardRef<HTMLDivElement, { order: ReceiptOrder; branchN
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '2px' }}>
             <Coffee size={24} color="black" />
           </div>
-          <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: '0 0 2px 0', letterSpacing: '1px' }}>QAFA CAFE</h2>
+          <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: '0 0 2px 0', letterSpacing: '1px' }}>{companyName.toUpperCase()}</h2>
           <p style={{ margin: '0', fontSize: '11px' }}>{branchName || 'Headquarters'}</p>
-          <p style={{ margin: '0', fontSize: '10px', color: '#333' }}>TAX ID: 010556XXXXXX0</p>
+          <p style={{ margin: '0', fontSize: '10px', color: '#333' }}>TAX ID: {taxId}</p>
           <p style={{ margin: '4px 0 0 0', fontWeight: 'bold' }}>TAX INVOICE / RECEIPT</p>
         </div>
 
@@ -96,8 +113,8 @@ export const Receipt = forwardRef<HTMLDivElement, { order: ReceiptOrder; branchN
           )}
           
           <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2px', fontSize: '10px' }}>
-            <span>VAT (7% Included)</span>
-            <span>{((order.netTotal || 0) * 0.07 / 1.07).toFixed(2)}</span>
+            <span>VAT ({vatRate}% Included)</span>
+            <span>{formatMoney(vatAmount)}</span>
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '16px', marginTop: '4px', borderTop: '1px solid black', paddingTop: '4px' }}>
@@ -118,12 +135,11 @@ export const Receipt = forwardRef<HTMLDivElement, { order: ReceiptOrder; branchN
             ||| | || |||| | ||| ||
             <br/>{String(order.id).padStart(10, '0')}
           </div>
-          <p style={{ margin: '0', fontWeight: 'bold' }}>Thank You For Visiting!</p>
+          <p style={{ margin: '0', fontWeight: 'bold' }}>{footer}</p>
           <p style={{ margin: '2px 0 0 0', fontSize: '9px', color: '#555' }}>Powered by QafaCafe ERP</p>
         </div>
       </div>
     );
-  }
-);
+});
 
 Receipt.displayName = 'Receipt';
