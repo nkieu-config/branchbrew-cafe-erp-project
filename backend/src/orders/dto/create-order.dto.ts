@@ -19,6 +19,10 @@ export class OrderItemDto {
   @IsInt()
   @IsPositive()
   quantity: number;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
 }
 
 export class CreateOrderDto {

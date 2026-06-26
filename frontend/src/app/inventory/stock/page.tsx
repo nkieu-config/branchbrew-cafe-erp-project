@@ -53,6 +53,7 @@ export default function InventoryPage() {
   const [batchQty, setBatchQty] = useState("");
   const [batchExpiry, setBatchExpiry] = useState("");
   const [isAddingBatch, setIsAddingBatch] = useState(false);
+  const [calendarMode, setCalendarMode] = useState<'month' | 'year'>('month');
 
   // Removed useEffect and fetchInventory, handled by React Query
   const handleCreateTransfer = async (e: React.FormEvent) => {
@@ -480,7 +481,12 @@ export default function InventoryPage() {
             </div>
             <div className="p-4">
               <Calendar 
-                fullscreen={false} 
+                fullscreen={false}
+                mode={calendarMode}
+                onPanelChange={(_, mode) => {
+                  // Expiry heatmap is day-level only; prevent broken year panel UI
+                  setCalendarMode(mode === 'year' ? 'month' : mode);
+                }}
                 cellRender={(current, info) => {
                   if (info.type === 'date') return dateCellRender(current);
                   return info.originNode;

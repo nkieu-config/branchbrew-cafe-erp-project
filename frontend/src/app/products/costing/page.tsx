@@ -6,14 +6,15 @@ import { TrendingUp, DollarSign, Activity, BarChart3 } from "lucide-react"
 import { PageHeader } from "@/components/shared/page-header"
 import { StatCard } from "@/components/shared/stat-card"
 import { DataTable } from "@/components/shared/data-table"
+import { toNumber, formatBaht } from "@/lib/money"
 import { Order } from "@/types/api"
 
 export default function CostingReportPage() {
   const { data: ordersData = [], isLoading } = useOrders()
   const orders = ordersData;
 
-  const totalRevenue = orders.reduce((sum: number, o: Order) => sum + (o.netAmount || 0), 0)
-  const totalCogs = orders.reduce((sum: number, o: Order) => sum + (o.totalCogs || 0), 0)
+  const totalRevenue = orders.reduce((sum: number, o: Order) => sum + toNumber(o.netAmount), 0)
+  const totalCogs = orders.reduce((sum: number, o: Order) => sum + toNumber(o.totalCogs), 0)
   const grossProfit = totalRevenue - totalCogs
   const margin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0
 
@@ -52,15 +53,15 @@ export default function CostingReportPage() {
           columns={[
             { title: "Order ID", dataIndex: "id", key: "id", render: (id: number) => <span className="font-medium text-slate-900 dark:text-slate-100">#{id}</span> },
             { title: "Date", dataIndex: "createdAt", key: "date", render: (date: string) => <span className="text-slate-600 dark:text-slate-400">{new Date(date).toLocaleString()}</span> },
-            { title: "Revenue", dataIndex: "netAmount", key: "rev", align: "right", render: (val: number) => <span className="tabular-nums">฿{val.toFixed(2)}</span> },
-            { title: "COGS", dataIndex: "totalCogs", key: "cogs", align: "right", render: (val: number) => <span className="text-red-500 tabular-nums">฿{val.toFixed(2)}</span> },
+            { title: "Revenue", dataIndex: "netAmount", key: "rev", align: "right", render: (val: number | string) => <span className="tabular-nums">{formatBaht(val)}</span> },
+            { title: "COGS", dataIndex: "totalCogs", key: "cogs", align: "right", render: (val: number | string) => <span className="text-red-500 tabular-nums">{formatBaht(val)}</span> },
             { 
               title: "Profit", 
               key: "profit", 
               align: "right",
               render: (_, record: Order) => {
-                const profit = record.netAmount - record.totalCogs;
-                return <span className="text-blue-500 font-medium tabular-nums">฿{profit.toFixed(2)}</span>
+                const profit = toNumber(record.netAmount) - toNumber(record.totalCogs);
+                return <span className="text-blue-500 font-medium tabular-nums">{formatBaht(profit)}</span>
               }
             },
           ]}

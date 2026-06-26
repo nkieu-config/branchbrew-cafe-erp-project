@@ -18,6 +18,7 @@ import { useRef } from "react";
 import { OnScreenNumpad } from "@/components/pos/OnScreenNumpad";
 import { pointsToDiscountBaht } from "@/lib/loyalty";
 import { filterActive } from "@/lib/form";
+import { toNumber, formatBaht } from "@/lib/money";
 import type { Customer, ValidatedPromotion, ReceiptOrder } from "@/types/api";
 
 export default function POSPage() {
@@ -95,7 +96,10 @@ export default function POSPage() {
   };
 
   // Calculations
-  const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const subtotal = cart.reduce(
+    (sum, item) => sum + toNumber(item.product.price) * item.quantity,
+    0,
+  );
   
   // Recalculate promo if subtotal changes (e.g. minPurchase rule)
   useEffect(() => {
@@ -155,10 +159,13 @@ export default function POSPage() {
     }
     
     try {
-      const items = cart.map(item => ({ productId: item.product.id, quantity: item.quantity, notes: item.notes }));
-      const orderData = await createOrderMutation.mutateAsync({ 
-        userId: user?.id as number, 
-        branchId: activeBranchId, 
+      const items = cart.map((item) => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+        ...(item.notes ? { notes: item.notes } : {}),
+      }));
+      const orderData = await createOrderMutation.mutateAsync({
+        branchId: activeBranchId,
         items,
         customerPhone: customer?.phone,
         promotionCode: appliedPromo?.code,
@@ -222,7 +229,7 @@ export default function POSPage() {
                 <CardDescription className="dark:text-slate-400">{product.category}</CardDescription>
               </CardHeader>
               <CardContent className="p-4 pt-0 flex justify-between items-center">
-                <span className="font-bold text-amber-600 dark:text-amber-500 text-lg tabular-nums">฿{product.price}</span>
+                <span className="font-bold text-amber-600 dark:text-amber-500 text-lg tabular-nums">{formatBaht(product.price)}</span>
                 <Button variant="secondary" size="sm" className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50">Add</Button>
               </CardContent>
             </Card>
@@ -253,10 +260,10 @@ export default function POSPage() {
               <div>
                 <div className="font-semibold text-slate-800 dark:text-slate-200">{item.product.name}</div>
                 {item.notes && <div className="text-xs text-amber-600 dark:text-amber-500 font-medium mb-1 line-clamp-2">{item.notes}</div>}
-                <div className="text-sm text-slate-500 dark:text-slate-400 tabular-nums">฿{item.product.price} x {item.quantity}</div>
+                <div className="text-sm text-slate-500 dark:text-slate-400 tabular-nums">{formatBaht(item.product.price)} x {item.quantity}</div>
               </div>
               <div className="flex items-center gap-4">
-                <span className="font-bold text-slate-700 dark:text-slate-300 tabular-nums">฿{item.product.price * item.quantity}</span>
+                <span className="font-bold text-slate-700 dark:text-slate-300 tabular-nums">{formatBaht(toNumber(item.product.price) * item.quantity)}</span>
                 <Button aria-label="Remove item" variant="ghost" size="sm" className="text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 h-8 w-8 p-0" onClick={() => removeFromCart(item.id)}>
                   ✕
                 </Button>

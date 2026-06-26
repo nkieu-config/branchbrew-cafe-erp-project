@@ -18,6 +18,7 @@ async function main() {
   await prisma.shift.deleteMany();
   await prisma.purchaseOrderItem.deleteMany();
   await prisma.purchaseOrder.deleteMany();
+  await prisma.stockTransfer.deleteMany();
   await prisma.supplier.deleteMany();
   await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();
@@ -25,6 +26,11 @@ async function main() {
   await prisma.product.deleteMany();
   await prisma.inventoryBatch.deleteMany();
   await prisma.branchInventory.deleteMany();
+  await prisma.journalEntryLine.deleteMany();
+  await prisma.journalEntry.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.outboxEvent.deleteMany();
+  await prisma.auditLog.deleteMany();
   await prisma.ingredient.deleteMany();
   await prisma.user.deleteMany();
   await prisma.branch.deleteMany();
@@ -68,19 +74,25 @@ async function main() {
   const cup = await prisma.ingredient.create({ data: { name: 'Paper Cup', unit: 'pcs', costPerUnit: 3.5 } });
   const syrup = await prisma.ingredient.create({ data: { name: 'Vanilla Syrup', unit: 'ml', costPerUnit: 0.2 } });
 
-  // 4. Create Branch Inventories (Stock per branch)
-  await prisma.branchInventory.createMany({
-    data: [
-      { branchId: mainBranch.id, ingredientId: coffeeBeans.id, stock: 5000, minStock: 1000 },
-      { branchId: mainBranch.id, ingredientId: milk.id, stock: 10000, minStock: 2000 },
-      { branchId: mainBranch.id, ingredientId: cup.id, stock: 500, minStock: 100 },
-      { branchId: mainBranch.id, ingredientId: syrup.id, stock: 1000, minStock: 200 },
-      // Second branch has less stock
-      { branchId: secondBranch.id, ingredientId: coffeeBeans.id, stock: 2000, minStock: 1000 },
-      { branchId: secondBranch.id, ingredientId: milk.id, stock: 3000, minStock: 2000 },
-      { branchId: secondBranch.id, ingredientId: cup.id, stock: 150, minStock: 100 },
-      { branchId: secondBranch.id, ingredientId: syrup.id, stock: 500, minStock: 200 },
-    ],
+  // 4. Create Branch Inventories + FIFO batches (stock must match batch totals)
+  const inventoryRows = [
+    { branchId: mainBranch.id, ingredientId: coffeeBeans.id, stock: 5000, minStock: 1000 },
+    { branchId: mainBranch.id, ingredientId: milk.id, stock: 10000, minStock: 2000 },
+    { branchId: mainBranch.id, ingredientId: cup.id, stock: 500, minStock: 100 },
+    { branchId: mainBranch.id, ingredientId: syrup.id, stock: 1000, minStock: 200 },
+    { branchId: secondBranch.id, ingredientId: coffeeBeans.id, stock: 2000, minStock: 1000 },
+    { branchId: secondBranch.id, ingredientId: milk.id, stock: 3000, minStock: 2000 },
+    { branchId: secondBranch.id, ingredientId: cup.id, stock: 150, minStock: 100 },
+    { branchId: secondBranch.id, ingredientId: syrup.id, stock: 500, minStock: 200 },
+  ];
+  await prisma.branchInventory.createMany({ data: inventoryRows });
+  await prisma.inventoryBatch.createMany({
+    data: inventoryRows.map((row) => ({
+      branchId: row.branchId,
+      ingredientId: row.ingredientId,
+      quantity: row.stock,
+      status: 'ACTIVE' as const,
+    })),
   });
 
   // 5. Create Suppliers

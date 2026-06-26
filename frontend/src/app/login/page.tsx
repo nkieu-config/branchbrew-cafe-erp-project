@@ -118,7 +118,7 @@ export default function LoginPage() {
           transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           className="relative z-10 p-12 max-w-xl text-center"
         >
-          <div className="glass-panel border-white/10 p-10 rounded-3xl backdrop-blur-2xl bg-white/5 shadow-2xl">
+          <div className="rounded-3xl border border-white/10 p-10 backdrop-blur-2xl bg-white/5 shadow-2xl">
             <h2 className="text-3xl font-bold text-white mb-4">Enterprise Grade Efficiency</h2>
             <p className="text-slate-300 leading-relaxed mb-8">
               QafaCafe streamlines your operations from point-of-sale to inventory and human resources, giving you the clarity needed to scale.

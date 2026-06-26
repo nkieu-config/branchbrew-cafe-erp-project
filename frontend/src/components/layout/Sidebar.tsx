@@ -17,7 +17,7 @@ const menuGroups = [
   {
     group: "Overview & Analytics",
     items: [
-      { name: "Dashboard", href: "/", icon: LayoutDashboard, roles: ["SUPER_ADMIN", "MANAGER"] },
+      { name: "Dashboard", href: "/", icon: LayoutDashboard, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
     ]
   },
   {

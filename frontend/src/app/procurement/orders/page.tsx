@@ -16,7 +16,7 @@ import { format } from "date-fns";
 
 interface CreatePOFormValues {
   supplierId: number;
-  items: { ingredientId: number; quantity: number; price?: number }[];
+  items: { ingredientId: number; quantity: number; unitPrice?: number }[];
 }
 
 export default function ProcurementPage() {
@@ -94,8 +94,8 @@ export default function ProcurementPage() {
         items: values.items.map((i) => ({
           ingredientId: i.ingredientId,
           quantity: i.quantity,
-          price: i.price ?? 0
-        }))
+          unitPrice: i.unitPrice ?? 0,
+        })),
       });
       toast.success("Purchase Order created successfully");
       setIsModalOpen(false);
@@ -305,9 +305,9 @@ export default function ProcurementPage() {
                           onChange={(val) => {
                             // Auto-fill price if available
                             const ing = ingredients.find((i: Ingredient) => i.id === val);
-                            if (ing && ing.costPerUnit) {
+                            if (ing && ing.costPerUnit != null) {
                               const currentItems = form.getFieldValue('items');
-                              currentItems[name].price = ing.costPerUnit;
+                              currentItems[name].unitPrice = Number(ing.costPerUnit);
                               form.setFieldsValue({ items: currentItems });
                             }
                           }}
@@ -325,11 +325,11 @@ export default function ProcurementPage() {
 
                       <Form.Item
                         {...restField}
-                        name={[name, 'price']}
+                        name={[name, 'unitPrice']}
                         rules={[{ required: true, message: 'Missing Price' }]}
                         className="mb-0 w-32"
                       >
-                        <InputNumber placeholder="Price/Unit" min={0} className="w-full" />
+                        <InputNumber placeholder="Price/Unit" min={0} step={0.01} className="w-full" />
                       </Form.Item>
 
                       <AntButton type="text" danger onClick={() => remove(name)} icon={<Trash2 className="w-4 h-4"/>} />

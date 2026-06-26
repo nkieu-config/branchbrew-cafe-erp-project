@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tag, Button as AntButton } from "antd";
 import { DataTable } from "@/components/shared/data-table";
 
+import { formatBaht } from "@/lib/money";
 import type { Product } from "@/types/api";
 
 export default function ProductsPage() {
@@ -72,7 +73,7 @@ export default function ProductsPage() {
               title: "Price (฿)",
               dataIndex: "price",
               key: "price",
-              render: (price) => <span className="font-bold text-slate-700 dark:text-slate-300">฿{price?.toFixed(2)}</span>
+              render: (price) => <span className="font-bold text-slate-700 dark:text-slate-300">{formatBaht(price)}</span>
             },
             {
               title: "Status",

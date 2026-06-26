@@ -59,7 +59,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = (newUser: User) => {
     setUser(newUser);
     setActiveBranchId(newUser.branchId ?? null);
-    router.push('/');
+    const landing =
+      newUser.role === 'STAFF' ? '/pos/terminal' : '/';
+    router.push(landing);
     toast.success('Logged in successfully');
   };
 
