@@ -3,6 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../prisma/prisma.service';
 import { OrderCreatedEvent } from '../orders/events/order-created.event';
+import { OrderVoidedEvent } from '../orders/events/order-voided.event';
 import { OrderStatusUpdatedEvent } from '../orders/events/order-status-updated.event';
 import { PurchaseOrderReceivedEvent } from '../procurement/events/purchase-order-received.event';
 import { ProductionCompletedEvent } from '../production/events/production-completed.event';
@@ -98,6 +99,15 @@ export class OutboxProcessor {
       await this.eventEmitter.emitAsync(
         'order.status.updated',
         new OrderStatusUpdatedEvent(data.orderId, data.status, data.branchId),
+      );
+      return;
+    }
+
+    if (eventType === 'order.voided') {
+      const data = payload as { order: Order };
+      await this.eventEmitter.emitAsync(
+        'order.voided',
+        new OrderVoidedEvent(data.order),
       );
       return;
     }

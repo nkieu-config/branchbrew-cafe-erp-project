@@ -64,4 +64,53 @@ export class InventoryHelper {
       }
     }
   }
+
+  /** Restore stock after void/refund — mirrors branch cache + batch records. */
+  static async restoreInventory(
+    tx: Prisma.TransactionClient,
+    branchId: number,
+    ingredientRequirements: Map<number, number>,
+  ) {
+    for (const [ingredientId, qty] of ingredientRequirements.entries()) {
+      if (qty <= 0) continue;
+
+      const branchInventory = await tx.branchInventory.findUnique({
+        where: { branchId_ingredientId: { branchId, ingredientId } },
+        include: { ingredient: true },
+      });
+
+      if (!branchInventory) {
+        const name = `ID ${ingredientId}`;
+        throw new BadRequestException(
+          `Branch inventory not found for ${name}.`,
+        );
+      }
+
+      await tx.branchInventory.update({
+        where: { id: branchInventory.id },
+        data: { stock: branchInventory.stock + qty },
+      });
+
+      const activeBatch = await tx.inventoryBatch.findFirst({
+        where: { branchId, ingredientId, status: 'ACTIVE' },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (activeBatch) {
+        await tx.inventoryBatch.update({
+          where: { id: activeBatch.id },
+          data: { quantity: activeBatch.quantity + qty },
+        });
+      } else {
+        await tx.inventoryBatch.create({
+          data: {
+            branchId,
+            ingredientId,
+            quantity: qty,
+            status: 'ACTIVE',
+          },
+        });
+      }
+    }
+  }
 }

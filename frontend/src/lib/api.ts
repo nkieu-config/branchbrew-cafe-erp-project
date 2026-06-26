@@ -40,6 +40,8 @@ export const getOrders = () => fetchAPI(API_ENDPOINTS.orders.list());
 export const getKdsOrders = (branchId: number) => fetchAPI(API_ENDPOINTS.orders.kds(branchId));
 export const updateOrderStatus = (orderId: number, status: string) =>
   fetchAPI(API_ENDPOINTS.orders.updateStatus(orderId), { method: 'PATCH', body: JSON.stringify({ status }) });
+export const voidOrder = (orderId: number) =>
+  fetchAPI(API_ENDPOINTS.orders.void(orderId), { method: 'POST' });
 
 // Procurement & Branches
 export const getPurchaseOrders = () => fetchAPI(API_ENDPOINTS.procurement.purchaseOrders);

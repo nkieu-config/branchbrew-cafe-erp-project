@@ -282,4 +282,84 @@ describe('OrdersService', () => {
       );
     });
   });
+
+  describe('voidOrder', () => {
+    const voidableOrder = {
+      id: 5,
+      branchId: TEST_BRANCH_ID,
+      status: 'COMPLETED' as const,
+      createdAt: new Date(),
+      customerId: 1,
+      pointsEarned: 10,
+      pointsRedeemed: 5,
+      netAmount: 100,
+      totalCogs: 20,
+      items: [
+        {
+          quantity: 1,
+          product: {
+            recipeItems: [{ ingredientId: 1, quantity: 20 }],
+          },
+        },
+      ],
+    };
+
+    it('should reject void for already cancelled orders', async () => {
+      prisma.order.findUnique.mockResolvedValue({
+        ...voidableOrder,
+        status: 'CANCELLED',
+      } as any);
+
+      await expect(service.voidOrder(5)).rejects.toThrow(
+        new BadRequestException('Order is already voided.'),
+      );
+    });
+
+    it('should reject void for previous-day orders', async () => {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      prisma.order.findUnique.mockResolvedValue({
+        ...voidableOrder,
+        createdAt: yesterday,
+      } as any);
+
+      await expect(service.voidOrder(5)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should void order, restore stock, and reverse loyalty points', async () => {
+      prisma.order.findUnique.mockResolvedValue(voidableOrder as any);
+      prisma.branchInventory.findUnique.mockResolvedValue({
+        id: 1,
+        branchId: TEST_BRANCH_ID,
+        ingredientId: 1,
+        stock: 80,
+        ingredient: { name: 'Beans' },
+      } as any);
+      prisma.branchInventory.update.mockResolvedValue({} as any);
+      prisma.inventoryBatch.findFirst.mockResolvedValue({
+        id: 2,
+        quantity: 10,
+        status: 'ACTIVE',
+      } as any);
+      prisma.inventoryBatch.update.mockResolvedValue({} as any);
+      prisma.customer.update.mockResolvedValue({} as any);
+      prisma.order.update.mockResolvedValue({
+        ...voidableOrder,
+        status: 'CANCELLED',
+      } as any);
+
+      const result = await service.voidOrder(5);
+
+      expect(prisma.branchInventory.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { stock: 100 },
+      });
+      expect(prisma.customer.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { points: { increment: -5 } },
+      });
+      expect(result.status).toBe('CANCELLED');
+    });
+  });
 });

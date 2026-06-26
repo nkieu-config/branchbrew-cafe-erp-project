@@ -18,6 +18,10 @@ import {
   productRequiresKitchen,
   resolveInitialOrderStatus,
 } from './order-status.util';
+import {
+  buildIngredientRequirementsFromOrderItems,
+  isSameCalendarDay,
+} from './order-void.util';
 
 @Injectable()
 export class OrdersService {
@@ -341,5 +345,75 @@ export class OrdersService {
     });
 
     return updated;
+  }
+
+  async voidOrder(orderId: number, user?: BranchScopedUser) {
+    const existing = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        items: {
+          include: {
+            product: { include: { recipeItems: true } },
+          },
+        },
+      },
+    });
+
+    if (!existing) throw new NotFoundException('Order not found');
+    if (user) assertBranchAccess(user, existing.branchId);
+
+    if (existing.status === 'CANCELLED') {
+      throw new BadRequestException('Order is already voided.');
+    }
+
+    if (!isSameCalendarDay(existing.createdAt, new Date())) {
+      throw new BadRequestException(
+        'Only same-day orders can be voided. Use refund flow for older orders.',
+      );
+    }
+
+    const ingredientRequirements = buildIngredientRequirementsFromOrderItems(
+      existing.items,
+    );
+
+    return this.prisma.$transaction(async (tx) => {
+      if (ingredientRequirements.size > 0) {
+        await InventoryHelper.restoreInventory(
+          tx,
+          existing.branchId,
+          ingredientRequirements,
+        );
+      }
+
+      if (existing.customerId) {
+        const pointsDelta =
+          existing.pointsRedeemed - existing.pointsEarned;
+        if (pointsDelta !== 0) {
+          await tx.customer.update({
+            where: { id: existing.customerId },
+            data: { points: { increment: pointsDelta } },
+          });
+        }
+      }
+
+      const order = await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'CANCELLED' },
+        include: {
+          items: { include: { product: true } },
+          customer: true,
+          promotion: true,
+        },
+      });
+
+      await this.outboxService.enqueue(tx, 'order.voided', { order });
+      await this.outboxService.enqueue(tx, 'order.status.updated', {
+        orderId: order.id,
+        status: order.status,
+        branchId: existing.branchId,
+      });
+
+      return order;
+    });
   }
 }

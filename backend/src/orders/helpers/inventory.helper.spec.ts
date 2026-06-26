@@ -113,4 +113,48 @@ describe('InventoryHelper', () => {
       ).rejects.toThrow(BadRequestException);
     });
   });
+
+  describe('restoreInventory', () => {
+    const branchId = 1;
+    let restoreRequirements: Map<number, number>;
+
+    beforeEach(() => {
+      restoreRequirements = new Map<number, number>();
+    });
+
+    it('restores branch stock and adds to active batch', async () => {
+      restoreRequirements.set(100, 10);
+
+      txMock.branchInventory.findUnique.mockResolvedValue({
+        id: 1,
+        branchId: 1,
+        ingredientId: 100,
+        stock: 40,
+        minStock: 5,
+        ingredient: { name: 'Milk' },
+      } as any);
+
+      txMock.inventoryBatch.findFirst.mockResolvedValue({
+        id: 20,
+        quantity: 5,
+        status: 'ACTIVE',
+      } as any);
+
+      await InventoryHelper.restoreInventory(
+        txMock as unknown as Prisma.TransactionClient,
+        branchId,
+        restoreRequirements,
+      );
+
+      expect(txMock.branchInventory.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { stock: 50 },
+      });
+
+      expect(txMock.inventoryBatch.update).toHaveBeenCalledWith({
+        where: { id: 20 },
+        data: { quantity: 15 },
+      });
+    });
+  });
 });

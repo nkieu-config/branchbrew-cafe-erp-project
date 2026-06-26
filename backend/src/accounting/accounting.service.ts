@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { OnEvent } from '@nestjs/event-emitter';
 import { OrderCreatedEvent } from '../orders/events/order-created.event';
+import { OrderVoidedEvent } from '../orders/events/order-voided.event';
 import { PurchaseOrderReceivedEvent } from '../procurement/events/purchase-order-received.event';
 import { ProductionCompletedEvent } from '../production/events/production-completed.event';
 import { toNum, roundMoney, isBalancedMoney } from '../common/decimal.util';
@@ -66,6 +67,57 @@ export class AccountingService {
         ],
       });
     }
+  }
+
+  @OnEvent('order.voided', { async: true })
+  async handleOrderVoided(event: OrderVoidedEvent) {
+    this.logger.log(
+      `Handling order.voided event for Accounting (Order ${event.order.id})`,
+    );
+
+    const { order } = event;
+    const netAmount = roundMoney(toNum(order.netAmount));
+    const totalCogs = roundMoney(toNum(order.totalCogs));
+
+    if (netAmount <= 0 && totalCogs <= 0) return;
+
+    const paymentAccountCode = resolvePaymentAccountCode(order.paymentMethod);
+
+    await this.createJournalEntry({
+      branchId: order.branchId,
+      reference: `VOID-ORD-${order.id}`,
+      description: `Void / refund reversal for Order ${order.id}`,
+      lines: [
+        {
+          accountCode: paymentAccountCode,
+          debit: 0,
+          credit: netAmount,
+          description: `${paymentAccountLabel(order.paymentMethod)} refunded`,
+        },
+        {
+          accountCode: '4010',
+          debit: netAmount,
+          credit: 0,
+          description: 'Sales revenue reversed',
+        },
+        ...(totalCogs > 0
+          ? [
+              {
+                accountCode: '5010',
+                debit: 0,
+                credit: totalCogs,
+                description: 'COGS reversed',
+              },
+              {
+                accountCode: '1030',
+                debit: totalCogs,
+                credit: 0,
+                description: 'Inventory restored',
+              },
+            ]
+          : []),
+      ],
+    });
   }
 
   @OnEvent('purchase-order.received', { async: true })

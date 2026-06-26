@@ -13,6 +13,7 @@ export const API_ENDPOINTS = {
     kds: (branchId: number) => `/orders/kds?branchId=${branchId}`,
     updateStatus: (id: number) => `/orders/${id}/status`,
     detail: (id: number) => `/orders/${id}`,
+    void: (id: number) => `/orders/${id}/void`,
   },
   products: {
     list: '/products',

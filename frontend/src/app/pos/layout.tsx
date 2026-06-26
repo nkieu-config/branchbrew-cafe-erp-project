@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import Link from "next/link"
-import { ShoppingCart, Wallet } from "lucide-react"
+import { ShoppingCart, Wallet, Receipt } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 
 import { AnimatedPage } from "@/components/animated-page"
@@ -14,6 +14,7 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
 
   const tabs = [
     { name: "Terminal", path: "/pos/terminal", icon: ShoppingCart, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
+    { name: "Orders", path: "/pos/orders", icon: Receipt, roles: ["SUPER_ADMIN", "MANAGER"] },
     { name: "Settlement", path: "/pos/settlement", icon: Wallet, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
   ]
 

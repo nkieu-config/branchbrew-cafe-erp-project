@@ -28,6 +28,28 @@ export const useCreateOrder = () => {
   });
 };
 
+export const useBranchOrders = (branchId?: number) => {
+  return useQuery({
+    queryKey: ['orders', branchId],
+    queryFn: () => fetchAPI(API_ENDPOINTS.orders.list(branchId)),
+    enabled: !!branchId,
+  });
+};
+
+export const useVoidOrder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (orderId: number) =>
+      fetchAPI(API_ENDPOINTS.orders.void(orderId), { method: 'POST' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['analyticsSummary'] });
+      queryClient.invalidateQueries({ queryKey: ['salesTrends'] });
+      queryClient.invalidateQueries({ queryKey: ['branchInventory'] });
+    },
+  });
+};
+
 export const useValidatePromotion = () => {
   return useMutation({
     mutationFn: ({ code, subtotal }: { code: string, subtotal: number }) => fetchAPI(API_ENDPOINTS.promotions.validate, { method: 'POST', body: JSON.stringify({ code, subtotal }) }),

@@ -16,6 +16,8 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import type { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
 import { OrderStatus } from '@prisma/client';
 import { assertBranchAccess, resolveBranchId } from '../auth/branch-scope.util';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @UseGuards(JwtAuthGuard)
 @Controller('orders')
@@ -66,6 +68,16 @@ export class OrdersController {
     @Request() req: RequestWithUser,
   ) {
     return this.ordersService.updateOrderStatus(id, status, req.user);
+  }
+
+  @Post(':id/void')
+  @UseGuards(RolesGuard)
+  @Roles('SUPER_ADMIN', 'MANAGER')
+  voidOrder(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: RequestWithUser,
+  ) {
+    return this.ordersService.voidOrder(id, req.user);
   }
 
   @Get(':id')
