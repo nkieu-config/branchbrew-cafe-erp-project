@@ -36,6 +36,10 @@ describeIfDatabase('Finance settlement flow (e2e)', () => {
 
   afterAll(async () => {
     await prisma.shiftSettlement.deleteMany({ where: { branchId } });
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (user) {
+      await prisma.auditLog.deleteMany({ where: { userId: user.id } });
+    }
     await prisma.user.deleteMany({ where: { email } });
     await prisma.branch.deleteMany({ where: { name: 'E2E Finance Branch' } });
     await app?.close();
@@ -55,7 +59,7 @@ describeIfDatabase('Finance settlement flow (e2e)', () => {
       .expect(201);
 
     expect(res.body.branchId).toBe(branchId);
-    expect(res.body.actualCash).toBe(500);
+    expect(Number(res.body.actualCash)).toBe(500);
   });
 
   it('rejects settlement for another branch', async () => {

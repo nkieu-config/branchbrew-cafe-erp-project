@@ -32,6 +32,15 @@ export async function seedPosFixture(prisma: PrismaService) {
     },
   });
 
+  await prisma.inventoryBatch.create({
+    data: {
+      branchId: branch.id,
+      ingredientId: ingredient.id,
+      quantity: 1000,
+      status: 'ACTIVE',
+    },
+  });
+
   const product = await prisma.product.create({
     data: {
       name: 'E2E Latte',
@@ -56,10 +65,14 @@ export async function cleanupPosFixture(prisma: PrismaService, email: string) {
     where: { product: { name: 'E2E Latte' } },
   });
   await prisma.product.deleteMany({ where: { name: 'E2E Latte' } });
+  await prisma.inventoryBatch.deleteMany({
+    where: { ingredient: { name: 'E2E Beans' } },
+  });
   await prisma.branchInventory.deleteMany({
     where: { branch: { name: 'E2E POS Branch' } },
   });
   await prisma.ingredient.deleteMany({ where: { name: 'E2E Beans' } });
+  await prisma.auditLog.deleteMany({ where: { userId: user.id } });
   await prisma.user.deleteMany({ where: { email } });
   await prisma.branch.deleteMany({ where: { name: 'E2E POS Branch' } });
 }

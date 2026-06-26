@@ -72,6 +72,10 @@ describeIfDatabase('Branch transfer flow (e2e)', () => {
     await prisma.ingredient.deleteMany({
       where: { name: 'E2E Transfer Beans' },
     });
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (user) {
+      await prisma.auditLog.deleteMany({ where: { userId: user.id } });
+    }
     await prisma.user.deleteMany({ where: { email } });
     await prisma.branch.deleteMany({
       where: { name: { in: ['E2E Transfer From', 'E2E Transfer To'] } },
