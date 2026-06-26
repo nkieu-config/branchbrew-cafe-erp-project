@@ -42,6 +42,37 @@ export interface User {
   branch?: Branch | null;
 }
 
+export interface ModifierOption {
+  id: number;
+  groupId: number;
+  name: string;
+  priceDelta: number | string;
+  isDefault: boolean;
+  sortOrder: number;
+}
+
+export interface ModifierGroup {
+  id: number;
+  name: string;
+  category?: string | null;
+  sortOrder: number;
+  options: ModifierOption[];
+}
+
+export interface OrderItemModifier {
+  id: number;
+  orderItemId: number;
+  optionId: number;
+  optionName: string;
+  priceDelta: number | string;
+}
+
+export interface SalesTrendPoint {
+  date: string;
+  total: number;
+  orders: number;
+}
+
 export interface Product {
   id: number;
   name: string;
@@ -106,6 +137,7 @@ export interface OrderItem {
   price: number;
   notes?: string | null;
   product?: Product;
+  modifiers?: OrderItemModifier[];
 }
 
 export interface Order {

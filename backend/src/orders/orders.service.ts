@@ -29,7 +29,12 @@ export class OrdersService {
   async createOrder(data: {
     userId: number;
     branchId: number;
-    items: { productId: number; quantity: number; notes?: string }[];
+    items: {
+      productId: number;
+      quantity: number;
+      notes?: string;
+      modifierOptionIds?: number[];
+    }[];
     customerPhone?: string;
     promotionCode?: string;
     pointsToRedeem?: number;
@@ -45,6 +50,17 @@ export class OrdersService {
 
       const ingredientRequirements = new Map<number, number>();
       const productsForStatus: { category: string }[] = [];
+      const processedItems: {
+        productId: number;
+        quantity: number;
+        unitPrice: number;
+        notesText?: string;
+        modifiers: {
+          optionId: number;
+          optionName: string;
+          priceDelta: number;
+        }[];
+      }[] = [];
 
       for (const item of data.items) {
         const product = await tx.product.findUnique({
@@ -68,7 +84,36 @@ export class OrdersService {
           );
         }
 
-        totalAmount += toNum(product.price) * item.quantity;
+        let unitPrice = toNum(product.price);
+        const modifiers: {
+          optionId: number;
+          optionName: string;
+          priceDelta: number;
+        }[] = [];
+        const modifierLabels: string[] = [];
+
+        if (item.modifierOptionIds?.length) {
+          const options = await tx.modifierOption.findMany({
+            where: { id: { in: item.modifierOptionIds } },
+            include: { group: true },
+          });
+          if (options.length !== item.modifierOptionIds.length) {
+            throw new BadRequestException('Invalid modifier selection');
+          }
+          for (const opt of options) {
+            const delta = toNum(opt.priceDelta);
+            unitPrice += delta;
+            const label = `${opt.group.name}: ${opt.name}`;
+            modifierLabels.push(label);
+            modifiers.push({
+              optionId: opt.id,
+              optionName: label,
+              priceDelta: delta,
+            });
+          }
+        }
+
+        totalAmount += unitPrice * item.quantity;
 
         for (const recipe of product.recipeItems) {
           const totalNeeded = recipe.quantity * item.quantity;
@@ -81,6 +126,18 @@ export class OrdersService {
 
           totalCogs += toNum(recipe.ingredient.costPerUnit) * totalNeeded;
         }
+
+        const notesText =
+          [item.notes, modifierLabels.join(', ')].filter(Boolean).join(' | ') ||
+          undefined;
+
+        processedItems.push({
+          productId: item.productId,
+          quantity: item.quantity,
+          unitPrice: roundMoney(unitPrice),
+          notesText,
+          modifiers,
+        });
       }
 
       // Check and Deduct Inventory using external Helper to enforce Boundaries
@@ -182,19 +239,21 @@ export class OrdersService {
           taxInvoiceTaxId: data.taxInvoiceTaxId,
           taxInvoiceAddress: data.taxInvoiceAddress,
           items: {
-            create: await Promise.all(
-              data.items.map(async (item) => {
-                const product = await tx.product.findUnique({
-                  where: { id: item.productId },
-                });
-                return {
-                  productId: item.productId,
-                  quantity: item.quantity,
-                  price: product!.price,
-                  notes: item.notes,
-                };
-              }),
-            ),
+            create: processedItems.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              price: item.unitPrice,
+              notes: item.notesText,
+              modifiers: item.modifiers.length
+                ? {
+                    create: item.modifiers.map((m) => ({
+                      optionId: m.optionId,
+                      optionName: m.optionName,
+                      priceDelta: m.priceDelta,
+                    })),
+                  }
+                : undefined,
+            })),
           },
         },
         include: {

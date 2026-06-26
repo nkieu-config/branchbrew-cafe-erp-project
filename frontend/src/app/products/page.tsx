@@ -10,6 +10,7 @@ import { Tag, Button as AntButton } from "antd";
 import { DataTable } from "@/components/shared/data-table";
 
 import { formatBaht } from "@/lib/money";
+import { calcProductFoodCost, foodCostStatus } from "@/lib/food-cost";
 import type { Product } from "@/types/api";
 
 export default function ProductsPage() {
@@ -74,6 +75,28 @@ export default function ProductsPage() {
               dataIndex: "price",
               key: "price",
               render: (price) => <span className="font-bold text-slate-700 dark:text-slate-300">{formatBaht(price)}</span>
+            },
+            {
+              title: "Food Cost %",
+              key: "foodCost",
+              render: (_: unknown, record: Product) => {
+                const { cost, foodCostPercent } = calcProductFoodCost(record);
+                const status = foodCostStatus(foodCostPercent);
+                const color =
+                  status === 'good'
+                    ? 'text-emerald-600'
+                    : status === 'warn'
+                      ? 'text-amber-600'
+                      : 'text-rose-600';
+                return (
+                  <div>
+                    <span className={`font-bold tabular-nums ${color}`}>
+                      {foodCostPercent.toFixed(1)}%
+                    </span>
+                    <div className="text-xs text-slate-400">COGS {formatBaht(cost)}</div>
+                  </div>
+                );
+              },
             },
             {
               title: "Status",

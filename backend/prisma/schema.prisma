@@ -271,17 +271,51 @@ model Order {
 }
 
 model OrderItem {
-  id        Int     @id @default(autoincrement())
+  id        Int                 @id @default(autoincrement())
   orderId   Int
-  order     Order   @relation(fields: [orderId], references: [id])
+  order     Order               @relation(fields: [orderId], references: [id])
   productId Int
-  product   Product @relation(fields: [productId], references: [id])
+  product   Product             @relation(fields: [productId], references: [id])
   quantity  Int
   price Decimal @db.Decimal(19, 4)
   notes     String?
+  modifiers OrderItemModifier[]
 
   @@index([orderId])
   @@index([productId])
+}
+
+model ModifierGroup {
+  id        Int              @id @default(autoincrement())
+  name      String
+  category  String?
+  sortOrder Int              @default(0)
+  options   ModifierOption[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model ModifierOption {
+  id         Int                 @id @default(autoincrement())
+  groupId    Int
+  group      ModifierGroup       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  name       String
+  priceDelta Decimal             @db.Decimal(19, 4) @default(0)
+  isDefault  Boolean             @default(false)
+  sortOrder  Int                 @default(0)
+  orderItems OrderItemModifier[]
+}
+
+model OrderItemModifier {
+  id          Int            @id @default(autoincrement())
+  orderItemId Int
+  orderItem   OrderItem      @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  optionId    Int
+  option      ModifierOption @relation(fields: [optionId], references: [id])
+  optionName  String
+  priceDelta  Decimal        @db.Decimal(19, 4)
+
+  @@index([orderItemId])
 }
 
 model Supplier {

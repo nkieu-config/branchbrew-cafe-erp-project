@@ -12,6 +12,15 @@ export const useAnalyticsSummary = (branchId?: string) => {
   });
 };
 
+export const useSalesTrends = (branchId?: string) => {
+  const parsed =
+    branchId && branchId !== 'ALL' ? Number(branchId) : undefined;
+  return useQuery({
+    queryKey: ['salesTrends', branchId],
+    queryFn: () => fetchAPI(API_ENDPOINTS.reports.salesTrends(parsed)),
+  });
+};
+
 export const useTopProducts = (branchId?: string) => {
   return useQuery({
     queryKey: ['topProducts', branchId],

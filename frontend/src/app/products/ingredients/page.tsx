@@ -10,6 +10,7 @@ import { Tag, Button as AntButton } from "antd";
 import { DataTable } from "@/components/shared/data-table";
 
 import type { Ingredient } from "@/types/api";
+import { formatBaht } from "@/lib/money";
 
 export default function IngredientsPage() {
   const { data: ingredients, isLoading } = useIngredients();
@@ -69,7 +70,9 @@ export default function IngredientsPage() {
               title: "Cost / Unit (฿)",
               dataIndex: "costPerUnit",
               key: "costPerUnit",
-              render: (costPerUnit) => <span className="text-slate-500 tabular-nums">฿{costPerUnit?.toFixed(2)}</span>
+              render: (costPerUnit) => (
+                <span className="text-slate-500 tabular-nums">{formatBaht(costPerUnit)}</span>
+              ),
             },
             {
               title: "Status",

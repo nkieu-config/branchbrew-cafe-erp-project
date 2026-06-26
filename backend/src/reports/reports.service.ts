@@ -17,11 +17,12 @@ export class ReportsService {
       : Prisma.empty;
 
     const results = await this.prisma.$queryRaw<
-      { date: string; total: number }[]
+      { date: string; total: number; orders: bigint }[]
     >`
       SELECT 
         to_char("createdAt", 'YYYY-MM-DD') as date,
-        SUM("netAmount") as total
+        SUM("netAmount") as total,
+        COUNT(*)::bigint as orders
       FROM "Order"
       WHERE "createdAt" >= ${sevenDaysAgo}
       AND "status" IN ('COMPLETED', 'PENDING', 'PREPARING')
@@ -30,23 +31,27 @@ export class ReportsService {
       ORDER BY 1 ASC
     `;
 
-    const dailyMap = new Map<string, number>();
+    const dailyMap = new Map<string, { total: number; orders: number }>();
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().split('T')[0];
-      dailyMap.set(dateStr, 0);
+      dailyMap.set(dateStr, { total: 0, orders: 0 });
     }
 
     for (const row of results) {
       if (dailyMap.has(row.date)) {
-        dailyMap.set(row.date, Number(row.total));
+        dailyMap.set(row.date, {
+          total: Number(row.total),
+          orders: Number(row.orders),
+        });
       }
     }
 
-    return Array.from(dailyMap.entries()).map(([date, total]) => ({
+    return Array.from(dailyMap.entries()).map(([date, stats]) => ({
       date,
-      total,
+      total: stats.total,
+      orders: stats.orders,
     }));
   }
 

@@ -27,13 +27,19 @@ export class ProductsService {
   }
 
   async findAll() {
-    return this.prisma.product.findMany({ include: { recipeItems: true } });
+    return this.prisma.product.findMany({
+      include: {
+        recipeItems: { include: { ingredient: true } },
+      },
+    });
   }
 
   async findOne(id: number) {
     return this.prisma.product.findUnique({
       where: { id },
-      include: { recipeItems: true },
+      include: {
+        recipeItems: { include: { ingredient: true } },
+      },
     });
   }
 

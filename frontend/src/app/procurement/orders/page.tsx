@@ -12,6 +12,8 @@ import { AnimatedPage } from "@/components/animated-page";
 import { PageHeader } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
 import { PurchaseOrder, Supplier, Ingredient, PurchaseOrderItem } from "@/types/api";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
 
 interface CreatePOFormValues {
@@ -44,6 +46,8 @@ export default function ProcurementPage() {
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [receivePo, setReceivePo] = useState<PurchaseOrder | null>(null);
+  const [expiryByIngredient, setExpiryByIngredient] = useState<Record<number, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [form] = Form.useForm();
 
@@ -67,10 +71,28 @@ export default function ProcurementPage() {
     }
   };
 
-  const handleReceive = async (poId: number) => {
+  const openReceive = (po: PurchaseOrder) => {
+    setReceivePo(po);
+    const defaults: Record<number, string> = {};
+    const defaultDate = new Date();
+    defaultDate.setDate(defaultDate.getDate() + 30);
+    const iso = defaultDate.toISOString().slice(0, 10);
+    for (const item of po.items ?? []) {
+      defaults[item.ingredientId] = iso;
+    }
+    setExpiryByIngredient(defaults);
+  };
+
+  const handleReceive = async () => {
+    if (!receivePo) return;
     try {
-      await receiveMutation.mutateAsync(poId);
+      const items = (receivePo.items ?? []).map((item) => ({
+        ingredientId: item.ingredientId,
+        expiryDate: expiryByIngredient[item.ingredientId] || undefined,
+      }));
+      await receiveMutation.mutateAsync({ id: receivePo.id, items });
       toast.success("Purchase Order received! Inventory updated.");
+      setReceivePo(null);
     } catch (error: unknown) {
       if (error instanceof Error) toast.error(error.message || "Failed to receive PO");
     }
@@ -183,9 +205,15 @@ export default function ProcurementPage() {
           )}
           
           {po.status === 'APPROVED' && (
-            <Popconfirm title="Confirm receive goods?" onConfirm={() => handleReceive(po.id)}>
-              <AntButton type="primary" className="bg-emerald-500 hover:bg-emerald-600 border-none" size="small" icon={<CheckCircle2 className="w-3 h-3" />}>Receive</AntButton>
-            </Popconfirm>
+            <AntButton
+              type="primary"
+              className="bg-emerald-500 hover:bg-emerald-600 border-none"
+              size="small"
+              icon={<CheckCircle2 className="w-3 h-3" />}
+              onClick={() => openReceive(po)}
+            >
+              Receive
+            </AntButton>
           )}
         </div>
       ),
@@ -352,6 +380,45 @@ export default function ProcurementPage() {
             </AntButton>
           </div>
         </Form>
+      </FormModal>
+
+      <FormModal
+        title={`Receive ${receivePo?.poNumber ?? 'PO'}`}
+        icon={CheckCircle2}
+        isOpen={!!receivePo}
+        onClose={() => setReceivePo(null)}
+        width={560}
+      >
+        <div className="space-y-4 mt-4">
+          <p className="text-sm text-slate-500">Set expiry dates for incoming batches (optional per line).</p>
+          {(receivePo?.items ?? []).map((item) => (
+            <div key={item.id} className="flex items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div>
+                <div className="font-medium text-slate-800 dark:text-slate-200">{item.ingredient?.name}</div>
+                <div className="text-xs text-slate-500">{item.quantityRequested} {item.ingredient?.unit}</div>
+              </div>
+              <div className="w-44">
+                <Label className="text-xs">Expiry date</Label>
+                <Input
+                  type="date"
+                  value={expiryByIngredient[item.ingredientId] ?? ''}
+                  onChange={(e) =>
+                    setExpiryByIngredient((prev) => ({
+                      ...prev,
+                      [item.ingredientId]: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+          ))}
+          <div className="flex justify-end gap-2 pt-2">
+            <AntButton onClick={() => setReceivePo(null)}>Cancel</AntButton>
+            <AntButton type="primary" className="bg-emerald-600" loading={receiveMutation.isPending} onClick={handleReceive}>
+              Confirm Receive
+            </AntButton>
+          </div>
+        </div>
       </FormModal>
     </AnimatedPage>
   );

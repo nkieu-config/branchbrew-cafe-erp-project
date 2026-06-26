@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getBranches } from "@/lib/api";
 import { useBranches } from '@/hooks/domains/useGeneralQueries';
-import { useAnalyticsSummary, useTopProducts } from '@/hooks/domains/useReportsQueries';
+import { useAnalyticsSummary, useTopProducts, useSalesTrends } from '@/hooks/domains/useReportsQueries';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TrendingUp, TrendingDown, DollarSign, Award, Store, AlertTriangle, GripHorizontal, CheckCircle2, Activity } from "lucide-react";
@@ -70,8 +70,9 @@ export default function AnalyticsDashboard() {
   const { data: branches = [] } = useBranches();
   const { data: summary, isLoading: isLoadingSummary, isError: isSummaryError, error: summaryError, refetch: refetchSummary } = useAnalyticsSummary(selectedBranch);
   const { data: topProducts = [], isLoading: isLoadingProducts, isError: isProductsError, error: productsError, refetch: refetchProducts } = useTopProducts(selectedBranch);
+  const { data: salesTrends = [], isLoading: isLoadingTrends } = useSalesTrends(selectedBranch);
 
-  const loading = isLoadingSummary || isLoadingProducts;
+  const loading = isLoadingSummary || isLoadingProducts || isLoadingTrends;
   const hasError = isSummaryError || isProductsError;
   const errorMessage = (summaryError ?? productsError)?.message ?? "Failed to load dashboard metrics.";
 
@@ -225,7 +226,7 @@ export default function AnalyticsDashboard() {
               <CardDescription className="text-slate-500 font-medium text-sm">7-day performance trend</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 min-h-0">
-              <SalesChart />
+              <SalesChart data={salesTrends} loading={isLoadingTrends} />
             </CardContent>
           </Card>
         );

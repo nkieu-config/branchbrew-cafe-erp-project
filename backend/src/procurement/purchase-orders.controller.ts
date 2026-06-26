@@ -19,6 +19,7 @@ import {
   resolveOptionalBranchId,
 } from '../auth/branch-scope.util';
 import { CreatePurchaseOrderDto } from './dto/create-purchase-order.dto';
+import { ReceivePurchaseOrderDto } from './dto/receive-purchase-order.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('purchase-orders')
@@ -63,11 +64,21 @@ export class PurchaseOrdersController {
 
   @Roles('SUPER_ADMIN', 'MANAGER', 'STAFF')
   @Post(':id/receive')
-  receive(@Param('id', ParseIntPipe) id: number, @Req() req: RequestWithUser) {
+  receive(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ReceivePurchaseOrderDto,
+    @Req() req: RequestWithUser,
+  ) {
+    const expiryDates = dto.items
+      ?.filter((i) => i.expiryDate)
+      .map((i) => ({
+        ingredientId: i.ingredientId,
+        date: i.expiryDate!,
+      }));
     return this.procurementService.receivePO(
       id,
       req.user.userId,
-      undefined,
+      expiryDates,
       req.user,
     );
   }

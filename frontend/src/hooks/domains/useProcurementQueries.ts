@@ -46,8 +46,62 @@ export const useRejectPurchaseOrder = () => {
 export const useReceivePurchaseOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => fetchAPI(API_ENDPOINTS.procurement.receivePurchaseOrder(id), { method: 'POST' }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] }),
+    mutationFn: ({
+      id,
+      items,
+    }: {
+      id: number;
+      items?: { ingredientId: number; expiryDate?: string }[];
+    }) =>
+      fetchAPI(API_ENDPOINTS.procurement.receivePurchaseOrder(id), {
+        method: 'POST',
+        body: JSON.stringify(items?.length ? { items } : {}),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['branchDetails'] });
+    },
+  });
+};
+
+export const useCreateSupplier = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { name: string; contactEmail?: string; phone?: string }) =>
+      fetchAPI(API_ENDPOINTS.procurement.createSupplier, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['suppliers'] }),
+  });
+};
+
+export const useUpdateSupplier = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...data
+    }: {
+      id: number;
+      name?: string;
+      contactEmail?: string;
+      phone?: string;
+    }) =>
+      fetchAPI(API_ENDPOINTS.procurement.updateSupplier(id), {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['suppliers'] }),
+  });
+};
+
+export const useDeleteSupplier = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      fetchAPI(API_ENDPOINTS.procurement.deleteSupplier(id), { method: 'DELETE' }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['suppliers'] }),
   });
 };
 

@@ -15,6 +15,7 @@ export default function ProcurementLayout({ children }: { children: React.ReactN
 
   const tabs = [
     { name: "Purchase Orders", path: "/procurement/orders", icon: FileCheck, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
+    { name: "Suppliers", path: "/procurement/suppliers", icon: Store, roles: ["SUPER_ADMIN", "MANAGER"] },
     { name: "Stock Transfers", path: "/procurement/transfers", icon: Truck, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
   ]
 

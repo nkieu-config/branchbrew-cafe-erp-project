@@ -12,6 +12,7 @@ import { AnimatedPage } from "@/components/animated-page";
 import { PageHeader } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
 import { User, Branch } from "@/types/api";
+import { formatBaht } from "@/lib/money";
 
 const { Text } = Typography;
 
@@ -93,7 +94,11 @@ export default function EmployeeDirectoryPage() {
       dataIndex: 'hourlyRate',
       key: 'rate',
       align: 'right' as const,
-      render: (val: number) => <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">฿{val?.toFixed(2) || '0.00'} / hr</span>
+      render: (val: number | string) => (
+        <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+          {formatBaht(val)} / hr
+        </span>
+      ),
     },
     {
       title: 'Action',

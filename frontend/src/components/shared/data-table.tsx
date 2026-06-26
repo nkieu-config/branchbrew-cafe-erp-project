@@ -41,7 +41,7 @@ export function DataTable<RecordType extends object = object>({
     >
       <Table
         pagination={{
-          position: ['bottomRight'],
+          placement: ['bottomEnd'],
           showSizeChanger: true,
           ...props.pagination,
         }}

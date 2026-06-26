@@ -26,6 +26,7 @@ import { AccountingModule } from './accounting/accounting.module';
 import { ProductionModule } from './production/production.module';
 import { SettingsModule } from './settings/settings.module';
 import { OutboxModule } from './outbox/outbox.module';
+import { ModifiersModule } from './modifiers/modifiers.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 @Module({
@@ -58,6 +59,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     ProductionModule,
     SettingsModule,
     OutboxModule,
+    ModifiersModule,
   ],
   controllers: [AppController],
   providers: [

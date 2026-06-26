@@ -30,7 +30,34 @@ export class ProcurementService {
   }
 
   findAllSuppliers() {
-    return this.prisma.supplier.findMany();
+    return this.prisma.supplier.findMany({ orderBy: { name: 'asc' } });
+  }
+
+  createSupplier(data: {
+    name: string;
+    contactEmail?: string;
+    phone?: string;
+  }) {
+    return this.prisma.supplier.create({ data });
+  }
+
+  updateSupplier(
+    id: number,
+    data: { name?: string; contactEmail?: string; phone?: string },
+  ) {
+    return this.prisma.supplier.update({ where: { id }, data });
+  }
+
+  async deleteSupplier(id: number) {
+    const linked = await this.prisma.purchaseOrder.count({
+      where: { supplierId: id },
+    });
+    if (linked > 0) {
+      throw new BadRequestException(
+        'Cannot delete supplier with existing purchase orders',
+      );
+    }
+    return this.prisma.supplier.delete({ where: { id } });
   }
 
   findAllPOs(branchId?: number) {

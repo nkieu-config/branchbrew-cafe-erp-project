@@ -20,6 +20,10 @@ export const API_ENDPOINTS = {
     update: (id: number) => `/products/${id}`,
     delete: (id: number) => `/products/${id}`,
   },
+  modifiers: {
+    list: (category?: string) =>
+      `/modifiers${category ? `?category=${encodeURIComponent(category)}` : ''}`,
+  },
   ingredients: {
     list: '/ingredients',
     create: '/ingredients',
@@ -121,6 +125,9 @@ export const API_ENDPOINTS = {
     rejectPurchaseOrder: (id: number) => `/purchase-orders/${id}/reject`,
     receivePurchaseOrder: (id: number) => `/purchase-orders/${id}/receive`,
     suppliers: '/suppliers',
+    createSupplier: '/suppliers',
+    updateSupplier: (id: number) => `/suppliers/${id}`,
+    deleteSupplier: (id: number) => `/suppliers/${id}`,
   },
   production: {
     orders: '/production/orders',

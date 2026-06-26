@@ -23,6 +23,11 @@ export class OrderItemDto {
   @IsOptional()
   @IsString()
   notes?: string;
+
+  @IsOptional()
+  @IsArray()
+  @IsInt({ each: true })
+  modifierOptionIds?: number[];
 }
 
 export class CreateOrderDto {
