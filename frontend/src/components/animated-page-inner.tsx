@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, Transition } from "framer-motion";
+import { motion, Transition, useReducedMotion } from "framer-motion";
 import { ReactNode } from "react";
 
 const pageVariants = {
@@ -16,6 +16,12 @@ const pageTransition: Transition = {
 };
 
 export function AnimatedPageInner({ children, className = "" }: { children: ReactNode; className?: string }) {
+  const prefersReducedMotion = useReducedMotion();
+
+  if (prefersReducedMotion) {
+    return <div className={className}>{children}</div>;
+  }
+
   return (
     <motion.div
       initial="initial"

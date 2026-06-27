@@ -110,8 +110,8 @@ export const PATH_LABELS: Record<string, string> = {
   leave: "Leave Requests",
   payroll: "Payroll",
   crm: "CRM",
-  customers: "Customers",
-  promotions: "Promotions",
+  customers: "Customers & Loyalty",
+  promotions: "Campaigns",
   finance: "Finance",
   overview: "Overview",
   ledger: "General Ledger",
@@ -255,7 +255,7 @@ export const HUBS: Record<HubId, HubConfig> = {
     tabs: [
       {
         id: "balance",
-        label: "Stock Balance",
+        label: "Overview",
         path: "/inventory",
         icon: PackageOpen,
         roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
@@ -435,7 +435,7 @@ export const HUBS: Record<HubId, HubConfig> = {
   crm: {
     id: "crm",
     label: "CRM",
-    description: "Manage customer relationships, loyalty points, and promotions.",
+    description: "Manage customer loyalty and marketing campaigns.",
     icon: Gift,
     iconClassName: "w-6 h-6 text-pink-500",
     basePath: "/crm",
@@ -443,14 +443,14 @@ export const HUBS: Record<HubId, HubConfig> = {
     tabs: [
       {
         id: "customers",
-        label: "Customers",
+        label: "Customers & Loyalty",
         path: "/crm/customers",
         icon: Users,
         roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
       },
       {
         id: "promotions",
-        label: "Promotions",
+        label: "Campaigns",
         path: "/crm/promotions",
         icon: TicketPercent,
         roles: ["SUPER_ADMIN", "MANAGER"],
@@ -492,12 +492,20 @@ export const HUBS: Record<HubId, HubConfig> = {
   assets: {
     id: "assets",
     label: "Assets",
-    description: "Manage store equipment, coffee machines, and fixed assets.",
+    description: "Register equipment and track maintenance for store assets.",
     icon: Wrench,
     iconClassName: "w-6 h-6 text-slate-500",
     basePath: "/assets",
     wrapAntd: true,
-    tabs: [],
+    tabs: [
+      {
+        id: "equipment",
+        label: "Equipment",
+        path: "/assets/equipment",
+        icon: Wrench,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+    ],
   },
   pos: {
     id: "pos",
@@ -638,26 +646,124 @@ function resolveHubHref(pathname: string): string {
   return activeSidebar?.href ?? `/${pathname.split("/").filter(Boolean)[0] ?? ""}`;
 }
 
-export function resolveBreadcrumbTrail(pathname: string): BreadcrumbItem[] {
-  const parts = pathname.split("/").filter(Boolean);
+export function findHubByPathname(pathname: string): HubConfig | undefined {
+  return Object.values(HUBS)
+    .sort((a, b) => b.basePath.length - a.basePath.length)
+    .find(
+      (hub) =>
+        pathname === hub.basePath ||
+        pathname.startsWith(`${hub.basePath}/`) ||
+        hub.tabs.some(
+          (tab) =>
+            pathname === tab.path ||
+            (tab.path !== hub.basePath && pathname.startsWith(`${tab.path}/`)),
+        ),
+    );
+}
 
-  if (parts.length === 0) {
+function findActiveTabForPathname(pathname: string, hub: HubConfig): HubTab | undefined {
+  return [...hub.tabs]
+    .sort((a, b) => b.path.length - a.path.length)
+    .find((tab) => isTabActive(pathname, tab.path, hub.basePath));
+}
+
+function resolveHubBreadcrumbTrail(pathname: string, hub: HubConfig): BreadcrumbItem[] {
+  const activeTab = findActiveTabForPathname(pathname, hub);
+
+  if (!activeTab) {
+    const parts = pathname.split("/").filter(Boolean);
+    if (parts.length === 1 && pathname === hub.basePath) {
+      return [{ label: hub.label, href: null }];
+    }
+
+    const trail: BreadcrumbItem[] = [{ label: hub.label, href: hub.basePath }];
+    if (parts.length > 1) {
+      const subsectionLabel = resolvePathLabel(parts[parts.length - 1]);
+      if (subsectionLabel !== hub.label) {
+        trail.push({ label: subsectionLabel, href: null });
+      }
+    }
+    return trail;
+  }
+
+  const onHubRoot = pathname === hub.basePath && activeTab.path === hub.basePath;
+  if (onHubRoot) {
+    return [{ label: hub.label, href: null }];
+  }
+
+  const nestedUnderTab =
+    activeTab.path !== hub.basePath && pathname.startsWith(`${activeTab.path}/`);
+
+  if (nestedUnderTab) {
+    const nestedSegment = pathname.slice(activeTab.path.length + 1).split("/").filter(Boolean)[0];
+    const trail: BreadcrumbItem[] = [
+      { label: hub.label, href: hub.basePath },
+      { label: activeTab.label, href: activeTab.path },
+    ];
+    if (nestedSegment) {
+      trail.push({ label: resolvePathLabel(nestedSegment), href: null });
+    }
+    return trail;
+  }
+
+  return [
+    { label: hub.label, href: hub.basePath },
+    { label: activeTab.label, href: null },
+  ];
+}
+
+function normalizeBreadcrumbPathname(pathname: string): string {
+  if (pathname === "/inventory/stock" || pathname.startsWith("/inventory/stock/")) {
+    return pathname.replace("/inventory/stock", "/inventory/batches");
+  }
+  if (pathname === "/procurement/transfers" || pathname.startsWith("/procurement/transfers/")) {
+    return pathname.replace("/procurement/transfers", "/inventory/transfers");
+  }
+  if (pathname === "/branches" || pathname.startsWith("/branches/")) {
+    return pathname.replace(/^\/branches/, "/organization/branches");
+  }
+  if (pathname === "/users" || pathname.startsWith("/users/")) {
+    return pathname.replace(/^\/users/, "/organization/users");
+  }
+  return pathname;
+}
+
+export function resolveBreadcrumbTrail(pathname: string): BreadcrumbItem[] {
+  const normalizedPath = normalizeBreadcrumbPathname(pathname);
+
+  if (normalizedPath === "/" || normalizedPath === "") {
     return [{ label: "Dashboard", href: null }];
   }
 
-  const hubHref = resolveHubHref(pathname);
+  const hub = findHubByPathname(normalizedPath);
+  if (hub) {
+    return resolveHubBreadcrumbTrail(normalizedPath, hub);
+  }
+
+  const parts = normalizedPath.split("/").filter(Boolean);
+  const hubHref = resolveHubHref(normalizedPath);
   const sectionLabel = resolvePathLabel(parts[0]);
 
-  if (parts.length === 1 && pathname === hubHref) {
+  if (parts.length === 1 && normalizedPath === hubHref) {
     return [{ label: sectionLabel, href: null }];
   }
 
   const trail: BreadcrumbItem[] = [{ label: sectionLabel, href: hubHref }];
 
   if (parts.length > 1) {
-    const subsectionLabel = resolvePathLabel(parts[parts.length - 1]);
-    if (subsectionLabel !== sectionLabel) {
-      trail.push({ label: subsectionLabel, href: null });
+    const tabPath = `/${parts.slice(0, 2).join("/")}`;
+    const tabLabel = resolvePathLabel(parts[1]);
+    const hasNestedRoute = parts.length > 2;
+
+    if (tabLabel !== sectionLabel) {
+      trail.push({
+        label: tabLabel,
+        href: hasNestedRoute ? tabPath : null,
+      });
+    }
+
+    if (hasNestedRoute) {
+      trail.push({ label: resolvePathLabel(parts[parts.length - 1]), href: null });
     }
   }
 

@@ -72,6 +72,7 @@ export default function KdsPage() {
           title="Kitchen Display System (KDS)"
           icon={MonitorPlay}
           description="Real-time order queue"
+          titleLevel="h1"
         />
         <BranchEmptyState description="Select a branch in the top bar to view the kitchen display." />
       </AnimatedPage>
@@ -86,6 +87,7 @@ export default function KdsPage() {
         title="Kitchen Display System (KDS)"
         icon={MonitorPlay}
         description="Real-time order queue"
+        titleLevel="h1"
         actions={<ConnectionBadge isConnected={isConnected} />}
       />
 

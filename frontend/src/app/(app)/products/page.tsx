@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useProducts } from "@/hooks/domains/useProductQueries";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, Coffee } from "lucide-react";
@@ -43,7 +44,7 @@ export default function ProductsPage() {
       >
         <DataTable
           loading={isLoading}
-          emptyDescription="No menu items yet. Add your first product to enable POS sales."
+          emptyDescription="No menu items yet. Add raw ingredients first, then create menu items for the POS."
           columns={[
             {
               title: "ID",
@@ -123,6 +124,18 @@ export default function ProductsPage() {
           pagination={{ pageSize: 10 }}
           hideBorders
         />
+        {!isLoading && (products?.length ?? 0) === 0 && (
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-4">
+            Setting up a new menu? Start with{" "}
+            <Link
+              href="/products/ingredients"
+              className="font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
+            >
+              Raw Ingredients
+            </Link>
+            , then return here to add menu items.
+          </p>
+        )}
       </HubCard>
 
       <ProductFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} product={selectedProduct ?? undefined} />

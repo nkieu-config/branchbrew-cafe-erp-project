@@ -9,6 +9,8 @@ export interface HubCardProps {
   actions?: ReactNode;
   children?: ReactNode;
   className?: string;
+  /** Page title level — use h1 on standalone pages without HubShell. */
+  titleLevel?: "h1" | "h2" | "h3";
 }
 
 function HubHeading({
@@ -17,7 +19,10 @@ function HubHeading({
   description,
   actions,
   className,
+  titleLevel = "h2",
 }: HubCardProps) {
+  const TitleTag = titleLevel;
+
   return (
     <div
       className={cn(
@@ -26,10 +31,10 @@ function HubHeading({
       )}
     >
       <div>
-        <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-          {Icon && <Icon className="w-5 h-5 text-amber-600" />}
+        <TitleTag className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+          {Icon && <Icon className="w-5 h-5 text-amber-600" aria-hidden />}
           {title}
-        </h2>
+        </TitleTag>
         {description && (
           <p className="text-sm text-slate-500">{description}</p>
         )}
@@ -51,6 +56,7 @@ export function HubCard({
   actions,
   children,
   className,
+  titleLevel,
 }: HubCardProps) {
   return (
     <div
@@ -64,6 +70,7 @@ export function HubCard({
         icon={icon}
         description={description}
         actions={actions}
+        titleLevel={titleLevel}
         className="mb-6"
       />
       {children}

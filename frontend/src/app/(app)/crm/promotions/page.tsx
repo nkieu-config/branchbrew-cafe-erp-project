@@ -69,9 +69,9 @@ export default function PromotionsPage() {
 
   return (
     <HubCard
-      title="Promotions & Discounts"
+      title="Campaigns"
       icon={TicketPercent}
-      description="Manage active promotion codes and percentage discounts."
+      description="Create and manage discount codes and marketing campaigns."
       actions={
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger render={<Button className="bg-pink-600 hover:bg-pink-700">
