@@ -24,6 +24,8 @@ async function main() {
   await prisma.purchaseOrderItem.deleteMany();
   await prisma.purchaseOrder.deleteMany();
   await prisma.stockTransfer.deleteMany();
+  await prisma.productionOrder.deleteMany();
+  await prisma.productionBOM.deleteMany();
   await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();
   await prisma.promotion.deleteMany();
@@ -54,6 +56,13 @@ async function main() {
   });
   const secondBranch = await prisma.branch.create({
     data: { name: 'Asok Branch', location: 'Bangkok' },
+  });
+  const centralKitchen = await prisma.branch.create({
+    data: {
+      name: 'Qafa Central Kitchen',
+      location: 'Bangkok',
+      isCentralKitchen: true,
+    },
   });
 
   const admin = await prisma.user.create({
@@ -110,6 +119,14 @@ async function main() {
   const almondMilk = await prisma.ingredient.create({
     data: { name: 'Almond Milk', unit: 'ml', costPerUnit: 0.09, primarySupplierId: supplier2.id },
   });
+  const coldBrewBase = await prisma.ingredient.create({
+    data: {
+      name: 'House Cold Brew Base',
+      unit: 'ml',
+      costPerUnit: 0.12,
+      primarySupplierId: supplier1.id,
+    },
+  });
 
   const inventoryRows = [
     { branchId: mainBranch.id, ingredientId: coffeeBeans.id, stock: 5000, minStock: 1000 },
@@ -124,16 +141,61 @@ async function main() {
     { branchId: secondBranch.id, ingredientId: syrup.id, stock: 500, minStock: 200 },
     { branchId: secondBranch.id, ingredientId: oatMilk.id, stock: 800, minStock: 500 },
     { branchId: secondBranch.id, ingredientId: almondMilk.id, stock: 600, minStock: 500 },
+    { branchId: centralKitchen.id, ingredientId: coffeeBeans.id, stock: 20000, minStock: 5000 },
+    { branchId: centralKitchen.id, ingredientId: coldBrewBase.id, stock: 2000, minStock: 500 },
+    { branchId: mainBranch.id, ingredientId: coldBrewBase.id, stock: 400, minStock: 200 },
   ];
   await prisma.branchInventory.createMany({ data: inventoryRows });
+  const futureExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
   await prisma.inventoryBatch.createMany({
     data: inventoryRows.map((row) => ({
       branchId: row.branchId,
       ingredientId: row.ingredientId,
       quantity: row.stock,
       status: 'ACTIVE' as const,
-      expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      expiryDate: futureExpiry,
     })),
+  });
+
+  // Demo batch past expiry — auto-waste cron will dispose on next hourly run
+  await prisma.inventoryBatch.create({
+    data: {
+      branchId: mainBranch.id,
+      ingredientId: oatMilk.id,
+      quantity: 250,
+      status: 'ACTIVE',
+      expiryDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  await prisma.productionBOM.create({
+    data: {
+      targetIngredientId: coldBrewBase.id,
+      rawIngredientId: coffeeBeans.id,
+      quantityNeeded: 0.5,
+    },
+  });
+
+  const plannedDate = new Date();
+  plannedDate.setDate(plannedDate.getDate() + 1);
+  await prisma.productionOrder.createMany({
+    data: [
+      {
+        orderNumber: 'PRD-DEMO-001',
+        branchId: centralKitchen.id,
+        targetIngredientId: coldBrewBase.id,
+        quantityToProduce: 1000,
+        status: 'PLANNED',
+        plannedStartDate: plannedDate,
+      },
+      {
+        orderNumber: 'PRD-DEMO-002',
+        branchId: centralKitchen.id,
+        targetIngredientId: coldBrewBase.id,
+        quantityToProduce: 500,
+        status: 'IN_PROGRESS',
+      },
+    ],
   });
 
   const tempGroup = await prisma.modifierGroup.create({
@@ -387,6 +449,8 @@ async function main() {
   console.log('Demo logins: admin@qafacafe.com / manager@qafacafe.com / staff.siam@qafacafe.com');
   console.log('Password: password123');
   console.log('Promo code: WELCOME10 | Member phone: 0811111111');
+  console.log('Central Kitchen: select "Qafa Central Kitchen" branch → /kitchen');
+  console.log('Auto-waste demo: 250ml Oat Milk batch at Siam is past expiry (hourly cron)');
 }
 
 main()
