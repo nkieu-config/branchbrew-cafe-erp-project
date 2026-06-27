@@ -7,10 +7,9 @@ import {
   useUpdateSupplier,
   useDeleteSupplier,
 } from "@/hooks/domains/useProcurementQueries";
-import { PageHeader } from "@/components/shared/page-header";
+import { HubCard } from "@/components/shared/hub-card";
 import { DataTable } from "@/components/shared/data-table";
 import { FormModal } from "@/components/shared/form-modal";
-import { AnimatedPage } from "@/components/animated-page";
 import { Button as AntButton, Form, Input, Popconfirm } from "antd";
 import { Building2, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -65,8 +64,8 @@ export default function SuppliersPage() {
   };
 
   return (
-    <AnimatedPage className="space-y-6 w-full">
-      <PageHeader
+    <>
+      <HubCard
         title="Suppliers"
         icon={Building2}
         description="Manage vendor contacts for purchase orders."
@@ -80,8 +79,7 @@ export default function SuppliersPage() {
             Add Supplier
           </AntButton>
         }
-      />
-
+      >
       <DataTable
         loading={isLoading}
         rowKey="id"
@@ -115,6 +113,7 @@ export default function SuppliersPage() {
           },
         ]}
       />
+      </HubCard>
 
       <FormModal
         title={editing ? "Edit Supplier" : "Add Supplier"}
@@ -140,6 +139,6 @@ export default function SuppliersPage() {
           </div>
         </Form>
       </FormModal>
-    </AnimatedPage>
+    </>
   );
 }

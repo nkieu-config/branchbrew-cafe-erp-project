@@ -8,9 +8,8 @@ import { Ingredient } from "@/types/api"
 import { FormModal } from "@/components/shared/form-modal"
 import { ChefHat, PackageOpen, Plus, Clock, PlayCircle, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
-import { AnimatedPage } from "@/components/animated-page"
+import { HubPageHeader } from "@/components/shared/hub-card";
 import { useAuth } from "@/context/AuthContext"
-import { PageHeader } from "@/components/shared/page-header";
 import { DndContext, DragOverlay, closestCorners, PointerSensor, useSensor, useSensors, DragEndEvent, DragStartEvent } from "@dnd-kit/core"
 import { useDroppable, useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
@@ -163,8 +162,8 @@ export default function CentralKitchenPage() {
   const completedOrders = orders.filter((o: ProductionOrderWithTarget) => o.status === 'COMPLETED');
 
   return (
-    <AnimatedPage className="space-y-6 w-full">
-      <PageHeader 
+    <div className="space-y-6 w-full">
+      <HubPageHeader
         title="Production Board"
         icon={ChefHat}
         description="Drag and drop orders to update status."
@@ -248,6 +247,6 @@ export default function CentralKitchenPage() {
           </div>
         </Form>
       </FormModal>
-    </AnimatedPage>
+    </div>
   )
 }

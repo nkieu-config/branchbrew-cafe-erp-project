@@ -1,8 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { AnimatedPage } from "@/components/animated-page"
-import { PageHeader } from "@/components/shared/page-header"
+import { HubPageHeader } from "@/components/shared/hub-card"
 import { exportSales } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, DollarSign, ArrowUpRight, Download } from "lucide-react"
@@ -44,8 +43,8 @@ export default function FinanceDashboardPage() {
   }
 
   return (
-    <AnimatedPage className="max-w-[1600px] w-full mx-auto space-y-6">
-      <PageHeader
+    <div className="space-y-6">
+      <HubPageHeader
         title="Finance & Settlement"
         description="Review end-of-day settlements and petty cash expenses."
         actions={
@@ -149,6 +148,6 @@ export default function FinanceDashboardPage() {
         </div>
 
       </div>
-    </AnimatedPage>
+    </div>
   )
 }

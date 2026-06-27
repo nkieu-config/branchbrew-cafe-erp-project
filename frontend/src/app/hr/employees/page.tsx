@@ -8,8 +8,7 @@ import { Users, UserCog, Edit3 } from "lucide-react";
 import { FormModal } from "@/components/shared/form-modal";
 import { getErrorMessage } from "@/lib/errors";
 import { toast } from "sonner";
-import { AnimatedPage } from "@/components/animated-page";
-import { PageHeader } from "@/components/shared/page-header";
+import { HubCard } from "@/components/shared/hub-card";
 import { DataTable } from "@/components/shared/data-table";
 import { User, Branch } from "@/types/api";
 import { formatBaht } from "@/lib/money";
@@ -123,13 +122,12 @@ export default function EmployeeDirectoryPage() {
   ];
 
   return (
-    <AnimatedPage className="space-y-6 w-full">
-      <PageHeader 
+    <>
+      <HubCard
         title="Employee Directory"
         icon={Users}
         description="View staff details and manage compensation rates."
-      />
-
+      >
       <DataTable 
         columns={columns} 
         dataSource={employees} 
@@ -137,6 +135,7 @@ export default function EmployeeDirectoryPage() {
         loading={isLoading}
         pagination={{ pageSize: 15 }}
       />
+      </HubCard>
 
       <FormModal
         title="Edit Compensation"
@@ -179,6 +178,6 @@ export default function EmployeeDirectoryPage() {
           </div>
         </Form>
       </FormModal>
-    </AnimatedPage>
+    </>
   );
 }

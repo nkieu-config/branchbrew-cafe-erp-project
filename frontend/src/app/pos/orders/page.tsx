@@ -3,8 +3,7 @@
 import { useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useBranchOrders, useVoidOrder, useRefundOrder } from "@/hooks/domains/usePosQueries";
-import { AnimatedPage } from "@/components/animated-page";
-import { PageHeader } from "@/components/shared/page-header";
+import { HubCard } from "@/components/shared/hub-card";
 import { DataTable } from "@/components/shared/data-table";
 import { Tag, Button as AntButton, Popconfirm } from "antd";
 import { Receipt, Ban, RotateCcw } from "lucide-react";
@@ -113,12 +112,12 @@ export default function PosOrdersPage() {
   }
 
   return (
-    <AnimatedPage className="space-y-6">
-      <PageHeader
+    <>
+      <HubCard
         title="Orders & Refunds"
         icon={Receipt}
         description="Void same-day orders or refund completed sales from previous days."
-      />
+      >
 
       <DataTable
         loading={isLoading}
@@ -223,6 +222,7 @@ export default function PosOrdersPage() {
           },
         ]}
       />
+      </HubCard>
 
       <Dialog
         open={!!refundTarget}
@@ -262,6 +262,6 @@ export default function PosOrdersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AnimatedPage>
+    </>
   );
 }

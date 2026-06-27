@@ -13,7 +13,7 @@ import { filterActive, updateLineItem } from "@/lib/form";
 import type { Ingredient, WasteLineItem } from "@/types/api";
 import { getErrorMessage } from "@/lib/errors";
 import { DataTable } from "@/components/shared/data-table";
-import { PageHeader } from "@/components/shared/page-header";
+import { HubCard } from "@/components/shared/hub-card";
 import { format } from "date-fns";
 
 const emptyLine = (): WasteLineItem => ({
@@ -191,12 +191,11 @@ export default function WasteLogPage() {
         </div>
       </div>
 
-      <div className="space-y-4">
-        <PageHeader
-          title="Waste History"
-          icon={History}
-          description="Recent waste entries for this branch."
-        />
+      <HubCard
+        title="Waste History"
+        icon={History}
+        description="Recent waste entries for this branch."
+      >
         <DataTable
           loading={logsLoading}
           rowKey="id"
@@ -239,7 +238,7 @@ export default function WasteLogPage() {
             },
           ]}
         />
-      </div>
+      </HubCard>
     </div>
   );
 }

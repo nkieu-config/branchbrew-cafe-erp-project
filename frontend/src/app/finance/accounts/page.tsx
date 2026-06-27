@@ -5,7 +5,7 @@ import { useAccounts } from '@/hooks/domains/useAccountingQueries';
 import { Tag, Typography } from "antd"
 import type { ColumnsType } from "antd/es/table"
 import { Landmark } from "lucide-react"
-import { PageHeader } from "@/components/shared/page-header"
+import { HubCard } from "@/components/shared/hub-card"
 import { DataTable } from "@/components/shared/data-table"
 import { groupAccountsByType } from "@/lib/accounts"
 import type { AccountTableRow } from "@/types/api"
@@ -75,12 +75,7 @@ export default function ChartOfAccountsPage() {
   ]
 
   return (
-    <div className="space-y-6">
-      <PageHeader 
-        title="Chart of Accounts"
-        icon={Landmark}
-      />
-
+    <HubCard title="Chart of Accounts" icon={Landmark}>
       <DataTable 
         columns={columns} 
         dataSource={accountsTree} 
@@ -89,6 +84,6 @@ export default function ChartOfAccountsPage() {
         pagination={false}
         defaultExpandAllRows={true}
       />
-    </div>
+    </HubCard>
   )
 }

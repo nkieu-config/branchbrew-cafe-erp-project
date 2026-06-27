@@ -3,10 +3,9 @@
 import { useAuth } from "@/context/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Plus, CheckCircle, XCircle, CalendarOff } from "lucide-react"
-import { PageHeader } from "@/components/shared/page-header"
-import { DataTable } from "@/components/shared/data-table"
-import { LeaveRequest } from "@/types/api"
-import { AnimatedPage } from "@/components/animated-page"
+import { HubCard } from "@/components/shared/hub-card";
+import { DataTable } from "@/components/shared/data-table";
+import { LeaveRequest } from "@/types/api";
 import { useLeaveRequests, useUpdateLeaveStatus, useCreateLeave } from '@/hooks/domains/useHrQueries';
 import { getErrorMessage } from "@/lib/errors"
 import { toast } from "sonner"
@@ -55,8 +54,8 @@ export default function LeaveRequestsPage() {
 
 
   return (
-    <AnimatedPage className="space-y-6 w-full">
-      <PageHeader 
+    <>
+      <HubCard
         title="Leave Requests"
         icon={CalendarOff}
         actions={
@@ -68,7 +67,7 @@ export default function LeaveRequestsPage() {
             Request Leave
           </Button>
         }
-      />
+      >
       <DataTable 
         columns={[
           ...(role === 'SUPER_ADMIN' || role === 'MANAGER' ? [{ title: "Staff", dataIndex: ["user", "name"], key: "staff" }] : []),
@@ -111,6 +110,7 @@ export default function LeaveRequestsPage() {
         rowKey="id"
         loading={isLoading}
       />
+      </HubCard>
 
       <FormModal
         title="Request Leave"
@@ -163,6 +163,6 @@ export default function LeaveRequestsPage() {
           </div>
         </Form>
       </FormModal>
-    </AnimatedPage>
+    </>
   )
 }

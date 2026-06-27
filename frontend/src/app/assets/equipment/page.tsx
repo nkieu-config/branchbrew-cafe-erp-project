@@ -9,9 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus, Wrench, AlertTriangle, Coffee } from "lucide-react";
 import { toast } from "sonner";
-import { PageHeader } from "@/components/shared/page-header";
+import { HubPageHeader } from "@/components/shared/hub-card";
 import { DataTable } from "@/components/shared/data-table";
-import { AnimatedPage } from "@/components/animated-page";
 import { Equipment, Branch } from "@/types/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -80,7 +79,7 @@ export default function EquipmentPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
+      <HubPageHeader
         title="Equipment Maintenance"
         icon={Coffee}
         description="Track machines, appliances, and schedule preventative maintenance."
@@ -150,7 +149,7 @@ export default function EquipmentPage() {
           { 
             title: "Action", 
             key: "action",
-            render: (_, record: Equipment) => (
+            render: (_: unknown, record: Equipment) => (
               <Dialog>
                 <DialogTrigger render={<Button variant="outline" size="sm" onClick={() => setSelectedEqId(record.id)}>
                   <Wrench className="w-4 h-4 mr-2" /> Log Maintenance

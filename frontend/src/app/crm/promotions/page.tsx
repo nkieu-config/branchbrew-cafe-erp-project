@@ -10,8 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { AnimatedPage } from "@/components/animated-page";
-import { PageHeader } from "@/components/shared/page-header";
+import { HubCard } from "@/components/shared/hub-card";
 import { DataTable } from "@/components/shared/data-table";
 import { Promotion } from "@/types/api";
 
@@ -69,12 +68,11 @@ export default function PromotionsPage() {
 
 
   return (
-    <AnimatedPage className="w-full space-y-6">
-      <PageHeader 
-        title="Promotions & Discounts"
-        icon={TicketPercent}
-        description="Manage active promotion codes and percentage discounts."
-        actions={
+    <HubCard
+      title="Promotions & Discounts"
+      icon={TicketPercent}
+      description="Manage active promotion codes and percentage discounts."
+      actions={
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger render={<Button className="bg-pink-600 hover:bg-pink-700">
               <Plus className="w-4 h-4 mr-2" /> New Promo Code
@@ -120,8 +118,7 @@ export default function PromotionsPage() {
             </DialogContent>
           </Dialog>
         }
-      />
-
+    >
       <DataTable 
         columns={[
           {
@@ -157,6 +154,6 @@ export default function PromotionsPage() {
         rowKey="id"
         loading={loading}
       />
-    </AnimatedPage>
+    </HubCard>
   );
 }

@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { SlidersHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { AnimatedPage } from "@/components/animated-page";
-import { PageHeader } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -221,17 +219,22 @@ export default function ModifiersPage() {
   };
 
   return (
-    <AnimatedPage className="w-full space-y-6">
-      <PageHeader
-        title="Modifier Groups"
-        icon={SlidersHorizontal}
-        description="Configure POS modifiers, price adjustments, and ingredient swaps (e.g. oat milk)."
-        actions={
+    <>
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <SlidersHorizontal className="w-5 h-5 text-amber-600" />
+              Modifier Groups
+            </h2>
+            <p className="text-sm text-slate-500">
+              Configure POS modifiers, price adjustments, and ingredient swaps (e.g. oat milk).
+            </p>
+          </div>
           <Button onClick={openCreateGroup} className="bg-amber-600 hover:bg-amber-700">
             <Plus className="w-4 h-4 mr-2" /> New Group
           </Button>
-        }
-      />
+        </div>
 
       {isLoading ? (
         <p className="text-sm text-slate-500">Loading modifiers…</p>
@@ -335,6 +338,7 @@ export default function ModifiersPage() {
           </div>
         ))
       )}
+      </div>
 
       <Dialog open={groupDialogOpen} onOpenChange={setGroupDialogOpen}>
         <DialogContent>
@@ -454,6 +458,6 @@ export default function ModifiersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </AnimatedPage>
+    </>
   );
 }

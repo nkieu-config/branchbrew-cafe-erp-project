@@ -6,8 +6,7 @@ import { Table, Tag, Button as AntButton, Popconfirm, Typography } from "antd"
 import { Users, FileText, CheckCircle, Receipt } from "lucide-react"
 import { getErrorMessage } from "@/lib/errors";
 import { toast } from "sonner";
-import { AnimatedPage } from "@/components/animated-page"
-import { PageHeader } from "@/components/shared/page-header"
+import { HubCard } from "@/components/shared/hub-card";
 import { DataTable } from "@/components/shared/data-table"
 import { PayrollRun, Payslip } from "@/types/api";
 import { usePayrollRuns, useGeneratePayrollRun, useApprovePayrollRun } from '@/hooks/domains/useHrQueries';
@@ -165,23 +164,21 @@ export default function PayrollPage() {
   };
 
   return (
-    <AnimatedPage className="space-y-6 w-full">
-      <PageHeader 
-        title="Payroll History"
-        icon={Receipt}
-        description="View and generate monthly payroll runs."
-        actions={
-          <AntButton 
-            type="primary" 
-            className="bg-violet-600 hover:bg-violet-700 h-10 px-4 rounded-lg shadow-sm font-bold"
-            onClick={handleGenerate}
-            disabled={generatePayrollMutation.isPending || (payrollRuns.length > 0 && payrollRuns[0].status === 'DRAFT')}
-          >
-            {generatePayrollMutation.isPending ? "Generating..." : "Generate This Month's Payroll"}
-          </AntButton>
-        }
-      />
-
+    <HubCard
+      title="Payroll History"
+      icon={Receipt}
+      description="View and generate monthly payroll runs."
+      actions={
+        <AntButton 
+          type="primary" 
+          className="bg-violet-600 hover:bg-violet-700 h-10 px-4 rounded-lg shadow-sm font-bold"
+          onClick={handleGenerate}
+          disabled={generatePayrollMutation.isPending || (payrollRuns.length > 0 && payrollRuns[0].status === 'DRAFT')}
+        >
+          {generatePayrollMutation.isPending ? "Generating..." : "Generate This Month's Payroll"}
+        </AntButton>
+      }
+    >
       <DataTable 
         loading={isLoading}
         columns={columns} 
@@ -190,6 +187,6 @@ export default function PayrollPage() {
         expandable={{ expandedRowRender }}
         pagination={{ pageSize: 10 }}
       />
-    </AnimatedPage>
+    </HubCard>
   )
 }

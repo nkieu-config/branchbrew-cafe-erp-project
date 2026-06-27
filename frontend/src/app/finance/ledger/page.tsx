@@ -5,8 +5,7 @@ import { seedAccounts } from "@/lib/api"
 import { Table, Tag, Button, Select, Spin, Popconfirm } from "antd"
 import { FileText, TrendingUp, Building2, Play } from "lucide-react"
 import { toast } from "sonner"
-import { AnimatedPage } from "@/components/animated-page"
-import { PageHeader } from "@/components/shared/page-header"
+import { HubPageHeader } from "@/components/shared/hub-card"
 import { Branch } from "@/types/api"
 import type { JournalEntry } from "@/types/api"
 import {
@@ -129,8 +128,8 @@ export default function GeneralLedgerPage() {
   }
 
   return (
-    <AnimatedPage className="space-y-6 w-full">
-      <PageHeader 
+    <div className="space-y-6">
+      <HubPageHeader
         title="Financial Dashboard & Ledger"
         icon={TrendingUp}
         description="Track profit and loss trends and drill down into the general ledger."
@@ -240,6 +239,6 @@ export default function GeneralLedgerPage() {
         />
       </div>
 
-    </AnimatedPage>
+    </div>
   )
 }

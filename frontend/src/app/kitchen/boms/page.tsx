@@ -6,8 +6,7 @@ import { useIngredients } from '@/hooks/domains/useProductionQueries';
 import { Button, Progress, Tag } from "antd"
 import type { ColumnsType } from "antd/es/table"
 import { ListTree, Plus, AlertTriangle } from "lucide-react"
-import { AnimatedPage } from "@/components/animated-page"
-import { PageHeader } from "@/components/shared/page-header"
+import { HubCard } from "@/components/shared/hub-card"
 import { DataTable } from "@/components/shared/data-table"
 import { BOMModalForm } from "@/components/kitchen/BOMModalForm"
 import { groupProductionBoms } from "@/lib/bom"
@@ -97,8 +96,8 @@ export default function BOMPage() {
   ]
 
   return (
-    <AnimatedPage className="space-y-6 w-full">
-      <PageHeader 
+    <>
+      <HubCard
         title="Bill of Materials (Recipes)"
         icon={ListTree}
         description="Manage recipes and monitor food cost efficiency."
@@ -112,8 +111,7 @@ export default function BOMPage() {
             Create / Update BOM
           </Button>
         }
-      />
-
+      >
       <DataTable 
         columns={columns} 
         dataSource={bomsGrouped as BomGroupRow[]} 
@@ -122,12 +120,13 @@ export default function BOMPage() {
         pagination={false}
         defaultExpandAllRows={true}
       />
+      </HubCard>
 
       <BOMModalForm 
         isOpen={isModalVisible} 
         onClose={() => setIsModalVisible(false)} 
         ingredients={ingredients} 
       />
-    </AnimatedPage>
+    </>
   )
 }

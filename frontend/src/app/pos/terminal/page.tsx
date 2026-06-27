@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Product } from "@/types/api";
 import { Coffee, ShoppingBag, User, Ticket, Award, Search, X, Printer, Plus, Settings2, Loader2 } from "lucide-react";
-import { AnimatedPage } from "@/components/animated-page";
 import { Receipt } from "@/components/pos/Receipt";
 import { useReactToPrint } from "react-to-print";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";

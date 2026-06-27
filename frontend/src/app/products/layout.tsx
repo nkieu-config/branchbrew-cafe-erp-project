@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation"
 import Link from "next/link"
 import { AnimatedPage } from "@/components/animated-page"
 import { useAuth } from "@/context/AuthContext"
-import { ClipboardList, Leaf } from "lucide-react"
+import { BarChart3, ClipboardList, Leaf, SlidersHorizontal } from "lucide-react"
 
 export default function ProductsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -14,6 +14,8 @@ export default function ProductsLayout({ children }: { children: React.ReactNode
   const tabs = [
     { name: "Menu Items", path: "/products", icon: ClipboardList, roles: ["SUPER_ADMIN", "MANAGER"] },
     { name: "Raw Ingredients", path: "/products/ingredients", icon: Leaf, roles: ["SUPER_ADMIN", "MANAGER"] },
+    { name: "Modifiers", path: "/products/modifiers", icon: SlidersHorizontal, roles: ["SUPER_ADMIN", "MANAGER"] },
+    { name: "Food Cost", path: "/products/costing", icon: BarChart3, roles: ["SUPER_ADMIN", "MANAGER"] },
   ]
 
   return (
@@ -24,7 +26,7 @@ export default function ProductsLayout({ children }: { children: React.ReactNode
             <ClipboardList className="w-6 h-6 text-amber-600" />
             Product & Menu Management
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage catalog, pricing, raw ingredients, and recipes (BOM).</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage menu catalog, ingredients, POS modifiers, and food cost.</p>
         </div>
       </div>
 

@@ -1,7 +1,6 @@
 "use client"
 
-import { AnimatedPage } from "@/components/animated-page"
-import { PageHeader } from "@/components/shared/page-header"
+import { HubPageHeader } from "@/components/shared/hub-card"
 import { useAuth } from "@/context/AuthContext"
 import { useExpectedCash } from '@/hooks/domains/useFinanceQueries';
 import { SettlementForm } from "@/components/pos/SettlementForm"
@@ -11,11 +10,11 @@ export default function SettlementPage() {
   const { activeBranchId } = useAuth()
   const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
   
-  const { data: expected, isLoading } = useExpectedCash(branchIdNum);
+  const { data: expected } = useExpectedCash(branchIdNum);
 
   return (
-    <AnimatedPage className="max-w-[1200px] w-full mx-auto space-y-6">
-      <PageHeader
+    <div className="space-y-6">
+      <HubPageHeader
         title="End of Day Settlement"
         description="Reconcile all payment channels and submit to HQ."
       />
@@ -24,6 +23,6 @@ export default function SettlementPage() {
         <SettlementForm branchIdNum={branchIdNum} expected={expected} />
         <ExpenseForm branchIdNum={branchIdNum} />
       </div>
-    </AnimatedPage>
+    </div>
   )
 }

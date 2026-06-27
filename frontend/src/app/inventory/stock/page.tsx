@@ -12,8 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { AnimatedPage } from "@/components/animated-page"
-import { PageHeader } from "@/components/shared/page-header"
+import { HubPageHeader } from "@/components/shared/hub-card"
 import { DataTable } from "@/components/shared/data-table"
 import { format, differenceInDays } from "date-fns";
 import type { Dayjs } from "dayjs";
@@ -272,9 +271,9 @@ export default function InventoryPage() {
   const uniqueIngredients = inventories.map(i => i.ingredient);
 
   return (
-    <AnimatedPage className="w-full space-y-6">
-      <PageHeader 
-        title="Inventory & Stock"
+    <div className="w-full space-y-6">
+      <HubPageHeader
+        title="Batches & Expiry"
         icon={PackageOpen}
         description="Manage stock levels and expiring batches."
         actions={
@@ -377,6 +376,6 @@ export default function InventoryPage() {
           />
         </div>
       </div>
-    </AnimatedPage>
+    </div>
   );
 }

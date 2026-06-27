@@ -6,8 +6,7 @@ import { Table, Tag, Typography, Tooltip, Button as AntButton } from "antd"
 import { Clock, AlertCircle, PlayCircle, StopCircle } from "lucide-react"
 import { getErrorMessage } from "@/lib/errors"
 import { toast } from "sonner"
-import { AnimatedPage } from "@/components/animated-page"
-import { PageHeader } from "@/components/shared/page-header"
+import { HubCard } from "@/components/shared/hub-card";
 import { DataTable } from "@/components/shared/data-table"
 import { User, Shift } from "@/types/api"
 import { format, isSameDay, differenceInMinutes } from "date-fns"
@@ -122,36 +121,35 @@ export default function AttendancePage() {
   ];
 
   return (
-    <AnimatedPage className="space-y-6 w-full">
-      <PageHeader 
-        title="My Attendance Records"
-        icon={Clock}
-        actions={
-          activeClockIn?.active ? (
-            <AntButton 
-              type="primary" 
-              danger
-              className="h-10 px-6 rounded-xl font-bold tracking-wide shadow-sm"
-              icon={<StopCircle className="w-5 h-5" />}
-              loading={clockOutMutation.isPending}
-              onClick={handleClockOut}
-            >
-              Clock Out
-            </AntButton>
-          ) : (
-            <AntButton 
-              type="primary" 
-              className="bg-emerald-500 hover:bg-emerald-600 border-none h-10 px-6 rounded-xl font-bold tracking-wide shadow-sm"
-              icon={<PlayCircle className="w-5 h-5" />}
-              loading={clockInMutation.isPending}
-              onClick={handleClockIn}
-              disabled={!activeBranchId && user?.role === 'SUPER_ADMIN'}
-            >
-              Clock In
-            </AntButton>
-          )
-        }
-      />
+    <HubCard
+      title="My Attendance Records"
+      icon={Clock}
+      actions={
+        activeClockIn?.active ? (
+          <AntButton 
+            type="primary" 
+            danger
+            className="h-10 px-6 rounded-xl font-bold tracking-wide shadow-sm"
+            icon={<StopCircle className="w-5 h-5" />}
+            loading={clockOutMutation.isPending}
+            onClick={handleClockOut}
+          >
+            Clock Out
+          </AntButton>
+        ) : (
+          <AntButton 
+            type="primary" 
+            className="bg-emerald-500 hover:bg-emerald-600 border-none h-10 px-6 rounded-xl font-bold tracking-wide shadow-sm"
+            icon={<PlayCircle className="w-5 h-5" />}
+            loading={clockInMutation.isPending}
+            onClick={handleClockIn}
+            disabled={!activeBranchId && user?.role === 'SUPER_ADMIN'}
+          >
+            Clock In
+          </AntButton>
+        )
+      }
+    >
       <DataTable 
         columns={columns} 
         dataSource={attendance} 
@@ -169,6 +167,6 @@ export default function AttendancePage() {
           return "";
         }}
       />
-    </AnimatedPage>
+    </HubCard>
   )
 }

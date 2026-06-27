@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Progress } from "@/components/ui/progress";
-import { PageHeader } from "@/components/shared/page-header";
+import { HubPageHeader } from "@/components/shared/hub-card";
 import { Customer, Order } from "@/types/api";
 
 export default function CustomersPage() {
@@ -78,7 +78,7 @@ export default function CustomersPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
+      <HubPageHeader
         title="Customer Directory"
         icon={Users}
         description="Manage members, tiers, and loyalty points."

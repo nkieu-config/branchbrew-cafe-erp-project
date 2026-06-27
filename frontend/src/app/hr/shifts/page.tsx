@@ -4,8 +4,7 @@ import { useAuth } from "@/context/AuthContext"
 import { useShifts } from '@/hooks/domains/useHrQueries';
 import { Users, CalendarDays, Plus, UserPlus, Clock, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { AnimatedPage } from "@/components/animated-page"
-import { PageHeader } from "@/components/shared/page-header"
+import { HubPageHeader } from "@/components/shared/hub-card";
 import { DataTable } from "@/components/shared/data-table"
 import { Shift, User } from "@/types/api"
 import { Avatar, Tooltip } from "antd"
@@ -61,8 +60,8 @@ export default function EmployeesShiftsPage() {
   }
 
   return (
-    <AnimatedPage className="space-y-6 w-full">
-      <PageHeader 
+    <div className="space-y-6">
+      <HubPageHeader
         title={(role === 'SUPER_ADMIN' || role === 'MANAGER') ? 'Shift Schedule (Gantt)' : 'My Shifts'}
         icon={CalendarDays}
         description="Manage and view the time-block shift schedule for today."
@@ -156,6 +155,6 @@ export default function EmployeesShiftsPage() {
           </div>
         )}
       </div>
-    </AnimatedPage>
+    </div>
   )
 }

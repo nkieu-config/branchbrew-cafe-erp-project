@@ -8,8 +8,7 @@ import { Table, Tag, Button as AntButton, Form, Select, InputNumber, Space, Step
 import { FormModal } from "@/components/shared/form-modal";
 import { Plus, CheckCircle2, XCircle, CheckSquare, Trash2, Truck, Send, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import { AnimatedPage } from "@/components/animated-page";
-import { PageHeader } from "@/components/shared/page-header";
+import { HubCard } from "@/components/shared/hub-card";
 import { DataTable } from "@/components/shared/data-table";
 import { PurchaseOrder, Supplier, Ingredient, PurchaseOrderItem } from "@/types/api";
 import { Input } from "@/components/ui/input";
@@ -300,8 +299,8 @@ export default function ProcurementPage() {
   };
 
   return (
-    <AnimatedPage className="space-y-6 w-full">
-      <PageHeader 
+    <>
+      <HubCard
         title="Purchase Orders"
         icon={Truck}
         description="Manage procurement orders and track deliveries."
@@ -316,7 +315,7 @@ export default function ProcurementPage() {
             Create PO
           </AntButton>
         }
-      />
+      >
 
       {draftAutoPos.length > 0 && (
         <div className="rounded-xl border border-indigo-200 dark:border-indigo-900/50 bg-indigo-50 dark:bg-indigo-950/30 p-4 flex flex-wrap items-center justify-between gap-3">
@@ -342,6 +341,7 @@ export default function ProcurementPage() {
         expandable={{ expandedRowRender }}
         pagination={{ pageSize: 10 }}
       />
+      </HubCard>
 
       {/* Create PO Modal */}
       <FormModal
@@ -478,6 +478,6 @@ export default function ProcurementPage() {
           </div>
         </div>
       </FormModal>
-    </AnimatedPage>
+    </>
   );
 }

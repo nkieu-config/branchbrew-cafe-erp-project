@@ -5,9 +5,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
   LayoutDashboard, ShoppingCart, Package, Coffee, Truck, Users, 
-  UserSquare2, BarChart3, Wallet, ChefHat, Wrench, Landmark, 
+  UserSquare2, Wallet, ChefHat, Wrench, Landmark, 
   MonitorPlay, Settings, ShieldCheck, Building2, Gift, ClipboardList,
-  ChevronDown, ChevronRight, History, SlidersHorizontal
+  ChevronDown, ChevronRight, History
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -33,12 +33,10 @@ const menuGroups = [
     group: "Back Office",
     items: [
       { name: "Menu & Products", href: "/products", icon: ClipboardList, roles: ["SUPER_ADMIN", "MANAGER"] },
-      { name: "Modifiers", href: "/products/modifiers", icon: SlidersHorizontal, roles: ["SUPER_ADMIN", "MANAGER"] },
       { name: "Procurement", href: "/procurement", icon: Truck, roles: ["SUPER_ADMIN", "MANAGER"] },
       { name: "Central Kitchen", href: "/kitchen", icon: ChefHat, roles: ["SUPER_ADMIN", "MANAGER"] },
       { name: "Human Resources", href: "/hr", icon: UserSquare2, roles: ["SUPER_ADMIN", "MANAGER"] },
       { name: "Finance & Accounts", href: "/finance", icon: Landmark, roles: ["SUPER_ADMIN", "MANAGER"] },
-      { name: "Food Cost Analysis", href: "/products/costing", icon: BarChart3, roles: ["SUPER_ADMIN", "MANAGER"] },
       { name: "Asset Maintenance", href: "/assets", icon: Wrench, roles: ["SUPER_ADMIN", "MANAGER"] },
     ]
   },
