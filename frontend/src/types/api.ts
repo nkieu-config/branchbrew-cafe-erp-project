@@ -163,6 +163,8 @@ export interface Order {
   branchId: number;
   customerId?: number | null;
   promotionId?: number | null;
+  queueNumber?: number | null;
+  queueDate?: string | null;
   createdAt: string;
   items?: OrderItem[];
   customer?: Customer | null;
@@ -503,6 +505,7 @@ export interface ReceiptCartItem {
 
 export interface ReceiptOrder {
   id?: number;
+  queueNumber?: number | null;
   cashier?: string | { name?: string | null };
   customerName?: string;
   items?: ReceiptCartItem[];

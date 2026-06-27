@@ -28,6 +28,7 @@ import {
   buildIngredientRequirementsFromOrderItems,
   isSameCalendarDay,
 } from './order-void.util';
+import { allocateQueueNumber } from './helpers/queue-number.helper';
 
 @Injectable()
 export class OrdersService {
@@ -256,12 +257,18 @@ export class OrdersService {
       }
 
       const orderStatus = resolveInitialOrderStatus(productsForStatus);
+      const { queueNumber, queueDate } = await allocateQueueNumber(
+        tx,
+        data.branchId,
+      );
 
       const order = await tx.order.create({
         data: {
           userId: data.userId,
           branchId: data.branchId,
           status: orderStatus,
+          queueNumber,
+          queueDate,
           totalAmount: roundMoney(totalAmount),
           discountAmount,
           netAmount,

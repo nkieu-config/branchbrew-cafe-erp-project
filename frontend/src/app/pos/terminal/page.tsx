@@ -21,6 +21,7 @@ import { OnScreenNumpad } from "@/components/pos/OnScreenNumpad";
 import { pointsToDiscountBaht } from "@/lib/loyalty";
 import { filterActive } from "@/lib/form";
 import { toNumber, formatBaht } from "@/lib/money";
+import { formatQueueNumber } from "@/lib/queue";
 import { parseVatRatePercent } from "@/lib/vat";
 import type { Customer, ValidatedPromotion, ReceiptOrder, ModifierGroup } from "@/types/api";
 
@@ -244,6 +245,7 @@ export default function POSPage() {
       // Prepare receipt data
       setCompletedOrder({
         id: orderData.id,
+        queueNumber: orderData.queueNumber,
         cashier: user?.name,
         customerName: customer?.name,
         items: cart,
@@ -534,9 +536,18 @@ export default function POSPage() {
             
             {/* Preview */}
             <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm text-sm text-center w-full max-w-[250px] rounded text-slate-900 dark:text-slate-100">
-              <p className="font-bold border-b border-slate-200 dark:border-slate-700 pb-2 mb-2">Receipt Preview</p>
+              {completedOrder?.queueNumber != null && completedOrder.queueNumber > 0 && (
+                <p className="text-4xl font-black text-emerald-600 tabular-nums mb-2">
+                  #{formatQueueNumber(completedOrder.queueNumber)}
+                </p>
+              )}
+              <p className="font-bold border-b border-slate-200 dark:border-slate-700 pb-2 mb-2">
+                {completedOrder?.queueNumber ? 'Your Queue Number' : 'Receipt Preview'}
+              </p>
               <p>Total: ฿{completedOrder?.netTotal?.toFixed(2)}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">Order #{completedOrder?.id}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Order ref #{completedOrder?.id}
+              </p>
             </div>
           </div>
 

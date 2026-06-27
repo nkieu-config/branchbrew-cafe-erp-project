@@ -2,6 +2,7 @@ import React, { forwardRef } from 'react';
 import { Coffee } from 'lucide-react';
 import type { ReceiptOrder } from '@/types/api';
 import { formatMoney } from '@/lib/money';
+import { formatQueueNumber } from '@/lib/queue';
 import { inclusiveTaxAmount } from '@/lib/vat';
 
 export interface ReceiptSettings {
@@ -63,6 +64,21 @@ export const Receipt = forwardRef<
         </div>
 
         <div style={{ borderBottom: '1px dashed black', paddingBottom: '4px', marginBottom: '4px' }}>
+          {order.queueNumber != null && order.queueNumber > 0 && (
+            <div
+              style={{
+                textAlign: 'center',
+                fontSize: '28px',
+                fontWeight: 'bold',
+                letterSpacing: '2px',
+                marginBottom: '6px',
+                padding: '6px 0',
+                border: '2px solid black',
+              }}
+            >
+              QUEUE #{formatQueueNumber(order.queueNumber)}
+            </div>
+          )}
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span>Date: {date}</span>
             <span>Ref: #{order.id || 'N/A'}</span>

@@ -9,6 +9,7 @@ import { useSocket } from "@/context/SocketContext"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, Clock, Play } from "lucide-react"
 import { Order, OrderItem, OrderStatus } from "@/types/api"
+import { formatQueueNumber } from "@/lib/queue"
 
 const KDS_STATUSES: OrderStatus[] = ['PENDING', 'PREPARING']
 
@@ -145,8 +146,13 @@ export default function KdsPage() {
                 {/* Header */}
                 <div className={`p-5 flex justify-between items-center text-white ${headerColorClass}`}>
                   <div>
-                    <div className="font-black text-2xl tracking-wider">#{order.id}</div>
-                    <div className="text-sm opacity-90 font-medium flex items-center gap-2">
+                    <div className="font-black text-4xl tracking-wider tabular-nums">
+                      #{formatQueueNumber(order.queueNumber)}
+                    </div>
+                    <div className="text-xs opacity-80 font-mono mt-0.5">
+                      Order ref {order.id}
+                    </div>
+                    <div className="text-sm opacity-90 font-medium flex items-center gap-2 mt-1">
                       {order.status === 'PREPARING' ? 'กำลังทำ (Preparing)' : 'รอคิว (Pending)'}
                     </div>
                   </div>

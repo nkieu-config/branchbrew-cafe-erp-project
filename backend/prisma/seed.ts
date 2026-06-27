@@ -1,8 +1,11 @@
-import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcrypt';
+import {
+  getQueueBusinessDateString,
+  parseQueueBusinessDate,
+} from '../src/orders/helpers/queue-number.helper';
 
 const connectionString = process.env.DATABASE_URL;
 const pool = new Pool({ connectionString });
@@ -313,6 +316,8 @@ async function main() {
         taxAmount: net * 0.07 / 1.07,
         totalCogs: 18 * 0.5 * qty + 150 * 0.05 * qty + 3.5 * qty,
         pointsEarned: Math.floor(net / 100),
+        queueNumber: 100 + (6 - daysAgo),
+        queueDate: parseQueueBusinessDate(getQueueBusinessDateString(createdAt)),
         createdAt,
         items: {
           create: [
@@ -337,7 +342,34 @@ async function main() {
     });
   }
 
-  // One pending PO for demo receive flow
+  // Live KDS demo order (today's queue #1)
+  await prisma.order.create({
+    data: {
+      userId: admin.id,
+      branchId: mainBranch.id,
+      status: 'PENDING',
+      paymentMethod: 'CASH',
+      totalAmount: 95,
+      netAmount: 95,
+      discountAmount: 0,
+      taxAmount: 95 * 0.07 / 1.07,
+      totalCogs: 18 * 0.5 + 150 * 0.05 + 3.5,
+      queueNumber: 1,
+      queueDate: parseQueueBusinessDate(getQueueBusinessDateString()),
+      items: {
+        create: [
+          {
+            productId: icedLatte.id,
+            quantity: 1,
+            price: 95,
+            notes: 'Temperature: Hot, Sweetness: 100%, Milk Type: Oat',
+          },
+        ],
+      },
+    },
+  });
+
+  // One pending PO
   await prisma.purchaseOrder.create({
     data: {
       poNumber: 'PO-DEMO-001',

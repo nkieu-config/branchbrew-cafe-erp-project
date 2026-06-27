@@ -36,6 +36,7 @@ describe('OrdersService', () => {
 
     // Mock $transaction to simply yield the mocked prisma client
     prisma.$transaction.mockImplementation(async (cb: Function) => cb(prisma));
+    prisma.order.findFirst.mockResolvedValue(null);
   });
 
   it('should be defined', () => {
@@ -164,6 +165,8 @@ describe('OrdersService', () => {
             totalCogs: 40,
             netAmount: 200,
             status: 'PENDING',
+            queueNumber: 1,
+            queueDate: expect.any(Date),
           }),
         }),
       );
