@@ -48,11 +48,13 @@ function IngredientSelect({
   onChange,
   placeholder,
   allowEmpty = true,
+  id,
 }: {
   value: number | "";
   onChange: (value: number | "") => void;
   placeholder: string;
   allowEmpty?: boolean;
+  id?: string;
 }) {
   const { data: ingredients = [] } = useIngredients();
   const selectValue = value === "" ? EMPTY_INGREDIENT : String(value);
@@ -62,7 +64,7 @@ function IngredientSelect({
       value={selectValue}
       onValueChange={(v) => onChange(v === EMPTY_INGREDIENT || v == null ? "" : Number(v))}
     >
-      <SelectTrigger className="w-full">
+      <SelectTrigger id={id} className="w-full">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
@@ -369,14 +371,14 @@ export default function ModifiersPage() {
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <div className="space-y-2">
-              <Label>Name</Label>
-              <Input value={groupName} onChange={(e) => setGroupName(e.target.value)} />
+              <Label htmlFor="modifier-group-name">Name</Label>
+              <Input id="modifier-group-name" value={groupName} onChange={(e) => setGroupName(e.target.value)} />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Category filter</Label>
+                <Label htmlFor="modifier-group-category">Category filter</Label>
                 <Select value={groupCategory} onValueChange={(v) => v != null && setGroupCategory(v)}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger id="modifier-group-category" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -389,8 +391,9 @@ export default function ModifiersPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Sort order</Label>
+                <Label htmlFor="modifier-group-sort-order">Sort order</Label>
                 <Input
+                  id="modifier-group-sort-order"
                   type="number"
                   min={0}
                   value={groupSortOrder}
@@ -399,8 +402,9 @@ export default function ModifiersPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Menu recipe ingredient to swap (optional)</Label>
+              <Label htmlFor="modifier-group-swap-ingredient">Menu recipe ingredient to swap (optional)</Label>
               <IngredientSelect
+                id="modifier-group-swap-ingredient"
                 value={groupSwapIngredientId}
                 onChange={setGroupSwapIngredientId}
                 placeholder="No ingredient swap"
@@ -428,13 +432,14 @@ export default function ModifiersPage() {
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <div className="space-y-2">
-              <Label>Name</Label>
-              <Input value={optionName} onChange={(e) => setOptionName(e.target.value)} />
+              <Label htmlFor="modifier-option-name">Name</Label>
+              <Input id="modifier-option-name" value={optionName} onChange={(e) => setOptionName(e.target.value)} />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Price delta (฿)</Label>
+                <Label htmlFor="modifier-option-price-delta">Price delta (฿)</Label>
                 <Input
+                  id="modifier-option-price-delta"
                   type="number"
                   min={0}
                   value={optionPriceDelta}
@@ -442,8 +447,9 @@ export default function ModifiersPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Sort order</Label>
+                <Label htmlFor="modifier-option-sort-order">Sort order</Label>
                 <Input
+                  id="modifier-option-sort-order"
                   type="number"
                   min={0}
                   value={optionSortOrder}
@@ -453,6 +459,7 @@ export default function ModifiersPage() {
             </div>
             <label className="flex items-center gap-2 text-sm">
               <input
+                id="modifier-option-is-default"
                 type="checkbox"
                 checked={optionIsDefault}
                 onChange={(e) => setOptionIsDefault(e.target.checked)}
@@ -460,8 +467,9 @@ export default function ModifiersPage() {
               Default selection
             </label>
             <div className="space-y-2">
-              <Label>Swap to ingredient (optional)</Label>
+              <Label htmlFor="modifier-option-swap-ingredient">Swap to ingredient (optional)</Label>
               <IngredientSelect
+                id="modifier-option-swap-ingredient"
                 value={optionSwapToId}
                 onChange={setOptionSwapToId}
                 placeholder="Keep recipe ingredient"

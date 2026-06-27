@@ -18,7 +18,7 @@ import { DataTable } from "@/components/shared/data-table";
 import { PurchaseOrder, Supplier, Ingredient, PurchaseOrderItem } from "@/types/api";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { format } from "date-fns";
+import { formatDateTime } from "@/lib/intl-date";
 
 interface CreatePOFormValues {
   supplierId: number;
@@ -197,7 +197,7 @@ export default function ProcurementPage() {
       title: 'Created At',
       dataIndex: 'createdAt',
       key: 'createdAt',
-      render: (date: string) => format(new Date(date), 'dd MMM yyyy HH:mm'),
+      render: (date: string) => formatDateTime(date),
     },
     {
       title: 'Status',
@@ -451,7 +451,7 @@ export default function ProcurementPage() {
               disabled={submitting}
               onClick={() => form.submit()}
             >
-              {submitting ? "Submitting..." : "Submit PO"}
+              {submitting ? "Submitting…" : "Submit PO"}
             </Button>
           </div>
         </Form>
@@ -500,7 +500,7 @@ export default function ProcurementPage() {
               disabled={receiveMutation.isPending}
               onClick={() => void handleReceive()}
             >
-              {receiveMutation.isPending ? "Receiving..." : "Confirm Receive"}
+              {receiveMutation.isPending ? "Receiving…" : "Confirm Receive"}
             </Button>
           </div>
         </div>

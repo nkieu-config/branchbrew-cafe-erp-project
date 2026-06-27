@@ -148,7 +148,7 @@ export function ProductFormModal({ isOpen, onClose, product }: { isOpen: boolean
                         value={item.ingredientId}
                         onChange={(e) => handleRecipeItemChange(idx, 'ingredientId', Number(e.target.value))}
                       >
-                        <option value={0}>Select...</option>
+                        <option value={0}>Select…</option>
                         {ingredients.map((ing: Ingredient) => (
                           <option key={ing.id} value={ing.id}>{ing.name} ({ing.unit})</option>
                         ))}

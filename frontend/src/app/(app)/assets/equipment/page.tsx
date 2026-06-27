@@ -11,6 +11,7 @@ import { HubPageHeader } from "@/components/shared/hub-card";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { DataTable } from "@/components/shared/data-table";
 import { Equipment, Branch } from "@/types/api";
+import { formatDate } from "@/lib/intl-date";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -116,13 +117,13 @@ export default function EquipmentPage() {
             </DialogHeader>
             <form onSubmit={handleCreate} className="space-y-4 pt-4">
               <div className="space-y-2">
-                <Label>Equipment Name</Label>
-                <Input value={name} onChange={e => setName(e.target.value)} required placeholder="e.g. La Marzocco Linea PB" />
+                <Label htmlFor="equipment-name">Equipment Name</Label>
+                <Input id="equipment-name" value={name} onChange={e => setName(e.target.value)} required placeholder="e.g. La Marzocco Linea PB" />
               </div>
               <div className="space-y-2">
-                <Label>Type</Label>
+                <Label htmlFor="equipment-type">Type</Label>
                 <Select value={type} onValueChange={(v) => v && setType(v)}>
-                  <SelectTrigger className="w-full">
+                  <SelectTrigger id="equipment-type" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -135,8 +136,8 @@ export default function EquipmentPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Serial Number</Label>
-                <Input value={serial} onChange={e => setSerial(e.target.value)} placeholder="e.g. SN-12345" />
+                <Label htmlFor="equipment-serial">Serial Number</Label>
+                <Input id="equipment-serial" value={serial} onChange={e => setSerial(e.target.value)} placeholder="e.g. SN-12345" />
               </div>
               <Button type="submit" className="w-full bg-blue-600">Register</Button>
             </form>
@@ -169,7 +170,7 @@ export default function EquipmentPage() {
             title: "Next Maintenance", 
             dataIndex: "nextMaintenanceDate", 
             key: "nextMaintenanceDate",
-            render: (date: string) => date ? new Date(date).toLocaleDateString() : "-"
+            render: (date: string) => date ? formatDate(date) : "-"
           },
           { 
             title: "Action", 
@@ -185,12 +186,12 @@ export default function EquipmentPage() {
                   </DialogHeader>
                   <form onSubmit={handleLogMaintenance} className="space-y-4 pt-4">
                     <div className="space-y-2">
-                      <Label>Description</Label>
-                      <Input value={maintDesc} onChange={e => setMaintDesc(e.target.value)} required />
+                      <Label htmlFor="maintenance-description">Description</Label>
+                      <Input id="maintenance-description" value={maintDesc} onChange={e => setMaintDesc(e.target.value)} required />
                     </div>
                     <div className="space-y-2">
-                      <Label>Cost (THB)</Label>
-                      <Input type="number" value={maintCost} onChange={e => setMaintCost(e.target.value)} required />
+                      <Label htmlFor="maintenance-cost">Cost (THB)</Label>
+                      <Input id="maintenance-cost" type="number" value={maintCost} onChange={e => setMaintCost(e.target.value)} required />
                     </div>
                     <div className="space-y-2">
                       <Label>Next Maintenance Date</Label>

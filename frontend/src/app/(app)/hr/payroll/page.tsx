@@ -280,7 +280,7 @@ export default function PayrollPage() {
               (payrollRuns.length > 0 && payrollRuns[0].status === "DRAFT")
             }
           >
-            {generatePayrollMutation.isPending ? "Generating..." : "Generate This Month's Payroll"}
+            {generatePayrollMutation.isPending ? "Generating…" : "Generate This Month's Payroll"}
           </Button>
         }
       >

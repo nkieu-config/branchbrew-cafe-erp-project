@@ -139,16 +139,18 @@ export default function BranchesPageClient({ embedded = false }: { embedded?: bo
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div className="space-y-2">
-              <Label>Branch Name</Label>
+              <Label htmlFor="branch-name">Branch Name</Label>
               <Input 
+                id="branch-name"
                 value={formData.name} 
                 onChange={(e) => setFormData({...formData, name: e.target.value})} 
                 placeholder="e.g. Qafa Siam Square"
               />
             </div>
             <div className="space-y-2">
-              <Label>Location / Address</Label>
+              <Label htmlFor="branch-location">Location / Address</Label>
               <Input 
+                id="branch-location"
                 value={formData.location} 
                 onChange={(e) => setFormData({...formData, location: e.target.value})} 
                 placeholder="e.g. 1st Floor, Center Point"
@@ -167,7 +169,7 @@ export default function BranchesPageClient({ embedded = false }: { embedded?: bo
             <div className="pt-4 flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
               <Button onClick={handleSave} disabled={createMutation.isPending || updateMutation.isPending}>
-                {createMutation.isPending || updateMutation.isPending ? "Saving..." : "Save Branch"}
+                {createMutation.isPending || updateMutation.isPending ? "Saving…" : "Save Branch"}
               </Button>
             </div>
           </div>

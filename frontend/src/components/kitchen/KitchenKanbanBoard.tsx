@@ -16,6 +16,7 @@ import {
 } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import type { ProductionOrder, Ingredient } from "@/types/api";
+import { formatDate } from "@/lib/intl-date";
 
 export type ProductionOrderWithTarget = ProductionOrder & { targetIngredient: Ingredient };
 
@@ -85,7 +86,7 @@ function KanbanCard({ order, isOverlay = false }: { order: ProductionOrderWithTa
       {order.plannedStartDate && (
         <div className="mt-3 text-xs text-slate-500 flex items-center gap-1 font-medium bg-slate-50 dark:bg-slate-900/50 w-fit px-2 py-1 rounded-md">
           <Clock className="w-3 h-3" />
-          {new Date(order.plannedStartDate).toLocaleDateString("en-GB")}
+          {formatDate(order.plannedStartDate)}
         </div>
       )}
     </div>

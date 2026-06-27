@@ -1,55 +1,83 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSettings, useUpdateSettings } from "@/hooks/domains/useSettingsQueries";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { Store, Receipt, Calculator, Banknote, Loader2, Save, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { getErrorMessage } from "@/lib/errors";
 
+const EMPTY_FORM: Record<string, string> = {
+  companyName: "",
+  taxId: "",
+  vatRate: "7",
+  currency: "THB",
+  receiptFooter: "Thank you for your business!",
+};
+
+function settingsToForm(settings: Record<string, string | undefined>): Record<string, string> {
+  return {
+    companyName: settings.companyName || "",
+    taxId: settings.taxId || "",
+    vatRate: settings.vatRate || "7",
+    currency: settings.currency || "THB",
+    receiptFooter: settings.receiptFooter || "Thank you for your business!",
+  };
+}
+
 export default function SettingsPage() {
   const { data: settings, isLoading, isError, error, refetch } = useSettings();
   const updateSettingsMutation = useUpdateSettings();
 
-  const [formData, setFormData] = useState<Record<string, string>>({
-    companyName: "",
-    taxId: "",
-    vatRate: "7",
-    currency: "THB",
-    receiptFooter: "Thank you for your business!"
-  });
+  const [formData, setFormData] = useState<Record<string, string>>(EMPTY_FORM);
+  const [savedSnapshot, setSavedSnapshot] = useState<Record<string, string>>(EMPTY_FORM);
 
   useEffect(() => {
     if (settings) {
-      setFormData({
-        companyName: settings.companyName || "",
-        taxId: settings.taxId || "",
-        vatRate: settings.vatRate || "7",
-        currency: settings.currency || "THB",
-        receiptFooter: settings.receiptFooter || "Thank you for your business!"
-      });
+      const next = settingsToForm(settings);
+      setFormData(next);
+      setSavedSnapshot(next);
     }
   }, [settings]);
 
+  const isDirty = useMemo(
+    () => JSON.stringify(formData) !== JSON.stringify(savedSnapshot),
+    [formData, savedSnapshot],
+  );
+
+  useUnsavedChangesGuard(isDirty);
+
   const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSave = () => {
-    updateSettingsMutation.mutate(formData);
+    updateSettingsMutation.mutate(formData, {
+      onSuccess: () => setSavedSnapshot(formData),
+    });
   };
 
   return (
     <div className="space-y-6 max-w-4xl w-full">
+      {isDirty && (
+        <div
+          role="status"
+          className="rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 px-4 py-3 text-sm font-medium text-amber-900 dark:text-amber-100"
+        >
+          You have unsaved changes. Save before leaving this page.
+        </div>
+      )}
+
       <div className="flex justify-end">
         <Button
           className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-2"
           onClick={handleSave}
-          disabled={isLoading || isError || updateSettingsMutation.isPending}
+          disabled={isLoading || isError || updateSettingsMutation.isPending || !isDirty}
         >
           <Save className="w-4 h-4" />
-          {updateSettingsMutation.isPending ? "Saving..." : "Save Settings"}
+          {updateSettingsMutation.isPending ? "Saving…" : "Save Settings"}
         </Button>
       </div>
 

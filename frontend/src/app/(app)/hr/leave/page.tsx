@@ -25,6 +25,7 @@ import { StatusBadge, leaveStatusTone } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { LeaveRequest } from "@/types/api";
 import { useLeaveRequests, useUpdateLeaveStatus, useCreateLeave } from "@/hooks/domains/useHrQueries";
+import { formatDateRange } from "@/lib/intl-date";
 import { getErrorMessage } from "@/lib/errors";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -130,7 +131,7 @@ export default function LeaveRequestsPage() {
               title: "Dates",
               key: "dates",
               render: (_: unknown, req: LeaveRequest) =>
-                `${new Date(req.startDate).toLocaleDateString()} - ${new Date(req.endDate).toLocaleDateString()}`,
+                formatDateRange(req.startDate, req.endDate),
             },
             {
               title: "Status",
@@ -150,11 +151,15 @@ export default function LeaveRequestsPage() {
                         <div className="flex gap-1">
                           <TableActionButton
                             icon={CheckCircle}
+                            label="Approve"
+                            iconOnly
                             onClick={() => approveLeave(req.id, "APPROVED")}
                             className="text-emerald-600 hover:text-emerald-700"
                           />
                           <TableActionButton
                             icon={XCircle}
+                            label="Reject"
+                            iconOnly
                             onClick={() => approveLeave(req.id, "REJECTED")}
                             destructive
                           />
@@ -181,9 +186,9 @@ export default function LeaveRequestsPage() {
 
           <div className="space-y-4 pt-2">
             <div className="space-y-2">
-              <Label>Leave Type</Label>
+              <Label htmlFor="leave-type">Leave Type</Label>
               <Select value={leaveType} onValueChange={(v) => v && setLeaveType(v)}>
-                <SelectTrigger className="w-full">
+                <SelectTrigger id="leave-type" className="w-full">
                   <SelectValue placeholder="Select leave type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -197,8 +202,9 @@ export default function LeaveRequestsPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Dates</Label>
+              <Label htmlFor="leave-dates">Dates</Label>
               <DatePicker.RangePicker
+                id="leave-dates"
                 className="w-full h-10"
                 value={dates}
                 onChange={(vals) => setDates(vals as [Dayjs, Dayjs] | null)}
@@ -212,7 +218,7 @@ export default function LeaveRequestsPage() {
                 rows={4}
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Briefly explain your reason..."
+                placeholder="Briefly explain your reason…"
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
             </div>
@@ -228,7 +234,7 @@ export default function LeaveRequestsPage() {
               disabled={createLeaveMutation.isPending}
               onClick={() => void handleCreateLeave()}
             >
-              {createLeaveMutation.isPending ? "Submitting..." : "Submit Request"}
+              {createLeaveMutation.isPending ? "Submitting…" : "Submit Request"}
             </Button>
           </DialogFooter>
         </DialogContent>

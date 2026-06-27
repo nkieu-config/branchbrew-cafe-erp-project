@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { AuditLog, User as ApiUser } from "@/types/api";
+import { formatDateTime } from "@/lib/intl-date";
 
 const PAGE_SIZE = 15;
 
@@ -69,13 +70,7 @@ export default function AuditLogsPage() {
               pageLogs.map((log: AuditLog & { user: ApiUser }) => (
                 <TableRow key={log.id}>
                   <TableCell className="font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">
-                    {new Date(log.createdAt).toLocaleString("en-GB", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                    {formatDateTime(log.createdAt)}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">

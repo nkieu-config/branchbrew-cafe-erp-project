@@ -2,6 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { useAuth } from "@/context/AuthContext";
@@ -26,6 +27,46 @@ const DashboardSortableGridLazy = dynamic(
   { ssr: false },
 );
 
+const DEFAULT_LAYOUT = ["sales", "topBranch", "lowStock", "topProducts", "salesChart"];
+const VALID_WIDGET_IDS = new Set(DEFAULT_LAYOUT);
+const LAYOUT_PARAM = "layout";
+const LAYOUT_STORAGE_KEY = "executive_dashboard_layout";
+
+function normalizeLayout(ids: string[]): string[] {
+  const seen = new Set<string>();
+  const ordered: string[] = [];
+  for (const id of ids) {
+    if (VALID_WIDGET_IDS.has(id) && !seen.has(id)) {
+      seen.add(id);
+      ordered.push(id);
+    }
+  }
+  for (const id of DEFAULT_LAYOUT) {
+    if (!seen.has(id)) ordered.push(id);
+  }
+  return ordered;
+}
+
+function parseLayoutParam(value: string | null): string[] | null {
+  if (!value) return null;
+  const ids = value.split(",").map((part) => part.trim()).filter(Boolean);
+  if (ids.length === 0) return null;
+  return normalizeLayout(ids);
+}
+
+function readStoredLayout(): string[] | null {
+  if (typeof window === "undefined") return null;
+  const saved = localStorage.getItem(LAYOUT_STORAGE_KEY);
+  if (!saved) return null;
+  try {
+    const parsed = JSON.parse(saved);
+    if (!Array.isArray(parsed)) return null;
+    return normalizeLayout(parsed.map(String));
+  } catch {
+    return null;
+  }
+}
+
 function WidgetBoundary({
   children,
   onReset,
@@ -36,27 +77,38 @@ function WidgetBoundary({
   return <WidgetErrorBoundary onReset={onReset}>{children}</WidgetErrorBoundary>;
 }
 
-export default function AnalyticsDashboard() {
+function AnalyticsDashboardContent() {
   const { activeBranchId } = useAuth();
   const analyticsBranch = activeBranchId != null ? String(activeBranchId) : "ALL";
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  const defaultLayout = ["sales", "topBranch", "lowStock", "topProducts", "salesChart"];
-  const [widgetOrder, setWidgetOrder] = useState<string[]>(defaultLayout);
+  const [widgetOrder, setWidgetOrder] = useState<string[]>(DEFAULT_LAYOUT);
+  const [layoutReady, setLayoutReady] = useState(false);
 
   useEffect(() => {
-    const savedLayout = localStorage.getItem("executive_dashboard_layout");
-    if (savedLayout) {
-      try {
-        const parsed = JSON.parse(savedLayout);
-        if (!parsed.includes("salesChart")) {
-          parsed.push("salesChart");
-        }
-        setWidgetOrder(parsed);
-      } catch (e) {
-        console.error(e);
-      }
+    const fromUrl = parseLayoutParam(searchParams.get(LAYOUT_PARAM));
+    if (fromUrl) {
+      setWidgetOrder(fromUrl);
+      localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(fromUrl));
+      setLayoutReady(true);
+      return;
     }
-  }, []);
+
+    const fromStorage = readStoredLayout() ?? DEFAULT_LAYOUT;
+    setWidgetOrder(fromStorage);
+    localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(fromStorage));
+
+    const serialized = fromStorage.join(",");
+    if (searchParams.get(LAYOUT_PARAM) !== serialized) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set(LAYOUT_PARAM, serialized);
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    }
+
+    setLayoutReady(true);
+  }, [pathname, router, searchParams]);
 
   const { data: branches = [] } = useBranches();
 
@@ -65,10 +117,21 @@ export default function AnalyticsDashboard() {
       ? (branches as Branch[]).find((b) => b.id === activeBranchId)?.name ?? `Branch #${activeBranchId}`
       : "All Branches (HQ)";
 
-  const handleReorder = useCallback((newOrder: string[]) => {
-    setWidgetOrder(newOrder);
-    localStorage.setItem("executive_dashboard_layout", JSON.stringify(newOrder));
-  }, []);
+  const handleReorder = useCallback(
+    (newOrder: string[]) => {
+      const normalized = normalizeLayout(newOrder);
+      setWidgetOrder(normalized);
+      localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(normalized));
+
+      const serialized = normalized.join(",");
+      if (searchParams.get(LAYOUT_PARAM) !== serialized) {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set(LAYOUT_PARAM, serialized);
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+      }
+    },
+    [pathname, router, searchParams],
+  );
 
   const getWidgetClassName = useCallback(
     (id: string) => (id === "topProducts" || id === "salesChart" ? "xl:col-span-2" : ""),
@@ -137,16 +200,42 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
 
-      <QueryErrorResetBoundary>
-        {({ reset }) => (
-          <DashboardSortableGridLazy
-            widgetOrder={widgetOrder}
-            onReorder={handleReorder}
-            renderWidget={(id) => renderWidget(id, reset)}
-            getWidgetClassName={getWidgetClassName}
-          />
-        )}
-      </QueryErrorResetBoundary>
+      {layoutReady ? (
+        <QueryErrorResetBoundary>
+          {({ reset }) => (
+            <DashboardSortableGridLazy
+              widgetOrder={widgetOrder}
+              onReorder={handleReorder}
+              renderWidget={(id) => renderWidget(id, reset)}
+              getWidgetClassName={getWidgetClassName}
+            />
+          )}
+        </QueryErrorResetBoundary>
+      ) : (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <StatWidgetSkeleton />
+          <StatWidgetSkeleton />
+          <AlertsWidgetSkeleton />
+        </div>
+      )}
     </AnimatedPage>
+  );
+}
+
+export default function AnalyticsDashboard() {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-6">
+          <div className="h-20 animate-pulse rounded-xl bg-slate-100 dark:bg-slate-800" />
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <StatWidgetSkeleton />
+            <StatWidgetSkeleton />
+          </div>
+        </div>
+      }
+    >
+      <AnalyticsDashboardContent />
+    </Suspense>
   );
 }

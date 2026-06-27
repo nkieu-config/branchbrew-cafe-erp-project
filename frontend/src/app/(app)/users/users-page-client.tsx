@@ -11,6 +11,13 @@ import { ShieldCheck, Plus, User as UserIcon, Mail, Shield, Building } from "luc
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DataTable } from "@/components/shared/data-table";
@@ -196,63 +203,89 @@ export default function UsersPageClient({ embedded = false }: { embedded?: boole
           <div className="space-y-4 pt-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Full Name</Label>
-                <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Somchai Jai-dee" />
+                <Label htmlFor="user-full-name">Full Name</Label>
+                <Input id="user-full-name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Somchai Jai-dee" />
               </div>
               <div className="space-y-2">
-                <Label>Email Address</Label>
-                <Input type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} placeholder="somchai@qafacafe.com" />
+                <Label htmlFor="user-email">Email Address</Label>
+                <Input id="user-email" type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} placeholder="somchai@qafacafe.com" />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label>Password {editingUser && <span className="text-slate-400 font-normal">(Leave blank to keep current)</span>}</Label>
-              <Input type="text" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} placeholder={editingUser ? "••••••••" : "e.g. qafa1234"} />
+              <Label htmlFor="user-password">
+                Password {editingUser && <span className="text-slate-400 font-normal">(Leave blank to keep current)</span>}
+              </Label>
+              <Input id="user-password" type="text" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} placeholder={editingUser ? "••••••••" : "e.g. qafa1234"} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>System Role</Label>
-                <select 
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                <Label htmlFor="user-role">System Role</Label>
+                <Select
                   value={formData.role}
-                  onChange={(e) => setFormData({...formData, role: e.target.value})}
+                  onValueChange={(value) => {
+                    if (value) setFormData({ ...formData, role: value as Role });
+                  }}
                 >
-                  <option value="STAFF">Staff (POS & basic apps)</option>
-                  <option value="MANAGER">Manager (Approvals & Reports)</option>
-                  <option value="SUPER_ADMIN">Super Admin (All Access)</option>
-                </select>
+                  <SelectTrigger id="user-role" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="STAFF">Staff (POS & basic apps)</SelectItem>
+                    <SelectItem value="MANAGER">Manager (Approvals & Reports)</SelectItem>
+                    <SelectItem value="SUPER_ADMIN">Super Admin (All Access)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label>Assigned Branch</Label>
-                <select 
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  value={formData.branchId || 0}
-                  onChange={(e) => setFormData({...formData, branchId: Number(e.target.value)})}
+                <Label htmlFor="user-branch">Assigned Branch</Label>
+                <Select
+                  value={formData.branchId ? String(formData.branchId) : "0"}
+                  onValueChange={(value) => {
+                    if (value == null) return;
+                    setFormData({ ...formData, branchId: Number(value) });
+                  }}
                 >
-                  <option value={0}>All Branches (HQ / Admin)</option>
-                  {(branches as Branch[] | undefined)?.map((b) => (
-                    <option key={b.id} value={b.id}>{b.name}</option>
-                  ))}
-                </select>
+                  <SelectTrigger id="user-branch" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">All Branches (HQ / Admin)</SelectItem>
+                    {(branches as Branch[] | undefined)?.map((b) => (
+                      <SelectItem key={b.id} value={String(b.id)}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Employment Type</Label>
-                <select 
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                <Label htmlFor="user-employment-type">Employment Type</Label>
+                <Select
                   value={formData.employmentType}
-                  onChange={(e) => setFormData({...formData, employmentType: e.target.value})}
+                  onValueChange={(value) => {
+                    if (value === "PART_TIME" || value === "FULL_TIME") {
+                      setFormData({ ...formData, employmentType: value as EmploymentType });
+                    }
+                  }}
                 >
-                  <option value="PART_TIME">Part-Time (Hourly)</option>
-                  <option value="FULL_TIME">Full-Time (Salaried)</option>
-                </select>
+                  <SelectTrigger id="user-employment-type" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PART_TIME">Part-Time (Hourly)</SelectItem>
+                    <SelectItem value="FULL_TIME">Full-Time (Salaried)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label>{formData.employmentType === 'PART_TIME' ? 'Hourly Rate (฿)' : 'Monthly Base Salary (฿)'}</Label>
+                <Label htmlFor="user-compensation">{formData.employmentType === 'PART_TIME' ? 'Hourly Rate (฿)' : 'Monthly Base Salary (฿)'}</Label>
                 <Input 
+                  id="user-compensation"
                   type="number" 
                   value={formData.employmentType === 'PART_TIME' ? formData.hourlyRate : formData.baseSalary} 
                   onChange={(e) => {
@@ -267,7 +300,7 @@ export default function UsersPageClient({ embedded = false }: { embedded?: boole
             <div className="pt-4 flex justify-end gap-2">
               <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
               <Button onClick={handleSave} disabled={createMutation.isPending || updateMutation.isPending}>
-                {createMutation.isPending || updateMutation.isPending ? "Saving..." : "Save User"}
+                {createMutation.isPending || updateMutation.isPending ? "Saving…" : "Save User"}
               </Button>
             </div>
           </div>

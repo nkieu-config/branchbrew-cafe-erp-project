@@ -1,6 +1,8 @@
 "use client"
 
+import { useState } from "react"
 import { HubPageHeader } from "@/components/shared/hub-card"
+import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { exportSales } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, DollarSign, Download, RefreshCw } from "lucide-react"
@@ -9,6 +11,7 @@ import { useAuth } from "@/context/AuthContext"
 import { toast } from "sonner"
 import { useFinanceSettlements, useFinanceExpenses, useApproveSettlement } from '@/hooks/domains/useFinanceQueries';
 import { getErrorMessage } from "@/lib/errors"
+import { formatDate, formatDateTime } from "@/lib/intl-date"
 import { Settlement, Expense } from "@/types"
 
 function FinanceTableSkeleton({ rows = 4 }: { rows?: number }) {
@@ -24,6 +27,7 @@ function FinanceTableSkeleton({ rows = 4 }: { rows?: number }) {
 export default function FinanceDashboardPage() {
   const { isAuthenticated, activeBranchId } = useAuth()
   const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
+  const [approveTarget, setApproveTarget] = useState<Settlement | null>(null)
   
   const {
     data: settlements = [],
@@ -52,6 +56,7 @@ export default function FinanceDashboardPage() {
     try {
       await approveSettlementMutation.mutateAsync(id)
       toast.success("Approved successfully")
+      setApproveTarget(null)
     } catch (error) {
       toast.error(getErrorMessage(error, "Failed to approve"))
     }
@@ -60,7 +65,7 @@ export default function FinanceDashboardPage() {
   const handleExport = async () => {
     if (!isAuthenticated) return
     try {
-      toast.info("Exporting sales...")
+      toast.info("Exporting sales…")
       await exportSales(activeBranchId || undefined)
       toast.success("Export successful!")
     } catch (error) {
@@ -125,7 +130,7 @@ export default function FinanceDashboardPage() {
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {settlements.map((s: Settlement) => (
                     <tr key={s.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{new Date(s.date).toLocaleDateString()}</td>
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{formatDate(s.date)}</td>
                       <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">{s.branch?.name || 'Main'}</td>
                       <td className="px-4 py-3 text-right tabular-nums">฿{s.expectedCash.toLocaleString()}</td>
                       <td className="px-4 py-3 text-right tabular-nums">฿{s.actualCash.toLocaleString()}</td>
@@ -139,7 +144,7 @@ export default function FinanceDashboardPage() {
                       </td>
                       <td className="px-4 py-3 text-center">
                         {s.status === 'PENDING' && (
-                          <Button size="sm" variant="ghost" className="text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50" onClick={() => handleApprove(s.id)}>
+                          <Button size="sm" variant="ghost" className="text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50" onClick={() => setApproveTarget(s)}>
                             Approve
                           </Button>
                         )}
@@ -179,7 +184,7 @@ export default function FinanceDashboardPage() {
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {expenses.map((e: Expense) => (
                     <tr key={e.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{new Date(e.createdAt).toLocaleString()}</td>
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{formatDateTime(e.createdAt)}</td>
                       <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">{e.category}</td>
                       <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{e.description || '-'}</td>
                       <td className="px-4 py-3 text-right text-red-500 font-medium tabular-nums">-฿{e.amount.toLocaleString()}</td>
@@ -197,6 +202,24 @@ export default function FinanceDashboardPage() {
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={approveTarget != null}
+        onOpenChange={(open) => {
+          if (!open) setApproveTarget(null)
+        }}
+        title="Approve settlement?"
+        description={
+          approveTarget
+            ? `Confirm cash reconciliation for ${approveTarget.branch?.name ?? "branch"} on ${formatDate(approveTarget.date)}. Expected ฿${approveTarget.expectedCash.toLocaleString()}, actual ฿${approveTarget.actualCash.toLocaleString()}.`
+            : undefined
+        }
+        confirmLabel="Approve Settlement"
+        loading={approveSettlementMutation.isPending}
+        onConfirm={() => {
+          if (approveTarget) return handleApprove(approveTarget.id)
+        }}
+      />
     </div>
   )
 }

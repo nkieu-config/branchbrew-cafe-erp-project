@@ -6,6 +6,7 @@ import { StatCard } from "@/components/shared/stat-card"
 import { DataTable } from "@/components/shared/data-table"
 import { HubCard } from "@/components/shared/hub-card"
 import { toNumber, formatBaht } from "@/lib/money"
+import { formatDateTime } from "@/lib/intl-date"
 import { Order } from "@/types/api"
 
 export default function CostingReportPage() {
@@ -50,7 +51,7 @@ export default function CostingReportPage() {
         <DataTable 
           columns={[
             { title: "Order ID", dataIndex: "id", key: "id", render: (id: number) => <span className="font-medium text-slate-900 dark:text-slate-100">#{id}</span> },
-            { title: "Date", dataIndex: "createdAt", key: "date", render: (date: string) => <span className="text-slate-600 dark:text-slate-400">{new Date(date).toLocaleString()}</span> },
+            { title: "Date", dataIndex: "createdAt", key: "date", render: (date: string) => <span className="text-slate-600 dark:text-slate-400">{formatDateTime(date)}</span> },
             { title: "Revenue", dataIndex: "netAmount", key: "rev", align: "right", render: (val: number | string) => <span className="tabular-nums">{formatBaht(val)}</span> },
             { title: "COGS", dataIndex: "totalCogs", key: "cogs", align: "right", render: (val: number | string) => <span className="text-red-500 tabular-nums">{formatBaht(val)}</span> },
             { 

@@ -145,6 +145,10 @@
   }
   html {
     @apply font-sans;
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
   }
 }
 
@@ -155,10 +159,10 @@
   }
   
   .glass-card {
-    @apply bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 shadow-lg shadow-slate-200/50 dark:shadow-none transition-all duration-300 hover:shadow-xl hover:-translate-y-1;
+    @apply bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 shadow-lg shadow-slate-200/50 dark:shadow-none transition-[box-shadow,transform] duration-300 hover:shadow-xl hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:shadow-lg;
   }
 
   .interactive-item {
-    @apply transition-all duration-200 active:scale-95;
+    @apply transition-transform duration-200 active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100;
   }
 }

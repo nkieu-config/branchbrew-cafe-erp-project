@@ -11,13 +11,21 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { HubPageHeader } from "@/components/shared/hub-card";
 import { DataTable } from "@/components/shared/data-table";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { format, differenceInDays } from "date-fns";
+import { differenceInDays } from "date-fns";
+import { formatDate, formatIsoDate } from "@/lib/intl-date";
 import type { Dayjs } from "dayjs";
 import type { Ingredient, InventoryBatch, PurchaseOrder, Supplier, BranchInventory } from "@/types/api";
 
@@ -131,7 +139,7 @@ export default function InventoryPage() {
   // Pre-process batches for Heatmap
   const expiryMap = batches.reduce((acc: Record<string, BatchWithSupplier[]>, batch: BatchWithSupplier) => {
     if (!batch.expiryDate) return acc;
-    const dateStr = format(new Date(batch.expiryDate), 'yyyy-MM-dd');
+    const dateStr = formatIsoDate(batch.expiryDate);
     if (!acc[dateStr]) acc[dateStr] = [];
     acc[dateStr].push(batch);
     return acc;
@@ -248,7 +256,7 @@ export default function InventoryPage() {
                 "text-sm font-medium",
                 expired ? "text-red-600" : expiring ? "text-amber-600" : "text-slate-600 dark:text-slate-400"
               )}>
-                {format(new Date(b.expiryDate), 'dd MMM yyyy')}
+                {formatDate(b.expiryDate)}
               </span>
               {expired ? (
                 <StatusBadge tone="danger">Expired</StatusBadge>
@@ -265,6 +273,8 @@ export default function InventoryPage() {
         render: (_: unknown, b: BatchWithSupplier) => (
           <TableActionButton
             icon={Trash2}
+            label="Report waste"
+            iconOnly
             destructive
             onClick={() =>
               openWasteDialog(
@@ -320,29 +330,35 @@ export default function InventoryPage() {
             </DialogHeader>
             <form onSubmit={handleAddBatch} className="space-y-4 pt-4">
               <div className="space-y-2">
-                <Label className="font-bold text-slate-700">Ingredient</Label>
-                <select 
-                  className="flex h-11 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500"
-                  value={batchIngredient} 
-                  onChange={(e) => setBatchIngredient(e.target.value)}
-                  required
+                <Label htmlFor="batch-ingredient" className="font-bold text-slate-700">Ingredient</Label>
+                <Select
+                  value={batchIngredient}
+                  onValueChange={(value) => {
+                    if (value != null) setBatchIngredient(value);
+                  }}
                 >
-                  <option value="">Select Ingredient</option>
-                  {uniqueIngredients.map((inv: Ingredient) => (
-                    <option key={inv.id} value={inv.id}>{inv.name}</option>
-                  ))}
-                </select>
+                  <SelectTrigger id="batch-ingredient" className="h-11 w-full rounded-xl bg-slate-50 dark:bg-slate-950">
+                    <SelectValue placeholder="Select ingredient…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {uniqueIngredients.map((inv: Ingredient) => (
+                      <SelectItem key={inv.id} value={String(inv.id)}>
+                        {inv.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label className="font-bold text-slate-700">Quantity</Label>
-                <Input className="h-11 rounded-xl bg-slate-50" type="number" min="0.1" step="0.1" value={batchQty} onChange={(e) => setBatchQty(e.target.value)} required />
+                <Label htmlFor="batch-quantity" className="font-bold text-slate-700">Quantity</Label>
+                <Input id="batch-quantity" className="h-11 rounded-xl bg-slate-50" type="number" min="0.1" step="0.1" value={batchQty} onChange={(e) => setBatchQty(e.target.value)} required />
               </div>
               <div className="space-y-2">
-                <Label className="font-bold text-slate-700">Expiry Date (Optional)</Label>
-                <Input className="h-11 rounded-xl bg-slate-50" type="date" value={batchExpiry} onChange={(e) => setBatchExpiry(e.target.value)} />
+                <Label htmlFor="batch-expiry" className="font-bold text-slate-700">Expiry Date (Optional)</Label>
+                <Input id="batch-expiry" className="h-11 rounded-xl bg-slate-50" type="date" value={batchExpiry} onChange={(e) => setBatchExpiry(e.target.value)} />
               </div>
               <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white h-11 font-bold rounded-xl" disabled={isAddingBatch}>
-                {isAddingBatch ? "Saving..." : "Save Batch"}
+                {isAddingBatch ? "Saving…" : "Save Batch"}
               </Button>
             </form>
           </DialogContent>
@@ -390,7 +406,7 @@ export default function InventoryPage() {
               onClick={() => void handleWasteSubmit()}
               disabled={reportWasteMutation.isPending}
             >
-              {reportWasteMutation.isPending ? "Saving..." : "Confirm Waste"}
+              {reportWasteMutation.isPending ? "Saving…" : "Confirm Waste"}
             </Button>
           </DialogFooter>
         </DialogContent>

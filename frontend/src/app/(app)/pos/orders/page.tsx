@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { formatBaht } from "@/lib/money";
 import { formatQueueNumber } from "@/lib/queue";
 import type { Order, OrderStatus } from "@/types/api";
-import { format } from "date-fns";
+import { formatDateTime } from "@/lib/intl-date";
 import {
   Dialog,
   DialogContent,
@@ -131,7 +131,7 @@ export default function PosOrdersPage() {
               title: "Date",
               dataIndex: "createdAt",
               key: "date",
-              render: (v: string) => format(new Date(v), "dd MMM HH:mm"),
+              render: (v: string) => formatDateTime(v),
             },
             {
               title: "Status",

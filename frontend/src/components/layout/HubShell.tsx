@@ -63,11 +63,12 @@ export function HubShell({
       </div>
 
       {tabs.length > 0 && (
-        <div className="relative shrink-0 w-fit max-w-full">
+        <nav
+          aria-label={`${hub.label} sections`}
+          className="relative shrink-0 w-fit max-w-full"
+        >
           <div
             ref={tabsRef}
-            role="tablist"
-            aria-label={`${hub.label} sections`}
             className="inline-flex max-w-full space-x-2 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl overflow-x-auto scrollbar-thin scroll-smooth snap-x snap-mandatory"
           >
             {tabs.map((tab) => {
@@ -77,8 +78,7 @@ export function HubShell({
                 <Link
                   key={tab.path}
                   href={tab.path}
-                  role="tab"
-                  aria-selected={isActive}
+                  aria-current={isActive ? "page" : undefined}
                   data-active={isActive ? "true" : undefined}
                   className={cn(
                     "flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-lg transition-opacity duration-150 whitespace-nowrap snap-start shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 motion-reduce:transition-none",
@@ -87,21 +87,21 @@ export function HubShell({
                       : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200",
                   )}
                 >
-                  <TabIcon className="w-4 h-4 shrink-0" aria-hidden />
+                  <TabIcon className="w-4 h-4 shrink-0" aria-hidden="true" />
                   {tab.label}
                 </Link>
               );
             })}
           </div>
           <div
-            className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-slate-50 dark:from-slate-950 to-transparent lg:hidden"
-            aria-hidden
+            className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-slate-50 dark:from-slate-950 to-transparent lg:hidden motion-reduce:opacity-0"
+            aria-hidden="true"
           />
           <div
-            className="pointer-events-none absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-slate-50 dark:from-slate-950 to-transparent lg:hidden"
-            aria-hidden
+            className="pointer-events-none absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-slate-50 dark:from-slate-950 to-transparent lg:hidden motion-reduce:opacity-0"
+            aria-hidden="true"
           />
-        </div>
+        </nav>
       )}
 
       <div className={contentClassName}>{children}</div>

@@ -11,7 +11,7 @@ import Link from "next/link";
 import { Form, Select, InputNumber } from "antd";
 import { CheckCircle2, ArrowRightLeft, ExternalLink, Building2 } from "lucide-react";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { formatDateTime } from "@/lib/intl-date";
 import { useAuth } from "@/context/AuthContext";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { useIngredients } from "@/hooks/domains/useProductionQueries";
@@ -181,8 +181,8 @@ export const StockTransfersPanel = forwardRef<
         render: (date: string) => (
           <span className="text-slate-600 dark:text-slate-300 whitespace-nowrap tabular-nums">
             {variant === "compact"
-              ? format(new Date(date), "dd MMM HH:mm")
-              : format(new Date(date), "dd MMM yyyy HH:mm")}
+              ? formatDateTime(date)
+              : formatDateTime(date)}
           </span>
         ),
       },
@@ -421,7 +421,7 @@ export const StockTransfersPanel = forwardRef<
               disabled={submitting}
               onClick={() => form.submit()}
             >
-              {submitting ? "Requesting..." : "Request Transfer"}
+              {submitting ? "Requesting…" : "Request Transfer"}
             </Button>
           </div>
         </Form>

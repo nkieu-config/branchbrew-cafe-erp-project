@@ -19,7 +19,7 @@ function ConnectionBadge({ isConnected }: { isConnected: boolean }) {
   if (isConnected) {
     return (
       <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-mono text-sm font-bold bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 rounded-full">
-        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse motion-reduce:animate-none" aria-hidden="true" />
         Live Sync
       </div>
     );
@@ -27,7 +27,7 @@ function ConnectionBadge({ isConnected }: { isConnected: boolean }) {
 
   return (
     <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-mono text-sm font-bold bg-rose-50 dark:bg-rose-900/30 px-3 py-1.5 rounded-full">
-      <WifiOff className="w-3.5 h-3.5" />
+      <WifiOff className="w-3.5 h-3.5" aria-hidden="true" />
       Socket disconnected — polling every 30s
     </div>
   );
@@ -108,8 +108,9 @@ export default function KdsPage() {
 
       <div className="flex-1 overflow-x-auto pb-4">
         {isLoading ? (
-          <div className="flex h-64 items-center justify-center">
-            <Loader2 className="w-10 h-10 animate-spin text-emerald-600" />
+          <div className="flex h-64 items-center justify-center" role="status" aria-live="polite">
+            <Loader2 className="w-10 h-10 animate-spin motion-reduce:animate-none text-emerald-600" aria-hidden="true" />
+            <span className="sr-only">Loading orders…</span>
           </div>
         ) : orders.length === 0 ? (
           <div className="w-full py-20 text-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
@@ -127,7 +128,7 @@ export default function KdsPage() {
 
               const headerColorClass = isLate ? "bg-rose-600" : isWarning ? "bg-amber-500" : "bg-emerald-500";
               const borderClass = isLate
-                ? "border-rose-600 animate-[pulse_2s_ease-in-out_infinite]"
+                ? "border-rose-600 animate-[pulse_2s_ease-in-out_infinite] motion-reduce:animate-none"
                 : isWarning
                   ? "border-amber-500"
                   : "border-emerald-500";
@@ -135,7 +136,7 @@ export default function KdsPage() {
               return (
                 <div
                   key={order.id}
-                  className={`flex-shrink-0 w-[400px] bg-white dark:bg-slate-800 rounded-2xl shadow-xl border-4 overflow-hidden flex flex-col transition-all ${borderClass}`}
+                  className={`flex-shrink-0 w-[400px] bg-white dark:bg-slate-800 rounded-2xl shadow-xl border-4 overflow-hidden flex flex-col transition-[border-color,box-shadow] duration-150 motion-reduce:transition-none ${borderClass}`}
                 >
                   <div className={`p-5 flex justify-between items-center text-white ${headerColorClass}`}>
                     <div>
@@ -146,7 +147,7 @@ export default function KdsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 font-mono text-xl font-bold bg-black/20 px-3 py-2 rounded-lg shadow-inner">
-                      <Clock className="w-6 h-6" />
+                      <Clock className="w-6 h-6" aria-hidden="true" />
                       {waitTime} min
                     </div>
                   </div>
@@ -172,7 +173,7 @@ export default function KdsPage() {
                   <div className="p-5 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 flex gap-3">
                     {order.status === "PENDING" && (
                       <Button
-                        className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-black text-2xl h-24 shadow-lg active:scale-95 transition-transform"
+                        className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-black text-2xl h-24 shadow-lg active:scale-95 motion-reduce:active:scale-100 transition-transform motion-reduce:transition-none"
                         onClick={() => void handleUpdateStatus(order.id, "PREPARING")}
                         disabled={isUpdating}
                       >
@@ -180,7 +181,7 @@ export default function KdsPage() {
                       </Button>
                     )}
                     <Button
-                      className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-2xl h-24 shadow-lg active:scale-95 transition-transform"
+                      className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-2xl h-24 shadow-lg active:scale-95 motion-reduce:active:scale-100 transition-transform motion-reduce:transition-none"
                       onClick={() => void handleUpdateStatus(order.id, "COMPLETED")}
                       disabled={isUpdating}
                     >

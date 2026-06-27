@@ -100,7 +100,7 @@ export default function CentralKitchenPage() {
     try {
       if (newStatus === "COMPLETED") {
         toast.promise(completeMutation.mutateAsync(orderId), {
-          loading: "Deducting raw materials...",
+          loading: "Deducting raw materials…",
           success: "Production completed & inventory updated!",
           error: (err: unknown) => (err instanceof Error ? err.message : "Failed to complete order"),
         });

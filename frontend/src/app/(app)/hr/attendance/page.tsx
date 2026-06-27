@@ -12,7 +12,8 @@ import { DataTable } from "@/components/shared/data-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { User, Shift } from "@/types/api";
-import { format, isSameDay, differenceInMinutes } from "date-fns";
+import { formatDate, formatTime, formatDateTimeSeconds } from "@/lib/intl-date";
+import { isSameDay, differenceInMinutes } from "date-fns";
 
 interface AttendanceRecord {
   id: number;
@@ -66,7 +67,7 @@ export default function AttendancePage() {
       key: "date",
       render: (val: string) => (
         <span className="font-medium text-slate-800 dark:text-slate-200">
-          {format(new Date(val), "dd MMM yyyy")}
+          {formatDate(val)}
         </span>
       ),
     },
@@ -94,11 +95,11 @@ export default function AttendancePage() {
             <span
               className={`font-mono font-bold ${isLate ? "text-rose-600" : "text-emerald-600 dark:text-emerald-400"}`}
             >
-              {format(clockInDate, "HH:mm:ss")}
+              {formatDateTimeSeconds(val)}
             </span>
             {isLate && dayShift && (
               <Tooltip
-                title={`Late by ${lateMinutes} minutes (Shift started at ${format(new Date(dayShift.startTime), "HH:mm")})`}
+                title={`Late by ${lateMinutes} minutes (Shift started at ${formatTime(dayShift.startTime)})`}
               >
                 <span>
                   <StatusBadge tone="danger" className="gap-1">
@@ -118,7 +119,7 @@ export default function AttendancePage() {
       render: (val: string) =>
         val ? (
           <span className="font-mono text-slate-600 dark:text-slate-400 font-medium">
-            {format(new Date(val), "HH:mm:ss")}
+            {formatDateTimeSeconds(val)}
           </span>
         ) : (
           <StatusBadge tone="info" className="animate-pulse">

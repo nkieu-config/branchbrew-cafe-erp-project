@@ -127,9 +127,16 @@ export default function SuppliersPage() {
               align: "right" as const,
               render: (_: unknown, row: Supplier) => (
                 <div className="flex justify-end gap-1">
-                  <TableActionButton icon={Pencil} onClick={() => openEdit(row)} />
+                  <TableActionButton
+                    icon={Pencil}
+                    label="Edit"
+                    iconOnly
+                    onClick={() => openEdit(row)}
+                  />
                   <TableActionButton
                     icon={Trash2}
+                    label="Delete"
+                    iconOnly
                     destructive
                     onClick={() => setDeleteTarget(row)}
                   />
@@ -185,7 +192,7 @@ export default function SuppliersPage() {
               disabled={saving}
               onClick={() => void handleSubmit()}
             >
-              {saving ? "Saving..." : "Save"}
+              {saving ? "Saving…" : "Save"}
             </Button>
           </DialogFooter>
         </DialogContent>

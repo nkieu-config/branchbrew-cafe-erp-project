@@ -10,6 +10,7 @@ import { HubPageHeader } from "@/components/shared/hub-card"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { StatusBadge, journalStatusTone } from "@/components/shared/status-badge"
 import { Button } from "@/components/ui/button"
+import { formatDate } from "@/lib/intl-date"
 import type { JournalEntry, Branch } from "@/types/api"
 
 import { useAuth } from "@/context/AuthContext"
@@ -61,7 +62,7 @@ export default function GeneralLedgerPage() {
       title: 'Date',
       dataIndex: 'date',
       key: 'date',
-      render: (date: string) => <span className="font-medium text-slate-600">{new Date(date).toLocaleDateString()}</span>,
+      render: (date: string) => <span className="font-medium text-slate-600">{formatDate(date)}</span>,
     },
     {
       title: 'Reference',

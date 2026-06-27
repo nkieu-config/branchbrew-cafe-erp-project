@@ -9,6 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { HubCard } from "@/components/shared/hub-card";
 import { DataTable } from "@/components/shared/data-table";
@@ -83,33 +90,41 @@ export default function PromotionsPage() {
               </DialogHeader>
               <form onSubmit={handleCreatePromo} className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label>Code (e.g. SUMMER20)</Label>
-                  <Input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} required />
+                  <Label htmlFor="promo-code">Code (e.g. SUMMER20)</Label>
+                  <Input id="promo-code" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} required />
                 </div>
                 <div className="space-y-2">
-                  <Label>Description</Label>
-                  <Input value={description} onChange={(e) => setDescription(e.target.value)} required />
+                  <Label htmlFor="promo-description">Description</Label>
+                  <Input id="promo-description" value={description} onChange={(e) => setDescription(e.target.value)} required />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Discount Type</Label>
-                    <select 
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      value={discountType} 
-                      onChange={(e) => setDiscountType(e.target.value as "PERCENTAGE" | "FIXED_AMOUNT")}
+                    <Label htmlFor="promo-discount-type">Discount Type</Label>
+                    <Select
+                      value={discountType}
+                      onValueChange={(value) => {
+                        if (value === "PERCENTAGE" || value === "FIXED_AMOUNT") {
+                          setDiscountType(value);
+                        }
+                      }}
                     >
-                      <option value="PERCENTAGE">Percentage (%)</option>
-                      <option value="FIXED_AMOUNT">Fixed Amount (THB)</option>
-                    </select>
+                      <SelectTrigger id="promo-discount-type" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PERCENTAGE">Percentage (%)</SelectItem>
+                        <SelectItem value="FIXED_AMOUNT">Fixed Amount (THB)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label>Value</Label>
-                    <Input type="number" min="0" value={discountValue} onChange={(e) => setDiscountValue(e.target.value)} required />
+                    <Label htmlFor="promo-discount-value">Value</Label>
+                    <Input id="promo-discount-value" type="number" min="0" value={discountValue} onChange={(e) => setDiscountValue(e.target.value)} required />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label>Minimum Purchase (Optional)</Label>
-                  <Input type="number" min="0" value={minPurchase} onChange={(e) => setMinPurchase(e.target.value)} placeholder="0" />
+                  <Label htmlFor="promo-min-purchase">Minimum Purchase (Optional)</Label>
+                  <Input id="promo-min-purchase" type="number" min="0" value={minPurchase} onChange={(e) => setMinPurchase(e.target.value)} placeholder="0" />
                 </div>
                 <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700" disabled={isSubmitting}>
                   {isSubmitting ? "Creating…" : "Create Promotion"}

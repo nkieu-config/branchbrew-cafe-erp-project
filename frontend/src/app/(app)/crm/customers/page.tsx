@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Search, UserPlus, Star, Award, Crown, Activity, AlertTriangle, CheckCircle2, History, Heart, ShoppingBag, Users, Loader2 } from "lucide-react";
+import { formatDate } from "@/lib/intl-date";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -113,7 +114,7 @@ export default function CustomersPage() {
           <div className="relative w-full max-w-sm">
             <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
             <Input
-              placeholder="Search by phone..."
+              placeholder="Search by phone…"
               className="pl-9 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -162,7 +163,7 @@ export default function CustomersPage() {
                     title: "Joined",
                     dataIndex: "createdAt",
                     key: "createdAt",
-                    render: (createdAt) => <span className="text-slate-500 font-medium text-sm">{new Date(createdAt).toLocaleDateString()}</span>
+                    render: (createdAt) => <span className="text-slate-500 font-medium text-sm">{formatDate(createdAt)}</span>
                   }
                 ]}
                 dataSource={customers}
@@ -191,7 +192,7 @@ export default function CustomersPage() {
           {loading360 || !customer360 ? (
             <div className="flex flex-col items-center justify-center h-64 gap-4 text-slate-500">
               <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
-              <p className="font-medium animate-pulse">Loading insights...</p>
+              <p className="font-medium animate-pulse">Loading insights…</p>
             </div>
           ) : (
             <div className="space-y-6">
@@ -275,7 +276,7 @@ export default function CustomersPage() {
                             <ShoppingBag className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className="font-bold text-slate-700 dark:text-slate-300">{new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p>
+                            <p className="font-bold text-slate-700 dark:text-slate-300">{formatDate(order.createdAt)}</p>
                             <p className="text-xs text-slate-500 font-medium">{order.items?.length ?? 0} items</p>
                           </div>
                         </div>

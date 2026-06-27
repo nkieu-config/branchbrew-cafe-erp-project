@@ -53,7 +53,7 @@ export function ExpenseForm({ branchIdNum }: { branchIdNum: number | undefined }
             onChange={e => setExpenseForm({...expenseForm, category: e.target.value})}
             required
           >
-            <option value="" disabled>Select category...</option>
+            <option value="" disabled>Select category…</option>
             <option value="SUPPLIES">Store Supplies (Ice, Cups)</option>
             <option value="MAINTENANCE">Maintenance</option>
             <option value="UTILITIES">Utilities</option>

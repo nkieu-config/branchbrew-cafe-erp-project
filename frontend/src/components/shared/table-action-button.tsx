@@ -5,8 +5,11 @@ import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 
 type TableActionButtonProps = {
-  label?: string;
+  /** Visible and accessible name; required for icon-only buttons. */
+  label: string;
   icon?: LucideIcon;
+  /** Show icon only; label is exposed via aria-label. */
+  iconOnly?: boolean;
   onClick?: () => void;
   className?: string;
   variant?: "ghost" | "outline" | "link";
@@ -16,6 +19,7 @@ type TableActionButtonProps = {
 export function TableActionButton({
   label,
   icon: Icon,
+  iconOnly = false,
   onClick,
   className,
   variant = "ghost",
@@ -27,6 +31,7 @@ export function TableActionButton({
       variant={variant}
       size="sm"
       onClick={onClick}
+      aria-label={iconOnly ? label : undefined}
       className={cn(
         "h-8 px-2 font-medium",
         destructive && "text-destructive hover:text-destructive hover:bg-destructive/10",
@@ -34,8 +39,8 @@ export function TableActionButton({
         className,
       )}
     >
-      {Icon && <Icon className="w-4 h-4" />}
-      {label && <span className={Icon ? "ml-1.5" : undefined}>{label}</span>}
+      {Icon && <Icon className="w-4 h-4" aria-hidden="true" />}
+      {!iconOnly && <span className={Icon ? "ml-1.5" : undefined}>{label}</span>}
     </Button>
   );
 }

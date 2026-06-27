@@ -85,7 +85,12 @@ export default function IngredientsPage() {
               key: "actions",
               align: "right",
               render: (_: unknown, record: Ingredient) => (
-                <TableActionButton icon={Edit} onClick={() => handleEdit(record)} />
+                <TableActionButton
+                  icon={Edit}
+                  label="Edit"
+                  iconOnly
+                  onClick={() => handleEdit(record)}
+                />
               ),
             },
           ]}

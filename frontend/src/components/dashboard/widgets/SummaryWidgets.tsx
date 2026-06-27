@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { TrendingUp, TrendingDown, DollarSign, Store, AlertTriangle, CheckCircle2, Award } from "lucide-react";
 import { useAnalyticsSummarySuspense, useTopProductsSuspense } from "@/hooks/domains/useReportsQueries";
 import { formatDashboardCurrency } from "./format-currency";
+import { formatDate } from "@/lib/intl-date";
 
 const TopProductsChart = dynamic(
   () => import("@/components/dashboard/TopProductsChart").then((m) => m.TopProductsChart),
@@ -97,7 +98,7 @@ export function LowStockWidget({ branchId }: { branchId: string }) {
                 </div>
                 <div className="text-right">
                   <div className="font-black text-amber-600 dark:text-amber-400 text-xl">{alert.quantity}</div>
-                  <div className="text-xs font-bold uppercase tracking-wider text-amber-500">{new Date(alert.expiryDate).toLocaleDateString("th-TH")}</div>
+                  <div className="text-xs font-bold uppercase tracking-wider text-amber-500">{formatDate(alert.expiryDate)}</div>
                 </div>
               </div>
             ))}

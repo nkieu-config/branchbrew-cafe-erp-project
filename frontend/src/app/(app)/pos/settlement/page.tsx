@@ -1,6 +1,6 @@
 "use client"
 
-import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Landmark } from "lucide-react"
 import { HubPageHeader } from "@/components/shared/hub-card"
 import { BranchEmptyState } from "@/components/shared/branch-empty-state"
@@ -11,7 +11,6 @@ import { ExpenseForm } from "@/components/pos/ExpenseForm"
 import { Button } from "@/components/ui/button"
 
 export default function SettlementPage() {
-  const router = useRouter()
   const { user, activeBranchId } = useAuth()
   const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
   const canViewFinance = user?.role === "SUPER_ADMIN" || user?.role === "MANAGER";
@@ -31,7 +30,7 @@ export default function SettlementPage() {
         description="Reconcile all payment channels and submit to HQ."
         actions={
           canViewFinance ? (
-            <Button variant="outline" onClick={() => router.push("/finance/overview")}>
+            <Button variant="outline" render={<Link href="/finance/overview" />}>
               <Landmark className="w-4 h-4 mr-2" aria-hidden />
               Finance Overview
             </Button>

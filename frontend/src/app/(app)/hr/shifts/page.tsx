@@ -1,18 +1,18 @@
 "use client"
 
-import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { useAuth } from "@/context/AuthContext"
 import { useShifts } from '@/hooks/domains/useHrQueries';
 import { CalendarDays, Plus, UserPlus, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { HubPageHeader } from "@/components/shared/hub-card";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
+import { formatDate, formatTime } from "@/lib/intl-date";
 import { DataTable } from "@/components/shared/data-table"
 import { Shift, User } from "@/types/api"
 import { Avatar, Tooltip } from "antd"
 
 export default function EmployeesShiftsPage() {
-  const router = useRouter()
   const { user, activeBranchId } = useAuth()
   const role = user?.role
 
@@ -80,7 +80,7 @@ export default function EmployeesShiftsPage() {
               {role === 'SUPER_ADMIN' && (
                 <Button
                   className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-sm"
-                  onClick={() => router.push("/organization/users")}
+                  render={<Link href="/organization/users" />}
                 >
                   <Plus className="w-4 h-4 mr-2" /> Add Employee
                 </Button>
@@ -88,7 +88,7 @@ export default function EmployeesShiftsPage() {
               <Button
                 variant="outline"
                 className="border-slate-200 dark:border-slate-700 bg-white font-bold shadow-sm"
-                onClick={() => router.push("/hr/employees")}
+                render={<Link href="/hr/employees" />}
               >
                 <UserPlus className="w-4 h-4 mr-2" /> Directory
               </Button>
@@ -99,7 +99,7 @@ export default function EmployeesShiftsPage() {
 
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
         <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-          <h2 className="font-black text-slate-800 dark:text-slate-100 text-lg">Today's Timeline ({new Date().toLocaleDateString()})</h2>
+          <h2 className="font-black text-slate-800 dark:text-slate-100 text-lg">Today&apos;s Timeline ({formatDate(new Date())})</h2>
         </div>
 
         {loading ? (
@@ -153,10 +153,10 @@ export default function EmployeesShiftsPage() {
                           return (
                             <Tooltip 
                               key={i} 
-                              title={`${new Date(shift.startTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${new Date(shift.endTime).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} (${shift.status})`}
+                              title={`${formatTime(shift.startTime)} - ${formatTime(shift.endTime)} (${shift.status})`}
                             >
                               <div 
-                                className={`absolute top-1 bottom-1 rounded-md border text-white text-[10px] font-black flex items-center justify-center overflow-hidden shadow-sm transition-all hover:scale-[1.02] cursor-pointer z-20 ${colorClass}`}
+                                className={`absolute top-1 bottom-1 rounded-md border text-white text-[10px] font-black flex items-center justify-center overflow-hidden shadow-sm transition-transform motion-reduce:transition-none hover:scale-[1.02] motion-reduce:hover:scale-100 cursor-pointer z-20 ${colorClass}`}
                                 style={{ left: `${left}%`, width: `${width}%` }}
                               >
                                 {width > 10 ? shift.status : ''}

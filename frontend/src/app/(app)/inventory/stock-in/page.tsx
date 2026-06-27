@@ -7,8 +7,16 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { ArrowDownToLine, Plus, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { filterActive, updateLineItem } from "@/lib/form";
 import type { Ingredient, StockLineItem } from "@/types/api";
@@ -88,22 +96,32 @@ export default function StockInPage() {
         {items.map((item, idx) => (
           <div key={idx} className="flex items-end gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
             <div className="flex-1 space-y-2">
-              <Label>Ingredient</Label>
-              <select 
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                value={item.ingredientId}
-                onChange={(e) => handleChange(idx, 'ingredientId', Number(e.target.value))}
+              <Label htmlFor={`grn-ingredient-${idx}`}>Ingredient</Label>
+              <Select
+                value={item.ingredientId === 0 ? "" : String(item.ingredientId)}
+                onValueChange={(value) => {
+                  if (value == null) return;
+                  handleChange(idx, "ingredientId", Number(value));
+                }}
               >
-                <option value={0}>Select ingredient...</option>
-                {ingredients.map((ing) => (
-                  <option key={ing.id} value={ing.id}>{ing.name} ({ing.unit})</option>
-                ))}
-              </select>
+                <SelectTrigger id={`grn-ingredient-${idx}`} className="w-full">
+                  <SelectValue placeholder="Select ingredient…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {ingredients.map((ing) => (
+                    <SelectItem key={ing.id} value={String(ing.id)}>
+                      {ing.name} ({ing.unit})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             
             <div className="w-32 space-y-2">
-              <Label>Quantity</Label>
+              <Label htmlFor={`grn-quantity-${idx}`}>Quantity</Label>
               <Input 
+                id={`grn-quantity-${idx}`}
+                name={`grn-quantity-${idx}`}
                 type="number" 
                 min="0.01" 
                 step="0.01"
@@ -114,16 +132,25 @@ export default function StockInPage() {
             </div>
 
             <div className="w-48 space-y-2">
-              <Label>Expiry Date (Optional)</Label>
+              <Label htmlFor={`grn-expiry-${idx}`}>Expiry Date (Optional)</Label>
               <Input 
+                id={`grn-expiry-${idx}`}
+                name={`grn-expiry-${idx}`}
                 type="date" 
                 value={item.expiryDate} 
                 onChange={(e) => handleChange(idx, 'expiryDate', e.target.value)} 
               />
             </div>
 
-            <Button variant="ghost" size="icon" className="h-10 w-10 text-red-500" onClick={() => handleRemoveItem(idx)} disabled={items.length === 1}>
-              <Trash2 className="w-4 h-4" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 text-red-500"
+              aria-label="Remove line"
+              onClick={() => handleRemoveItem(idx)}
+              disabled={items.length === 1}
+            >
+              <Trash2 className="w-4 h-4" aria-hidden="true" />
             </Button>
           </div>
         ))}
@@ -134,9 +161,9 @@ export default function StockInPage() {
       </div>
 
       <div className="mt-8 flex justify-end gap-3">
-        <Button variant="outline" onClick={() => router.push("/inventory")}>Cancel</Button>
+        <Button variant="outline" render={<Link href="/inventory" />}>Cancel</Button>
         <Button onClick={handleSubmit} className="bg-blue-600 hover:bg-blue-700" disabled={stockInMutation.isPending}>
-          {stockInMutation.isPending ? "Saving..." : "Confirm & Receive Stock"}
+          {stockInMutation.isPending ? "Saving…" : "Confirm & Receive Stock"}
         </Button>
       </div>
     </HubCard>

@@ -44,8 +44,20 @@ export default function InventoryBalancePage() {
               const isLowStock = record.stock <= record.minStock;
               const isOut = record.stock <= 0;
               return (
-                <span className={`font-bold tabular-nums ${isOut ? 'text-red-500' : isLowStock ? 'text-amber-500' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                  {record.stock.toFixed(2)}
+                <span className="inline-flex items-center gap-1.5">
+                  {isOut ? (
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-red-500" aria-hidden />
+                  ) : isLowStock ? (
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0 text-amber-500" aria-hidden />
+                  ) : null}
+                  <span className={`font-bold tabular-nums ${isOut ? "text-red-500" : isLowStock ? "text-amber-500" : "text-emerald-600 dark:text-emerald-400"}`}>
+                    {record.stock.toFixed(2)}
+                  </span>
+                  {isOut ? (
+                    <span className="text-xs font-semibold text-red-600 dark:text-red-400">Out</span>
+                  ) : isLowStock ? (
+                    <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">Low</span>
+                  ) : null}
                 </span>
               )
             }

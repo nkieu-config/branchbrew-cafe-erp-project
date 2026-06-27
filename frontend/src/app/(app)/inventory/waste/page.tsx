@@ -7,6 +7,13 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { Trash2, Plus, History } from "lucide-react";
 import { filterActive, updateLineItem } from "@/lib/form";
@@ -15,7 +22,7 @@ import { getErrorMessage } from "@/lib/errors";
 import { DataTable } from "@/components/shared/data-table";
 import { HubCard } from "@/components/shared/hub-card";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
-import { format } from "date-fns";
+import { formatDateTime } from "@/lib/intl-date";
 
 const emptyLine = (): WasteLineItem => ({
   ingredientId: 0,
@@ -114,26 +121,32 @@ export default function WasteLogPage() {
               className="flex items-end gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800"
             >
               <div className="flex-1 space-y-2">
-                <Label>Ingredient</Label>
-                <select
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  value={item.ingredientId}
-                  onChange={(e) =>
-                    handleChange(idx, "ingredientId", Number(e.target.value))
-                  }
+                <Label htmlFor={`waste-ingredient-${idx}`}>Ingredient</Label>
+                <Select
+                  value={item.ingredientId === 0 ? "" : String(item.ingredientId)}
+                  onValueChange={(value) => {
+                    if (value == null) return;
+                    handleChange(idx, "ingredientId", Number(value));
+                  }}
                 >
-                  <option value={0}>Select ingredient...</option>
-                  {ingredients.map((ing) => (
-                    <option key={ing.id} value={ing.id}>
-                      {ing.name} ({ing.unit})
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger id={`waste-ingredient-${idx}`} className="w-full">
+                    <SelectValue placeholder="Select ingredient…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ingredients.map((ing) => (
+                      <SelectItem key={ing.id} value={String(ing.id)}>
+                        {ing.name} ({ing.unit})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="w-32 space-y-2">
-                <Label>Quantity</Label>
+                <Label htmlFor={`waste-quantity-${idx}`}>Quantity</Label>
                 <Input
+                  id={`waste-quantity-${idx}`}
+                  name={`waste-quantity-${idx}`}
                   type="number"
                   min="0.01"
                   step="0.01"
@@ -146,8 +159,10 @@ export default function WasteLogPage() {
               </div>
 
               <div className="w-64 space-y-2">
-                <Label>Reason</Label>
+                <Label htmlFor={`waste-reason-${idx}`}>Reason</Label>
                 <Input
+                  id={`waste-reason-${idx}`}
+                  name={`waste-reason-${idx}`}
                   type="text"
                   placeholder="e.g. Expired, Spilled"
                   value={item.reason}
@@ -159,10 +174,11 @@ export default function WasteLogPage() {
                 variant="ghost"
                 size="icon"
                 className="h-10 w-10 text-slate-400 hover:text-red-500"
+                aria-label="Remove line"
                 onClick={() => handleRemoveItem(idx)}
                 disabled={items.length === 1}
               >
-                <Trash2 className="w-4 h-4" />
+                <Trash2 className="w-4 h-4" aria-hidden="true" />
               </Button>
             </div>
           ))}
@@ -184,7 +200,7 @@ export default function WasteLogPage() {
             disabled={recordWasteMutation.isPending}
           >
             {recordWasteMutation.isPending
-              ? "Recording..."
+              ? "Recording…"
               : "Confirm Waste Deduction"}
           </Button>
         </div>
@@ -205,7 +221,7 @@ export default function WasteLogPage() {
               dataIndex: "createdAt",
               key: "createdAt",
               render: (v: string) =>
-                format(new Date(v), "dd MMM yyyy HH:mm"),
+                formatDateTime(v),
             },
             {
               title: "Ingredient",

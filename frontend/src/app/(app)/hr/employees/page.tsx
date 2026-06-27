@@ -219,7 +219,7 @@ export default function EmployeeDirectoryPage() {
               disabled={updateHourlyRateMutation.isPending}
               onClick={() => void handleUpdateSubmit()}
             >
-              {updateHourlyRateMutation.isPending ? "Saving..." : "Save Changes"}
+              {updateHourlyRateMutation.isPending ? "Saving…" : "Save Changes"}
             </Button>
           </DialogFooter>
         </DialogContent>
