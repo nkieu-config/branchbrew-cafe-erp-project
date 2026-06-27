@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { provisionBranchInventoryForIngredient } from '../inventory/branch-inventory-provision.helper';
 
 @Injectable()
 export class IngredientsService {
@@ -12,7 +13,20 @@ export class IngredientsService {
     primarySupplierId?: number;
     isActive?: boolean;
   }) {
-    return this.prisma.ingredient.create({ data });
+    return this.prisma.$transaction(async (tx) => {
+      const ingredient = await tx.ingredient.create({ data });
+      await provisionBranchInventoryForIngredient(tx, ingredient.id);
+      return ingredient;
+    });
+  }
+
+  /** Backfill BranchInventory rows for an existing ingredient (idempotent). */
+  async syncBranchInventory(ingredientId: number) {
+    const rowsCreated = await provisionBranchInventoryForIngredient(
+      this.prisma,
+      ingredientId,
+    );
+    return { ingredientId, rowsCreated };
   }
 
   async findAll() {

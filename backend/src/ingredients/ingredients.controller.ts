@@ -59,6 +59,12 @@ export class IngredientsController {
     return this.ingredientsService.create(dto);
   }
 
+  @Roles('SUPER_ADMIN', 'MANAGER')
+  @Post(':id/sync-inventory')
+  syncBranchInventory(@Param('id', ParseIntPipe) id: number) {
+    return this.ingredientsService.syncBranchInventory(id);
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.ingredientsService.findOne(id);

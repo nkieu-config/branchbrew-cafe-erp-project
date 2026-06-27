@@ -82,6 +82,12 @@ export class BranchesController {
     return this.branchesService.updateBranch(id, dto);
   }
 
+  @Roles('SUPER_ADMIN')
+  @Post(':id/sync-inventory')
+  syncBranchInventory(@Param('id', ParseIntPipe) id: number) {
+    return this.branchesService.syncBranchInventory(id);
+  }
+
   @Get(':id/transfers')
   getTransfers(
     @Param('id', ParseIntPipe) id: number,

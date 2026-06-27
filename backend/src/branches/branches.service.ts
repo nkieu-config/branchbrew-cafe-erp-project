@@ -4,6 +4,7 @@ import {
   assertBranchAccess,
   BranchScopedUser,
 } from '../auth/branch-scope.util';
+import { provisionBranchInventoryForBranch } from '../inventory/branch-inventory-provision.helper';
 
 @Injectable()
 export class BranchesService {
@@ -25,9 +26,20 @@ export class BranchesService {
     location?: string;
     isCentralKitchen?: boolean;
   }) {
-    return this.prisma.branch.create({
-      data,
+    return this.prisma.$transaction(async (tx) => {
+      const branch = await tx.branch.create({ data });
+      await provisionBranchInventoryForBranch(tx, branch.id);
+      return branch;
     });
+  }
+
+  /** Backfill BranchInventory rows for an existing branch (idempotent). */
+  async syncBranchInventory(branchId: number) {
+    const rowsCreated = await provisionBranchInventoryForBranch(
+      this.prisma,
+      branchId,
+    );
+    return { branchId, rowsCreated };
   }
 
   async updateBranch(
