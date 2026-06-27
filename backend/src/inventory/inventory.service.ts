@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InventoryBatch, BranchInventory, WasteLog } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { InventoryHelper } from '../orders/helpers/inventory.helper';
+import { WasteDisposalHelper } from './helpers/waste-disposal.helper';
 
 @Injectable()
 export class InventoryService {
@@ -75,15 +76,12 @@ export class InventoryService {
       for (const item of data.items) {
         if (item.quantity <= 0) continue;
 
-        // 1. Create WasteLog
-        const log = await tx.wasteLog.create({
-          data: {
-            branchId,
-            ingredientId: item.ingredientId,
-            quantity: item.quantity,
-            reason: item.reason,
-            recordedById: userId,
-          },
+        const log = await WasteDisposalHelper.createWasteLog(tx, {
+          branchId,
+          ingredientId: item.ingredientId,
+          quantity: item.quantity,
+          reason: item.reason,
+          recordedById: userId,
         });
 
         // 2. Deduct using the FIFO helper

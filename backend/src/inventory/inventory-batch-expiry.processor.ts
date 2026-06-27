@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
+import { WasteDisposalHelper } from './helpers/waste-disposal.helper';
 
 @Injectable()
 export class InventoryBatchExpiryProcessor {
@@ -38,51 +39,17 @@ export class InventoryBatchExpiryProcessor {
 
     for (const batch of batches) {
       const didDispose = await this.prisma.$transaction(async (tx) => {
-        const current = await tx.inventoryBatch.findUnique({
-          where: { id: batch.id },
-        });
-        if (
-          !current ||
-          current.status !== 'ACTIVE' ||
-          current.quantity <= 0
-        ) {
-          return false;
-        }
-
-        const qty = current.quantity;
-
-        await tx.wasteLog.create({
-          data: {
-            branchId: current.branchId,
-            ingredientId: current.ingredientId,
-            quantity: qty,
-            reason: 'Auto-disposed: batch expired',
-            recordedById: systemUser.id,
+        const log = await WasteDisposalHelper.disposeBatchAsWaste(tx, {
+          batchId: batch.id,
+          userId: systemUser.id,
+          reason: 'Auto-disposed: batch expired',
+          batchStatus: 'EXPIRED',
+          audit: {
+            action: 'AUTO_WASTE',
+            details: `Auto-disposed expired batch #${batch.id}`,
           },
         });
-
-        const inventory = await tx.branchInventory.findUnique({
-          where: {
-            branchId_ingredientId: {
-              branchId: current.branchId,
-              ingredientId: current.ingredientId,
-            },
-          },
-        });
-
-        if (inventory) {
-          await tx.branchInventory.update({
-            where: { id: inventory.id },
-            data: { stock: Math.max(0, inventory.stock - qty) },
-          });
-        }
-
-        await tx.inventoryBatch.update({
-          where: { id: current.id },
-          data: { status: 'EXPIRED', quantity: 0 },
-        });
-
-        return true;
+        return log !== null;
       });
 
       if (didDispose) disposed++;

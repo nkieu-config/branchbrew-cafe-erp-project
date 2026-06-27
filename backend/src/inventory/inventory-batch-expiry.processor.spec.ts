@@ -1,7 +1,20 @@
 import { InventoryBatchExpiryProcessor } from './inventory-batch-expiry.processor';
 import { PrismaService } from '../prisma/prisma.service';
+import { WasteDisposalHelper } from './helpers/waste-disposal.helper';
+
+jest.mock('./helpers/waste-disposal.helper', () => ({
+  WasteDisposalHelper: {
+    disposeBatchAsWaste: jest.fn(),
+  },
+}));
 
 describe('InventoryBatchExpiryProcessor', () => {
+  const mockedHelper = jest.mocked(WasteDisposalHelper);
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('does nothing when no expired batches exist', async () => {
     const prisma = {
       inventoryBatch: { findMany: jest.fn().mockResolvedValue([]) },
@@ -14,6 +27,7 @@ describe('InventoryBatchExpiryProcessor', () => {
 
     expect(prisma.inventoryBatch.findMany).toHaveBeenCalled();
     expect(prisma.user.findFirst).not.toHaveBeenCalled();
+    expect(mockedHelper.disposeBatchAsWaste).not.toHaveBeenCalled();
   });
 
   it('skips auto-waste when no SUPER_ADMIN user exists', async () => {
@@ -31,32 +45,13 @@ describe('InventoryBatchExpiryProcessor', () => {
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 
-  it('auto-disposes expired batches with waste log and stock deduction', async () => {
-    const batchUpdate = jest.fn();
-    const wasteCreate = jest.fn();
-    const inventoryUpdate = jest.fn();
+  it('delegates each expired batch to WasteDisposalHelper', async () => {
+    mockedHelper.disposeBatchAsWaste.mockResolvedValue({ id: 99 } as never);
 
-    const tx = {
-      inventoryBatch: {
-        findUnique: jest.fn().mockResolvedValue({
-          id: 7,
-          branchId: 2,
-          ingredientId: 3,
-          status: 'ACTIVE',
-          quantity: 250,
-        }),
-        update: batchUpdate,
-      },
-      wasteLog: { create: wasteCreate },
-      branchInventory: {
-        findUnique: jest.fn().mockResolvedValue({ id: 9, stock: 3000 }),
-        update: inventoryUpdate,
-      },
-    };
-
+    const tx = {};
     const prisma = {
       inventoryBatch: {
-        findMany: jest.fn().mockResolvedValue([{ id: 7 }]),
+        findMany: jest.fn().mockResolvedValue([{ id: 7 }, { id: 8 }]),
       },
       user: { findFirst: jest.fn().mockResolvedValue({ id: 1 }) },
       $transaction: jest.fn(async (fn) => fn(tx)),
@@ -65,22 +60,16 @@ describe('InventoryBatchExpiryProcessor', () => {
     const processor = new InventoryBatchExpiryProcessor(prisma);
     await processor.markExpiredBatches();
 
-    expect(wasteCreate).toHaveBeenCalledWith({
-      data: {
-        branchId: 2,
-        ingredientId: 3,
-        quantity: 250,
-        reason: 'Auto-disposed: batch expired',
-        recordedById: 1,
+    expect(mockedHelper.disposeBatchAsWaste).toHaveBeenCalledTimes(2);
+    expect(mockedHelper.disposeBatchAsWaste).toHaveBeenCalledWith(tx, {
+      batchId: 7,
+      userId: 1,
+      reason: 'Auto-disposed: batch expired',
+      batchStatus: 'EXPIRED',
+      audit: {
+        action: 'AUTO_WASTE',
+        details: 'Auto-disposed expired batch #7',
       },
-    });
-    expect(inventoryUpdate).toHaveBeenCalledWith({
-      where: { id: 9 },
-      data: { stock: 2750 },
-    });
-    expect(batchUpdate).toHaveBeenCalledWith({
-      where: { id: 7 },
-      data: { status: 'EXPIRED', quantity: 0 },
     });
   });
 });
