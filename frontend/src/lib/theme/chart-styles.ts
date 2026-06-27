@@ -1,4 +1,5 @@
 import { readCssVar } from "./css-var";
+import { themeDefaults } from "./defaults";
 
 export type ChartTheme = {
   grid: string;
@@ -10,24 +11,26 @@ export type ChartTheme = {
   cursor: string;
 };
 
+const light = themeDefaults.light;
+
 export function getChartTheme(): ChartTheme {
   return {
-    grid: readCssVar("--chart-grid", "#e2e8f0"),
-    axis: readCssVar("--chart-axis", "#64748b"),
-    tooltipBg: readCssVar("--chart-tooltip-bg", "#ffffff"),
-    tooltipBorder: readCssVar("--chart-tooltip-border", "#e2e8f0"),
-    tooltipFg: readCssVar("--chart-tooltip-fg", "#0f172a"),
-    revenue: readCssVar("--chart-revenue", "#22c55e"),
-    cursor: readCssVar("--chart-cursor", "#f1f5f9"),
+    grid: readCssVar("--chart-grid", light.border),
+    axis: readCssVar("--chart-axis", light.mutedForeground),
+    tooltipBg: readCssVar("--chart-tooltip-bg", light.card),
+    tooltipBorder: readCssVar("--chart-tooltip-border", light.border),
+    tooltipFg: readCssVar("--chart-tooltip-fg", light.foreground),
+    revenue: readCssVar("--chart-revenue", light.chart1),
+    cursor: readCssVar("--chart-cursor", light.muted),
   };
 }
 
 export function getChartPalette(): string[] {
   return [
-    readCssVar("--chart-1", "#22c55e"),
-    readCssVar("--chart-2", "#0ea5e9"),
-    readCssVar("--chart-3", "#8b5cf6"),
-    readCssVar("--chart-4", "#f59e0b"),
-    readCssVar("--chart-5", "#ec4899"),
+    readCssVar("--chart-1", light.chart1),
+    readCssVar("--chart-2", light.chart2),
+    readCssVar("--chart-3", light.chart3),
+    readCssVar("--chart-4", light.chart4),
+    readCssVar("--chart-5", light.chart5),
   ];
 }

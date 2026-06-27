@@ -177,14 +177,14 @@ export function hubPrimaryActionClassName(className?: string) {
 
 export function hubDangerActionClassName(className?: string) {
   return cn(
-    "bg-[var(--status-danger-fg)] text-white hover:opacity-90",
+    "bg-[var(--status-danger-fg)] text-[var(--on-danger-solid-fg)] hover:opacity-90",
     className,
   );
 }
 
 export function hubInfoActionClassName(className?: string) {
   return cn(
-    "bg-[var(--metric-indigo)] text-white hover:opacity-90",
+    "bg-[var(--metric-indigo)] text-[var(--on-metric-indigo-fg)] hover:opacity-90",
     className,
   );
 }

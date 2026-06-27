@@ -1,6 +1,6 @@
 /**
  * Semantic theme tokens — single source of truth for colors, surfaces, and status.
- * Change values here when tuning the system theme; avoid hardcoded palette classes in components.
+ * Change --accent / --chart-* in globals.css to retheme; shell, widgets, and POS follow via derived tones.
  */
 
 :root {
@@ -8,68 +8,123 @@
   --surface: var(--card);
   --surface-foreground: var(--card-foreground);
   --surface-muted: var(--muted);
-  --surface-elevated: #ffffff;
-  --surface-overlay: rgb(255 255 255 / 0.9);
-  --surface-inset: #f1f5f9;
+  --surface-elevated: var(--card);
+  --surface-overlay: color-mix(in oklch, var(--card) 90%, transparent);
+  --surface-inset: var(--muted);
 
   /* Text hierarchy */
-  --text-secondary: #475569;
-  --text-subtle: #64748b;
+  --text-secondary: color-mix(in oklch, var(--foreground) 72%, var(--muted-foreground));
+  --text-subtle: var(--muted-foreground);
 
   /* Brand / focus */
   --brand: var(--accent);
   --brand-foreground: var(--accent-foreground);
   --focus-ring: var(--ring);
 
+  /* Stat / metric accents — anchor to shadcn base where possible */
+  --metric-emerald: var(--brand);
+  --metric-blue: var(--chart-2);
+  --metric-red: var(--destructive);
+  --metric-amber: var(--chart-4);
+  --metric-indigo: color-mix(in oklch, var(--metric-blue) 82%, var(--metric-purple));
+  --metric-purple: var(--chart-3);
+  --metric-slate: var(--muted-foreground);
+
   /* Hub module accents */
-  --hub-inventory: #22c55e;
-  --hub-procurement: #3b82f6;
-  --hub-hr: #8b5cf6;
-  --hub-products: #d97706;
-  --hub-kitchen: #f97316;
-  --hub-crm: #ec4899;
-  --hub-finance: #059669;
-  --hub-assets: #64748b;
-  --hub-pos: #10b981;
-  --hub-settings: #64748b;
-  --hub-organization: #059669;
+  --hub-inventory: var(--metric-emerald);
+  --hub-procurement: var(--metric-blue);
+  --hub-hr: var(--metric-purple);
+  --hub-products: var(--metric-amber);
+  --hub-kitchen: color-mix(in oklch, var(--metric-amber) 55%, var(--metric-red));
+  --hub-crm: var(--chart-5);
+  --hub-finance: color-mix(in oklch, var(--metric-emerald) 78%, black);
+  --hub-assets: var(--metric-slate);
+  --hub-pos: var(--metric-emerald);
+  --hub-settings: var(--metric-slate);
+  --hub-organization: color-mix(in oklch, var(--metric-emerald) 78%, black);
+
+  /* Foregrounds on solid hub / metric surfaces (CTAs, bars, KDS headers) */
+  --hub-inventory-fg: var(--brand-foreground);
+  --hub-procurement-fg: var(--accent-foreground);
+  --hub-hr-fg: var(--accent-foreground);
+  --hub-products-fg: color-mix(in oklch, var(--hub-products) 22%, var(--foreground));
+  --hub-kitchen-fg: var(--destructive-foreground);
+  --hub-crm-fg: var(--accent-foreground);
+  --hub-finance-fg: var(--brand-foreground);
+  --hub-assets-fg: var(--card-foreground);
+  --hub-pos-fg: var(--brand-foreground);
+  --hub-settings-fg: var(--card-foreground);
+  --hub-organization-fg: var(--brand-foreground);
+  --on-metric-emerald-fg: var(--brand-foreground);
+  --on-metric-indigo-fg: var(--accent-foreground);
+  --on-metric-amber-fg: color-mix(in oklch, var(--metric-amber) 22%, var(--foreground));
+  --on-metric-red-fg: var(--destructive-foreground);
+  --on-danger-solid-fg: var(--destructive-foreground);
+  --on-kds-header-fg: var(--accent-foreground);
+  --on-kds-start-fg: var(--on-metric-amber-fg);
+  --on-kds-done-fg: var(--brand-foreground);
+
+  /* Derived tones — sidebar, widgets, POS build on brand + metrics */
+  --tone-brand-subtle: color-mix(in oklch, var(--brand) 10%, var(--card));
+  --tone-brand-soft: color-mix(in oklch, var(--brand) 18%, var(--card));
+  --tone-brand-border: color-mix(in oklch, var(--brand) 32%, transparent);
+  --tone-brand-shadow: color-mix(in oklch, var(--brand) 28%, transparent);
+  --tone-brand-fg: color-mix(in oklch, var(--brand) 72%, var(--foreground));
+  --tone-brand-fg-strong: color-mix(in oklch, var(--brand) 85%, black);
+
+  --tone-blue-subtle: color-mix(in oklch, var(--metric-blue) 10%, var(--card));
+  --tone-blue-soft: color-mix(in oklch, var(--metric-blue) 18%, var(--card));
+  --tone-blue-border: color-mix(in oklch, var(--metric-blue) 32%, transparent);
+  --tone-blue-fg: color-mix(in oklch, var(--metric-blue) 78%, var(--foreground));
+  --tone-blue-fg-strong: color-mix(in oklch, var(--metric-blue) 88%, black);
+
+  --tone-danger-subtle: color-mix(in oklch, var(--metric-red) 10%, var(--card));
+  --tone-danger-soft: color-mix(in oklch, var(--metric-red) 16%, var(--card));
+  --tone-danger-border: color-mix(in oklch, var(--metric-red) 32%, transparent);
+  --tone-danger-fg: color-mix(in oklch, var(--metric-red) 82%, black);
+
+  --tone-amber-subtle: color-mix(in oklch, var(--metric-amber) 12%, var(--card));
+  --tone-amber-border: color-mix(in oklch, var(--metric-amber) 38%, transparent);
+  --tone-amber-fg: color-mix(in oklch, var(--metric-amber) 75%, var(--foreground));
+
+  --tone-purple-subtle: color-mix(in oklch, var(--metric-purple) 12%, var(--card));
+  --tone-purple-border: color-mix(in oklch, var(--metric-purple) 32%, transparent);
+  --tone-purple-fg: color-mix(in oklch, var(--metric-purple) 78%, var(--foreground));
+
+  --tone-crm-subtle: color-mix(in oklch, var(--hub-crm) 10%, var(--card));
+  --tone-crm-border: color-mix(in oklch, var(--hub-crm) 30%, transparent);
+  --tone-crm-fg: color-mix(in oklch, var(--hub-crm) 82%, black);
+
+  --tone-neutral-border: color-mix(in oklch, var(--border) 80%, transparent);
+  --tone-neutral-icon: color-mix(in oklch, var(--muted-foreground) 85%, transparent);
 
   /* Hub chrome */
-  --hub-tab-track: #f1f5f9;
-  --hub-tab-active: #ffffff;
-  --hub-tab-active-fg: #0f172a;
-  --hub-tab-inactive-fg: #64748b;
-  --hub-tab-inactive-hover: #334155;
-  --hub-fade-from: #f8fafc;
+  --hub-tab-track: var(--muted);
+  --hub-tab-active: var(--card);
+  --hub-tab-active-fg: var(--foreground);
+  --hub-tab-inactive-fg: var(--muted-foreground);
+  --hub-tab-inactive-hover: var(--text-secondary);
+  --hub-fade-from: var(--background);
 
   /* Status — neutral */
-  --status-neutral-bg: #f1f5f9;
-  --status-neutral-fg: #334155;
-  --status-info-bg: #e0f2fe;
-  --status-info-fg: #0369a1;
-  --status-success-bg: #d1fae5;
-  --status-success-fg: #047857;
-  --status-warning-bg: #fef3c7;
-  --status-warning-fg: #b45309;
-  --status-danger-bg: #ffe4e6;
-  --status-danger-fg: #be123c;
-  --status-purple-bg: #f3e8ff;
-  --status-purple-fg: #7e22ce;
-  --status-blue-bg: #dbeafe;
-  --status-blue-fg: #1d4ed8;
-
-  /* Stat / metric accents */
-  --metric-emerald: #22c55e;
-  --metric-blue: #3b82f6;
-  --metric-red: #ef4444;
-  --metric-amber: #f59e0b;
-  --metric-indigo: #6366f1;
-  --metric-purple: #a855f7;
-  --metric-slate: #64748b;
+  --status-neutral-bg: var(--muted);
+  --status-neutral-fg: var(--text-secondary);
+  --status-info-bg: var(--tone-blue-soft);
+  --status-info-fg: var(--tone-blue-fg-strong);
+  --status-success-bg: var(--tone-brand-soft);
+  --status-success-fg: var(--tone-brand-fg-strong);
+  --status-warning-bg: var(--tone-amber-subtle);
+  --status-warning-fg: var(--tone-amber-fg);
+  --status-danger-bg: var(--tone-danger-soft);
+  --status-danger-fg: var(--tone-danger-fg);
+  --status-purple-bg: var(--tone-purple-subtle);
+  --status-purple-fg: var(--tone-purple-fg);
+  --status-blue-bg: var(--tone-blue-soft);
+  --status-blue-fg: var(--tone-blue-fg-strong);
 
   /* Empty / feedback states */
   --state-empty-icon: var(--brand);
-  --state-denied-icon: #f43f5e;
+  --state-denied-icon: var(--metric-red);
 
   /* Spacing */
   --space-xs: 0.25rem;
@@ -87,41 +142,41 @@
   --shadow-xl: 0 20px 25px rgb(0 0 0 / 0.15);
 
   /* Glass surfaces */
-  --glass-panel-bg: rgb(255 255 255 / 0.7);
-  --glass-panel-border: rgb(255 255 255 / 0.2);
-  --glass-panel-shadow: rgb(226 232 240 / 0.4);
-  --glass-card-bg: rgb(255 255 255 / 0.9);
-  --glass-card-border: rgb(226 232 240 / 0.6);
-  --glass-card-shadow: rgb(226 232 240 / 0.5);
+  --glass-panel-bg: color-mix(in oklch, var(--card) 70%, transparent);
+  --glass-panel-border: color-mix(in oklch, var(--card) 20%, transparent);
+  --glass-panel-shadow: color-mix(in oklch, var(--border) 40%, transparent);
+  --glass-card-bg: color-mix(in oklch, var(--card) 90%, transparent);
+  --glass-card-border: color-mix(in oklch, var(--border) 60%, transparent);
+  --glass-card-shadow: color-mix(in oklch, var(--border) 50%, transparent);
 
-  /* App shell */
-  --shell-bg: rgb(248 250 252 / 0.5);
-  --sidebar-border: rgb(226 232 240 / 0.5);
-  --sidebar-divider: rgb(226 232 240 / 0.3);
-  --sidebar-user-panel-bg: rgb(255 255 255 / 0.2);
+  /* App shell — sidebar */
+  --shell-bg: color-mix(in oklch, var(--background) 50%, transparent);
+  --sidebar-border: color-mix(in oklch, var(--border) 50%, transparent);
+  --sidebar-divider: color-mix(in oklch, var(--border) 30%, transparent);
+  --sidebar-user-panel-bg: color-mix(in oklch, var(--card) 20%, transparent);
   --sidebar-brand-mark-bg: var(--brand);
   --sidebar-brand-mark-fg: var(--brand-foreground);
-  --sidebar-brand-gradient-from: #1e293b;
-  --sidebar-brand-gradient-to: #64748b;
-  --sidebar-group-label: #94a3b8;
-  --sidebar-group-label-hover: #334155;
-  --sidebar-nav-active-bg: #ecfdf5;
-  --sidebar-nav-active-fg: #059669;
-  --sidebar-nav-active-border: #d1fae5;
+  --sidebar-brand-gradient-from: var(--foreground);
+  --sidebar-brand-gradient-to: var(--metric-slate);
+  --sidebar-group-label: var(--tone-neutral-icon);
+  --sidebar-group-label-hover: var(--text-secondary);
+  --sidebar-nav-active-bg: var(--tone-brand-subtle);
+  --sidebar-nav-active-fg: var(--tone-brand-fg-strong);
+  --sidebar-nav-active-border: var(--tone-brand-border);
   --sidebar-nav-active-icon: var(--brand);
-  --sidebar-nav-inactive-fg: #64748b;
-  --sidebar-nav-inactive-hover-bg: rgb(255 255 255 / 0.6);
-  --sidebar-nav-inactive-hover-fg: #1e293b;
-  --sidebar-nav-icon: #94a3b8;
-  --sidebar-logout-bg: rgb(255 255 255 / 0.5);
-  --sidebar-logout-border: #fecdd3;
+  --sidebar-nav-inactive-fg: var(--muted-foreground);
+  --sidebar-nav-inactive-hover-bg: color-mix(in oklch, var(--card) 60%, transparent);
+  --sidebar-nav-inactive-hover-fg: var(--foreground);
+  --sidebar-nav-icon: var(--tone-neutral-icon);
+  --sidebar-logout-bg: color-mix(in oklch, var(--card) 50%, transparent);
+  --sidebar-logout-border: var(--tone-danger-border);
 
   --topbar-picker-bg: var(--card);
   --topbar-picker-border: var(--border);
   --topbar-picker-icon: var(--brand);
 
   --breadcrumb-fg: var(--text-subtle);
-  --breadcrumb-separator: #cbd5e1;
+  --breadcrumb-separator: var(--tone-neutral-border);
   --breadcrumb-link-hover: var(--foreground);
   --breadcrumb-current: var(--foreground);
   --breadcrumb-parent: var(--text-secondary);
@@ -136,41 +191,41 @@
   --skip-link-fg: var(--brand-foreground);
 
   /* Dashboard widgets */
-  --widget-sales-bg-to: #ecfdf5;
-  --widget-sales-border: #a7f3d0;
-  --widget-sales-label: #059669;
-  --widget-sales-value: #047857;
-  --widget-sales-shadow: rgb(167 243 208 / 0.5);
+  --widget-sales-bg-to: var(--tone-brand-subtle);
+  --widget-sales-border: var(--tone-brand-border);
+  --widget-sales-label: var(--tone-brand-fg-strong);
+  --widget-sales-value: var(--tone-brand-fg);
+  --widget-sales-shadow: var(--tone-brand-shadow);
 
-  --widget-branch-bg-to: #eff6ff;
-  --widget-branch-border: #bfdbfe;
-  --widget-branch-label: #2563eb;
-  --widget-branch-value: #1d4ed8;
-  --widget-branch-icon-bg: #dbeafe;
-  --widget-branch-icon-fg: #2563eb;
+  --widget-branch-bg-to: var(--tone-blue-subtle);
+  --widget-branch-border: var(--tone-blue-border);
+  --widget-branch-label: var(--tone-blue-fg);
+  --widget-branch-value: var(--tone-blue-fg-strong);
+  --widget-branch-icon-bg: var(--tone-blue-soft);
+  --widget-branch-icon-fg: var(--tone-blue-fg);
 
-  --widget-alerts-bg-to: #fff1f2;
-  --widget-alerts-border: #fecdd3;
-  --widget-alerts-header: #be123c;
-  --widget-alerts-divider: #ffe4e6;
-  --widget-alerts-low-row: rgb(255 241 242 / 0.5);
-  --widget-alerts-expiry-row: rgb(255 251 235 / 0.5);
-  --widget-alerts-low-value: #e11d48;
-  --widget-alerts-low-meta: #fb7185;
-  --widget-alerts-expiry-value: #d97706;
-  --widget-alerts-expiry-meta: #f59e0b;
+  --widget-alerts-bg-to: var(--tone-danger-subtle);
+  --widget-alerts-border: var(--tone-danger-border);
+  --widget-alerts-header: var(--tone-danger-fg);
+  --widget-alerts-divider: var(--tone-danger-soft);
+  --widget-alerts-low-row: color-mix(in oklch, var(--metric-red) 8%, var(--card));
+  --widget-alerts-expiry-row: color-mix(in oklch, var(--metric-amber) 8%, var(--card));
+  --widget-alerts-low-value: color-mix(in oklch, var(--metric-red) 88%, var(--foreground));
+  --widget-alerts-low-meta: color-mix(in oklch, var(--metric-red) 65%, var(--muted-foreground));
+  --widget-alerts-expiry-value: var(--tone-amber-fg);
+  --widget-alerts-expiry-meta: var(--metric-amber);
   --widget-alerts-empty-icon: var(--brand);
   --widget-alerts-empty-text: var(--status-success-fg);
 
-  --widget-products-border: #fde68a;
-  --widget-products-title: #d97706;
+  --widget-products-border: var(--tone-amber-border);
+  --widget-products-title: var(--tone-amber-fg);
 
-  --widget-chart-border: #e9d5ff;
-  --widget-chart-title: #9333ea;
+  --widget-chart-border: var(--tone-purple-border);
+  --widget-chart-title: var(--tone-purple-fg);
 
   --widget-skeleton: var(--muted);
   --widget-error-bg: var(--status-danger-bg);
-  --widget-error-border: #fecdd3;
+  --widget-error-border: var(--tone-danger-border);
   --widget-error-icon: var(--status-danger-fg);
 
   --widget-drag-ring: var(--focus-ring);
@@ -183,7 +238,7 @@
   --dashboard-badge-fg: var(--text-secondary);
   --dashboard-badge-accent: var(--brand);
 
-  --chart-grid: #e2e8f0;
+  --chart-grid: var(--border);
   --chart-axis: var(--text-subtle);
   --chart-tooltip-bg: var(--card);
   --chart-tooltip-border: var(--border);
@@ -197,7 +252,7 @@
   --table-head-bg: var(--surface-inset);
   --table-head-fg: var(--text-subtle);
   --table-row-border: var(--border);
-  --table-row-hover: rgb(241 245 249 / 0.5);
+  --table-row-hover: color-mix(in oklch, var(--muted) 50%, transparent);
   --table-cell-fg: var(--foreground);
   --table-empty-icon: var(--text-subtle);
   --table-summary-bg: var(--surface-inset);
@@ -207,14 +262,14 @@
   --ledger-credit-fg: var(--metric-red);
 
   /* Inventory expiry heatmap */
-  --expiry-expired-bg: #e2e8f0;
-  --expiry-expired-fg: #1e293b;
-  --expiry-critical-bg: #ef4444;
-  --expiry-critical-fg: #ffffff;
-  --expiry-warning-bg: #f97316;
-  --expiry-warning-fg: #ffffff;
+  --expiry-expired-bg: var(--muted);
+  --expiry-expired-fg: var(--foreground);
+  --expiry-critical-bg: var(--metric-red);
+  --expiry-critical-fg: var(--destructive-foreground);
+  --expiry-warning-bg: var(--hub-kitchen);
+  --expiry-warning-fg: var(--destructive-foreground);
   --expiry-notice-bg: var(--metric-amber);
-  --expiry-notice-fg: #451a03;
+  --expiry-notice-fg: color-mix(in oklch, var(--metric-amber) 90%, black);
   --expiry-safe-bg: var(--status-success-bg);
   --expiry-safe-fg: var(--status-success-fg);
   --expiry-panel-header-bg: var(--status-danger-bg);
@@ -226,37 +281,37 @@
 
   /* POS immersive (terminal, settlement) */
   --pos-accent: var(--hub-pos);
-  --pos-accent-soft-bg: #d1fae5;
-  --pos-accent-soft-fg: #047857;
-  --pos-accent-hover-border: #34d399;
-  --pos-price-fg: #d97706;
+  --pos-accent-soft-bg: var(--tone-brand-soft);
+  --pos-accent-soft-fg: var(--tone-brand-fg-strong);
+  --pos-accent-hover-border: color-mix(in oklch, var(--brand) 55%, white);
+  --pos-price-fg: var(--tone-amber-fg);
   --pos-panel-bg: var(--card);
   --pos-panel-border: var(--border);
   --pos-panel-header-bg: var(--surface-inset);
   --pos-panel-muted-bg: var(--surface-inset);
-  --pos-summary-bg: #1e293b;
-  --pos-summary-fg: #f8fafc;
-  --pos-summary-muted: #94a3b8;
-  --pos-summary-divider: #475569;
-  --pos-summary-total: #fbbf24;
-  --pos-summary-discount: #f9a8d4;
-  --pos-summary-reward: #93c5fd;
-  --pos-crm-bg: #eff6ff;
-  --pos-crm-border: #bfdbfe;
-  --pos-crm-fg: #1d4ed8;
-  --pos-crm-muted: #2563eb;
-  --pos-promo-bg: #fdf2f8;
-  --pos-promo-border: #fbcfe8;
-  --pos-promo-fg: #be185d;
+  --pos-summary-bg: var(--secondary);
+  --pos-summary-fg: var(--secondary-foreground);
+  --pos-summary-muted: var(--tone-neutral-icon);
+  --pos-summary-divider: color-mix(in oklch, var(--secondary-foreground) 35%, transparent);
+  --pos-summary-total: var(--metric-amber);
+  --pos-summary-discount: color-mix(in oklch, var(--hub-crm) 55%, white);
+  --pos-summary-reward: color-mix(in oklch, var(--metric-blue) 65%, white);
+  --pos-crm-bg: var(--tone-blue-subtle);
+  --pos-crm-border: var(--tone-blue-border);
+  --pos-crm-fg: var(--tone-blue-fg-strong);
+  --pos-crm-muted: var(--tone-blue-fg);
+  --pos-promo-bg: var(--tone-crm-subtle);
+  --pos-promo-border: var(--tone-crm-border);
+  --pos-promo-fg: var(--tone-crm-fg);
   --pos-settlement-icon: var(--brand);
-  --pos-settlement-highlight: #3b82f6;
-  --pos-expense-icon: #d97706;
+  --pos-settlement-highlight: var(--metric-blue);
+  --pos-expense-icon: var(--tone-amber-fg);
   --pos-input-bg: var(--card);
   --pos-input-border: var(--border);
   --pos-numpad-bg: var(--surface-inset);
   --pos-numpad-display-bg: var(--background);
   --pos-numpad-key-bg: var(--card);
-  --pos-numpad-key-hover: rgb(217 119 6 / 0.08);
+  --pos-numpad-key-hover: color-mix(in oklch, var(--metric-amber) 8%, transparent);
   --pos-numpad-delete: var(--status-danger-fg);
 
   /* KDS immersive */
@@ -267,8 +322,8 @@
   --kds-on-time-header: var(--brand);
   --kds-warning-border: var(--metric-amber);
   --kds-warning-header: var(--metric-amber);
-  --kds-late-border: #dc2626;
-  --kds-late-header: #dc2626;
+  --kds-late-border: var(--metric-red);
+  --kds-late-header: var(--metric-red);
   --kds-connected-bg: var(--status-success-bg);
   --kds-connected-fg: var(--status-success-fg);
   --kds-connected-dot: var(--brand);
@@ -284,118 +339,42 @@
 }
 
 .dark {
-  --surface-elevated: #0f172a;
-  --surface-overlay: rgb(15 23 42 / 0.9);
-  --surface-inset: #1e293b;
+  /* Derived tones auto-adapt via var(--card) / var(--foreground); only override essentials */
+  --surface-overlay: color-mix(in oklch, var(--card) 90%, transparent);
 
-  --text-secondary: #cbd5e1;
-  --text-subtle: #94a3b8;
+  --tone-brand-fg: color-mix(in oklch, var(--brand) 65%, var(--foreground));
+  --tone-brand-fg-strong: color-mix(in oklch, var(--brand) 55%, var(--foreground));
+  --tone-blue-fg: color-mix(in oklch, var(--metric-blue) 70%, var(--foreground));
+  --tone-blue-fg-strong: color-mix(in oklch, var(--metric-blue) 60%, var(--foreground));
+  --tone-danger-fg: color-mix(in oklch, var(--metric-red) 70%, var(--foreground));
+  --tone-amber-fg: color-mix(in oklch, var(--metric-amber) 70%, var(--foreground));
+  --tone-purple-fg: color-mix(in oklch, var(--metric-purple) 70%, var(--foreground));
+  --tone-crm-fg: color-mix(in oklch, var(--hub-crm) 65%, var(--foreground));
 
-  --hub-tab-track: rgb(30 41 59 / 0.5);
-  --hub-tab-active: #334155;
-  --hub-tab-active-fg: #ffffff;
-  --hub-tab-inactive-fg: #94a3b8;
-  --hub-tab-inactive-hover: #e2e8f0;
-  --hub-fade-from: #020617;
+  --hub-tab-track: color-mix(in oklch, var(--muted) 50%, transparent);
 
-  --status-neutral-bg: #1e293b;
-  --status-neutral-fg: #cbd5e1;
-  --status-info-bg: rgb(12 74 110 / 0.4);
-  --status-info-fg: #7dd3fc;
-  --status-success-bg: rgb(6 78 59 / 0.4);
-  --status-success-fg: #6ee7b7;
-  --status-warning-bg: rgb(120 53 15 / 0.4);
-  --status-warning-fg: #fcd34d;
-  --status-danger-bg: rgb(136 19 55 / 0.4);
-  --status-danger-fg: #fda4af;
-  --status-purple-bg: rgb(88 28 135 / 0.4);
-  --status-purple-fg: #d8b4fe;
-  --status-blue-bg: rgb(30 58 138 / 0.4);
-  --status-blue-fg: #93c5fd;
-
-  --glass-panel-bg: rgb(15 23 42 / 0.7);
-  --glass-panel-border: rgb(30 41 59 / 0.5);
   --glass-panel-shadow: transparent;
-  --glass-card-bg: rgb(30 41 59 / 0.9);
-  --glass-card-border: rgb(51 65 85 / 0.6);
   --glass-card-shadow: transparent;
 
-  --shell-bg: #020617;
-  --sidebar-border: rgb(30 41 59 / 0.5);
-  --sidebar-divider: rgb(30 41 59 / 0.5);
-  --sidebar-user-panel-bg: rgb(15 23 42 / 0.2);
-  --sidebar-brand-gradient-from: #f1f5f9;
-  --sidebar-brand-gradient-to: #94a3b8;
-  --sidebar-group-label: #64748b;
-  --sidebar-group-label-hover: #cbd5e1;
-  --sidebar-nav-active-bg: rgb(34 197 94 / 0.1);
-  --sidebar-nav-active-fg: #6ee7b7;
-  --sidebar-nav-active-border: rgb(34 197 94 / 0.2);
-  --sidebar-nav-active-icon: var(--brand);
-  --sidebar-nav-inactive-fg: #94a3b8;
-  --sidebar-nav-inactive-hover-bg: rgb(30 41 59 / 0.6);
-  --sidebar-nav-inactive-hover-fg: #e2e8f0;
-  --sidebar-nav-icon: #64748b;
-  --sidebar-logout-bg: rgb(15 23 42 / 0.5);
-  --sidebar-logout-border: rgb(127 29 29 / 0.5);
+  --shell-bg: var(--background);
 
-  --breadcrumb-separator: #475569;
+  --sidebar-brand-gradient-from: var(--foreground);
+  --sidebar-brand-gradient-to: var(--muted-foreground);
 
-  --widget-sales-bg-to: rgb(6 78 59 / 0.2);
-  --widget-sales-border: rgb(34 197 94 / 0.3);
-  --widget-sales-label: #6ee7b7;
-  --widget-sales-value: #a7f3d0;
   --widget-sales-shadow: transparent;
 
-  --widget-branch-bg-to: rgb(30 58 138 / 0.2);
-  --widget-branch-border: rgb(59 130 246 / 0.3);
-  --widget-branch-label: #93c5fd;
-  --widget-branch-value: #bfdbfe;
-  --widget-branch-icon-bg: rgb(30 58 138 / 0.4);
-  --widget-branch-icon-fg: #93c5fd;
+  --widget-alerts-low-value: color-mix(in oklch, var(--metric-red) 75%, var(--foreground));
+  --widget-alerts-low-meta: color-mix(in oklch, var(--metric-red) 55%, var(--muted-foreground));
+  --widget-alerts-expiry-meta: color-mix(in oklch, var(--metric-amber) 75%, var(--foreground));
 
-  --widget-alerts-bg-to: rgb(136 19 55 / 0.15);
-  --widget-alerts-border: rgb(244 63 94 / 0.3);
-  --widget-alerts-header: #fda4af;
-  --widget-alerts-divider: rgb(136 19 55 / 0.3);
-  --widget-alerts-low-row: rgb(136 19 55 / 0.1);
-  --widget-alerts-expiry-row: rgb(120 53 15 / 0.15);
-  --widget-alerts-low-value: #fda4af;
-  --widget-alerts-low-meta: #fb7185;
-  --widget-alerts-expiry-value: #fcd34d;
-  --widget-alerts-expiry-meta: #fbbf24;
+  --widget-error-border: color-mix(in oklch, var(--metric-red) 35%, transparent);
 
-  --widget-products-border: rgb(217 119 6 / 0.3);
-  --widget-products-title: #fbbf24;
+  --chart-grid: color-mix(in oklch, var(--border) 85%, var(--background));
 
-  --widget-chart-border: rgb(147 51 234 / 0.3);
-  --widget-chart-title: #c084fc;
+  --expiry-notice-fg: color-mix(in oklch, var(--metric-amber) 25%, var(--foreground));
 
-  --widget-error-border: rgb(127 29 29 / 0.5);
-
-  --chart-grid: #1e293b;
-  --chart-axis: #94a3b8;
-
-  --table-row-hover: rgb(30 41 59 / 0.5);
-  --expiry-expired-bg: #334155;
-  --expiry-expired-fg: #e2e8f0;
-  --expiry-notice-fg: #fef3c7;
-
-  --pos-accent-soft-bg: rgb(6 78 59 / 0.35);
-  --pos-accent-soft-fg: #6ee7b7;
-  --pos-accent-hover-border: #34d399;
-  --pos-price-fg: #fbbf24;
-  --pos-summary-bg: #020617;
-  --pos-summary-fg: #f8fafc;
-  --pos-summary-muted: #64748b;
-  --pos-summary-divider: #334155;
-  --pos-summary-total: #fbbf24;
-  --pos-crm-bg: rgb(30 58 138 / 0.25);
-  --pos-crm-border: rgb(59 130 246 / 0.35);
-  --pos-crm-fg: #93c5fd;
-  --pos-crm-muted: #60a5fa;
-  --pos-promo-bg: rgb(136 19 55 / 0.2);
-  --pos-promo-border: rgb(244 63 94 / 0.35);
-  --pos-promo-fg: #fda4af;
-  --pos-numpad-key-hover: rgb(217 119 6 / 0.15);
+  --pos-accent-hover-border: color-mix(in oklch, var(--brand) 45%, var(--foreground));
+  --pos-price-fg: color-mix(in oklch, var(--metric-amber) 75%, var(--foreground));
+  --pos-summary-total: color-mix(in oklch, var(--metric-amber) 75%, var(--foreground));
+  --pos-numpad-key-hover: color-mix(in oklch, var(--metric-amber) 15%, transparent);
 }

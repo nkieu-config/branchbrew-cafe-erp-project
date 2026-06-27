@@ -92,5 +92,5 @@ export function authHeroStatValueClassName(className?: string) {
 }
 
 export function authHeroStatLabelClassName(className?: string) {
-  return cn("text-xs uppercase tracking-wider text-white/60", className);
+  return cn("text-xs uppercase tracking-wider text-[var(--text-subtle)]", className);
 }

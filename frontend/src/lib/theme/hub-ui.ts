@@ -9,22 +9,23 @@ import { text } from "./surface";
 
 /** Primary CTA styled with the hub's accent color from tokens.css */
 export function hubCtaClassName(hubId: HubId, className?: string) {
-  const hubVar: Record<HubId, string> = {
-    inventory: "--hub-inventory",
-    procurement: "--hub-procurement",
-    hr: "--hub-hr",
-    products: "--hub-products",
-    kitchen: "--hub-kitchen",
-    crm: "--hub-crm",
-    finance: "--hub-finance",
-    assets: "--hub-assets",
-    pos: "--hub-pos",
-    settings: "--hub-settings",
-    organization: "--hub-organization",
+  const hubVar: Record<HubId, { bg: string; fg: string }> = {
+    inventory: { bg: "--hub-inventory", fg: "--hub-inventory-fg" },
+    procurement: { bg: "--hub-procurement", fg: "--hub-procurement-fg" },
+    hr: { bg: "--hub-hr", fg: "--hub-hr-fg" },
+    products: { bg: "--hub-products", fg: "--hub-products-fg" },
+    kitchen: { bg: "--hub-kitchen", fg: "--hub-kitchen-fg" },
+    crm: { bg: "--hub-crm", fg: "--hub-crm-fg" },
+    finance: { bg: "--hub-finance", fg: "--hub-finance-fg" },
+    assets: { bg: "--hub-assets", fg: "--hub-assets-fg" },
+    pos: { bg: "--hub-pos", fg: "--hub-pos-fg" },
+    settings: { bg: "--hub-settings", fg: "--hub-settings-fg" },
+    organization: { bg: "--hub-organization", fg: "--hub-organization-fg" },
   };
+  const { bg, fg } = hubVar[hubId];
   return cn(
-    "text-white hover:opacity-90 shadow-sm",
-    `bg-[var(${hubVar[hubId]})]`,
+    "hover:opacity-90 shadow-sm",
+    `bg-[var(${bg})] text-[var(${fg})]`,
     className,
   );
 }
@@ -311,16 +312,19 @@ export function ganttTrackClassName(className?: string) {
 export type ShiftBarStatus = "scheduled" | "COMPLETED" | "ABSENT";
 
 const shiftBarClass: Record<ShiftBarStatus, string> = {
-  scheduled: "bg-[var(--metric-indigo)] border-[var(--metric-indigo)]",
-  COMPLETED: "bg-[var(--metric-emerald)] border-[var(--metric-emerald)]",
-  ABSENT: "bg-[var(--metric-red)] border-[var(--metric-red)]",
+  scheduled:
+    "bg-[var(--metric-indigo)] border-[var(--metric-indigo)] text-[var(--on-metric-indigo-fg)]",
+  COMPLETED:
+    "bg-[var(--metric-emerald)] border-[var(--metric-emerald)] text-[var(--on-metric-emerald-fg)]",
+  ABSENT:
+    "bg-[var(--metric-red)] border-[var(--metric-red)] text-[var(--on-metric-red-fg)]",
 };
 
 export function shiftBarClassName(status: string, className?: string) {
   const key: ShiftBarStatus =
     status === "COMPLETED" ? "COMPLETED" : status === "ABSENT" ? "ABSENT" : "scheduled";
   return cn(
-    "absolute top-1 bottom-1 rounded-md border text-white text-[10px] font-black",
+    "absolute top-1 bottom-1 rounded-md border text-[10px] font-black",
     "flex items-center justify-center overflow-hidden shadow-sm",
     "transition-transform motion-reduce:transition-none hover:scale-[1.02] motion-reduce:hover:scale-100 cursor-pointer z-20",
     shiftBarClass[key],

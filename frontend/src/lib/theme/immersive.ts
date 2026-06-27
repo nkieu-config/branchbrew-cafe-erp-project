@@ -101,7 +101,7 @@ export function posPrimaryActionClassName(className?: string) {
 
 export function posPayActionClassName(className?: string) {
   return cn(
-    "bg-[var(--metric-amber)] hover:opacity-90 text-white shadow-lg transition-colors",
+    "bg-[var(--metric-amber)] text-[var(--on-metric-amber-fg)] hover:opacity-90 shadow-lg transition-colors",
     className,
   );
 }
@@ -317,7 +317,7 @@ export function kdsTicketClassName(urgency: KdsTicketUrgency, className?: string
 
 export function kdsTicketHeaderClassName(urgency: KdsTicketUrgency, className?: string) {
   return cn(
-    "p-5 flex justify-between items-center text-white",
+    "p-5 flex justify-between items-center text-[var(--on-kds-header-fg)]",
     kdsTicketHeader[urgency],
     className,
   );
@@ -349,7 +349,7 @@ export function kdsItemNoteClassName(className?: string) {
 
 export function kdsStartButtonClassName(className?: string) {
   return cn(
-    "flex-1 text-white font-black text-2xl h-24 shadow-lg",
+    "flex-1 text-[var(--on-kds-start-fg)] font-black text-2xl h-24 shadow-lg",
     "bg-[var(--kds-start-btn)] hover:opacity-90",
     "active:scale-95 motion-reduce:active:scale-100 transition-transform motion-reduce:transition-none",
     className,
@@ -358,7 +358,7 @@ export function kdsStartButtonClassName(className?: string) {
 
 export function kdsDoneButtonClassName(className?: string) {
   return cn(
-    "flex-1 text-white font-black text-2xl h-24 shadow-lg",
+    "flex-1 text-[var(--on-kds-done-fg)] font-black text-2xl h-24 shadow-lg",
     "bg-[var(--kds-done-btn)] hover:opacity-90",
     "active:scale-95 motion-reduce:active:scale-100 transition-transform motion-reduce:transition-none",
     className,
