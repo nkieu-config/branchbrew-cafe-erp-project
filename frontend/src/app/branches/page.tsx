@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useBranches, useCreateBranch, useUpdateBranch } from "@/hooks/domains/useGeneralQueries";
 import { AnimatedPage } from "@/components/animated-page";
-import { PageHeader } from "@/components/shared/page-header";
+import { HubPageHeader } from "@/components/shared/hub-card";
 import { Building2, Plus, MapPin, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,8 @@ export default function BranchesPage() {
     location: "",
     isCentralKitchen: false
   });
+
+  const branchList = (branches as Branch[] | undefined) || [];
 
   const handleEdit = (branch: Branch) => {
     setEditingBranch(branch);
@@ -65,16 +67,14 @@ export default function BranchesPage() {
     }
   };
 
-
-
   return (
     <AnimatedPage className="space-y-6 max-w-5xl mx-auto w-full">
-      <PageHeader 
+      <HubPageHeader
         title="Branch Management"
         icon={Building2}
         description="Manage all franchise locations and central kitchens."
         actions={
-          <Button 
+          <Button
             className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-2"
             onClick={handleAddNew}
           >
@@ -88,36 +88,47 @@ export default function BranchesPage() {
         <div className="flex h-64 items-center justify-center">
           <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
         </div>
+      ) : branchList.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center">
+          <Building2 className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
+          <p className="font-semibold text-slate-800 dark:text-slate-100">No branches yet</p>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-md mx-auto">
+            Create your first branch or central kitchen to start assigning staff and inventory.
+          </p>
+          <Button className="mt-6 bg-emerald-600 hover:bg-emerald-700" onClick={handleAddNew}>
+            <Plus className="w-4 h-4 mr-2" /> Add first branch
+          </Button>
+        </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {(branches as Branch[] || []).map((branch) => (
-          <div key={branch.id} className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col hover:border-emerald-500/50 transition-colors">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                  {branch.name}
-                </h3>
-                <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
-                  <MapPin className="w-3.5 h-3.5" /> {branch.location || "No location specified"}
-                </p>
+          {branchList.map((branch) => (
+            <div key={branch.id} className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col hover:border-emerald-500/50 transition-colors">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                    {branch.name}
+                  </h3>
+                  <p className="text-sm text-slate-500 flex items-center gap-1 mt-1">
+                    <MapPin className="w-3.5 h-3.5" /> {branch.location || "No location specified"}
+                  </p>
+                </div>
+                {branch.isCentralKitchen ? (
+                  <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-0">HQ / Kitchen</Badge>
+                ) : (
+                  <Badge variant="outline" className="text-slate-600 dark:text-slate-300">Franchise</Badge>
+                )}
               </div>
-              {branch.isCentralKitchen ? (
-                <Badge className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 border-0">HQ / Kitchen</Badge>
-              ) : (
-                <Badge variant="outline" className="text-slate-600 dark:text-slate-300">Franchise</Badge>
-              )}
-            </div>
-            
-            <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-              <div className="text-sm text-slate-500">
-                ID: #{branch.id}
+              
+              <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                <div className="text-sm text-slate-500">
+                  ID: #{branch.id}
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => handleEdit(branch)} className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                  Edit Details
+                </Button>
               </div>
-              <Button variant="ghost" size="sm" onClick={() => handleEdit(branch)} className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                Edit Details
-              </Button>
             </div>
-          </div>
-        ))}
+          ))}
         </div>
       )}
 

@@ -14,6 +14,7 @@ import { filterActive, updateLineItem } from "@/lib/form";
 import type { Ingredient, StockLineItem } from "@/types/api";
 import { getErrorMessage } from "@/lib/errors";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
+import { HubCard } from "@/components/shared/hub-card";
 
 export default function StockInPage() {
   const { activeBranchId } = useAuth();
@@ -77,15 +78,12 @@ export default function StockInPage() {
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 max-w-4xl">
-      <div className="mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-        <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-          <ArrowDownToLine className="w-5 h-5 text-blue-600" />
-          Good Receipt Note (GRN)
-        </h2>
-        <p className="text-sm text-slate-500">Record new raw ingredients received from suppliers or central kitchen.</p>
-      </div>
-
+    <HubCard
+      title="Good Receipt Note (GRN)"
+      icon={ArrowDownToLine}
+      description="Record new raw ingredients received from suppliers or central kitchen."
+      className="max-w-4xl"
+    >
       <div className="space-y-4">
         {items.map((item, idx) => (
           <div key={idx} className="flex items-end gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
@@ -141,6 +139,6 @@ export default function StockInPage() {
           {stockInMutation.isPending ? "Saving..." : "Confirm & Receive Stock"}
         </Button>
       </div>
-    </div>
+    </HubCard>
   );
 }

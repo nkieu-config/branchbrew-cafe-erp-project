@@ -2,12 +2,11 @@
 
 import { useState } from "react"
 import { seedAccounts } from "@/lib/api"
-import { Table, Tag, Button, Select, Spin, Popconfirm } from "antd"
-import { FileText, TrendingUp, Building2, Play } from "lucide-react"
+import { Table, Tag, Button, Spin, Popconfirm } from "antd"
+import { FileText, TrendingUp, Play } from "lucide-react"
 import { toast } from "sonner"
 import { HubPageHeader } from "@/components/shared/hub-card"
-import { Branch } from "@/types/api"
-import type { JournalEntry } from "@/types/api"
+import type { JournalEntry, Branch } from "@/types/api"
 import {
   LineChart,
   Line,
@@ -19,17 +18,23 @@ import {
   Legend
 } from "recharts"
 
+import { useAuth } from "@/context/AuthContext"
 import { useBranches } from '@/hooks/domains/useGeneralQueries';
 import { useLedger, useJournalEntries } from '@/hooks/domains/useAccountingQueries';
 
 export default function GeneralLedgerPage() {
-  const [selectedBranch, setSelectedBranch] = useState<string>("ALL")
+  const { activeBranchId } = useAuth()
+  const selectedBranch = activeBranchId ? String(activeBranchId) : "ALL"
   const [isSeeding, setIsSeeding] = useState(false)
 
   const { data: branches = [] } = useBranches()
   const { data: chartData = [], isLoading: isChartLoading } = useLedger(selectedBranch)
   const { data: entries = [], isLoading: isEntriesLoading, refetch: refetchEntries } = useJournalEntries(selectedBranch)
   const loading = isChartLoading || isEntriesLoading;
+
+  const branchLabel = activeBranchId
+    ? (branches as Branch[]).find((b) => b.id === activeBranchId)?.name ?? `Branch #${activeBranchId}`
+    : "All Branches (HQ)"
 
   const handleSeed = async () => {
     try {
@@ -132,43 +137,24 @@ export default function GeneralLedgerPage() {
       <HubPageHeader
         title="Financial Dashboard & Ledger"
         icon={TrendingUp}
-        description="Track profit and loss trends and drill down into the general ledger."
+        description={`Profit & loss trends and journal entries for ${branchLabel}. Use the top bar branch selector to change scope.`}
         actions={
-          <div className="flex items-end gap-3">
-            <div className="flex flex-col gap-1 text-left min-w-[200px]">
-              <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-1">
-                <Building2 className="w-3 h-3" /> Cost Center Filter
-              </label>
-              <Select
-                allowClear
-                placeholder="Select Branch"
-                className="w-full h-10"
-                value={selectedBranch || undefined}
-                onChange={(val) => setSelectedBranch(val || "ALL")}
-                options={[
-                  { label: "All Branches", value: "ALL" },
-                  ...branches.map((b: Branch) => ({ label: b.name, value: b.id.toString() }))
-                ]}
-              />
-            </div>
-            {entries.length === 0 && !loading && (
-              <Popconfirm
-                title="Initialize Chart of Accounts?"
-                description="This will seed standard accounting codes."
-                onConfirm={handleSeed}
-                okText="Seed"
-                cancelText="Cancel"
-              >
-                <Button type="primary" loading={isSeeding} icon={<Play className="w-4 h-4" />}>
-                  Seed Accounts
-                </Button>
-              </Popconfirm>
-            )}
-          </div>
+          entries.length === 0 && !loading ? (
+            <Popconfirm
+              title="Initialize Chart of Accounts?"
+              description="This will seed standard accounting codes."
+              onConfirm={handleSeed}
+              okText="Seed"
+              cancelText="Cancel"
+            >
+              <Button type="primary" loading={isSeeding} icon={<Play className="w-4 h-4" />}>
+                Seed Accounts
+              </Button>
+            </Popconfirm>
+          ) : undefined
         }
       />
 
-      {/* Financial Chart Section */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 mb-6">
         <h2 className="text-lg font-black text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
           Profit & Loss Trend
@@ -223,7 +209,6 @@ export default function GeneralLedgerPage() {
         </div>
       </div>
 
-      {/* General Ledger Table */}
       <div className="pt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
         <h2 className="font-semibold text-lg text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
           <FileText className="w-5 h-5 text-indigo-500" /> General Ledger (Journal Entries)
@@ -236,6 +221,7 @@ export default function GeneralLedgerPage() {
           expandable={{ expandedRowRender }}
           pagination={{ pageSize: 20 }}
           className="border border-slate-200 rounded-xl overflow-hidden"
+          locale={{ emptyText: "No journal entries found." }}
         />
       </div>
 

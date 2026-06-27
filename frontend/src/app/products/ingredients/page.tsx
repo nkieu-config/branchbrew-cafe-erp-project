@@ -3,12 +3,11 @@
 import { useState } from "react";
 import { useIngredients } from "@/hooks/domains/useProductQueries";
 import { Button } from "@/components/ui/button";
-import { Plus, Edit } from "lucide-react";
+import { Plus, Edit, FlaskConical } from "lucide-react";
 import { IngredientFormModal } from "@/components/products/IngredientFormModal";
-import { Badge } from "@/components/ui/badge";
 import { Tag, Button as AntButton } from "antd";
 import { DataTable } from "@/components/shared/data-table";
-
+import { HubCard } from "@/components/shared/hub-card";
 import type { Ingredient } from "@/types/api";
 import { formatBaht } from "@/lib/money";
 
@@ -28,25 +27,21 @@ export default function IngredientsPage() {
     setIsModalOpen(true);
   };
 
-
-
-
-
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">Raw Ingredients Catalog</h2>
-          <p className="text-sm text-slate-500">Manage all raw materials used in your recipes.</p>
-        </div>
-        <Button onClick={handleAddNew} className="bg-emerald-600 hover:bg-emerald-700">
-          <Plus className="w-4 h-4 mr-2" /> Add Ingredient
-        </Button>
-      </div>
-
-      <div className="mt-6">
+    <>
+      <HubCard
+        title="Raw Ingredients Catalog"
+        icon={FlaskConical}
+        description="Manage all raw materials used in your recipes."
+        actions={
+          <Button onClick={handleAddNew} className="bg-emerald-600 hover:bg-emerald-700">
+            <Plus className="w-4 h-4 mr-2" /> Add Ingredient
+          </Button>
+        }
+      >
         <DataTable 
           loading={isLoading}
+          emptyDescription="No ingredients yet. Add raw materials to build recipes and BOMs."
           columns={[
             {
               title: "ID",
@@ -97,15 +92,15 @@ export default function IngredientsPage() {
           dataSource={ingredients || []}
           rowKey="id"
           pagination={{ pageSize: 10 }}
-          className="custom-antd-table border border-slate-200 dark:border-slate-800 rounded-lg"
+          hideBorders
         />
-      </div>
+      </HubCard>
 
       <IngredientFormModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         ingredient={selectedIngredient ?? undefined} 
       />
-    </div>
+    </>
   );
 }

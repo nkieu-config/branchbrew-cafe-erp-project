@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useHrUsers, useCreateUser, useUpdateUser } from "@/hooks/domains/useHrQueries";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { AnimatedPage } from "@/components/animated-page";
-import { PageHeader } from "@/components/shared/page-header";
+import { HubPageHeader } from "@/components/shared/hub-card";
+import { AccessDeniedState } from "@/components/shared/access-denied-state";
 import { ShieldCheck, Plus, User as UserIcon, Mail, Shield, Building } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -92,9 +93,9 @@ export default function UsersPage() {
 
 
   return (
-    <RoleGuard allowedRoles={['SUPER_ADMIN']} fallback={<div className="p-8 text-slate-500">Access denied. Super Admin only.</div>}>
+    <RoleGuard allowedRoles={['SUPER_ADMIN']} fallback={<AccessDeniedState description="Super Admin access is required to manage users and roles." />}>
     <AnimatedPage className="space-y-6 max-w-6xl mx-auto w-full">
-      <PageHeader 
+      <HubPageHeader
         title="Users & Roles"
         icon={ShieldCheck}
         description="Manage system access, passwords, and branch assignments."
@@ -109,7 +110,7 @@ export default function UsersPage() {
         }
       />
 
-      <DataTable 
+      <DataTable
         loading={usersLoading || branchesLoading}
           columns={[
             {
@@ -182,7 +183,7 @@ export default function UsersPage() {
           dataSource={users || []}
           rowKey="id"
           pagination={{ pageSize: 10 }}
-          className="custom-antd-table"
+          emptyDescription="No users found."
       />
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

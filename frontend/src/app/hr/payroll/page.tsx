@@ -6,6 +6,7 @@ import { Table, Tag, Button as AntButton, Popconfirm, Typography } from "antd"
 import { Users, FileText, CheckCircle, Receipt } from "lucide-react"
 import { getErrorMessage } from "@/lib/errors";
 import { toast } from "sonner";
+import { AccessDeniedState } from "@/components/shared/access-denied-state";
 import { HubCard } from "@/components/shared/hub-card";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { DataTable } from "@/components/shared/data-table"
@@ -46,7 +47,7 @@ export default function PayrollPage() {
   };
 
   if (role !== 'SUPER_ADMIN' && role !== 'MANAGER') {
-    return <div className="text-center py-12 text-slate-500">Access Denied</div>
+    return <AccessDeniedState description="Manager or Super Admin access is required to view payroll." showBackLink={false} />;
   }
 
   if (!activeBranchId) {

@@ -5,6 +5,7 @@ import { SlidersHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "@/components/shared/data-table";
 import { Popconfirm } from "antd";
+import { HubCard } from "@/components/shared/hub-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -219,31 +220,26 @@ export default function ModifiersPage() {
 
   return (
     <>
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <SlidersHorizontal className="w-5 h-5 text-amber-600" />
-              Modifier Groups
-            </h2>
-            <p className="text-sm text-slate-500">
-              Configure POS modifiers, price adjustments, and ingredient swaps (e.g. oat milk).
-            </p>
-          </div>
+      <HubCard
+        title="Modifier Groups"
+        icon={SlidersHorizontal}
+        description="Configure POS modifiers, price adjustments, and ingredient swaps (e.g. oat milk)."
+        actions={
           <Button onClick={openCreateGroup} className="bg-amber-600 hover:bg-amber-700">
             <Plus className="w-4 h-4 mr-2" /> New Group
           </Button>
-        </div>
+        }
+      >
 
       {isLoading ? (
         <p className="text-sm text-slate-500">Loading modifiers…</p>
       ) : groups.length === 0 ? (
-        <p className="text-sm text-slate-500">No modifier groups yet.</p>
+        <p className="text-sm text-slate-500 py-8 text-center">No modifier groups yet. Create one to customize POS orders.</p>
       ) : (
         groups.map((group: ModifierGroup) => (
           <div
             key={group.id}
-            className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4"
+            className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/30 p-5 space-y-4 mb-4 last:mb-0"
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -294,6 +290,8 @@ export default function ModifiersPage() {
               rowKey="id"
               dataSource={group.options}
               pagination={false}
+              hideBorders
+              emptyDescription="No options in this group yet."
               columns={[
                 { title: "Name", dataIndex: "name", key: "name" },
                 {
@@ -349,7 +347,7 @@ export default function ModifiersPage() {
           </div>
         ))
       )}
-      </div>
+      </HubCard>
 
       <Dialog open={groupDialogOpen} onOpenChange={setGroupDialogOpen}>
         <DialogContent>

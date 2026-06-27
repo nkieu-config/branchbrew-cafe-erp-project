@@ -5,10 +5,9 @@ import { useProducts } from "@/hooks/domains/useProductQueries";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, Coffee } from "lucide-react";
 import { ProductFormModal } from "@/components/products/ProductFormModal";
-import { Badge } from "@/components/ui/badge";
 import { Tag, Button as AntButton } from "antd";
 import { DataTable } from "@/components/shared/data-table";
-
+import { HubCard } from "@/components/shared/hub-card";
 import { formatBaht } from "@/lib/money";
 import { calcProductFoodCost, foodCostStatus } from "@/lib/food-cost";
 import type { Product } from "@/types/api";
@@ -29,28 +28,21 @@ export default function ProductsPage() {
     setIsModalOpen(true);
   };
 
-
-
-
-
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-            <Coffee className="w-5 h-5 text-amber-600" />
-            Menu Items
-          </h2>
-          <p className="text-sm text-slate-500">Manage products that appear on the POS terminal.</p>
-        </div>
-        <Button onClick={handleAddNew} className="bg-amber-600 hover:bg-amber-700 text-white">
-          <Plus className="w-4 h-4 mr-2" /> Add Menu Item
-        </Button>
-      </div>
-
-      <div className="mt-6">
+    <>
+      <HubCard
+        title="Menu Items"
+        icon={Coffee}
+        description="Manage products that appear on the POS terminal."
+        actions={
+          <Button onClick={handleAddNew} className="bg-amber-600 hover:bg-amber-700 text-white">
+            <Plus className="w-4 h-4 mr-2" /> Add Menu Item
+          </Button>
+        }
+      >
         <DataTable 
           loading={isLoading}
+          emptyDescription="No menu items yet. Add your first product to enable POS sales."
           columns={[
             {
               title: "ID",
@@ -132,15 +124,15 @@ export default function ProductsPage() {
           dataSource={products || []}
           rowKey="id"
           pagination={{ pageSize: 10 }}
-          className="custom-antd-table border border-slate-200 dark:border-slate-800 rounded-lg"
+          hideBorders
         />
-      </div>
+      </HubCard>
 
       <ProductFormModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         product={selectedProduct ?? undefined} 
       />
-    </div>
+    </>
   );
 }

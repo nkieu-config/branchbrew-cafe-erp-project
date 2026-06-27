@@ -1,15 +1,28 @@
 import React from "react";
 import { Table, Skeleton } from "antd";
 import type { TableProps } from "antd";
+import { Inbox } from "lucide-react";
 
 interface DataTableProps<RecordType extends object = object> extends TableProps<RecordType> {
   containerClassName?: string;
   hideBorders?: boolean;
+  emptyDescription?: string;
+}
+
+function TableEmptyState({ description }: { description: string }) {
+  return (
+    <div className="py-12 text-center">
+      <Inbox className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+      <p className="text-sm text-slate-500 dark:text-slate-400">{description}</p>
+    </div>
+  );
 }
 
 export function DataTable<RecordType extends object = object>({
   containerClassName = "",
   hideBorders = false,
+  emptyDescription = "No records found.",
+  locale,
   ...props
 }: DataTableProps<RecordType>) {
   if (props.loading && (!props.dataSource || (Array.isArray(props.dataSource) && props.dataSource.length === 0))) {
@@ -25,7 +38,6 @@ export function DataTable<RecordType extends object = object>({
       className={`
         bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 
         overflow-hidden w-full
-        /* Custom Table Styling Overrides */
         [&_.ant-table]:bg-transparent 
         [&_.ant-table-thead>tr>th]:bg-slate-50 [&_.ant-table-thead>tr>th]:dark:bg-slate-800/50 
         [&_.ant-table-thead>tr>th]:text-slate-600 [&_.ant-table-thead>tr>th]:dark:text-slate-300 
@@ -46,6 +58,10 @@ export function DataTable<RecordType extends object = object>({
           ...props.pagination,
         }}
         scroll={{ x: 'max-content', ...props.scroll }}
+        locale={{
+          emptyText: <TableEmptyState description={emptyDescription} />,
+          ...locale,
+        }}
         {...props}
       />
     </div>

@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
+import { HubPageHeader } from "@/components/shared/hub-card";
 import { DataTable } from "@/components/shared/data-table"
 import { format, differenceInDays } from "date-fns";
 import type { Dayjs } from "dayjs";
@@ -302,7 +303,11 @@ export default function InventoryPage() {
 
   return (
     <div className="w-full space-y-6">
-      <div className="flex justify-end">
+      <HubPageHeader
+        title="Stock & Batches"
+        icon={PackageOpen}
+        description="Manage inventory batches, expiry tracking, and waste disposal."
+        actions={
         <Dialog>
           <DialogTrigger render={
             <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm font-bold">
@@ -342,7 +347,8 @@ export default function InventoryPage() {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+        }
+      />
 
       <Dialog open={isWasteOpen} onOpenChange={setIsWasteOpen}>
         <DialogContent className="rounded-2xl sm:max-w-md">

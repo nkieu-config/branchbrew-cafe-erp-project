@@ -5,6 +5,7 @@ import Link from "next/link"
 import { AnimatedPage } from "@/components/animated-page"
 import { Settings, History } from "lucide-react"
 import { RoleGuard } from "@/components/RoleGuard"
+import { AccessDeniedState } from "@/components/shared/access-denied-state"
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -18,7 +19,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
     <RoleGuard
       allowedRoles={["SUPER_ADMIN"]}
       fallback={
-        <div className="p-8 text-slate-500">Access denied. Super Admin only.</div>
+        <AccessDeniedState description="Super Admin access is required for system administration." />
       }
     >
       <AnimatedPage className="max-w-[1600px] w-full mx-auto space-y-6 h-full flex flex-col">
