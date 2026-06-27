@@ -21,6 +21,10 @@ import {
   resolveInitialOrderStatus,
 } from './order-status.util';
 import {
+  buildItemIngredientRequirements,
+  mergeRequirementMaps,
+} from './helpers/recipe-requirements.helper';
+import {
   buildIngredientRequirementsFromOrderItems,
   isSameCalendarDay,
 } from './order-void.util';
@@ -98,6 +102,10 @@ export class OrdersService {
           priceDelta: number;
         }[] = [];
         const modifierLabels: string[] = [];
+        let selectedOptions: {
+          swapToIngredientId: number | null;
+          group: { swapIngredientId: number | null };
+        }[] = [];
 
         if (item.modifierOptionIds?.length) {
           const options = await tx.modifierOption.findMany({
@@ -107,6 +115,7 @@ export class OrdersService {
           if (options.length !== item.modifierOptionIds.length) {
             throw new BadRequestException('Invalid modifier selection');
           }
+          selectedOptions = options;
           for (const opt of options) {
             const delta = toNum(opt.priceDelta);
             unitPrice += delta;
@@ -122,16 +131,37 @@ export class OrdersService {
 
         totalAmount += unitPrice * item.quantity;
 
-        for (const recipe of product.recipeItems) {
-          const totalNeeded = recipe.quantity * item.quantity;
-          const currentNeeded =
-            ingredientRequirements.get(recipe.ingredientId) || 0;
-          ingredientRequirements.set(
-            recipe.ingredientId,
-            currentNeeded + totalNeeded,
-          );
+        const recipeRows = product.recipeItems.map((recipe) => ({
+          ingredientId: recipe.ingredientId,
+          quantity: recipe.quantity,
+        }));
+        const itemRequirements = buildItemIngredientRequirements(
+          recipeRows,
+          item.quantity,
+          selectedOptions,
+        );
+        mergeRequirementMaps(ingredientRequirements, itemRequirements);
 
-          totalCogs += toNum(recipe.ingredient.costPerUnit) * totalNeeded;
+        const costByIngredient = new Map(
+          product.recipeItems.map((recipe) => [
+            recipe.ingredientId,
+            toNum(recipe.ingredient.costPerUnit),
+          ]),
+        );
+        const missingCostIds = [...itemRequirements.keys()].filter(
+          (id) => !costByIngredient.has(id),
+        );
+        if (missingCostIds.length > 0) {
+          const extraIngredients = await tx.ingredient.findMany({
+            where: { id: { in: missingCostIds } },
+          });
+          for (const ing of extraIngredients) {
+            costByIngredient.set(ing.id, toNum(ing.costPerUnit));
+          }
+        }
+        for (const [ingredientId, qty] of itemRequirements.entries()) {
+          totalCogs +=
+            (costByIngredient.get(ingredientId) ?? 0) * qty;
         }
 
         const notesText =

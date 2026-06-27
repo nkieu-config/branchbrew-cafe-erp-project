@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useProducts, useCreateOrder, useCustomerByPhone, useValidatePromotion, useModifiers } from '@/hooks/domains/usePosQueries';
+import { useProducts, useCreateOrder, useCustomerByPhone, useValidatePromotion } from '@/hooks/domains/usePosQueries';
+import { useModifiers } from '@/hooks/domains/useModifierQueries';
 import { useSettings } from '@/hooks/domains/useSettingsQueries';
 import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

@@ -85,6 +85,8 @@ model Ingredient {
   stockTransfers     StockTransfer[]
   wasteLogs          WasteLog[]
   isActive           Boolean             @default(true)
+  modifierGroupsSwapTarget ModifierGroup[] @relation("ModifierSwapTarget")
+  modifierOptionsSwapTo    ModifierOption[] @relation("ModifierSwapTo")
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }
@@ -286,24 +288,28 @@ model OrderItem {
 }
 
 model ModifierGroup {
-  id        Int              @id @default(autoincrement())
-  name      String
-  category  String?
-  sortOrder Int              @default(0)
-  options   ModifierOption[]
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  id               Int              @id @default(autoincrement())
+  name             String
+  category         String?
+  sortOrder        Int              @default(0)
+  swapIngredientId Int?
+  swapIngredient   Ingredient?      @relation("ModifierSwapTarget", fields: [swapIngredientId], references: [id], onDelete: SetNull)
+  options          ModifierOption[]
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 }
 
 model ModifierOption {
-  id         Int                 @id @default(autoincrement())
-  groupId    Int
-  group      ModifierGroup       @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  name       String
-  priceDelta Decimal             @db.Decimal(19, 4) @default(0)
-  isDefault  Boolean             @default(false)
-  sortOrder  Int                 @default(0)
-  orderItems OrderItemModifier[]
+  id                 Int                 @id @default(autoincrement())
+  groupId            Int
+  group              ModifierGroup       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  name               String
+  priceDelta         Decimal             @db.Decimal(19, 4) @default(0)
+  isDefault          Boolean             @default(false)
+  sortOrder          Int                 @default(0)
+  swapToIngredientId Int?
+  swapToIngredient   Ingredient?         @relation("ModifierSwapTo", fields: [swapToIngredientId], references: [id], onDelete: SetNull)
+  orderItems         OrderItemModifier[]
 }
 
 model OrderItemModifier {

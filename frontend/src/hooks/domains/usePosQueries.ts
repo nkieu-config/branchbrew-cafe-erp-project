@@ -12,14 +12,6 @@ export const useProducts = () => {
   });
 };
 
-export const useModifiers = (category?: string) => {
-  return useQuery({
-    queryKey: ['modifiers', category],
-    queryFn: () => fetchAPI(API_ENDPOINTS.modifiers.list(category)),
-    staleTime: Infinity,
-  });
-};
-
 export const useCreateOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({

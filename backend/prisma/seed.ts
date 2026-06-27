@@ -103,6 +103,9 @@ async function main() {
   const oatMilk = await prisma.ingredient.create({
     data: { name: 'Oat Milk', unit: 'ml', costPerUnit: 0.08, primarySupplierId: supplier2.id },
   });
+  const almondMilk = await prisma.ingredient.create({
+    data: { name: 'Almond Milk', unit: 'ml', costPerUnit: 0.09, primarySupplierId: supplier2.id },
+  });
 
   const inventoryRows = [
     { branchId: mainBranch.id, ingredientId: coffeeBeans.id, stock: 5000, minStock: 1000 },
@@ -110,11 +113,13 @@ async function main() {
     { branchId: mainBranch.id, ingredientId: cup.id, stock: 500, minStock: 100 },
     { branchId: mainBranch.id, ingredientId: syrup.id, stock: 1000, minStock: 200 },
     { branchId: mainBranch.id, ingredientId: oatMilk.id, stock: 3000, minStock: 500 },
+    { branchId: mainBranch.id, ingredientId: almondMilk.id, stock: 2000, minStock: 500 },
     { branchId: secondBranch.id, ingredientId: coffeeBeans.id, stock: 2000, minStock: 1000 },
     { branchId: secondBranch.id, ingredientId: milk.id, stock: 3000, minStock: 2000 },
     { branchId: secondBranch.id, ingredientId: cup.id, stock: 150, minStock: 100 },
     { branchId: secondBranch.id, ingredientId: syrup.id, stock: 500, minStock: 200 },
     { branchId: secondBranch.id, ingredientId: oatMilk.id, stock: 800, minStock: 500 },
+    { branchId: secondBranch.id, ingredientId: almondMilk.id, stock: 600, minStock: 500 },
   ];
   await prisma.branchInventory.createMany({ data: inventoryRows });
   await prisma.inventoryBatch.createMany({
@@ -164,11 +169,12 @@ async function main() {
       name: 'Milk Type',
       category: 'Coffee',
       sortOrder: 3,
+      swapIngredientId: milk.id,
       options: {
         create: [
           { name: 'Normal', priceDelta: 0, isDefault: true, sortOrder: 1 },
-          { name: 'Oat', priceDelta: 15, sortOrder: 2 },
-          { name: 'Almond', priceDelta: 15, sortOrder: 3 },
+          { name: 'Oat', priceDelta: 15, sortOrder: 2, swapToIngredientId: oatMilk.id },
+          { name: 'Almond', priceDelta: 15, sortOrder: 3, swapToIngredientId: almondMilk.id },
         ],
       },
     },

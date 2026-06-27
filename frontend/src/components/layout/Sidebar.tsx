@@ -7,7 +7,7 @@ import {
   LayoutDashboard, ShoppingCart, Package, Coffee, Truck, Users, 
   UserSquare2, BarChart3, Wallet, ChefHat, Wrench, Landmark, 
   MonitorPlay, Settings, ShieldCheck, Building2, Gift, ClipboardList,
-  ChevronDown, ChevronRight, History
+  ChevronDown, ChevronRight, History, SlidersHorizontal
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ const menuGroups = [
     group: "Back Office",
     items: [
       { name: "Menu & Products", href: "/products", icon: ClipboardList, roles: ["SUPER_ADMIN", "MANAGER"] },
+      { name: "Modifiers", href: "/products/modifiers", icon: SlidersHorizontal, roles: ["SUPER_ADMIN", "MANAGER"] },
       { name: "Procurement", href: "/procurement", icon: Truck, roles: ["SUPER_ADMIN", "MANAGER"] },
       { name: "Central Kitchen", href: "/kitchen", icon: ChefHat, roles: ["SUPER_ADMIN", "MANAGER"] },
       { name: "Human Resources", href: "/hr", icon: UserSquare2, roles: ["SUPER_ADMIN", "MANAGER"] },

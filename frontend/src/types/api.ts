@@ -49,6 +49,8 @@ export interface ModifierOption {
   priceDelta: number | string;
   isDefault: boolean;
   sortOrder: number;
+  swapToIngredientId?: number | null;
+  swapToIngredient?: Pick<Ingredient, 'id' | 'name' | 'unit'> | null;
 }
 
 export interface ModifierGroup {
@@ -56,6 +58,8 @@ export interface ModifierGroup {
   name: string;
   category?: string | null;
   sortOrder: number;
+  swapIngredientId?: number | null;
+  swapIngredient?: Pick<Ingredient, 'id' | 'name' | 'unit'> | null;
   options: ModifierOption[];
 }
 

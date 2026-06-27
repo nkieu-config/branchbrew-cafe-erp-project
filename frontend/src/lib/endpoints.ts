@@ -24,6 +24,12 @@ export const API_ENDPOINTS = {
   modifiers: {
     list: (category?: string) =>
       `/modifiers${category ? `?category=${encodeURIComponent(category)}` : ''}`,
+    createGroup: '/modifiers/groups',
+    updateGroup: (id: number) => `/modifiers/groups/${id}`,
+    deleteGroup: (id: number) => `/modifiers/groups/${id}`,
+    createOption: '/modifiers/options',
+    updateOption: (id: number) => `/modifiers/options/${id}`,
+    deleteOption: (id: number) => `/modifiers/options/${id}`,
   },
   ingredients: {
     list: '/ingredients',
