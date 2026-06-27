@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useBranchDetails, useTransfers, useCreateTransfer, useAcceptTransfer, useAddInventoryBatch, useReportWaste } from '@/hooks/domains/useInventoryQueries';
-import { useBranches } from '@/hooks/domains/useGeneralQueries';
+import { useBranchDetails, useAddInventoryBatch, useReportWaste } from '@/hooks/domains/useInventoryQueries';
+import { StockTransfersPanel } from "@/components/inventory/StockTransfersPanel";
 import { useAuth } from "@/context/AuthContext";
 import { Table, Tag, Button as AntButton, Popconfirm, Calendar, Popover, Badge } from "antd";
-import { PackageOpen, ArrowRightLeft, CheckCircle2, PackagePlus, Trash2, CalendarDays, AlertCircle } from "lucide-react";
+import { PackageOpen, PackagePlus, Trash2, CalendarDays, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -15,39 +15,24 @@ import { cn } from "@/lib/utils";
 import { AnimatedPage } from "@/components/animated-page"
 import { PageHeader } from "@/components/shared/page-header"
 import { DataTable } from "@/components/shared/data-table"
-import { Branch } from "@/types/api";
 import { format, differenceInDays } from "date-fns";
 import type { Dayjs } from "dayjs";
-import type { Ingredient, InventoryBatch, PurchaseOrder, Supplier, BranchInventory, StockTransfer } from "@/types/api";
+import type { Ingredient, InventoryBatch, PurchaseOrder, Supplier, BranchInventory } from "@/types/api";
 
 type InventoryWithIngredient = BranchInventory & { ingredient: Ingredient };
 type BatchWithSupplier = InventoryBatch & { purchaseOrder?: PurchaseOrder & { supplier?: Supplier } };
 
 export default function InventoryPage() {
   const { activeBranchId } = useAuth();
-  const { data: branchesData } = useBranches();
-  const branches = branchesData || [];
 
   const { data: branchDetails, isLoading: loadingBranch } = useBranchDetails(activeBranchId ?? undefined);
   const inventories: InventoryWithIngredient[] = branchDetails?.inventories || [];
   const batches: BatchWithSupplier[] = branchDetails?.inventoryBatches || [];
 
-  const { data: transfersData, isLoading: loadingTransfers } = useTransfers(activeBranchId ?? undefined);
-  const transfers = transfersData || [];
+  const loading = loadingBranch;
 
-  const loading = loadingBranch || loadingTransfers;
-
-  const createTransferMutation = useCreateTransfer();
-  const acceptTransferMutation = useAcceptTransfer();
   const addBatchMutation = useAddInventoryBatch();
   const reportWasteMutation = useReportWaste();
-
-  // Transfer Form State
-  const [transferTarget, setTransferTarget] = useState("");
-  const [transferIngredient, setTransferIngredient] = useState("");
-  const [transferQty, setTransferQty] = useState("");
-  const [isTransferring, setIsTransferring] = useState(false);
-
   // Batch Form State
   const [batchIngredient, setBatchIngredient] = useState("");
   const [batchQty, setBatchQty] = useState("");
@@ -56,38 +41,6 @@ export default function InventoryPage() {
   const [calendarMode, setCalendarMode] = useState<'month' | 'year'>('month');
 
   // Removed useEffect and fetchInventory, handled by React Query
-  const handleCreateTransfer = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!activeBranchId || !transferTarget || !transferIngredient || !transferQty) return;
-    setIsTransferring(true);
-    try {
-      await createTransferMutation.mutateAsync({
-        fromBranchId: activeBranchId,
-        toBranchId: Number(transferTarget),
-        ingredientId: Number(transferIngredient),
-        quantity: Number(transferQty)
-      });
-      toast.success("Transfer initiated successfully");
-      setIsTransferring(false);
-      setTransferTarget("");
-      setTransferIngredient("");
-      setTransferQty("");
-    } catch (err: unknown) {
-      if (err instanceof Error) toast.error(err.message);
-      setIsTransferring(false);
-    }
-  };
-
-  const handleAcceptTransfer = async (id: number) => {
-    try {
-      if (activeBranchId) {
-        await acceptTransferMutation.mutateAsync({ transferId: id, branchId: activeBranchId });
-        toast.success("Transfer accepted");
-      }
-    } catch (err: unknown) {
-      if (err instanceof Error) toast.error(err.message);
-    }
-  };
 
   const handleAddBatch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -306,63 +259,7 @@ export default function InventoryPage() {
     );
   };
 
-  // Transfers Columns
-  const transferColumns = [
-    {
-      title: 'From',
-      dataIndex: ['fromBranch', 'name'],
-      key: 'from',
-    },
-    {
-      title: 'To',
-      dataIndex: ['toBranch', 'name'],
-      key: 'to',
-    },
-    {
-      title: 'Item',
-      dataIndex: ['ingredient', 'name'],
-      key: 'item',
-      render: (text: string) => <span className="font-semibold">{text}</span>
-    },
-    {
-      title: 'Qty',
-      dataIndex: 'quantity',
-      key: 'qty',
-      render: (qty: number) => <span className="tabular-nums font-mono">{qty}</span>
-    },
-      {
-        title: 'Status',
-        dataIndex: 'status',
-        key: 'status',
-        render: (status: string) => {
-          const colors: Record<string, string> = { 'ACTIVE': 'green', 'DEPLETED': 'default', 'EXPIRED': 'red', 'WASTED': 'orange', 'PENDING': 'blue', 'COMPLETED': 'green' };
-          return <Tag color={colors[status] || 'default'}>{status}</Tag>;
-        }
-      },
-    {
-      title: 'Action',
-      key: 'action',
-      render: (_: unknown, t: StockTransfer) => {
-        if (t.status === 'PENDING' && t.toBranchId === activeBranchId) {
-          return (
-            <AntButton 
-              type="primary" 
-              className="bg-emerald-500 hover:bg-emerald-600 border-none font-bold"
-              icon={<CheckCircle2 className="w-4 h-4 mr-1" />}
-              onClick={() => handleAcceptTransfer(t.id)}
-            >
-              Accept
-            </AntButton>
-          )
-        }
-        if (t.status === 'PENDING' && t.fromBranchId === activeBranchId) {
-          return <span className="text-xs font-bold text-slate-400 dark:text-slate-500">Waiting for {t.toBranch?.name}</span>
-        }
-        return null;
-      }
-    }
-  ];
-
+  // Transfers handled by shared StockTransfersPanel
 
   if (!activeBranchId) {
     return (
@@ -379,7 +276,7 @@ export default function InventoryPage() {
       <PageHeader 
         title="Inventory & Stock"
         icon={PackageOpen}
-        description="Manage stock levels, transfers, and expiring batches."
+        description="Manage stock levels and expiring batches."
         actions={
           <div className="flex gap-2">
             <Dialog>
@@ -419,54 +316,6 @@ export default function InventoryPage() {
               </form>
             </DialogContent>
           </Dialog>
-
-          <Dialog>
-            <DialogTrigger render={<Button variant="outline" className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm font-bold text-slate-700" />}>
-              <ArrowRightLeft className="w-4 h-4 mr-2 text-blue-500" /> Transfer
-            </DialogTrigger>
-            <DialogContent className="rounded-2xl">
-              <DialogHeader>
-                <DialogTitle className="font-black text-xl">Create Stock Transfer</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleCreateTransfer} className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">Ingredient</Label>
-                  <select 
-                    className="flex h-11 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                    value={transferIngredient} 
-                    onChange={(e) => setTransferIngredient(e.target.value)}
-                    required
-                  >
-                    <option value="">Select Ingredient</option>
-                    {inventories.filter(i => i.stock > 0).map(i => (
-                      <option key={i.ingredient.id} value={i.ingredient.id}>{i.ingredient.name} (Max: {i.stock})</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">To Branch</Label>
-                  <select 
-                    className="flex h-11 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
-                    value={transferTarget} 
-                    onChange={(e) => setTransferTarget(e.target.value)}
-                    required
-                  >
-                    <option value="">Select Branch</option>
-                    {branches.filter((b: Branch) => b.id !== activeBranchId).map((b: Branch) => (
-                      <option key={b.id} value={b.id}>{b.name}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-bold text-slate-700">Quantity</Label>
-                  <Input className="h-11 rounded-xl bg-slate-50" type="number" min="0.1" step="0.1" value={transferQty} onChange={(e) => setTransferQty(e.target.value)} required />
-                </div>
-                <Button type="submit" className="w-full h-11 bg-blue-600 hover:bg-blue-700 font-bold rounded-xl text-white" disabled={isTransferring}>
-                  {isTransferring ? "Processing…" : "Initiate Transfer"}
-                </Button>
-                  </form>
-                </DialogContent>
-              </Dialog>
             </div>
           }
         />
@@ -519,18 +368,13 @@ export default function InventoryPage() {
             />
           </div>
 
-          <div className="pt-2">
-            <h2 className="font-semibold text-lg text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-              <ArrowRightLeft className="w-5 h-5 text-blue-500" /> Pending Transfers
-            </h2>
-            <DataTable 
-              loading={loading}
-              columns={transferColumns} 
-              dataSource={transfers} 
-              rowKey="id"
-              pagination={{ pageSize: 5 }}
-            />
-          </div>
+          <StockTransfersPanel
+            mode="compact"
+            sourceInventories={inventories.map((i) => ({
+              ingredient: i.ingredient,
+              stock: i.stock,
+            }))}
+          />
         </div>
       </div>
     </AnimatedPage>

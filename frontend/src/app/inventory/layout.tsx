@@ -28,7 +28,7 @@ export default function InventoryLayout({ children }: { children: React.ReactNod
               <Package className="w-6 h-6 text-emerald-500" />
               Inventory & Logistics
             </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage stocks, handle branch transfers, and track waste.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage stocks, expiry batches, and waste.</p>
           </div>
         </div>
 

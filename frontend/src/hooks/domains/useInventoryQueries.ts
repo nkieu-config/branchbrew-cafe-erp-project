@@ -13,38 +13,12 @@ export const useBranchDetails = (branchId?: number) => {
   });
 };
 
-export const useTransfers = (branchId?: number) => {
-  return useQuery({
-    queryKey: ['transfers', branchId],
-    queryFn: () => fetchAPI(API_ENDPOINTS.branches.transfers(branchId!)),
-    enabled: !!branchId,
-  });
-};
-
-import type { CreateTransferDTO } from '@/types/schemas';
-
-export const useCreateTransfer = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (data: CreateTransferDTO & { fromBranchId: number }) =>
-      fetchAPI(API_ENDPOINTS.branches.createTransfer, { method: 'POST', body: JSON.stringify(data) }),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['transfers', variables.fromBranchId] });
-      queryClient.invalidateQueries({ queryKey: ['branch', variables.fromBranchId] });
-    },
-  });
-};
-
-export const useAcceptTransfer = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ transferId, branchId }: { transferId: number, branchId: number }) => fetchAPI(API_ENDPOINTS.branches.acceptTransfer(transferId), { method: 'POST' }),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['transfers', variables.branchId] });
-      queryClient.invalidateQueries({ queryKey: ['branch', variables.branchId] });
-    },
-  });
-};
+// Re-export transfer hooks from canonical module
+export {
+  useTransfers,
+  useCreateTransfer,
+  useAcceptTransfer,
+} from './useTransferQueries';
 
 export const useAddInventoryBatch = () => {
   const queryClient = useQueryClient();

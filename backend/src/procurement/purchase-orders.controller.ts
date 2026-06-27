@@ -50,6 +50,12 @@ export class PurchaseOrdersController {
     );
   }
 
+  @Roles('SUPER_ADMIN', 'MANAGER', 'STAFF')
+  @Patch(':id/submit')
+  submit(@Param('id', ParseIntPipe) id: number, @Req() req: RequestWithUser) {
+    return this.procurementService.submitPO(id, req.user.userId, req.user);
+  }
+
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch(':id/approve')
   approve(@Param('id', ParseIntPipe) id: number, @Req() req: RequestWithUser) {

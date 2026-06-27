@@ -27,7 +27,7 @@ export default function ProcurementLayout({ children }: { children: React.ReactN
               <Truck className="w-6 h-6 text-blue-500" />
               Procurement
             </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage purchase orders and equipment inventory.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage purchase orders, suppliers, and stock transfers.</p>
           </div>
         </div>
 
