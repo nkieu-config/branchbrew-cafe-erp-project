@@ -1,15 +1,18 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/context/AuthContext"
 import { useShifts } from '@/hooks/domains/useHrQueries';
-import { Users, CalendarDays, Plus, UserPlus, Clock, Loader2 } from "lucide-react"
+import { CalendarDays, Plus, UserPlus, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { HubPageHeader } from "@/components/shared/hub-card";
+import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { DataTable } from "@/components/shared/data-table"
 import { Shift, User } from "@/types/api"
 import { Avatar, Tooltip } from "antd"
 
 export default function EmployeesShiftsPage() {
+  const router = useRouter()
   const { user, activeBranchId } = useAuth()
   const role = user?.role
 
@@ -59,6 +62,12 @@ export default function EmployeesShiftsPage() {
     return Math.max(0, width);
   }
 
+  if (!activeBranchId) {
+    return (
+      <BranchEmptyState description="Select a branch in the top bar to view and manage shift schedules." />
+    );
+  }
+
   return (
     <div className="space-y-6">
       <HubPageHeader
@@ -68,10 +77,19 @@ export default function EmployeesShiftsPage() {
         actions={
           (role === 'SUPER_ADMIN' || role === 'MANAGER') && (
             <div className="flex gap-2">
-              <Button className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-sm">
-                <Plus className="w-4 h-4 mr-2" /> Add Employee
-              </Button>
-              <Button variant="outline" className="border-slate-200 dark:border-slate-700 bg-white font-bold shadow-sm">
+              {role === 'SUPER_ADMIN' && (
+                <Button
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-sm"
+                  onClick={() => router.push("/users")}
+                >
+                  <Plus className="w-4 h-4 mr-2" /> Add Employee
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                className="border-slate-200 dark:border-slate-700 bg-white font-bold shadow-sm"
+                onClick={() => router.push("/hr/employees")}
+              >
                 <UserPlus className="w-4 h-4 mr-2" /> Directory
               </Button>
             </div>

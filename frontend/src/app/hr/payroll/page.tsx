@@ -7,6 +7,7 @@ import { Users, FileText, CheckCircle, Receipt } from "lucide-react"
 import { getErrorMessage } from "@/lib/errors";
 import { toast } from "sonner";
 import { HubCard } from "@/components/shared/hub-card";
+import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { DataTable } from "@/components/shared/data-table"
 import { PayrollRun, Payslip } from "@/types/api";
 import { usePayrollRuns, useGeneratePayrollRun, useApprovePayrollRun } from '@/hooks/domains/useHrQueries';
@@ -46,6 +47,12 @@ export default function PayrollPage() {
 
   if (role !== 'SUPER_ADMIN' && role !== 'MANAGER') {
     return <div className="text-center py-12 text-slate-500">Access Denied</div>
+  }
+
+  if (!activeBranchId) {
+    return (
+      <BranchEmptyState description="Select a branch in the top bar to generate and manage payroll." />
+    );
   }
 
 

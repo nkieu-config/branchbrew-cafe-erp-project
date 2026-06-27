@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Plus, CheckCircle, XCircle, CalendarOff } from "lucide-react"
 import { HubCard } from "@/components/shared/hub-card";
+import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { DataTable } from "@/components/shared/data-table";
 import { LeaveRequest } from "@/types/api";
 import { useLeaveRequests, useUpdateLeaveStatus, useCreateLeave } from '@/hooks/domains/useHrQueries';
@@ -52,6 +53,12 @@ export default function LeaveRequestsPage() {
   }
 
 
+
+  if (!activeBranchId) {
+    return (
+      <BranchEmptyState description="Select a branch in the top bar to view and manage leave requests." />
+    );
+  }
 
   return (
     <>

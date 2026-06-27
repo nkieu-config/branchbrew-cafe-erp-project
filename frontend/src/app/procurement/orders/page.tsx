@@ -9,6 +9,7 @@ import { FormModal } from "@/components/shared/form-modal";
 import { Plus, CheckCircle2, XCircle, CheckSquare, Trash2, Truck, Send, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { HubCard } from "@/components/shared/hub-card";
+import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { DataTable } from "@/components/shared/data-table";
 import { PurchaseOrder, Supplier, Ingredient, PurchaseOrderItem } from "@/types/api";
 import { Input } from "@/components/ui/input";
@@ -30,10 +31,8 @@ export default function ProcurementPage() {
   const ingredients = ingredientsData || [];
   
   let pos = posData || [];
-  if (user?.role !== 'SUPER_ADMIN' || activeBranchId) {
-    if (activeBranchId) {
-      pos = pos.filter((po: PurchaseOrder) => po.branchId === activeBranchId);
-    }
+  if (activeBranchId) {
+    pos = pos.filter((po: PurchaseOrder) => po.branchId === activeBranchId);
   }
 
   const loading = loadingPos || loadingSup || loadingIng;
@@ -300,6 +299,9 @@ export default function ProcurementPage() {
 
   return (
     <>
+      {!activeBranchId ? (
+        <BranchEmptyState description="Select a branch in the top bar to view and manage purchase orders." />
+      ) : (
       <HubCard
         title="Purchase Orders"
         icon={Truck}
@@ -310,7 +312,6 @@ export default function ProcurementPage() {
             className="bg-blue-600 hover:bg-blue-700 h-10 px-4 rounded-lg shadow-sm"
             icon={<Plus className="w-4 h-4" />}
             onClick={() => setIsModalOpen(true)}
-            disabled={!activeBranchId}
           >
             Create PO
           </AntButton>
@@ -342,6 +343,7 @@ export default function ProcurementPage() {
         pagination={{ pageSize: 10 }}
       />
       </HubCard>
+      )}
 
       {/* Create PO Modal */}
       <FormModal

@@ -5,6 +5,7 @@ import { useProducts, useCreateOrder, useCustomerByPhone, useValidatePromotion }
 import { useModifiers } from '@/hooks/domains/useModifierQueries';
 import { useSettings } from '@/hooks/domains/useSettingsQueries';
 import { useAuth } from "@/context/AuthContext";
+import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -270,6 +271,12 @@ export default function POSPage() {
   };
 
 
+
+  if (!activeBranchId) {
+    return (
+      <BranchEmptyState description="Select a branch in the top bar to process sales at the POS terminal." />
+    );
+  }
 
   return (
     <div className="flex h-full gap-6 w-full">

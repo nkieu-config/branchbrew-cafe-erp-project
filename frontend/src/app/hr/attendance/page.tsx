@@ -7,6 +7,7 @@ import { Clock, AlertCircle, PlayCircle, StopCircle } from "lucide-react"
 import { getErrorMessage } from "@/lib/errors"
 import { toast } from "sonner"
 import { HubCard } from "@/components/shared/hub-card";
+import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { DataTable } from "@/components/shared/data-table"
 import { User, Shift } from "@/types/api"
 import { format, isSameDay, differenceInMinutes } from "date-fns"
@@ -119,6 +120,12 @@ export default function AttendancePage() {
       ),
     },
   ];
+
+  if (!activeBranchId) {
+    return (
+      <BranchEmptyState description="Select a branch in the top bar to clock in and view attendance records." />
+    );
+  }
 
   return (
     <HubCard

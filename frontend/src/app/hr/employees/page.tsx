@@ -9,6 +9,7 @@ import { FormModal } from "@/components/shared/form-modal";
 import { getErrorMessage } from "@/lib/errors";
 import { toast } from "sonner";
 import { HubCard } from "@/components/shared/hub-card";
+import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { DataTable } from "@/components/shared/data-table";
 import { User, Branch } from "@/types/api";
 import { formatBaht } from "@/lib/money";
@@ -120,6 +121,12 @@ export default function EmployeeDirectoryPage() {
       }
     }
   ];
+
+  if (!activeBranchId) {
+    return (
+      <BranchEmptyState description="Select a branch in the top bar to view the employee directory." />
+    );
+  }
 
   return (
     <>

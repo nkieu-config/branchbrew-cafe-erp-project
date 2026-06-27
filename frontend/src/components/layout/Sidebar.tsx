@@ -35,7 +35,7 @@ const menuGroups = [
       { name: "Menu & Products", href: "/products", icon: ClipboardList, roles: ["SUPER_ADMIN", "MANAGER"] },
       { name: "Procurement", href: "/procurement", icon: Truck, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
       { name: "Central Kitchen", href: "/kitchen", icon: ChefHat, roles: ["SUPER_ADMIN", "MANAGER"] },
-      { name: "Human Resources", href: "/hr", icon: UserSquare2, roles: ["SUPER_ADMIN", "MANAGER"] },
+      { name: "Human Resources", href: "/hr", icon: UserSquare2, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
       { name: "Finance & Accounts", href: "/finance", icon: Landmark, roles: ["SUPER_ADMIN", "MANAGER"] },
       { name: "Asset Maintenance", href: "/assets", icon: Wrench, roles: ["SUPER_ADMIN", "MANAGER"] },
     ]

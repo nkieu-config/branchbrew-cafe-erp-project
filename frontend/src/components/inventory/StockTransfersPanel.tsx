@@ -16,6 +16,7 @@ import {
 } from "@/hooks/domains/useTransferQueries";
 import { FormModal } from "@/components/shared/form-modal";
 import { DataTable } from "@/components/shared/data-table";
+import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { Button } from "@/components/ui/button";
 import type { Branch, Ingredient, StockTransfer } from "@/types/api";
 
@@ -240,6 +241,12 @@ export function StockTransfersPanel({
     }
     setIsModalOpen(true);
   };
+
+  if (mode === "full" && !branchId) {
+    return (
+      <BranchEmptyState description="Select a branch in the top bar to request and manage stock transfers." />
+    );
+  }
 
   return (
     <div className={mode === "full" ? "space-y-6" : "space-y-3"}>

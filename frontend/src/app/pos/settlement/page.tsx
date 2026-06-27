@@ -1,6 +1,7 @@
 "use client"
 
 import { HubPageHeader } from "@/components/shared/hub-card"
+import { BranchEmptyState } from "@/components/shared/branch-empty-state"
 import { useAuth } from "@/context/AuthContext"
 import { useExpectedCash } from '@/hooks/domains/useFinanceQueries';
 import { SettlementForm } from "@/components/pos/SettlementForm"
@@ -11,6 +12,12 @@ export default function SettlementPage() {
   const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
   
   const { data: expected } = useExpectedCash(branchIdNum);
+
+  if (!branchIdNum) {
+    return (
+      <BranchEmptyState description="Select a branch in the top bar to reconcile end-of-day settlement." />
+    );
+  }
 
   return (
     <div className="space-y-6">
