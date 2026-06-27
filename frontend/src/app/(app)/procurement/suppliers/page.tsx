@@ -9,17 +9,21 @@ import {
 } from "@/hooks/domains/useProcurementQueries";
 import { HubCard } from "@/components/shared/hub-card";
 import { DataTable } from "@/components/shared/data-table";
-import { FormModal } from "@/components/shared/form-modal";
-import { Button as AntButton, Form, Input, Popconfirm } from "antd";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { TableActionButton } from "@/components/shared/table-action-button";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Building2, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Supplier } from "@/types/api";
-
-interface SupplierFormValues {
-  name: string;
-  contactEmail?: string;
-  phone?: string;
-}
 
 export default function SuppliersPage() {
   const { data: suppliers = [], isLoading } = useSuppliers();
@@ -29,39 +33,72 @@ export default function SuppliersPage() {
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Supplier | null>(null);
-  const [form] = Form.useForm<SupplierFormValues>();
+  const [deleteTarget, setDeleteTarget] = useState<Supplier | null>(null);
+  const [name, setName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [phone, setPhone] = useState("");
+
+  const resetForm = () => {
+    setName("");
+    setContactEmail("");
+    setPhone("");
+  };
 
   const openCreate = () => {
     setEditing(null);
-    form.resetFields();
+    resetForm();
     setOpen(true);
   };
 
   const openEdit = (supplier: Supplier) => {
     setEditing(supplier);
-    form.setFieldsValue({
-      name: supplier.name,
-      contactEmail: supplier.contactEmail ?? undefined,
-      phone: supplier.phone ?? undefined,
-    });
+    setName(supplier.name);
+    setContactEmail(supplier.contactEmail ?? "");
+    setPhone(supplier.phone ?? "");
     setOpen(true);
   };
 
-  const handleSubmit = async (values: SupplierFormValues) => {
+  const closeDialog = () => {
+    setOpen(false);
+    setEditing(null);
+    resetForm();
+  };
+
+  const handleSubmit = async () => {
+    if (!name.trim()) {
+      toast.error("Name is required");
+      return;
+    }
+    const payload = {
+      name: name.trim(),
+      contactEmail: contactEmail.trim() || undefined,
+      phone: phone.trim() || undefined,
+    };
     try {
       if (editing) {
-        await updateMutation.mutateAsync({ id: editing.id, ...values });
+        await updateMutation.mutateAsync({ id: editing.id, ...payload });
         toast.success("Supplier updated");
       } else {
-        await createMutation.mutateAsync(values);
+        await createMutation.mutateAsync(payload);
         toast.success("Supplier created");
       }
-      setOpen(false);
-      form.resetFields();
+      closeDialog();
     } catch (err: unknown) {
       if (err instanceof Error) toast.error(err.message);
     }
   };
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteMutation.mutateAsync(deleteTarget.id);
+      toast.success("Supplier deleted");
+    } catch (err: unknown) {
+      if (err instanceof Error) toast.error(err.message);
+    }
+  };
+
+  const saving = createMutation.isPending || updateMutation.isPending;
 
   return (
     <>
@@ -70,75 +107,99 @@ export default function SuppliersPage() {
         icon={Building2}
         description="Manage vendor contacts for purchase orders."
         actions={
-          <AntButton
-            type="primary"
-            className="bg-blue-600 hover:bg-blue-700 h-10 px-4 rounded-lg"
-            icon={<Plus className="w-4 h-4" />}
-            onClick={openCreate}
-          >
+          <Button className="bg-blue-600 hover:bg-blue-700" onClick={openCreate}>
+            <Plus className="w-4 h-4 mr-2" />
             Add Supplier
-          </AntButton>
+          </Button>
         }
       >
-      <DataTable
-        loading={isLoading}
-        rowKey="id"
-        dataSource={suppliers}
-        columns={[
-          { title: "Name", dataIndex: "name", key: "name" },
-          { title: "Email", dataIndex: "contactEmail", key: "email", render: (v: string) => v || "-" },
-          { title: "Phone", dataIndex: "phone", key: "phone", render: (v: string) => v || "-" },
-          {
-            title: "Actions",
-            key: "actions",
-            align: "right" as const,
-            render: (_: unknown, row: Supplier) => (
-              <div className="flex justify-end gap-2">
-                <AntButton type="text" icon={<Pencil className="w-4 h-4" />} onClick={() => openEdit(row)} />
-                <Popconfirm
-                  title="Delete this supplier?"
-                  onConfirm={async () => {
-                    try {
-                      await deleteMutation.mutateAsync(row.id);
-                      toast.success("Supplier deleted");
-                    } catch (err: unknown) {
-                      if (err instanceof Error) toast.error(err.message);
-                    }
-                  }}
-                >
-                  <AntButton type="text" danger icon={<Trash2 className="w-4 h-4" />} />
-                </Popconfirm>
-              </div>
-            ),
-          },
-        ]}
-      />
+        <DataTable
+          loading={isLoading}
+          rowKey="id"
+          dataSource={suppliers}
+          columns={[
+            { title: "Name", dataIndex: "name", key: "name" },
+            { title: "Email", dataIndex: "contactEmail", key: "email", render: (v: string) => v || "-" },
+            { title: "Phone", dataIndex: "phone", key: "phone", render: (v: string) => v || "-" },
+            {
+              title: "Actions",
+              key: "actions",
+              align: "right" as const,
+              render: (_: unknown, row: Supplier) => (
+                <div className="flex justify-end gap-1">
+                  <TableActionButton icon={Pencil} onClick={() => openEdit(row)} />
+                  <TableActionButton
+                    icon={Trash2}
+                    destructive
+                    onClick={() => setDeleteTarget(row)}
+                  />
+                </div>
+              ),
+            },
+          ]}
+        />
       </HubCard>
 
-      <FormModal
-        title={editing ? "Edit Supplier" : "Add Supplier"}
-        icon={Building2}
-        isOpen={open}
-        onClose={() => setOpen(false)}
-      >
-        <Form form={form} layout="vertical" onFinish={handleSubmit} className="mt-4">
-          <Form.Item name="name" label="Name" rules={[{ required: true, message: "Name is required" }]}>
-            <Input placeholder="Supplier name" />
-          </Form.Item>
-          <Form.Item name="contactEmail" label="Email">
-            <Input type="email" placeholder="sales@vendor.com" />
-          </Form.Item>
-          <Form.Item name="phone" label="Phone">
-            <Input placeholder="08x-xxx-xxxx" />
-          </Form.Item>
-          <div className="flex justify-end gap-2">
-            <AntButton onClick={() => setOpen(false)}>Cancel</AntButton>
-            <AntButton type="primary" htmlType="submit" className="bg-blue-600" loading={createMutation.isPending || updateMutation.isPending}>
-              Save
-            </AntButton>
+      <Dialog open={open} onOpenChange={(isOpen) => !isOpen && closeDialog()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editing ? "Edit Supplier" : "Add Supplier"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-2">
+              <Label htmlFor="supplier-name">Name</Label>
+              <Input
+                id="supplier-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Supplier name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="supplier-email">Email</Label>
+              <Input
+                id="supplier-email"
+                type="email"
+                value={contactEmail}
+                onChange={(e) => setContactEmail(e.target.value)}
+                placeholder="sales@vendor.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="supplier-phone">Phone</Label>
+              <Input
+                id="supplier-phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="08x-xxx-xxxx"
+              />
+            </div>
           </div>
-        </Form>
-      </FormModal>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button type="button" variant="outline" onClick={closeDialog}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="bg-blue-600 hover:bg-blue-700"
+              disabled={saving}
+              onClick={() => void handleSubmit()}
+            >
+              {saving ? "Saving..." : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        onOpenChange={(isOpen) => !isOpen && setDeleteTarget(null)}
+        title="Delete this supplier?"
+        confirmLabel="Delete"
+        destructive
+        loading={deleteMutation.isPending}
+        onConfirm={handleDelete}
+      />
     </>
   );
 }

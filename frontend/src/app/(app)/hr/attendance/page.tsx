@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import { useAuth } from "@/context/AuthContext"
-import { useAttendance, useShifts, useActiveClockIn, useClockIn, useClockOut } from '@/hooks/domains/useHrQueries';
-import { Table, Tag, Typography, Tooltip, Button as AntButton } from "antd"
-import { Clock, AlertCircle, PlayCircle, StopCircle } from "lucide-react"
-import { getErrorMessage } from "@/lib/errors"
-import { toast } from "sonner"
+import { useAuth } from "@/context/AuthContext";
+import { useAttendance, useShifts, useActiveClockIn, useClockIn, useClockOut } from "@/hooks/domains/useHrQueries";
+import { Tooltip } from "antd";
+import { Clock, AlertCircle, PlayCircle, StopCircle } from "lucide-react";
+import { getErrorMessage } from "@/lib/errors";
+import { toast } from "sonner";
 import { HubCard } from "@/components/shared/hub-card";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
-import { DataTable } from "@/components/shared/data-table"
-import { User, Shift } from "@/types/api"
-import { format, isSameDay, differenceInMinutes } from "date-fns"
-
-const { Text } = Typography;
+import { DataTable } from "@/components/shared/data-table";
+import { StatusBadge } from "@/components/shared/status-badge";
+import { Button } from "@/components/ui/button";
+import { User, Shift } from "@/types/api";
+import { format, isSameDay, differenceInMinutes } from "date-fns";
 
 interface AttendanceRecord {
   id: number;
@@ -22,17 +22,20 @@ interface AttendanceRecord {
 }
 
 export default function AttendancePage() {
-  const { user, activeBranchId } = useAuth()
-  const { data: attendanceData, isLoading: loadingAtt } = useAttendance()
-  const { data: shiftsData, isLoading: loadingShifts } = useShifts(activeBranchId ? 'EMPLOYEE' : undefined, activeBranchId ?? undefined)
+  const { user, activeBranchId } = useAuth();
+  const { data: attendanceData, isLoading: loadingAtt } = useAttendance();
+  const { data: shiftsData, isLoading: loadingShifts } = useShifts(
+    activeBranchId ? "EMPLOYEE" : undefined,
+    activeBranchId ?? undefined,
+  );
 
-  const { data: activeClockIn, isLoading: loadingActive } = useActiveClockIn()
-  const clockInMutation = useClockIn()
-  const clockOutMutation = useClockOut()
+  const { data: activeClockIn, isLoading: loadingActive } = useActiveClockIn();
+  const clockInMutation = useClockIn();
+  const clockOutMutation = useClockOut();
 
-  const attendance = attendanceData || []
-  const shifts = shiftsData || []
-  const isLoading = loadingAtt || loadingShifts || loadingActive
+  const attendance = attendanceData || [];
+  const shifts = shiftsData || [];
+  const isLoading = loadingAtt || loadingShifts || loadingActive;
 
   const handleClockIn = async () => {
     if (!activeBranchId) {
@@ -45,7 +48,7 @@ export default function AttendancePage() {
     } catch (err: unknown) {
       toast.error(getErrorMessage(err, "Failed to clock in"));
     }
-  }
+  };
 
   const handleClockOut = async () => {
     try {
@@ -54,26 +57,30 @@ export default function AttendancePage() {
     } catch (err: unknown) {
       toast.error(getErrorMessage(err, "Failed to clock out"));
     }
-  }
+  };
 
   const columns = [
     {
-      title: 'Date',
-      dataIndex: 'clockIn',
-      key: 'date',
-      render: (val: string) => <span className="font-medium text-slate-800 dark:text-slate-200">{format(new Date(val), 'dd MMM yyyy')}</span>,
+      title: "Date",
+      dataIndex: "clockIn",
+      key: "date",
+      render: (val: string) => (
+        <span className="font-medium text-slate-800 dark:text-slate-200">
+          {format(new Date(val), "dd MMM yyyy")}
+        </span>
+      ),
     },
     {
-      title: 'Clock In',
-      dataIndex: 'clockIn',
-      key: 'in',
-      render: (val: string, record: AttendanceRecord) => {
+      title: "Clock In",
+      dataIndex: "clockIn",
+      key: "in",
+      render: (val: string) => {
         const clockInDate = new Date(val);
         const dayShift = shifts.find((s: Shift) => isSameDay(new Date(s.startTime), clockInDate));
-        
+
         let isLate = false;
         let lateMinutes = 0;
-        
+
         if (dayShift) {
           const shiftStart = new Date(dayShift.startTime);
           lateMinutes = differenceInMinutes(clockInDate, shiftStart);
@@ -84,40 +91,52 @@ export default function AttendancePage() {
 
         return (
           <div className="flex items-center gap-2">
-            <Text type={isLate ? "danger" : "success"} className="font-mono font-bold">
-              {format(clockInDate, 'HH:mm:ss')}
-            </Text>
-            {isLate && (
-              <Tooltip title={`Late by ${lateMinutes} minutes (Shift started at ${format(new Date(dayShift.startTime), 'HH:mm')})`}>
-                <Tag color="error" className="flex items-center gap-1 font-bold rounded-md border-0 m-0 shadow-sm">
-                  <AlertCircle className="w-3 h-3" /> LATE
-                </Tag>
+            <span
+              className={`font-mono font-bold ${isLate ? "text-rose-600" : "text-emerald-600 dark:text-emerald-400"}`}
+            >
+              {format(clockInDate, "HH:mm:ss")}
+            </span>
+            {isLate && dayShift && (
+              <Tooltip
+                title={`Late by ${lateMinutes} minutes (Shift started at ${format(new Date(dayShift.startTime), "HH:mm")})`}
+              >
+                <span>
+                  <StatusBadge tone="danger" className="gap-1">
+                    <AlertCircle className="w-3 h-3" /> LATE
+                  </StatusBadge>
+                </span>
               </Tooltip>
             )}
           </div>
-        )
+        );
       },
     },
     {
-      title: 'Clock Out',
-      dataIndex: 'clockOut',
-      key: 'out',
-      render: (val: string) => val ? (
-        <Text className="font-mono text-slate-600 dark:text-slate-400 font-medium">{format(new Date(val), 'HH:mm:ss')}</Text>
-      ) : (
-        <Tag color="processing" className="animate-pulse font-bold border-0 shadow-sm">Active</Tag>
-      ),
+      title: "Clock Out",
+      dataIndex: "clockOut",
+      key: "out",
+      render: (val: string) =>
+        val ? (
+          <span className="font-mono text-slate-600 dark:text-slate-400 font-medium">
+            {format(new Date(val), "HH:mm:ss")}
+          </span>
+        ) : (
+          <StatusBadge tone="info" className="animate-pulse">
+            Active
+          </StatusBadge>
+        ),
     },
     {
-      title: 'Total Hours',
-      dataIndex: 'totalHours',
-      key: 'hours',
-      align: 'right' as const,
-      render: (val: number) => val ? (
-        <span className="font-bold">{val.toFixed(2)} hrs</span>
-      ) : (
-        <span className="text-slate-400">-</span>
-      ),
+      title: "Total Hours",
+      dataIndex: "totalHours",
+      key: "hours",
+      align: "right" as const,
+      render: (val: number) =>
+        val ? (
+          <span className="font-bold">{val.toFixed(2)} hrs</span>
+        ) : (
+          <span className="text-slate-400">-</span>
+        ),
     },
   ];
 
@@ -133,38 +152,35 @@ export default function AttendancePage() {
       icon={Clock}
       actions={
         activeClockIn?.active ? (
-          <AntButton 
-            type="primary" 
-            danger
+          <Button
+            variant="destructive"
             className="h-10 px-6 rounded-xl font-bold tracking-wide shadow-sm"
-            icon={<StopCircle className="w-5 h-5" />}
-            loading={clockOutMutation.isPending}
-            onClick={handleClockOut}
+            disabled={clockOutMutation.isPending}
+            onClick={() => void handleClockOut()}
           >
+            <StopCircle className="w-5 h-5 mr-2" />
             Clock Out
-          </AntButton>
+          </Button>
         ) : (
-          <AntButton 
-            type="primary" 
-            className="bg-emerald-500 hover:bg-emerald-600 border-none h-10 px-6 rounded-xl font-bold tracking-wide shadow-sm"
-            icon={<PlayCircle className="w-5 h-5" />}
-            loading={clockInMutation.isPending}
-            onClick={handleClockIn}
-            disabled={!activeBranchId && user?.role === 'SUPER_ADMIN'}
+          <Button
+            className="bg-emerald-500 hover:bg-emerald-600 h-10 px-6 rounded-xl font-bold tracking-wide shadow-sm"
+            disabled={(!activeBranchId && user?.role === "SUPER_ADMIN") || clockInMutation.isPending}
+            onClick={() => void handleClockIn()}
           >
+            <PlayCircle className="w-5 h-5 mr-2" />
             Clock In
-          </AntButton>
+          </Button>
         )
       }
     >
-      <DataTable 
-        columns={columns} 
-        dataSource={attendance} 
+      <DataTable
+        columns={columns}
+        dataSource={attendance}
         rowKey="id"
         loading={isLoading}
         pagination={{ pageSize: 10 }}
         rowClassName={(record: AttendanceRecord) => {
-          if (record.user?.role === 'SUPER_ADMIN') return '';
+          if (record.user?.role === "SUPER_ADMIN") return "";
           const clockInDate = new Date(record.clockIn);
           const dayShift = shifts.find((s: Shift) => isSameDay(new Date(s.startTime), clockInDate));
           if (dayShift) {
@@ -175,5 +191,5 @@ export default function AttendancePage() {
         }}
       />
     </HubCard>
-  )
+  );
 }

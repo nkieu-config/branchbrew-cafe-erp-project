@@ -5,16 +5,17 @@ import { useProducts } from "@/hooks/domains/useProductQueries";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, Coffee } from "lucide-react";
 import { ProductFormModal } from "@/components/products/ProductFormModal";
-import { Tag, Button as AntButton } from "antd";
 import { DataTable } from "@/components/shared/data-table";
 import { HubCard } from "@/components/shared/hub-card";
+import { TableActionButton } from "@/components/shared/table-action-button";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { formatBaht } from "@/lib/money";
 import { calcProductFoodCost, foodCostStatus } from "@/lib/food-cost";
 import type { Product } from "@/types/api";
 
 export default function ProductsPage() {
   const { data: products, isLoading } = useProducts();
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
@@ -40,7 +41,7 @@ export default function ProductsPage() {
           </Button>
         }
       >
-        <DataTable 
+        <DataTable
           loading={isLoading}
           emptyDescription="No menu items yet. Add your first product to enable POS sales."
           columns={[
@@ -48,25 +49,25 @@ export default function ProductsPage() {
               title: "ID",
               dataIndex: "id",
               key: "id",
-              render: (id) => <span className="text-slate-400">#{id}</span>
+              render: (id) => <span className="text-slate-400">#{id}</span>,
             },
             {
               title: "Menu Name",
               dataIndex: "name",
               key: "name",
-              render: (name) => <span className="font-medium text-slate-800 dark:text-slate-200">{name}</span>
+              render: (name) => <span className="font-medium text-slate-800 dark:text-slate-200">{name}</span>,
             },
             {
               title: "Category",
               dataIndex: "category",
               key: "category",
-              render: (category) => <Tag>{category}</Tag>
+              render: (category) => <StatusBadge tone="category">{category}</StatusBadge>,
             },
             {
               title: "Price (฿)",
               dataIndex: "price",
               key: "price",
-              render: (price) => <span className="font-bold text-slate-700 dark:text-slate-300">{formatBaht(price)}</span>
+              render: (price) => <span className="font-bold text-slate-700 dark:text-slate-300">{formatBaht(price)}</span>,
             },
             {
               title: "Food Cost %",
@@ -75,16 +76,14 @@ export default function ProductsPage() {
                 const { cost, foodCostPercent } = calcProductFoodCost(record);
                 const status = foodCostStatus(foodCostPercent);
                 const color =
-                  status === 'good'
-                    ? 'text-emerald-600'
-                    : status === 'warn'
-                      ? 'text-amber-600'
-                      : 'text-rose-600';
+                  status === "good"
+                    ? "text-emerald-600"
+                    : status === "warn"
+                      ? "text-amber-600"
+                      : "text-rose-600";
                 return (
                   <div>
-                    <span className={`font-bold tabular-nums ${color}`}>
-                      {foodCostPercent.toFixed(1)}%
-                    </span>
+                    <span className={`font-bold tabular-nums ${color}`}>{foodCostPercent.toFixed(1)}%</span>
                     <div className="text-xs text-slate-400">COGS {formatBaht(cost)}</div>
                   </div>
                 );
@@ -93,33 +92,31 @@ export default function ProductsPage() {
             {
               title: "Status",
               key: "isActive",
-              render: (_: unknown, record: Product) => (
+              render: (_: unknown, record: Product) =>
                 record.isActive !== false ? (
-                  <Tag color="success">Active</Tag>
+                  <StatusBadge tone="success">Active</StatusBadge>
                 ) : (
-                  <Tag color="default">Inactive</Tag>
-                )
-              )
+                  <StatusBadge tone="neutral">Inactive</StatusBadge>
+                ),
             },
             {
               title: "Recipe Setup",
               key: "recipe",
-              render: (_: unknown, record: Product) => (
+              render: (_: unknown, record: Product) =>
                 record.recipeItems && record.recipeItems.length > 0 ? (
-                  <Tag color="processing">{record.recipeItems.length} ingredients</Tag>
+                  <StatusBadge tone="info">{record.recipeItems.length} ingredients</StatusBadge>
                 ) : (
-                  <Tag color="default">No Recipe</Tag>
-                )
-              )
+                  <StatusBadge tone="neutral">No Recipe</StatusBadge>
+                ),
             },
             {
               title: "Actions",
               key: "actions",
               align: "right",
               render: (_: unknown, record: Product) => (
-                <AntButton type="link" onClick={() => handleEdit(record)} icon={<Edit className="w-4 h-4" />} className="text-blue-500" />
-              )
-            }
+                <TableActionButton icon={Edit} label="Edit" onClick={() => handleEdit(record)} />
+              ),
+            },
           ]}
           dataSource={products || []}
           rowKey="id"
@@ -128,11 +125,7 @@ export default function ProductsPage() {
         />
       </HubCard>
 
-      <ProductFormModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        product={selectedProduct ?? undefined} 
-      />
+      <ProductFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} product={selectedProduct ?? undefined} />
     </>
   );
 }

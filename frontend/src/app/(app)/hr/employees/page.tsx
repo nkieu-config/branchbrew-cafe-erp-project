@@ -2,44 +2,58 @@
 
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useHrUsers, useUpdateHourlyRate } from '@/hooks/domains/useHrQueries';
-import { Table, Tag, Typography, Button as AntButton, Form, InputNumber, Avatar } from "antd";
+import { useHrUsers, useUpdateHourlyRate } from "@/hooks/domains/useHrQueries";
+import { Avatar } from "antd";
 import { Users, UserCog, Edit3 } from "lucide-react";
-import { FormModal } from "@/components/shared/form-modal";
 import { getErrorMessage } from "@/lib/errors";
 import { toast } from "sonner";
 import { HubCard } from "@/components/shared/hub-card";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { DataTable } from "@/components/shared/data-table";
-import { User, Branch } from "@/types/api";
+import { TableActionButton } from "@/components/shared/table-action-button";
+import { StatusBadge, employeeRoleTone } from "@/components/shared/status-badge";
+import { User } from "@/types/api";
 import { formatBaht } from "@/lib/money";
-
-const { Text } = Typography;
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function EmployeeDirectoryPage() {
   const { user, activeBranchId } = useAuth();
   const role = user?.role;
   const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
-  
+
   const { data: usersData, isLoading } = useHrUsers(branchIdNum);
   const updateHourlyRateMutation = useUpdateHourlyRate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [form] = Form.useForm();
+  const [hourlyRate, setHourlyRate] = useState("");
 
   const employees = usersData || [];
 
   const handleEditRate = (record: User) => {
     setSelectedUser(record);
-    form.setFieldsValue({ hourlyRate: record.hourlyRate });
+    setHourlyRate(String(record.hourlyRate ?? ""));
     setIsModalOpen(true);
   };
 
-  const handleUpdateSubmit = async (values: { hourlyRate: number }) => {
+  const handleUpdateSubmit = async () => {
     if (!selectedUser) return;
+    const rate = Number(hourlyRate);
+    if (Number.isNaN(rate) || rate < 0) {
+      toast.error("Hourly rate is required");
+      return;
+    }
     try {
-      await updateHourlyRateMutation.mutateAsync({ userId: selectedUser.id, hourlyRate: values.hourlyRate });
+      await updateHourlyRateMutation.mutateAsync({ userId: selectedUser.id, hourlyRate: rate });
       toast.success("Hourly rate updated successfully");
       setIsModalOpen(false);
       setSelectedUser(null);
@@ -48,52 +62,61 @@ export default function EmployeeDirectoryPage() {
     }
   };
 
-  const getRoleColor = (r: string) => {
-    switch (r) {
-      case 'SUPER_ADMIN': return 'magenta';
-      case 'MANAGER': return 'purple';
-      case 'STAFF': return 'blue';
-      default: return 'default';
-    }
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedUser(null);
   };
 
   const columns = [
     {
-      title: 'Employee',
-      key: 'employee',
+      title: "Employee",
+      key: "employee",
       render: (_: unknown, record: User) => (
         <div className="flex items-center gap-3">
-          <Avatar className="bg-violet-500 font-bold">{record.name?.charAt(0) || 'U'}</Avatar>
+          <Avatar className="bg-violet-500 font-bold">{record.name?.charAt(0) || "U"}</Avatar>
           <div>
-            <div className="font-bold text-slate-800 dark:text-slate-200">{record.name || 'Unknown User'}</div>
+            <div className="font-bold text-slate-800 dark:text-slate-200">{record.name || "Unknown User"}</div>
             <div className="text-xs text-slate-500">{record.email}</div>
           </div>
         </div>
       ),
     },
     {
-      title: 'Role',
-      dataIndex: 'role',
-      key: 'role',
-      render: (text: string) => <Tag color={getRoleColor(text)} className="font-bold rounded-md border-0">{text}</Tag>
+      title: "Role",
+      dataIndex: "role",
+      key: "role",
+      render: (text: string) => (
+        <StatusBadge tone={employeeRoleTone(text)} className="font-bold">
+          {text}
+        </StatusBadge>
+      ),
     },
     {
-      title: 'Type',
-      dataIndex: 'employmentType',
-      key: 'type',
-      render: (text: string) => <Text className="text-slate-600">{text ? text.replace('_', ' ') : 'N/A'}</Text>
+      title: "Type",
+      dataIndex: "employmentType",
+      key: "type",
+      render: (text: string) => (
+        <span className="text-slate-600 dark:text-slate-300">
+          {text ? text.replace("_", " ") : "N/A"}
+        </span>
+      ),
     },
     {
-      title: 'Branch',
-      dataIndex: ['branch', 'name'],
-      key: 'branch',
-      render: (text: string) => text ? <Tag>{text}</Tag> : <Text type="secondary">HQ / All</Text>
+      title: "Branch",
+      dataIndex: ["branch", "name"],
+      key: "branch",
+      render: (text: string) =>
+        text ? (
+          <StatusBadge tone="category">{text}</StatusBadge>
+        ) : (
+          <span className="text-slate-400">HQ / All</span>
+        ),
     },
     {
-      title: 'Hourly Rate',
-      dataIndex: 'hourlyRate',
-      key: 'rate',
-      align: 'right' as const,
+      title: "Hourly Rate",
+      dataIndex: "hourlyRate",
+      key: "rate",
+      align: "right" as const,
       render: (val: number | string) => (
         <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
           {formatBaht(val)} / hr
@@ -101,25 +124,23 @@ export default function EmployeeDirectoryPage() {
       ),
     },
     {
-      title: 'Action',
-      key: 'action',
-      align: 'right' as const,
+      title: "Action",
+      key: "action",
+      align: "right" as const,
       render: (_: unknown, record: User) => {
-        if (role === 'SUPER_ADMIN' || role === 'MANAGER') {
+        if (role === "SUPER_ADMIN" || role === "MANAGER") {
           return (
-            <AntButton 
-              type="text" 
-              className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50" 
-              icon={<Edit3 className="w-4 h-4" />}
+            <TableActionButton
+              icon={Edit3}
+              label="Edit Rate"
               onClick={() => handleEditRate(record)}
-            >
-              Edit Rate
-            </AntButton>
-          )
+              className="text-indigo-600 hover:text-indigo-800"
+            />
+          );
         }
         return null;
-      }
-    }
+      },
+    },
   ];
 
   if (!activeBranchId) {
@@ -135,56 +156,64 @@ export default function EmployeeDirectoryPage() {
         icon={Users}
         description="View staff details and manage compensation rates."
       >
-      <DataTable 
-        columns={columns} 
-        dataSource={employees} 
-        rowKey="id"
-        loading={isLoading}
-        pagination={{ pageSize: 15 }}
-      />
+        <DataTable
+          columns={columns}
+          dataSource={employees}
+          rowKey="id"
+          loading={isLoading}
+          pagination={{ pageSize: 15 }}
+        />
       </HubCard>
 
-      <FormModal
-        title="Edit Compensation"
-        icon={UserCog}
-        isOpen={isModalOpen}
-        onClose={() => { setIsModalOpen(false); setSelectedUser(null); }}
-      >
-        <div className="mb-6 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center gap-3">
-           <Avatar size="large" className="bg-violet-500 font-bold">{selectedUser?.name?.charAt(0)}</Avatar>
-           <div>
-             <div className="font-bold">{selectedUser?.name}</div>
-             <div className="text-sm text-slate-500">{selectedUser?.role}</div>
-           </div>
-        </div>
+      <Dialog open={isModalOpen} onOpenChange={(open) => !open && closeModal()}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserCog className="w-5 h-5" />
+              Edit Compensation
+            </DialogTitle>
+          </DialogHeader>
 
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleUpdateSubmit}
-        >
-          <Form.Item 
-            label="Hourly Rate (฿)" 
-            name="hourlyRate" 
-            rules={[{ required: true, message: 'Hourly rate is required' }]}
-            extra="This rate is used to calculate payroll based on total clocked hours."
-          >
-            <InputNumber 
-              className="w-full h-10 pt-1" 
-              min={0} 
-              step={1} 
-              prefix="฿" 
-            />
-          </Form.Item>
-
-          <div className="flex justify-end gap-2 mt-8">
-            <AntButton onClick={() => { setIsModalOpen(false); setSelectedUser(null); }}>Cancel</AntButton>
-            <AntButton type="primary" htmlType="submit" className="bg-indigo-600" loading={updateHourlyRateMutation.isPending}>
-              Save Changes
-            </AntButton>
+          <div className="mb-4 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center gap-3">
+            <Avatar size="large" className="bg-violet-500 font-bold">
+              {selectedUser?.name?.charAt(0)}
+            </Avatar>
+            <div>
+              <div className="font-bold">{selectedUser?.name}</div>
+              <div className="text-sm text-slate-500">{selectedUser?.role}</div>
+            </div>
           </div>
-        </Form>
-      </FormModal>
+
+          <div className="space-y-2">
+            <Label htmlFor="hourly-rate">Hourly Rate (฿)</Label>
+            <Input
+              id="hourly-rate"
+              type="number"
+              min={0}
+              step={1}
+              value={hourlyRate}
+              onChange={(e) => setHourlyRate(e.target.value)}
+            />
+            <p className="text-xs text-slate-500">
+              This rate is used to calculate payroll based on total clocked hours.
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button type="button" variant="outline" onClick={closeModal}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="bg-indigo-600 hover:bg-indigo-700"
+              disabled={updateHourlyRateMutation.isPending}
+              onClick={() => void handleUpdateSubmit()}
+            >
+              {updateHourlyRateMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useBranchDetails, useAddInventoryBatch, useReportWaste } from '@/hooks/domains/useInventoryQueries';
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { Table, Tag, Button as AntButton, Popconfirm, Calendar, Popover, Badge } from "antd";
+import { Table, Calendar, Popover, Badge } from "antd";
 import { PackageOpen, PackagePlus, Trash2, CalendarDays, AlertCircle, ArrowRightLeft } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,9 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { HubPageHeader } from "@/components/shared/hub-card";
-import { DataTable } from "@/components/shared/data-table"
+import { DataTable } from "@/components/shared/data-table";
+import { TableActionButton } from "@/components/shared/table-action-button";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { format, differenceInDays } from "date-fns";
 import type { Dayjs } from "dayjs";
 import type { Ingredient, InventoryBatch, PurchaseOrder, Supplier, BranchInventory } from "@/types/api";
@@ -205,9 +207,9 @@ export default function InventoryPage() {
       key: 'status',
       render: (_: unknown, record: InventoryWithIngredient) => {
         if (record.stock <= record.minStock) {
-          return <Tag color="error">LOW STOCK</Tag>;
+          return <StatusBadge tone="danger">LOW STOCK</StatusBadge>;
         }
-        return <Tag color="success">GOOD</Tag>;
+        return <StatusBadge tone="success">GOOD</StatusBadge>;
       },
     },
   ];
@@ -249,9 +251,9 @@ export default function InventoryPage() {
                 {format(new Date(b.expiryDate), 'dd MMM yyyy')}
               </span>
               {expired ? (
-                <Tag color="error" className="ml-2">Expired</Tag>
+                <StatusBadge tone="danger">Expired</StatusBadge>
               ) : expiring ? (
-                <Tag color="warning" className="ml-2">Soon</Tag>
+                <StatusBadge tone="warning">Soon</StatusBadge>
               ) : null}
             </div>
           );
@@ -261,10 +263,9 @@ export default function InventoryPage() {
         title: 'Action',
         key: 'action',
         render: (_: unknown, b: BatchWithSupplier) => (
-          <AntButton 
-            type="text" 
-            danger
-            icon={<Trash2 className="w-4 h-4" />}
+          <TableActionButton
+            icon={Trash2}
+            destructive
             onClick={() =>
               openWasteDialog(
                 b.id,
@@ -273,7 +274,6 @@ export default function InventoryPage() {
                 record.ingredient.name,
               )
             }
-            title="Mark as Waste/Expired"
           />
         ),
       },

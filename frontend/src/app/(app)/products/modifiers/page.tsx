@@ -4,7 +4,7 @@ import { useState } from "react";
 import { SlidersHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "@/components/shared/data-table";
-import { Popconfirm } from "antd";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { HubCard } from "@/components/shared/hub-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +18,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   useModifiers,
   useCreateModifierGroup,
@@ -34,6 +41,7 @@ import { formatBaht } from "@/lib/money";
 import { toNumber } from "@/lib/money";
 
 const CATEGORY_OPTIONS = ["Coffee", "Beverage", "Food", ""];
+const EMPTY_INGREDIENT = "__none__";
 
 function IngredientSelect({
   value,
@@ -47,21 +55,27 @@ function IngredientSelect({
   allowEmpty?: boolean;
 }) {
   const { data: ingredients = [] } = useIngredients();
+  const selectValue = value === "" ? EMPTY_INGREDIENT : String(value);
+
   return (
-    <select
-      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-      value={value === "" ? "" : String(value)}
-      onChange={(e) =>
-        onChange(e.target.value ? Number(e.target.value) : "")
-      }
+    <Select
+      value={selectValue}
+      onValueChange={(v) => onChange(v === EMPTY_INGREDIENT || v == null ? "" : Number(v))}
     >
-      {allowEmpty && <option value="">{placeholder}</option>}
-      {ingredients.map((ing: Ingredient) => (
-        <option key={ing.id} value={ing.id}>
-          {ing.name} ({ing.unit})
-        </option>
-      ))}
-    </select>
+      <SelectTrigger className="w-full">
+        <SelectValue placeholder={placeholder} />
+      </SelectTrigger>
+      <SelectContent>
+        {allowEmpty && (
+          <SelectItem value={EMPTY_INGREDIENT}>{placeholder}</SelectItem>
+        )}
+        {ingredients.map((ing: Ingredient) => (
+          <SelectItem key={ing.id} value={String(ing.id)}>
+            {ing.name} ({ing.unit})
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 
@@ -90,6 +104,11 @@ export default function ModifiersPage() {
   const [optionSortOrder, setOptionSortOrder] = useState("0");
   const [optionIsDefault, setOptionIsDefault] = useState(false);
   const [optionSwapToId, setOptionSwapToId] = useState<number | "">("");
+
+  type PendingDelete =
+    | { type: "group"; item: ModifierGroup }
+    | { type: "option"; item: ModifierOption };
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
 
   const resetGroupForm = () => {
     setEditingGroup(null);
@@ -269,20 +288,14 @@ export default function ModifiersPage() {
                 >
                   <Plus className="w-4 h-4 mr-1" /> Option
                 </Button>
-                <Popconfirm
-                  title={`Delete "${group.name}" and all its options?`}
-                  okText="Delete"
-                  okButtonProps={{ danger: true }}
-                  onConfirm={() => void handleDeleteGroup(group)}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-red-600"
+                  onClick={() => setPendingDelete({ type: "group", item: group })}
                 >
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </Popconfirm>
+                  <Trash2 className="w-4 h-4" />
+                </Button>
               </div>
             </div>
 
@@ -325,20 +338,14 @@ export default function ModifiersPage() {
                       >
                         <Pencil className="w-4 h-4" />
                       </Button>
-                      <Popconfirm
-                        title={`Delete option "${record.name}"?`}
-                        okText="Delete"
-                        okButtonProps={{ danger: true }}
-                        onConfirm={() => void handleDeleteOption(record)}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600"
+                        onClick={() => setPendingDelete({ type: "option", item: record })}
                       >
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-red-600"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </Popconfirm>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
                     </div>
                   ),
                 },
@@ -368,17 +375,18 @@ export default function ModifiersPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Category filter</Label>
-                <select
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                  value={groupCategory}
-                  onChange={(e) => setGroupCategory(e.target.value)}
-                >
-                  {CATEGORY_OPTIONS.map((c) => (
-                    <option key={c || "all"} value={c}>
-                      {c || "All categories"}
-                    </option>
-                  ))}
-                </select>
+                <Select value={groupCategory} onValueChange={(v) => v != null && setGroupCategory(v)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORY_OPTIONS.map((c) => (
+                      <SelectItem key={c || "all"} value={c}>
+                        {c || "All categories"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label>Sort order</Label>
@@ -467,6 +475,31 @@ export default function ModifiersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => !open && setPendingDelete(null)}
+        title={
+          pendingDelete?.type === "group"
+            ? `Delete "${pendingDelete.item.name}"?`
+            : `Delete option "${pendingDelete?.type === "option" ? pendingDelete.item.name : ""}"?`
+        }
+        description={
+          pendingDelete?.type === "group"
+            ? "This will remove the group and all of its options."
+            : undefined
+        }
+        confirmLabel="Delete"
+        destructive
+        onConfirm={async () => {
+          if (!pendingDelete) return;
+          if (pendingDelete.type === "group") {
+            await handleDeleteGroup(pendingDelete.item);
+          } else {
+            await handleDeleteOption(pendingDelete.item);
+          }
+        }}
+      />
     </>
   );
 }

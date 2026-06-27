@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Form, Select, InputNumber, Tag, Button as AntButton, Popconfirm } from "antd";
+import { Form, Select, InputNumber, Button as AntButton } from "antd";
 import { Plus, CheckCircle2, ArrowRightLeft, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -16,6 +16,9 @@ import {
 } from "@/hooks/domains/useTransferQueries";
 import { FormModal } from "@/components/shared/form-modal";
 import { DataTable } from "@/components/shared/data-table";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { TableActionButton } from "@/components/shared/table-action-button";
+import { StatusBadge, transferStatusTone } from "@/components/shared/status-badge";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { Button } from "@/components/ui/button";
 import type { Branch, Ingredient, StockTransfer } from "@/types/api";
@@ -26,19 +29,6 @@ interface StockTransfersPanelProps {
   mode: "full" | "compact";
   /** When compact, limit ingredient picker to branch stock on hand. */
   sourceInventories?: SourceInventory[];
-}
-
-function transferStatusColor(status: string) {
-  switch (status) {
-    case "COMPLETED":
-      return "success";
-    case "PENDING":
-      return "warning";
-    case "CANCELLED":
-      return "error";
-    default:
-      return "default";
-  }
 }
 
 export function StockTransfersPanel({
@@ -62,6 +52,7 @@ export function StockTransfersPanel({
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [acceptTarget, setAcceptTarget] = useState<StockTransfer | null>(null);
   const [form] = Form.useForm();
 
   const loading = loadingTransfers || loadingBranches || loadingIng;
@@ -156,13 +147,13 @@ export function StockTransfersPanel({
       title: "From",
       dataIndex: ["fromBranch", "name"],
       key: "from",
-      render: (text: string) => <Tag color="blue">{text || "HQ"}</Tag>,
+      render: (text: string) => <StatusBadge tone="info">{text || "HQ"}</StatusBadge>,
     },
     {
       title: "To",
       dataIndex: ["toBranch", "name"],
       key: "to",
-      render: (text: string) => <Tag color="cyan">{text}</Tag>,
+      render: (text: string) => <StatusBadge tone="info">{text}</StatusBadge>,
     },
     {
       title: "Ingredient",
@@ -193,7 +184,7 @@ export function StockTransfersPanel({
       dataIndex: "status",
       key: "status",
       render: (status: string) => (
-        <Tag color={transferStatusColor(status)}>{status}</Tag>
+        <StatusBadge tone={transferStatusTone(status)}>{status}</StatusBadge>
       ),
     },
     {
@@ -203,19 +194,12 @@ export function StockTransfersPanel({
       render: (_: unknown, record: StockTransfer) => {
         if (canAccept(record)) {
           return (
-            <Popconfirm
-              title="Confirm receiving this transfer?"
-              onConfirm={() => void handleAccept(record.id)}
-            >
-              <AntButton
-                type="primary"
-                size="small"
-                className="bg-emerald-500 hover:bg-emerald-600 border-none font-bold"
-                icon={<CheckCircle2 className="w-3 h-3" />}
-              >
-                Accept
-              </AntButton>
-            </Popconfirm>
+            <TableActionButton
+              icon={CheckCircle2}
+              label="Accept"
+              onClick={() => setAcceptTarget(record)}
+              className="text-emerald-600 font-bold"
+            />
           );
         }
         if (
@@ -273,14 +257,10 @@ export function StockTransfersPanel({
 
       {mode === "full" && (
         <div className="flex justify-end">
-          <AntButton
-            type="primary"
-            className="bg-indigo-600 hover:bg-indigo-700 h-10 px-4 rounded-lg shadow-sm font-bold"
-            icon={<Plus className="w-4 h-4" />}
-            onClick={openCreate}
-          >
+          <Button className="bg-indigo-600 hover:bg-indigo-700 font-bold" onClick={openCreate}>
+            <Plus className="w-4 h-4 mr-2" />
             Request Transfer
-          </AntButton>
+          </Button>
         </div>
       )}
 
@@ -379,6 +359,17 @@ export function StockTransfersPanel({
           </div>
         </Form>
       </FormModal>
+
+      <ConfirmDialog
+        open={acceptTarget !== null}
+        onOpenChange={(open) => !open && setAcceptTarget(null)}
+        title="Confirm receiving this transfer?"
+        confirmLabel="Accept"
+        loading={acceptMutation.isPending}
+        onConfirm={async () => {
+          if (acceptTarget) await handleAccept(acceptTarget.id);
+        }}
+      />
     </div>
   );
 }

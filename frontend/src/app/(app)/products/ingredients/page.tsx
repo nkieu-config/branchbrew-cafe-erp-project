@@ -5,15 +5,16 @@ import { useIngredients } from "@/hooks/domains/useProductQueries";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, FlaskConical } from "lucide-react";
 import { IngredientFormModal } from "@/components/products/IngredientFormModal";
-import { Tag, Button as AntButton } from "antd";
 import { DataTable } from "@/components/shared/data-table";
 import { HubCard } from "@/components/shared/hub-card";
+import { TableActionButton } from "@/components/shared/table-action-button";
+import { StatusBadge } from "@/components/shared/status-badge";
 import type { Ingredient } from "@/types/api";
 import { formatBaht } from "@/lib/money";
 
 export default function IngredientsPage() {
   const { data: ingredients, isLoading } = useIngredients();
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedIngredient, setSelectedIngredient] = useState<Ingredient | null>(null);
 
@@ -39,7 +40,7 @@ export default function IngredientsPage() {
           </Button>
         }
       >
-        <DataTable 
+        <DataTable
           loading={isLoading}
           emptyDescription="No ingredients yet. Add raw materials to build recipes and BOMs."
           columns={[
@@ -47,19 +48,19 @@ export default function IngredientsPage() {
               title: "ID",
               dataIndex: "id",
               key: "id",
-              render: (id) => <span className="text-slate-400">#{id}</span>
+              render: (id) => <span className="text-slate-400">#{id}</span>,
             },
             {
               title: "Ingredient Name",
               dataIndex: "name",
               key: "name",
-              render: (name) => <span className="font-medium text-slate-800 dark:text-slate-200">{name}</span>
+              render: (name) => <span className="font-medium text-slate-800 dark:text-slate-200">{name}</span>,
             },
             {
               title: "Unit",
               dataIndex: "unit",
               key: "unit",
-              render: (unit) => <span className="text-slate-500">{unit}</span>
+              render: (unit) => <span className="text-slate-500">{unit}</span>,
             },
             {
               title: "Cost / Unit (฿)",
@@ -72,22 +73,21 @@ export default function IngredientsPage() {
             {
               title: "Status",
               key: "isActive",
-              render: (_: unknown, record: Ingredient) => (
+              render: (_: unknown, record: Ingredient) =>
                 record.isActive !== false ? (
-                  <Tag color="success">Active</Tag>
+                  <StatusBadge tone="success">Active</StatusBadge>
                 ) : (
-                  <Tag color="default">Inactive</Tag>
-                )
-              )
+                  <StatusBadge tone="neutral">Inactive</StatusBadge>
+                ),
             },
             {
               title: "Actions",
               key: "actions",
               align: "right",
               render: (_: unknown, record: Ingredient) => (
-                <AntButton type="link" onClick={() => handleEdit(record)} icon={<Edit className="w-4 h-4" />} className="text-blue-500" />
-              )
-            }
+                <TableActionButton icon={Edit} onClick={() => handleEdit(record)} />
+              ),
+            },
           ]}
           dataSource={ingredients || []}
           rowKey="id"
@@ -96,10 +96,10 @@ export default function IngredientsPage() {
         />
       </HubCard>
 
-      <IngredientFormModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        ingredient={selectedIngredient ?? undefined} 
+      <IngredientFormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        ingredient={selectedIngredient ?? undefined}
       />
     </>
   );

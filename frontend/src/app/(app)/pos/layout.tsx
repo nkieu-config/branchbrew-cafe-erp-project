@@ -6,7 +6,6 @@ import { ShoppingCart, Wallet, Receipt } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 
 import { AnimatedPage } from "@/components/animated-page"
-import { AntdScope } from "@/components/providers/AntdScope"
 
 export default function POSLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -20,7 +19,6 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
   ]
 
   return (
-    <AntdScope>
     <AnimatedPage className="max-w-[1600px] w-full mx-auto space-y-6 h-full flex flex-col">
       <div className="flex justify-between items-end shrink-0">
         <div>
@@ -53,6 +51,5 @@ export default function POSLayout({ children }: { children: React.ReactNode }) {
         {children}
       </div>
     </AnimatedPage>
-    </AntdScope>
   )
 }

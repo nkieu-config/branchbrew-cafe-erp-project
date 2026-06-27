@@ -8,13 +8,13 @@ import { HubPageHeader } from "@/components/shared/hub-card";
 import { AccessDeniedState } from "@/components/shared/access-denied-state";
 import { ShieldCheck, Plus, User as UserIcon, Mail, Shield, Building } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Tag, Button as AntButton } from "antd";
 import { DataTable } from "@/components/shared/data-table";
+import { TableActionButton } from "@/components/shared/table-action-button";
+import { StatusBadge, roleTone } from "@/components/shared/status-badge";
 import { RoleGuard } from "@/components/RoleGuard";
 import type { User, Branch, CreateUserPayload, Role, EmploymentType } from "@/types/api";
 import { getErrorMessage } from "@/lib/errors";
@@ -135,16 +135,12 @@ export default function UsersPage() {
               dataIndex: "role",
               key: "role",
               render: (role) => (
-                <Tag color={
-                  role === 'SUPER_ADMIN' ? 'purple' : 
-                  role === 'MANAGER' ? 'blue' : 
-                  'default'
-                }>
-                  <div className="flex items-center">
-                    <Shield className="w-3 h-3 mr-1" />
+                <StatusBadge tone={roleTone(role)}>
+                  <span className="inline-flex items-center gap-1">
+                    <Shield className="w-3 h-3" />
                     {role}
-                  </div>
-                </Tag>
+                  </span>
+                </StatusBadge>
               )
             },
             {
@@ -174,9 +170,7 @@ export default function UsersPage() {
               key: "actions",
               align: "right",
               render: (_, record: User) => (
-                <AntButton type="link" onClick={() => handleEdit(record)} className="text-blue-600 hover:text-blue-700 font-medium">
-                  Edit Profile
-                </AntButton>
+                <TableActionButton label="Edit Profile" onClick={() => handleEdit(record)} />
               )
             }
           ]}

@@ -3,10 +3,13 @@
 import { useState } from "react"
 import dynamic from "next/dynamic"
 import { seedAccounts } from "@/lib/api"
-import { Table, Tag, Button, Spin, Popconfirm } from "antd"
+import { Table, Spin } from "antd"
 import { FileText, TrendingUp, Play } from "lucide-react"
 import { toast } from "sonner"
 import { HubPageHeader } from "@/components/shared/hub-card"
+import { ConfirmDialog } from "@/components/shared/confirm-dialog"
+import { StatusBadge, journalStatusTone } from "@/components/shared/status-badge"
+import { Button } from "@/components/ui/button"
 import type { JournalEntry, Branch } from "@/types/api"
 
 import { useAuth } from "@/context/AuthContext"
@@ -29,6 +32,7 @@ export default function GeneralLedgerPage() {
   const { activeBranchId } = useAuth()
   const selectedBranch = activeBranchId ? String(activeBranchId) : "ALL"
   const [isSeeding, setIsSeeding] = useState(false)
+  const [showSeedConfirm, setShowSeedConfirm] = useState(false)
 
   const { data: branches = [] } = useBranches()
   const { data: chartData = [], isLoading: isChartLoading } = useLedger(selectedBranch)
@@ -63,7 +67,9 @@ export default function GeneralLedgerPage() {
       title: 'Reference',
       dataIndex: 'reference',
       key: 'reference',
-      render: (ref: string) => <Tag color="blue" className="font-mono">{ref || '-'}</Tag>,
+      render: (ref: string) => (
+        <StatusBadge tone="info" className="font-mono">{ref || "-"}</StatusBadge>
+      ),
     },
     {
       title: 'Description',
@@ -76,7 +82,7 @@ export default function GeneralLedgerPage() {
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => (
-        <Tag color={status === 'POSTED' ? 'success' : 'default'} className="font-bold">{status}</Tag>
+        <StatusBadge tone={journalStatusTone(status)} className="font-bold">{status}</StatusBadge>
       ),
     },
   ]
@@ -143,17 +149,14 @@ export default function GeneralLedgerPage() {
         description={`Profit & loss trends and journal entries for ${branchLabel}. Use the top bar branch selector to change scope.`}
         actions={
           entries.length === 0 && !loading ? (
-            <Popconfirm
-              title="Initialize Chart of Accounts?"
-              description="This will seed standard accounting codes."
-              onConfirm={handleSeed}
-              okText="Seed"
-              cancelText="Cancel"
+            <Button
+              className="bg-indigo-600 hover:bg-indigo-700"
+              disabled={isSeeding}
+              onClick={() => setShowSeedConfirm(true)}
             >
-              <Button type="primary" loading={isSeeding} icon={<Play className="w-4 h-4" />}>
-                Seed Accounts
-              </Button>
-            </Popconfirm>
+              <Play className="w-4 h-4 mr-2" />
+              Seed Accounts
+            </Button>
           ) : undefined
         }
       />
@@ -189,6 +192,15 @@ export default function GeneralLedgerPage() {
         />
       </div>
 
+      <ConfirmDialog
+        open={showSeedConfirm}
+        onOpenChange={setShowSeedConfirm}
+        title="Initialize Chart of Accounts?"
+        description="This will seed standard accounting codes."
+        confirmLabel="Seed"
+        loading={isSeeding}
+        onConfirm={handleSeed}
+      />
     </div>
   )
 }

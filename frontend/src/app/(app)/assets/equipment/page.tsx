@@ -3,11 +3,9 @@
 import { useState } from "react";
 import { useEquipment, useCreateEquipment, useLogMaintenance } from '@/hooks/domains/useProcurementQueries';
 import { useAuth } from "@/context/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Wrench, AlertTriangle, Coffee } from "lucide-react";
+import { Plus, Wrench, Coffee } from "lucide-react";
 import { toast } from "sonner";
 import { HubPageHeader } from "@/components/shared/hub-card";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
@@ -16,7 +14,23 @@ import { Equipment, Branch } from "@/types/api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+
+const EQUIPMENT_TYPES = [
+  { value: "ESPRESSO_MACHINE", label: "Espresso Machine" },
+  { value: "GRINDER", label: "Grinder" },
+  { value: "BLENDER", label: "Blender" },
+  { value: "POS_SYSTEM", label: "POS System" },
+  { value: "REFRIGERATOR", label: "Refrigerator" },
+  { value: "OTHER", label: "Other" },
+] as const;
 
 export default function EquipmentPage() {
   const { activeBranchId } = useAuth();
@@ -107,14 +121,18 @@ export default function EquipmentPage() {
               </div>
               <div className="space-y-2">
                 <Label>Type</Label>
-                <select className="flex h-10 w-full rounded-md border px-3" value={type} onChange={e => setType(e.target.value)}>
-                  <option value="ESPRESSO_MACHINE">Espresso Machine</option>
-                  <option value="GRINDER">Grinder</option>
-                  <option value="BLENDER">Blender</option>
-                  <option value="POS_SYSTEM">POS System</option>
-                  <option value="REFRIGERATOR">Refrigerator</option>
-                  <option value="OTHER">Other</option>
-                </select>
+                <Select value={type} onValueChange={(v) => v && setType(v)}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EQUIPMENT_TYPES.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label>Serial Number</Label>

@@ -4,7 +4,7 @@ import { HubPageHeader } from "@/components/shared/hub-card"
 import { exportSales } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, DollarSign, Download, RefreshCw } from "lucide-react"
-import { Skeleton } from "antd"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useAuth } from "@/context/AuthContext"
 import { toast } from "sonner"
 import { useFinanceSettlements, useFinanceExpenses, useApproveSettlement } from '@/hooks/domains/useFinanceQueries';
@@ -15,7 +15,7 @@ function FinanceTableSkeleton({ rows = 4 }: { rows?: number }) {
   return (
     <div className="space-y-3 p-2">
       {Array.from({ length: rows }).map((_, i) => (
-        <Skeleton key={i} active paragraph={{ rows: 0 }} title={{ width: "100%" }} />
+        <Skeleton key={i} className="h-10 w-full" />
       ))}
     </div>
   )
