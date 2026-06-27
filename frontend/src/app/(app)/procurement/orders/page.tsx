@@ -303,7 +303,7 @@ export default function ProcurementPage() {
       <HubCard
         title="Purchase Orders"
         icon={Truck}
-        description="Manage procurement orders and track deliveries."
+        description="Create and track supplier orders. Use Receive to add approved PO lines into inventory — for ad-hoc receipts without a PO, use Inventory → Receive Stock (GRN)."
         actions={
           <Button className="bg-blue-600 hover:bg-blue-700" onClick={() => setIsModalOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
@@ -465,6 +465,9 @@ export default function ProcurementPage() {
         width={560}
       >
         <div className="space-y-4 mt-4">
+          <p className="text-sm text-slate-500">
+            Receiving a PO updates inventory batches for this order. For deliveries not linked to a PO, use Inventory → Receive Stock (GRN) instead.
+          </p>
           <p className="text-sm text-slate-500">Set expiry dates for incoming batches (optional per line).</p>
           {(receivePo?.items ?? []).map((item) => (
             <div key={item.id} className="flex items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-3">

@@ -95,7 +95,7 @@ export function ProductFormModal({ isOpen, onClose, product }: { isOpen: boolean
       <DialogContent className="max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{product ? "Edit Menu Item" : "New Menu Item"}</DialogTitle>
-          <DialogDescription>Create a sellable product and define its recipe (BOM).</DialogDescription>
+          <DialogDescription>Create a sellable menu item and define its menu recipe for POS inventory deduction.</DialogDescription>
         </DialogHeader>
         
         <div className="space-y-6 py-4">
@@ -129,14 +129,14 @@ export function ProductFormModal({ isOpen, onClose, product }: { isOpen: boolean
 
           <div className="space-y-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-100 dark:border-slate-800">
             <div className="flex justify-between items-center">
-              <h3 className="font-bold text-slate-800 dark:text-slate-200">2. Recipe (BOM)</h3>
+              <h3 className="font-bold text-slate-800 dark:text-slate-200">2. Menu Recipe</h3>
               <Button type="button" variant="outline" size="sm" onClick={handleAddRecipeItem} className="h-8">
                 <Plus className="w-4 h-4 mr-1" /> Add Ingredient
               </Button>
             </div>
             
             {recipeItems.length === 0 ? (
-              <p className="text-sm text-slate-500 italic">No recipe defined. This product will not deduct any inventory.</p>
+              <p className="text-sm text-slate-500 italic">No menu recipe defined. This item will not deduct inventory when sold.</p>
             ) : (
               <div className="space-y-3">
                 {recipeItems.map((item, idx) => (

@@ -306,7 +306,7 @@ export default function POSPage() {
           ))}
           {products.length === 0 && (
             <div className="col-span-3 text-center text-slate-500 dark:text-slate-400 py-10 bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
-              No menu items yet. Ask a manager to add products in Menu & Products.
+              No menu items yet. Ask a manager to add products under Products → Menu Items.
             </div>
           )}
           </div>

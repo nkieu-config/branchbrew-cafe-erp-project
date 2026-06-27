@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import type { Branch } from "@/types/api";
 import { getErrorMessage } from "@/lib/errors";
 
-export default function BranchesPage() {
+export default function BranchesPageClient({ embedded = false }: { embedded?: boolean }) {
   const { data: branches, isLoading } = useBranches();
   const createMutation = useCreateBranch();
   const updateMutation = useUpdateBranch();
@@ -67,10 +67,10 @@ export default function BranchesPage() {
     }
   };
 
-  return (
-    <AnimatedPage className="space-y-6 max-w-5xl mx-auto w-full">
+  const content = (
+    <div className={`space-y-6 w-full ${embedded ? "max-w-5xl" : "max-w-5xl mx-auto"}`}>
       <HubPageHeader
-        title="Branch Management"
+        title="Branches"
         icon={Building2}
         description="Manage all franchise locations and central kitchens."
         actions={
@@ -173,6 +173,10 @@ export default function BranchesPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </AnimatedPage>
+    </div>
   );
+
+  if (embedded) return content;
+
+  return <AnimatedPage className="space-y-6 max-w-5xl mx-auto w-full">{content}</AnimatedPage>;
 }

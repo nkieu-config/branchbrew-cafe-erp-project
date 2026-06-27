@@ -1,0 +1,698 @@
+import type { LucideIcon } from "lucide-react";
+import {
+  LayoutDashboard,
+  ShoppingCart,
+  Package,
+  Gift,
+  ClipboardList,
+  Truck,
+  ChefHat,
+  UserSquare2,
+  Landmark,
+  Wrench,
+  Building2,
+  ShieldCheck,
+  Settings,
+  MonitorPlay,
+  PackageOpen,
+  ClipboardCheck,
+  ArrowRightLeft,
+  Trash2,
+  ArrowDownToLine,
+  Store,
+  FileCheck,
+  Users,
+  CalendarDays,
+  Clock,
+  Briefcase,
+  Wallet,
+  BarChart3,
+  Leaf,
+  SlidersHorizontal,
+  ListTree,
+  TicketPercent,
+  BookOpen,
+  Receipt,
+  History,
+} from "lucide-react";
+import type { Role } from "@/types/api";
+
+export type NavRole = Role;
+
+export type SidebarItem = {
+  id: string;
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  roles: NavRole[];
+};
+
+export type SidebarGroup = {
+  group: string;
+  items: SidebarItem[];
+};
+
+export type HubTab = {
+  id: string;
+  label: string;
+  path: string;
+  icon: LucideIcon;
+  roles: NavRole[];
+  /** Lower numbers appear first. Used for role-specific ordering. */
+  order?: Partial<Record<NavRole, number>>;
+};
+
+export type HubId =
+  | "inventory"
+  | "procurement"
+  | "hr"
+  | "products"
+  | "kitchen"
+  | "crm"
+  | "finance"
+  | "assets"
+  | "pos"
+  | "settings"
+  | "organization";
+
+export type HubConfig = {
+  id: HubId;
+  label: string;
+  description: string;
+  icon: LucideIcon;
+  iconClassName: string;
+  basePath: string;
+  tabs: HubTab[];
+  wrapAntd?: boolean;
+};
+
+/** Canonical labels for URL segments used in breadcrumbs. */
+export const PATH_LABELS: Record<string, string> = {
+  inventory: "Inventory",
+  stock: "Batches & Expiry",
+  batches: "Batches & Expiry",
+  "stock-in": "Receive Stock (GRN)",
+  transfers: "Stock Transfers",
+  waste: "Waste Logs",
+  procurement: "Procurement",
+  suppliers: "Suppliers",
+  orders: "Purchase Orders",
+  products: "Products",
+  ingredients: "Raw Ingredients",
+  modifiers: "Modifiers",
+  costing: "Food Cost",
+  kitchen: "Central Kitchen",
+  boms: "Production BOM",
+  hr: "Human Resources",
+  employees: "Employee Directory",
+  shifts: "Shift Management",
+  attendance: "Attendance",
+  leave: "Leave Requests",
+  payroll: "Payroll",
+  crm: "CRM",
+  customers: "Customers",
+  promotions: "Promotions",
+  finance: "Finance",
+  overview: "Overview",
+  ledger: "General Ledger",
+  accounts: "Chart of Accounts",
+  assets: "Assets",
+  equipment: "Equipment",
+  pos: "Point of Sale",
+  terminal: "Terminal",
+  settlement: "Settlement",
+  settings: "Settings",
+  audit: "Audit Trail",
+  organization: "Organization",
+  branches: "Branches",
+  users: "Users & Roles",
+  kds: "Kitchen Display",
+};
+
+export const SIDEBAR_GROUPS: SidebarGroup[] = [
+  {
+    group: "Overview & Analytics",
+    items: [
+      {
+        id: "dashboard",
+        label: "Dashboard",
+        href: "/",
+        icon: LayoutDashboard,
+        roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+      },
+    ],
+  },
+  {
+    group: "Store Operations",
+    items: [
+      {
+        id: "pos",
+        label: "Point of Sale",
+        href: "/pos",
+        icon: ShoppingCart,
+        roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+      },
+      {
+        id: "kds",
+        label: "Kitchen Display",
+        href: "/kds",
+        icon: MonitorPlay,
+        roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+      },
+      {
+        id: "inventory",
+        label: "Inventory",
+        href: "/inventory",
+        icon: Package,
+        roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+      },
+      {
+        id: "crm",
+        label: "CRM",
+        href: "/crm",
+        icon: Gift,
+        roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+      },
+    ],
+  },
+  {
+    group: "Back Office",
+    items: [
+      {
+        id: "products",
+        label: "Products",
+        href: "/products",
+        icon: ClipboardList,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+      {
+        id: "procurement",
+        label: "Procurement",
+        href: "/procurement",
+        icon: Truck,
+        roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+      },
+      {
+        id: "kitchen",
+        label: "Central Kitchen",
+        href: "/kitchen",
+        icon: ChefHat,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+      {
+        id: "hr",
+        label: "Human Resources",
+        href: "/hr",
+        icon: UserSquare2,
+        roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+      },
+      {
+        id: "finance",
+        label: "Finance",
+        href: "/finance",
+        icon: Landmark,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+      {
+        id: "assets",
+        label: "Assets",
+        href: "/assets",
+        icon: Wrench,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+    ],
+  },
+  {
+    group: "System Admin",
+    items: [
+      {
+        id: "organization",
+        label: "Organization",
+        href: "/organization",
+        icon: Building2,
+        roles: ["SUPER_ADMIN"],
+      },
+      {
+        id: "settings",
+        label: "Settings",
+        href: "/settings",
+        icon: Settings,
+        roles: ["SUPER_ADMIN"],
+      },
+    ],
+  },
+];
+
+export const HUBS: Record<HubId, HubConfig> = {
+  inventory: {
+    id: "inventory",
+    label: "Inventory",
+    description: "Manage stock levels, batches, receipts, transfers, and waste.",
+    icon: Package,
+    iconClassName: "w-6 h-6 text-emerald-500",
+    basePath: "/inventory",
+    wrapAntd: true,
+    tabs: [
+      {
+        id: "balance",
+        label: "Stock Balance",
+        path: "/inventory",
+        icon: PackageOpen,
+        roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+      },
+      {
+        id: "batches",
+        label: "Batches & Expiry",
+        path: "/inventory/batches",
+        icon: ClipboardCheck,
+        roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+      },
+      {
+        id: "grn",
+        label: "Receive Stock (GRN)",
+        path: "/inventory/stock-in",
+        icon: ArrowDownToLine,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+      {
+        id: "transfers",
+        label: "Stock Transfers",
+        path: "/inventory/transfers",
+        icon: ArrowRightLeft,
+        roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+      },
+      {
+        id: "waste",
+        label: "Waste Logs",
+        path: "/inventory/waste",
+        icon: Trash2,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+    ],
+  },
+  procurement: {
+    id: "procurement",
+    label: "Procurement",
+    description: "Manage suppliers and purchase orders.",
+    icon: Truck,
+    iconClassName: "w-6 h-6 text-blue-500",
+    basePath: "/procurement",
+    wrapAntd: true,
+    tabs: [
+      {
+        id: "suppliers",
+        label: "Suppliers",
+        path: "/procurement/suppliers",
+        icon: Store,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+        order: { SUPER_ADMIN: 1, MANAGER: 1, STAFF: 99 },
+      },
+      {
+        id: "orders",
+        label: "Purchase Orders",
+        path: "/procurement/orders",
+        icon: FileCheck,
+        roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+        order: { SUPER_ADMIN: 2, MANAGER: 2, STAFF: 1 },
+      },
+    ],
+  },
+  hr: {
+    id: "hr",
+    label: "Human Resources",
+    description: "Manage staff, shifts, attendance, and payroll.",
+    icon: UserSquare2,
+    iconClassName: "w-6 h-6 text-violet-500",
+    basePath: "/hr",
+    wrapAntd: true,
+    tabs: [
+      {
+        id: "employees",
+        label: "Employee Directory",
+        path: "/hr/employees",
+        icon: Users,
+        roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+        order: { SUPER_ADMIN: 1, MANAGER: 1, STAFF: 3 },
+      },
+      {
+        id: "shifts",
+        label: "Shift Management",
+        path: "/hr/shifts",
+        icon: CalendarDays,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+        order: { SUPER_ADMIN: 2, MANAGER: 2 },
+      },
+      {
+        id: "attendance",
+        label: "Attendance",
+        path: "/hr/attendance",
+        icon: Clock,
+        roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+        order: { SUPER_ADMIN: 3, MANAGER: 3, STAFF: 1 },
+      },
+      {
+        id: "leave",
+        label: "Leave Requests",
+        path: "/hr/leave",
+        icon: Briefcase,
+        roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+        order: { SUPER_ADMIN: 4, MANAGER: 4, STAFF: 2 },
+      },
+      {
+        id: "payroll",
+        label: "Payroll",
+        path: "/hr/payroll",
+        icon: Wallet,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+        order: { SUPER_ADMIN: 5, MANAGER: 5 },
+      },
+    ],
+  },
+  products: {
+    id: "products",
+    label: "Products",
+    description: "Manage menu catalog, ingredients, modifiers, and food cost.",
+    icon: ClipboardList,
+    iconClassName: "w-6 h-6 text-amber-600",
+    basePath: "/products",
+    wrapAntd: true,
+    tabs: [
+      {
+        id: "menu",
+        label: "Menu Items",
+        path: "/products",
+        icon: ClipboardList,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+      {
+        id: "ingredients",
+        label: "Raw Ingredients",
+        path: "/products/ingredients",
+        icon: Leaf,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+      {
+        id: "modifiers",
+        label: "Modifiers",
+        path: "/products/modifiers",
+        icon: SlidersHorizontal,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+      {
+        id: "costing",
+        label: "Food Cost",
+        path: "/products/costing",
+        icon: BarChart3,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+    ],
+  },
+  kitchen: {
+    id: "kitchen",
+    label: "Central Kitchen",
+    description: "Manage production orders and production BOMs.",
+    icon: ChefHat,
+    iconClassName: "w-7 h-7 text-orange-500",
+    basePath: "/kitchen",
+    wrapAntd: true,
+    tabs: [
+      {
+        id: "production",
+        label: "Production Orders",
+        path: "/kitchen",
+        icon: ChefHat,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+      {
+        id: "boms",
+        label: "Production BOM",
+        path: "/kitchen/boms",
+        icon: ListTree,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+    ],
+  },
+  crm: {
+    id: "crm",
+    label: "CRM",
+    description: "Manage customer relationships, loyalty points, and promotions.",
+    icon: Gift,
+    iconClassName: "w-6 h-6 text-pink-500",
+    basePath: "/crm",
+    wrapAntd: true,
+    tabs: [
+      {
+        id: "customers",
+        label: "Customers",
+        path: "/crm/customers",
+        icon: Users,
+        roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+      },
+      {
+        id: "promotions",
+        label: "Promotions",
+        path: "/crm/promotions",
+        icon: TicketPercent,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+    ],
+  },
+  finance: {
+    id: "finance",
+    label: "Finance",
+    description: "Manage HQ finances, ledger, and accounts.",
+    icon: Landmark,
+    iconClassName: "w-6 h-6 text-emerald-500",
+    basePath: "/finance",
+    wrapAntd: true,
+    tabs: [
+      {
+        id: "overview",
+        label: "Overview",
+        path: "/finance/overview",
+        icon: Wallet,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+      {
+        id: "ledger",
+        label: "General Ledger",
+        path: "/finance/ledger",
+        icon: BookOpen,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+      {
+        id: "accounts",
+        label: "Chart of Accounts",
+        path: "/finance/accounts",
+        icon: Landmark,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+    ],
+  },
+  assets: {
+    id: "assets",
+    label: "Assets",
+    description: "Manage store equipment, coffee machines, and fixed assets.",
+    icon: Wrench,
+    iconClassName: "w-6 h-6 text-slate-500",
+    basePath: "/assets",
+    wrapAntd: true,
+    tabs: [],
+  },
+  pos: {
+    id: "pos",
+    label: "Point of Sale",
+    description: "Process sales and manage cash register.",
+    icon: ShoppingCart,
+    iconClassName: "w-6 h-6 text-emerald-500",
+    basePath: "/pos",
+    wrapAntd: false,
+    tabs: [
+      {
+        id: "terminal",
+        label: "Terminal",
+        path: "/pos/terminal",
+        icon: ShoppingCart,
+        roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+      },
+      {
+        id: "orders",
+        label: "Orders",
+        path: "/pos/orders",
+        icon: Receipt,
+        roles: ["SUPER_ADMIN", "MANAGER"],
+      },
+      {
+        id: "settlement",
+        label: "Settlement",
+        path: "/pos/settlement",
+        icon: Wallet,
+        roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+      },
+    ],
+  },
+  settings: {
+    id: "settings",
+    label: "Settings",
+    description: "Global settings and audit logs for the ERP.",
+    icon: Settings,
+    iconClassName: "w-6 h-6 text-slate-500",
+    basePath: "/settings",
+    wrapAntd: false,
+    tabs: [
+      { id: "general", label: "General", path: "/settings", icon: Settings, roles: ["SUPER_ADMIN"] },
+      { id: "audit", label: "Audit Trail", path: "/settings/audit", icon: History, roles: ["SUPER_ADMIN"] },
+    ],
+  },
+  organization: {
+    id: "organization",
+    label: "Organization",
+    description: "Manage branches, locations, and user access.",
+    icon: Building2,
+    iconClassName: "w-6 h-6 text-emerald-500",
+    basePath: "/organization",
+    wrapAntd: true,
+    tabs: [
+      {
+        id: "branches",
+        label: "Branches",
+        path: "/organization/branches",
+        icon: Building2,
+        roles: ["SUPER_ADMIN"],
+      },
+      {
+        id: "users",
+        label: "Users & Roles",
+        path: "/organization/users",
+        icon: ShieldCheck,
+        roles: ["SUPER_ADMIN"],
+      },
+    ],
+  },
+};
+
+export const FLAT_SIDEBAR_ITEMS = SIDEBAR_GROUPS.flatMap((g) => g.items);
+
+export function getHubConfig(hubId: HubId): HubConfig {
+  return HUBS[hubId];
+}
+
+export function getVisibleHubTabs(hubId: HubId, role: string): HubTab[] {
+  const hub = HUBS[hubId];
+  const navRole = role as NavRole;
+  return hub.tabs
+    .filter((tab) => tab.roles.includes(navRole))
+    .sort((a, b) => {
+      const orderA = a.order?.[navRole] ?? 50;
+      const orderB = b.order?.[navRole] ?? 50;
+      return orderA - orderB;
+    });
+}
+
+export function isTabActive(pathname: string, tabPath: string, basePath: string): boolean {
+  if (tabPath === basePath) {
+    return pathname === basePath;
+  }
+  return pathname === tabPath || pathname.startsWith(`${tabPath}/`);
+}
+
+export function resolvePathLabel(segment: string): string {
+  return PATH_LABELS[segment] ?? segment.split("-").map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join(" ");
+}
+
+export type BreadcrumbItem = {
+  label: string;
+  href: string | null;
+};
+
+export function resolveBreadcrumb(pathname: string): { section: string; subsection: string | null } {
+  const trail = resolveBreadcrumbTrail(pathname);
+  if (trail.length === 0) {
+    return { section: "Dashboard", subsection: null };
+  }
+  if (trail.length === 1) {
+    return { section: trail[0].label, subsection: null };
+  }
+  return {
+    section: trail[0].label,
+    subsection: trail[trail.length - 1].label,
+  };
+}
+
+/** Canonical href for breadcrumb section links (handles legacy redirects). */
+function resolveHubHref(pathname: string): string {
+  if (pathname === "/branches" || pathname.startsWith("/branches/")) {
+    return "/organization/branches";
+  }
+  if (pathname === "/users" || pathname.startsWith("/users/")) {
+    return "/organization/users";
+  }
+  if (pathname === "/inventory/stock" || pathname.startsWith("/inventory/stock/")) {
+    return "/inventory/batches";
+  }
+  if (pathname === "/procurement/transfers" || pathname.startsWith("/procurement/transfers/")) {
+    return "/inventory/transfers";
+  }
+
+  const activeSidebar = findActiveSidebarItem(pathname);
+  return activeSidebar?.href ?? `/${pathname.split("/").filter(Boolean)[0] ?? ""}`;
+}
+
+export function resolveBreadcrumbTrail(pathname: string): BreadcrumbItem[] {
+  const parts = pathname.split("/").filter(Boolean);
+
+  if (parts.length === 0) {
+    return [{ label: "Dashboard", href: null }];
+  }
+
+  const hubHref = resolveHubHref(pathname);
+  const sectionLabel = resolvePathLabel(parts[0]);
+
+  if (parts.length === 1 && pathname === hubHref) {
+    return [{ label: sectionLabel, href: null }];
+  }
+
+  const trail: BreadcrumbItem[] = [{ label: sectionLabel, href: hubHref }];
+
+  if (parts.length > 1) {
+    const subsectionLabel = resolvePathLabel(parts[parts.length - 1]);
+    if (subsectionLabel !== sectionLabel) {
+      trail.push({ label: subsectionLabel, href: null });
+    }
+  }
+
+  return trail;
+}
+
+export function findActiveSidebarItem(pathname: string): SidebarItem | undefined {
+  return [...FLAT_SIDEBAR_ITEMS]
+    .sort((a, b) => b.href.length - a.href.length)
+    .find(
+      (item) =>
+        pathname === item.href ||
+        (item.href !== "/" && pathname.startsWith(`${item.href}/`))
+    );
+}
+
+/** Legacy paths that redirect to new locations — still match sidebar active state. */
+const LEGACY_PATH_PREFIXES: Record<string, string> = {
+  "/branches": "/organization",
+  "/users": "/organization",
+  "/inventory/stock": "/inventory",
+  "/procurement/transfers": "/inventory",
+};
+
+export function isSidebarItemActive(item: SidebarItem, pathname: string): boolean {
+  const activeItem = findActiveSidebarItem(pathname);
+  if (activeItem) {
+    return item.href === activeItem.href;
+  }
+
+  for (const [legacy, target] of Object.entries(LEGACY_PATH_PREFIXES)) {
+    if (pathname === legacy || pathname.startsWith(`${legacy}/`)) {
+      return item.href === target || item.href.startsWith(target);
+    }
+  }
+
+  return item.href === "/" && pathname === "/";
+}

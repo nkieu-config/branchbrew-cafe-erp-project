@@ -1,9 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useImperativeHandle,
+  useMemo,
+  useState,
+} from "react";
 import Link from "next/link";
-import { Form, Select, InputNumber, Button as AntButton } from "antd";
-import { Plus, CheckCircle2, ArrowRightLeft, ExternalLink } from "lucide-react";
+import { Form, Select, InputNumber } from "antd";
+import { CheckCircle2, ArrowRightLeft, ExternalLink, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useAuth } from "@/context/AuthContext";
@@ -25,21 +31,42 @@ import type { Branch, Ingredient, StockTransfer } from "@/types/api";
 
 type SourceInventory = { ingredient: Ingredient; stock: number };
 
+export type StockTransfersPanelHandle = {
+  openCreate: () => void;
+};
+
 interface StockTransfersPanelProps {
-  mode: "full" | "compact";
+  /** @deprecated Use `variant` instead */
+  mode?: "full" | "compact";
+  /** `page` — inside HubCard (no extra chrome). `compact` — inventory widget with local header. */
+  variant?: "page" | "compact";
   /** When compact, limit ingredient picker to branch stock on hand. */
   sourceInventories?: SourceInventory[];
 }
 
-export function StockTransfersPanel({
-  mode,
-  sourceInventories,
-}: StockTransfersPanelProps) {
+function branchLabel(name: string | undefined) {
+  return name?.trim() || "—";
+}
+
+function BranchCell({ name }: { name: string | undefined }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
+      <Building2 className="w-3.5 h-3.5 shrink-0 text-slate-400" aria-hidden />
+      <span className="font-medium">{branchLabel(name)}</span>
+    </span>
+  );
+}
+
+export const StockTransfersPanel = forwardRef<
+  StockTransfersPanelHandle,
+  StockTransfersPanelProps
+>(function StockTransfersPanel({ mode, variant: variantProp, sourceInventories }, ref) {
+  const variant = variantProp ?? (mode === "compact" ? "compact" : "page");
+
   const { user, activeBranchId } = useAuth();
   const branchId = activeBranchId ?? undefined;
 
-  const { data: transfersData, isLoading: loadingTransfers } =
-    useTransfers(branchId);
+  const { data: transfersData, isLoading: loadingTransfers } = useTransfers(branchId);
   const { data: branchesData, isLoading: loadingBranches } = useBranches();
   const { data: ingredientsData, isLoading: loadingIng } = useIngredients();
 
@@ -58,20 +85,23 @@ export function StockTransfersPanel({
   const loading = loadingTransfers || loadingBranches || loadingIng;
 
   const visibleTransfers = useMemo(() => {
-    if (mode === "full") return transfers;
+    if (variant === "page") return transfers;
     if (!branchId) return transfers.filter((t) => t.status === "PENDING");
     return transfers.filter(
       (t) =>
         t.status === "PENDING" &&
         (t.toBranchId === branchId || t.fromBranchId === branchId),
     );
-  }, [transfers, mode, branchId]);
+  }, [transfers, variant, branchId]);
 
-  const canAccept = (transfer: StockTransfer) => {
-    if (transfer.status !== "PENDING") return false;
-    if (user?.role === "SUPER_ADMIN") return true;
-    return !!branchId && transfer.toBranchId === branchId;
-  };
+  const canAccept = useCallback(
+    (transfer: StockTransfer) => {
+      if (transfer.status !== "PENDING") return false;
+      if (user?.role === "SUPER_ADMIN") return true;
+      return !!branchId && transfer.toBranchId === branchId;
+    },
+    [user?.role, branchId],
+  );
 
   const ingredientOptions = useMemo(() => {
     if (sourceInventories?.length) {
@@ -87,6 +117,16 @@ export function StockTransfersPanel({
       label: `${i.name} (${i.unit})`,
     }));
   }, [sourceInventories, allIngredients]);
+
+  const openCreate = useCallback(() => {
+    form.resetFields();
+    if (branchId) {
+      form.setFieldsValue({ fromBranchId: branchId });
+    }
+    setIsModalOpen(true);
+  }, [form, branchId]);
+
+  useImperativeHandle(ref, () => ({ openCreate }), [openCreate]);
 
   const handleCreateSubmit = async (values: {
     fromBranchId?: number;
@@ -131,154 +171,170 @@ export function StockTransfersPanel({
     }
   };
 
-  const columns = [
-    {
-      title: "Date",
-      dataIndex: "createdAt",
-      key: "createdAt",
-      render: (date: string) =>
-        mode === "compact" ? (
-          format(new Date(date), "dd MMM HH:mm")
-        ) : (
-          format(new Date(date), "dd MMM yyyy HH:mm")
-        ),
-    },
-    {
-      title: "From",
-      dataIndex: ["fromBranch", "name"],
-      key: "from",
-      render: (text: string) => <StatusBadge tone="info">{text || "HQ"}</StatusBadge>,
-    },
-    {
-      title: "To",
-      dataIndex: ["toBranch", "name"],
-      key: "to",
-      render: (text: string) => <StatusBadge tone="info">{text}</StatusBadge>,
-    },
-    {
-      title: "Ingredient",
-      key: "ingredient",
-      render: (_: unknown, record: StockTransfer) => (
-        <span className="font-semibold text-slate-800 dark:text-slate-200">
-          {record.ingredient?.name}{" "}
-          <span className="text-slate-400 font-normal">
-            ({record.quantity} {record.ingredient?.unit})
+  const columns = useMemo(
+    () => [
+      {
+        title: "Date",
+        dataIndex: "createdAt",
+        key: "createdAt",
+        width: variant === "compact" ? 120 : 160,
+        render: (date: string) => (
+          <span className="text-slate-600 dark:text-slate-300 whitespace-nowrap tabular-nums">
+            {variant === "compact"
+              ? format(new Date(date), "dd MMM HH:mm")
+              : format(new Date(date), "dd MMM yyyy HH:mm")}
           </span>
-        </span>
-      ),
-    },
-    ...(mode === "full"
-      ? [
-          {
-            title: "Requested by",
-            dataIndex: ["requestedBy", "name"],
-            key: "requestedBy",
-            render: (text: string) => (
-              <span className="text-slate-500">{text}</span>
-            ),
-          },
-        ]
-      : []),
-    {
-      title: "Status",
-      dataIndex: "status",
-      key: "status",
-      render: (status: string) => (
-        <StatusBadge tone={transferStatusTone(status)}>{status}</StatusBadge>
-      ),
-    },
-    {
-      title: "",
-      key: "action",
-      align: "right" as const,
-      render: (_: unknown, record: StockTransfer) => {
-        if (canAccept(record)) {
-          return (
-            <TableActionButton
-              icon={CheckCircle2}
-              label="Accept"
-              onClick={() => setAcceptTarget(record)}
-              className="text-emerald-600 font-bold"
-            />
-          );
-        }
-        if (
-          record.status === "PENDING" &&
-          branchId &&
-          record.fromBranchId === branchId
-        ) {
-          return (
-            <span className="text-xs text-slate-400">
-              Awaiting {record.toBranch?.name}
-            </span>
-          );
-        }
-        return null;
+        ),
       },
-    },
-  ];
+      {
+        title: "From",
+        key: "from",
+        render: (_: unknown, record: StockTransfer) => (
+          <BranchCell name={record.fromBranch?.name} />
+        ),
+      },
+      {
+        title: "To",
+        key: "to",
+        render: (_: unknown, record: StockTransfer) => (
+          <BranchCell name={record.toBranch?.name} />
+        ),
+      },
+      {
+        title: "Ingredient",
+        key: "ingredient",
+        render: (_: unknown, record: StockTransfer) => (
+          <span className="font-medium text-slate-800 dark:text-slate-200">
+            {record.ingredient?.name ?? "—"}
+          </span>
+        ),
+      },
+      {
+        title: "Qty",
+        key: "quantity",
+        align: "right" as const,
+        width: 100,
+        render: (_: unknown, record: StockTransfer) => (
+          <span className="font-mono tabular-nums text-slate-600 dark:text-slate-300">
+            {record.quantity}
+            {record.ingredient?.unit ? (
+              <span className="text-slate-400 ml-1 text-xs">{record.ingredient.unit}</span>
+            ) : null}
+          </span>
+        ),
+      },
+      ...(variant === "page"
+        ? [
+            {
+              title: "Requested by",
+              key: "requestedBy",
+              render: (_: unknown, record: StockTransfer) => (
+                <span className="text-slate-500">
+                  {record.requestedBy?.name ?? record.requestedBy?.email ?? "—"}
+                </span>
+              ),
+            },
+          ]
+        : []),
+      {
+        title: "Status",
+        dataIndex: "status",
+        key: "status",
+        width: 120,
+        render: (status: string) => (
+          <StatusBadge tone={transferStatusTone(status)}>{status}</StatusBadge>
+        ),
+      },
+      {
+        title: "Actions",
+        key: "actions",
+        align: "right" as const,
+        width: 140,
+        render: (_: unknown, record: StockTransfer) => {
+          if (canAccept(record)) {
+            return (
+              <TableActionButton
+                icon={CheckCircle2}
+                label="Accept"
+                onClick={() => setAcceptTarget(record)}
+                className="text-emerald-600 font-bold"
+              />
+            );
+          }
+          if (
+            record.status === "PENDING" &&
+            branchId &&
+            record.fromBranchId === branchId
+          ) {
+            return (
+              <span className="text-xs text-slate-400 italic">
+                Awaiting {record.toBranch?.name ?? "destination"}
+              </span>
+            );
+          }
+          return null;
+        },
+      },
+    ],
+    [variant, canAccept, branchId],
+  );
 
-  const openCreate = () => {
-    form.resetFields();
-    if (branchId) {
-      form.setFieldsValue({ fromBranchId: branchId });
-    }
-    setIsModalOpen(true);
-  };
+  const emptyDescription =
+    variant === "page"
+      ? "No stock transfers yet. Request a transfer to move inventory between branches."
+      : "No pending transfers for this branch.";
 
-  if (mode === "full" && !branchId) {
+  if (variant === "page" && !branchId) {
     return (
       <BranchEmptyState description="Select a branch in the top bar to request and manage stock transfers." />
     );
   }
 
+  const table = (
+    <DataTable
+      columns={columns}
+      dataSource={visibleTransfers}
+      rowKey="id"
+      loading={loading}
+      hideBorders={variant === "page"}
+      emptyDescription={emptyDescription}
+      scroll={{ x: variant === "page" ? 960 : 720 }}
+      pagination={
+        variant === "page"
+          ? { pageSize: 15, showSizeChanger: true, pageSizeOptions: ["10", "15", "25", "50"] }
+          : { pageSize: 5, hideOnSinglePage: true }
+      }
+    />
+  );
+
   return (
-    <div className={mode === "full" ? "space-y-6" : "space-y-3"}>
-      {mode === "compact" && (
-        <div className="flex items-center justify-between gap-2">
-          <h2 className="font-semibold text-lg text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <ArrowRightLeft className="w-5 h-5 text-blue-500" /> Pending Transfers
-          </h2>
-          <div className="flex gap-2">
-            {branchId && (
-              <Button variant="outline" size="sm" onClick={openCreate}>
-                New transfer
-              </Button>
-            )}
-            <Link
-              href="/procurement/transfers"
-              className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 px-3 py-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
-            >
-              All transfers <ExternalLink className="w-3.5 h-3.5" />
-            </Link>
+    <>
+      {variant === "compact" && (
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="font-semibold text-lg text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <ArrowRightLeft className="w-5 h-5 text-blue-500" aria-hidden />
+              Pending Transfers
+            </h2>
+            <div className="flex gap-2">
+              {branchId && (
+                <Button variant="outline" size="sm" onClick={openCreate}>
+                  New transfer
+                </Button>
+              )}
+              <Link
+                href="/inventory/transfers"
+                className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 px-3 py-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                All transfers <ExternalLink className="w-3.5 h-3.5" aria-hidden />
+              </Link>
+            </div>
           </div>
+          {table}
         </div>
       )}
 
-      {mode === "full" && (
-        <div className="flex justify-end">
-          <Button className="bg-indigo-600 hover:bg-indigo-700 font-bold" onClick={openCreate}>
-            <Plus className="w-4 h-4 mr-2" />
-            Request Transfer
-          </Button>
-        </div>
-      )}
-
-      <div
-        className={
-          mode === "full"
-            ? "bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6"
-            : undefined
-        }
-      >
-        <DataTable
-          columns={columns}
-          dataSource={visibleTransfers}
-          rowKey="id"
-          loading={loading}
-          pagination={mode === "full" ? { pageSize: 15 } : { pageSize: 5 }}
-        />
-      </div>
+      {variant === "page" && table}
 
       <FormModal
         title="Request Stock Transfer"
@@ -310,6 +366,15 @@ export function StockTransfersPanel({
                 }))}
               />
             </Form.Item>
+          )}
+
+          {branchId && (
+            <p className="mb-4 text-sm text-slate-500 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 px-3 py-2">
+              Transferring from{" "}
+              <span className="font-medium text-slate-700 dark:text-slate-200">
+                {branches.find((b: Branch) => b.id === branchId)?.name ?? "selected branch"}
+              </span>
+            </p>
           )}
 
           <Form.Item
@@ -347,15 +412,17 @@ export function StockTransfersPanel({
           </Form.Item>
 
           <div className="flex justify-end gap-2 mt-8">
-            <AntButton onClick={() => setIsModalOpen(false)}>Cancel</AntButton>
-            <AntButton
-              type="primary"
-              htmlType="submit"
-              className="bg-indigo-600"
-              loading={submitting}
+            <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="bg-indigo-600 hover:bg-indigo-700"
+              disabled={submitting}
+              onClick={() => form.submit()}
             >
-              Request Transfer
-            </AntButton>
+              {submitting ? "Requesting..." : "Request Transfer"}
+            </Button>
           </div>
         </Form>
       </FormModal>
@@ -363,13 +430,24 @@ export function StockTransfersPanel({
       <ConfirmDialog
         open={acceptTarget !== null}
         onOpenChange={(open) => !open && setAcceptTarget(null)}
-        title="Confirm receiving this transfer?"
+        title={
+          acceptTarget
+            ? `Accept transfer to ${acceptTarget.toBranch?.name ?? "branch"}?`
+            : "Accept transfer?"
+        }
+        description={
+          acceptTarget
+            ? `${acceptTarget.quantity} ${acceptTarget.ingredient?.unit ?? "units"} of ${acceptTarget.ingredient?.name ?? "ingredient"} will be moved into your branch inventory.`
+            : undefined
+        }
         confirmLabel="Accept"
         loading={acceptMutation.isPending}
         onConfirm={async () => {
           if (acceptTarget) await handleAccept(acceptTarget.id);
         }}
       />
-    </div>
+    </>
   );
-}
+});
+
+StockTransfersPanel.displayName = "StockTransfersPanel";

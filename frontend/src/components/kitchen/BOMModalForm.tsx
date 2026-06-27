@@ -40,7 +40,7 @@ export function BOMModalForm({ isOpen, onClose, ingredients }: BOMModalFormProps
 
   return (
     <FormModal
-      title="Create / Update BOM"
+      title="Create / Update Production BOM"
       isOpen={isOpen}
       onClose={onClose}
       width={700}
@@ -60,7 +60,7 @@ export function BOMModalForm({ isOpen, onClose, ingredients }: BOMModalFormProps
           />
         </Form.Item>
 
-        <div className="mb-3 font-black text-slate-700 dark:text-slate-300">Raw Ingredients (Recipe)</div>
+        <div className="mb-3 font-black text-slate-700 dark:text-slate-300">Raw Ingredients</div>
         
         <Form.List name="rawIngredients" initialValue={[{}]}>
           {(fields, { add, remove }) => (
@@ -104,7 +104,7 @@ export function BOMModalForm({ isOpen, onClose, ingredients }: BOMModalFormProps
         <div className="flex justify-end gap-2 mt-6">
           <Button onClick={onClose} className="font-bold">Cancel</Button>
           <Button type="primary" htmlType="submit" className="bg-orange-500 hover:bg-orange-600 border-none font-bold px-6" icon={<Save className="w-4 h-4" />}>
-            Save Recipe
+            Save Production BOM
           </Button>
         </div>
       </Form>

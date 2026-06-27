@@ -129,6 +129,8 @@ export function transferStatusTone(status: string): StatusBadgeTone {
       return "success";
     case "PENDING":
       return "warning";
+    case "SHIPPED":
+      return "info";
     case "CANCELLED":
       return "danger";
     default:

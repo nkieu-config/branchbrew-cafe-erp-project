@@ -117,12 +117,12 @@ export default function BOMPage() {
 
   return (
     <div className="space-y-6">
-      <CentralKitchenBanner message="BOM recipes are managed at the central kitchen branch." />
+      <CentralKitchenBanner message="Production BOMs are managed at the central kitchen branch." />
 
       <HubCard
-        title="Bill of Materials (Recipes)"
+        title="Production BOM"
         icon={ListTree}
-        description="Manage recipes and monitor food cost efficiency."
+        description="Define raw ingredients and quantities for each finished product produced in the central kitchen."
         actions={
           <Button
             className="bg-orange-500 hover:bg-orange-600 shadow-sm font-bold"
@@ -136,9 +136,9 @@ export default function BOMPage() {
         {!loading && bomsGrouped.length === 0 ? (
           <div className="py-16 text-center">
             <ListTree className="w-12 h-12 text-orange-400 mx-auto mb-4" />
-            <p className="font-semibold text-slate-800 dark:text-slate-100">No recipes yet</p>
+            <p className="font-semibold text-slate-800 dark:text-slate-100">No production BOMs yet</p>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-md mx-auto">
-              Create a bill of materials to define raw ingredients and quantities for each finished
+              Create a production BOM to define raw ingredients and quantities for each finished
               product.
             </p>
             <Button

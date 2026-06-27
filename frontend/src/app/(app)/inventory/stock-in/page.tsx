@@ -79,9 +79,9 @@ export default function StockInPage() {
 
   return (
     <HubCard
-      title="Good Receipt Note (GRN)"
+      title="Receive Stock (GRN)"
       icon={ArrowDownToLine}
-      description="Record new raw ingredients received from suppliers or central kitchen."
+      description="Record ad-hoc receipts not tied to a purchase order — e.g. direct delivery, central kitchen drop-off, or stock corrections. To receive against an approved PO, use Procurement → Purchase Orders → Receive."
       className="max-w-4xl"
     >
       <div className="space-y-4">

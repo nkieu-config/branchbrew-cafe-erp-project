@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useHrUsers, useUpdateHourlyRate } from "@/hooks/domains/useHrQueries";
 import { Avatar } from "antd";
@@ -154,8 +155,17 @@ export default function EmployeeDirectoryPage() {
       <HubCard
         title="Employee Directory"
         icon={Users}
-        description="View staff details and manage compensation rates."
+        description="View staff details and manage compensation rates. Login accounts are managed separately."
       >
+        {role === "SUPER_ADMIN" && (
+          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 -mt-2">
+            To create login accounts or reset passwords, go to{" "}
+            <Link href="/organization/users" className="font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300">
+              Organization → Users &amp; Roles
+            </Link>
+            .
+          </p>
+        )}
         <DataTable
           columns={columns}
           dataSource={employees}

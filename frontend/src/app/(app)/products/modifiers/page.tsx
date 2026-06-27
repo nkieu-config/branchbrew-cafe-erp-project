@@ -399,7 +399,7 @@ export default function ModifiersPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Recipe ingredient to swap (optional)</Label>
+              <Label>Menu recipe ingredient to swap (optional)</Label>
               <IngredientSelect
                 value={groupSwapIngredientId}
                 onChange={setGroupSwapIngredientId}

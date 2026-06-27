@@ -42,7 +42,7 @@ export default function IngredientsPage() {
       >
         <DataTable
           loading={isLoading}
-          emptyDescription="No ingredients yet. Add raw materials to build recipes and BOMs."
+          emptyDescription="No ingredients yet. Add raw materials to build menu recipes and production BOMs."
           columns={[
             {
               title: "ID",

@@ -100,13 +100,13 @@ export default function ProductsPage() {
                 ),
             },
             {
-              title: "Recipe Setup",
+              title: "Menu Recipe",
               key: "recipe",
               render: (_: unknown, record: Product) =>
                 record.recipeItems && record.recipeItems.length > 0 ? (
                   <StatusBadge tone="info">{record.recipeItems.length} ingredients</StatusBadge>
                 ) : (
-                  <StatusBadge tone="neutral">No Recipe</StatusBadge>
+                  <StatusBadge tone="neutral">No Menu Recipe</StatusBadge>
                 ),
             },
             {

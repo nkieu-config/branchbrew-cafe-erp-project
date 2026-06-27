@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function BranchesRedirectPage() {
+export default function OrganizationPage() {
   redirect("/organization/branches");
 }

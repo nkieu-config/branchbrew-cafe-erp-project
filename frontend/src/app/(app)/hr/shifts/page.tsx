@@ -80,7 +80,7 @@ export default function EmployeesShiftsPage() {
               {role === 'SUPER_ADMIN' && (
                 <Button
                   className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-sm"
-                  onClick={() => router.push("/users")}
+                  onClick={() => router.push("/organization/users")}
                 >
                   <Plus className="w-4 h-4 mr-2" /> Add Employee
                 </Button>
