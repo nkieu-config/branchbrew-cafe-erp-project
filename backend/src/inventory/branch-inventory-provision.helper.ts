@@ -16,8 +16,8 @@ export async function provisionBranchInventoryForBranch(
   minStock = DEFAULT_BRANCH_MIN_STOCK,
 ): Promise<number> {
   const inserted = await db.$executeRaw`
-    INSERT INTO "BranchInventory" ("branchId", "ingredientId", "stock", "minStock")
-    SELECT ${branchId}, i.id, 0, ${minStock}
+    INSERT INTO "BranchInventory" ("branchId", "ingredientId", "stock", "minStock", "updatedAt")
+    SELECT ${branchId}, i.id, 0, ${minStock}, NOW()
     FROM "Ingredient" i
     WHERE NOT EXISTS (
       SELECT 1
@@ -40,8 +40,8 @@ export async function provisionBranchInventoryForIngredient(
   minStock = DEFAULT_BRANCH_MIN_STOCK,
 ): Promise<number> {
   const inserted = await db.$executeRaw`
-    INSERT INTO "BranchInventory" ("branchId", "ingredientId", "stock", "minStock")
-    SELECT b.id, ${ingredientId}, 0, ${minStock}
+    INSERT INTO "BranchInventory" ("branchId", "ingredientId", "stock", "minStock", "updatedAt")
+    SELECT b.id, ${ingredientId}, 0, ${minStock}, NOW()
     FROM "Branch" b
     WHERE EXISTS (
       SELECT 1 FROM "Ingredient" i WHERE i.id = ${ingredientId}
