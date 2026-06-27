@@ -4,6 +4,7 @@ import { useState } from "react";
 import { SlidersHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "@/components/shared/data-table";
+import { Popconfirm } from "antd";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -166,7 +167,6 @@ export default function ModifiersPage() {
   };
 
   const handleDeleteGroup = async (group: ModifierGroup) => {
-    if (!confirm(`Delete "${group.name}" and all its options?`)) return;
     try {
       await deleteGroup.mutateAsync(group.id);
       toast.success("Modifier group deleted");
@@ -209,7 +209,6 @@ export default function ModifiersPage() {
   };
 
   const handleDeleteOption = async (option: ModifierOption) => {
-    if (!confirm(`Delete option "${option.name}"?`)) return;
     try {
       await deleteOption.mutateAsync(option.id);
       toast.success("Option deleted");
@@ -274,14 +273,20 @@ export default function ModifiersPage() {
                 >
                   <Plus className="w-4 h-4 mr-1" /> Option
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-red-600"
-                  onClick={() => void handleDeleteGroup(group)}
+                <Popconfirm
+                  title={`Delete "${group.name}" and all its options?`}
+                  okText="Delete"
+                  okButtonProps={{ danger: true }}
+                  onConfirm={() => void handleDeleteGroup(group)}
                 >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </Popconfirm>
               </div>
             </div>
 
@@ -322,14 +327,20 @@ export default function ModifiersPage() {
                       >
                         <Pencil className="w-4 h-4" />
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-red-600"
-                        onClick={() => void handleDeleteOption(record)}
+                      <Popconfirm
+                        title={`Delete option "${record.name}"?`}
+                        okText="Delete"
+                        okButtonProps={{ danger: true }}
+                        onConfirm={() => void handleDeleteOption(record)}
                       >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </Popconfirm>
                     </div>
                   ),
                 },
