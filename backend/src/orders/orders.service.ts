@@ -24,11 +24,13 @@ import {
   buildItemIngredientRequirements,
   mergeRequirementMaps,
 } from './helpers/recipe-requirements.helper';
-import {
-  buildIngredientRequirementsFromOrderItems,
-  isSameCalendarDay,
-} from './order-void.util';
+import { isSameCalendarDay, isTerminalOrderStatus } from './order-void.util';
 import { allocateQueueNumber } from './helpers/queue-number.helper';
+import {
+  applyOrderReversalEffects,
+  ORDER_REVERSAL_INCLUDE,
+} from './helpers/order-reversal.helper';
+import { assertRefundable } from './helpers/order-refund.util';
 
 @Injectable()
 export class OrdersService {
@@ -389,22 +391,10 @@ export class OrdersService {
   }
 
   async voidOrder(orderId: number, user?: BranchScopedUser) {
-    const existing = await this.prisma.order.findUnique({
-      where: { id: orderId },
-      include: {
-        items: {
-          include: {
-            product: { include: { recipeItems: true } },
-          },
-        },
-      },
-    });
+    const existing = await this.loadOrderForReversal(orderId, user);
 
-    if (!existing) throw new NotFoundException('Order not found');
-    if (user) assertBranchAccess(user, existing.branchId);
-
-    if (existing.status === 'CANCELLED') {
-      throw new BadRequestException('Order is already voided.');
+    if (isTerminalOrderStatus(existing.status)) {
+      throw new BadRequestException('Order is already voided or refunded.');
     }
 
     if (!isSameCalendarDay(existing.createdAt, new Date())) {
@@ -413,29 +403,8 @@ export class OrdersService {
       );
     }
 
-    const ingredientRequirements = buildIngredientRequirementsFromOrderItems(
-      existing.items,
-    );
-
     return this.prisma.$transaction(async (tx) => {
-      if (ingredientRequirements.size > 0) {
-        await InventoryHelper.restoreInventory(
-          tx,
-          existing.branchId,
-          ingredientRequirements,
-        );
-      }
-
-      if (existing.customerId) {
-        const pointsDelta =
-          existing.pointsRedeemed - existing.pointsEarned;
-        if (pointsDelta !== 0) {
-          await tx.customer.update({
-            where: { id: existing.customerId },
-            data: { points: { increment: pointsDelta } },
-          });
-        }
-      }
+      await applyOrderReversalEffects(tx, existing);
 
       const order = await tx.order.update({
         where: { id: orderId },
@@ -456,5 +425,76 @@ export class OrdersService {
 
       return order;
     });
+  }
+
+  async refundOrder(
+    orderId: number,
+    reason?: string,
+    user?: BranchScopedUser,
+  ) {
+    const existing = await this.loadOrderForReversal(orderId, user);
+
+    try {
+      assertRefundable(existing.createdAt, existing.status);
+    } catch (err) {
+      throw this.mapRefundError(err);
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      await applyOrderReversalEffects(tx, existing);
+
+      const order = await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: 'REFUNDED',
+          refundReason: reason?.trim() || null,
+          refundedAt: new Date(),
+        },
+        include: {
+          items: { include: { product: true } },
+          customer: true,
+          promotion: true,
+        },
+      });
+
+      await this.outboxService.enqueue(tx, 'order.refunded', {
+        order,
+        reason: reason?.trim(),
+      });
+      await this.outboxService.enqueue(tx, 'order.status.updated', {
+        orderId: order.id,
+        status: order.status,
+        branchId: existing.branchId,
+      });
+
+      return order;
+    });
+  }
+
+  private async loadOrderForReversal(orderId: number, user?: BranchScopedUser) {
+    const existing = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: ORDER_REVERSAL_INCLUDE,
+    });
+
+    if (!existing) throw new NotFoundException('Order not found');
+    if (user) assertBranchAccess(user, existing.branchId);
+    return existing;
+  }
+
+  private mapRefundError(err: unknown): BadRequestException {
+    const code = err instanceof Error ? err.message : String(err);
+    switch (code) {
+      case 'ORDER_ALREADY_REVERSED':
+        return new BadRequestException('Order is already voided or refunded.');
+      case 'REFUND_NOT_COMPLETED':
+        return new BadRequestException('Only completed orders can be refunded.');
+      case 'REFUND_SAME_DAY':
+        return new BadRequestException(
+          'Same-day orders should be voided, not refunded.',
+        );
+      default:
+        return new BadRequestException('Order cannot be refunded.');
+    }
   }
 }

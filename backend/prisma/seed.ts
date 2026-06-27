@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -369,7 +370,7 @@ async function main() {
     },
   });
 
-  // One pending PO
+  // One pending PO for demo receive flow
   await prisma.purchaseOrder.create({
     data: {
       poNumber: 'PO-DEMO-001',

@@ -4,6 +4,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../prisma/prisma.service';
 import { OrderCreatedEvent } from '../orders/events/order-created.event';
 import { OrderVoidedEvent } from '../orders/events/order-voided.event';
+import { OrderRefundedEvent } from '../orders/events/order-refunded.event';
 import { OrderStatusUpdatedEvent } from '../orders/events/order-status-updated.event';
 import { PurchaseOrderReceivedEvent } from '../procurement/events/purchase-order-received.event';
 import { ProductionCompletedEvent } from '../production/events/production-completed.event';
@@ -108,6 +109,15 @@ export class OutboxProcessor {
       await this.eventEmitter.emitAsync(
         'order.voided',
         new OrderVoidedEvent(data.order),
+      );
+      return;
+    }
+
+    if (eventType === 'order.refunded') {
+      const data = payload as { order: Order; reason?: string };
+      await this.eventEmitter.emitAsync(
+        'order.refunded',
+        new OrderRefundedEvent(data.order, data.reason),
       );
       return;
     }

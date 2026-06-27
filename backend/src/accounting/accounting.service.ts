@@ -4,6 +4,8 @@ import { Prisma } from '@prisma/client';
 import { OnEvent } from '@nestjs/event-emitter';
 import { OrderCreatedEvent } from '../orders/events/order-created.event';
 import { OrderVoidedEvent } from '../orders/events/order-voided.event';
+import { OrderRefundedEvent } from '../orders/events/order-refunded.event';
+import { Order, PaymentMethod } from '@prisma/client';
 import { PurchaseOrderReceivedEvent } from '../procurement/events/purchase-order-received.event';
 import { ProductionCompletedEvent } from '../production/events/production-completed.event';
 import { toNum, roundMoney, isBalancedMoney } from '../common/decimal.util';
@@ -74,25 +76,41 @@ export class AccountingService {
     this.logger.log(
       `Handling order.voided event for Accounting (Order ${event.order.id})`,
     );
+    await this.postOrderSaleReversal(event.order, 'VOID');
+  }
 
-    const { order } = event;
+  @OnEvent('order.refunded', { async: true })
+  async handleOrderRefunded(event: OrderRefundedEvent) {
+    this.logger.log(
+      `Handling order.refunded event for Accounting (Order ${event.order.id})`,
+    );
+    const suffix = event.reason ? ` — ${event.reason}` : '';
+    await this.postOrderSaleReversal(event.order, 'REFUND', suffix);
+  }
+
+  private async postOrderSaleReversal(
+    order: Order,
+    kind: 'VOID' | 'REFUND',
+    descriptionSuffix = '',
+  ) {
     const netAmount = roundMoney(toNum(order.netAmount));
     const totalCogs = roundMoney(toNum(order.totalCogs));
 
     if (netAmount <= 0 && totalCogs <= 0) return;
 
     const paymentAccountCode = resolvePaymentAccountCode(order.paymentMethod);
+    const label = kind === 'VOID' ? 'Void' : 'Refund';
 
     await this.createJournalEntry({
       branchId: order.branchId,
-      reference: `VOID-ORD-${order.id}`,
-      description: `Void / refund reversal for Order ${order.id}`,
+      reference: `${kind}-ORD-${order.id}`,
+      description: `${label} reversal for Order ${order.id}${descriptionSuffix}`,
       lines: [
         {
           accountCode: paymentAccountCode,
           debit: 0,
           credit: netAmount,
-          description: `${paymentAccountLabel(order.paymentMethod)} refunded`,
+          description: `${paymentAccountLabel(order.paymentMethod as PaymentMethod)} refunded`,
         },
         {
           accountCode: '4010',

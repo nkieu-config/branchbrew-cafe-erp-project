@@ -14,6 +14,7 @@ export const API_ENDPOINTS = {
     updateStatus: (id: number) => `/orders/${id}/status`,
     detail: (id: number) => `/orders/${id}`,
     void: (id: number) => `/orders/${id}/void`,
+    refund: (id: number) => `/orders/${id}/refund`,
   },
   products: {
     list: '/products',

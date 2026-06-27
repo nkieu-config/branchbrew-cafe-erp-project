@@ -319,7 +319,7 @@ describe('OrdersService', () => {
       } as any);
 
       await expect(service.voidOrder(5)).rejects.toThrow(
-        new BadRequestException('Order is already voided.'),
+        new BadRequestException('Order is already voided or refunded.'),
       );
     });
 
@@ -368,6 +368,77 @@ describe('OrdersService', () => {
         data: { points: { increment: -5 } },
       });
       expect(result.status).toBe('CANCELLED');
+    });
+  });
+
+  describe('refundOrder', () => {
+    const refundableOrder = {
+      id: 8,
+      branchId: TEST_BRANCH_ID,
+      status: 'COMPLETED' as const,
+      createdAt: (() => {
+        const d = new Date();
+        d.setDate(d.getDate() - 2);
+        return d;
+      })(),
+      customerId: 1,
+      pointsEarned: 10,
+      pointsRedeemed: 0,
+      netAmount: 150,
+      totalCogs: 25,
+      items: [
+        {
+          quantity: 1,
+          product: {
+            recipeItems: [{ ingredientId: 1, quantity: 20 }],
+          },
+          modifiers: [],
+        },
+      ],
+    };
+
+    it('should reject refund for same-day orders', async () => {
+      prisma.order.findUnique.mockResolvedValue({
+        ...refundableOrder,
+        createdAt: new Date(),
+      } as any);
+
+      await expect(service.refundOrder(8)).rejects.toThrow(BadRequestException);
+    });
+
+    it('should refund order, restore stock, and enqueue order.refunded', async () => {
+      prisma.order.findUnique.mockResolvedValue(refundableOrder as any);
+      prisma.branchInventory.findUnique.mockResolvedValue({
+        id: 1,
+        branchId: TEST_BRANCH_ID,
+        ingredientId: 1,
+        stock: 80,
+        ingredient: { name: 'Beans' },
+      } as any);
+      prisma.branchInventory.update.mockResolvedValue({} as any);
+      prisma.inventoryBatch.findFirst.mockResolvedValue({
+        id: 2,
+        quantity: 10,
+        status: 'ACTIVE',
+      } as any);
+      prisma.inventoryBatch.update.mockResolvedValue({} as any);
+      prisma.order.update.mockResolvedValue({
+        ...refundableOrder,
+        status: 'REFUNDED',
+        refundReason: 'Wrong drink',
+      } as any);
+
+      const result = await service.refundOrder(8, 'Wrong drink');
+
+      expect(result.status).toBe('REFUNDED');
+      expect(prisma.order.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            status: 'REFUNDED',
+            refundReason: 'Wrong drink',
+          }),
+        }),
+      );
     });
   });
 });

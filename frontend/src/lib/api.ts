@@ -43,6 +43,12 @@ export const updateOrderStatus = (orderId: number, status: string) =>
 export const voidOrder = (orderId: number) =>
   fetchAPI(API_ENDPOINTS.orders.void(orderId), { method: 'POST' });
 
+export const refundOrder = (orderId: number, reason?: string) =>
+  fetchAPI(API_ENDPOINTS.orders.refund(orderId), {
+    method: 'POST',
+    body: JSON.stringify(reason ? { reason } : {}),
+  });
+
 // Procurement & Branches
 export const getPurchaseOrders = () => fetchAPI(API_ENDPOINTS.procurement.purchaseOrders);
 export const createPurchaseOrder = (data: { branchId: number; supplierId: number; items: { ingredientId: number; quantity: number; price: number }[] }) =>

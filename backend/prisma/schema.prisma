@@ -239,6 +239,7 @@ enum OrderStatus {
   PREPARING
   COMPLETED
   CANCELLED
+  REFUNDED
 }
 
 model Order {
@@ -266,6 +267,8 @@ model Order {
   promotion             Promotion?    @relation(fields: [promotionId], references: [id])
   queueNumber           Int?
   queueDate             DateTime?     @db.Date
+  refundReason          String?
+  refundedAt            DateTime?
   items                 OrderItem[]
   createdAt             DateTime      @default(now())
 
@@ -448,7 +451,6 @@ model WasteLog {
 
   @@index([branchId])
   @@index([createdAt])
-  @@index([branchId, queueDate])
 }
 
 model Expense {
@@ -464,7 +466,6 @@ model Expense {
 
   @@index([branchId])
   @@index([createdAt])
-  @@index([branchId, queueDate])
 }
 
 model ShiftSettlement {

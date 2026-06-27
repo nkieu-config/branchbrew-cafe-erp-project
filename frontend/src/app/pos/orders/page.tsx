@@ -1,17 +1,29 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { useBranchOrders, useVoidOrder } from "@/hooks/domains/usePosQueries";
+import { useBranchOrders, useVoidOrder, useRefundOrder } from "@/hooks/domains/usePosQueries";
 import { AnimatedPage } from "@/components/animated-page";
 import { PageHeader } from "@/components/shared/page-header";
 import { DataTable } from "@/components/shared/data-table";
 import { Tag, Button as AntButton, Popconfirm } from "antd";
-import { Receipt, Ban } from "lucide-react";
+import { Receipt, Ban, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { formatBaht } from "@/lib/money";
+import { formatQueueNumber } from "@/lib/queue";
 import type { Order, OrderStatus } from "@/types/api";
 import { format } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 function statusColor(status: OrderStatus) {
   switch (status) {
@@ -22,6 +34,8 @@ function statusColor(status: OrderStatus) {
       return "processing";
     case "CANCELLED":
       return "error";
+    case "REFUNDED":
+      return "warning";
     default:
       return "default";
   }
@@ -37,24 +51,34 @@ function isToday(iso: string) {
   );
 }
 
+function isTerminal(status: OrderStatus) {
+  return status === "CANCELLED" || status === "REFUNDED";
+}
+
+const LOOKBACK_DAYS = 14;
+
 export default function PosOrdersPage() {
   const { activeBranchId, user } = useAuth();
   const branchId = activeBranchId ? Number(activeBranchId) : undefined;
   const { data: orders = [], isLoading } = useBranchOrders(branchId);
   const voidMutation = useVoidOrder();
+  const refundMutation = useRefundOrder();
 
-  const canVoid = user?.role === "SUPER_ADMIN" || user?.role === "MANAGER";
+  const [refundTarget, setRefundTarget] = useState<Order | null>(null);
+  const [refundReason, setRefundReason] = useState("");
 
-  const todayOrders = useMemo(
-    () =>
-      [...orders]
-        .filter((o: Order) => isToday(o.createdAt))
-        .sort(
-          (a: Order, b: Order) =>
-            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-        ),
-    [orders],
-  );
+  const canManage = user?.role === "SUPER_ADMIN" || user?.role === "MANAGER";
+
+  const recentOrders = useMemo(() => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - LOOKBACK_DAYS);
+    return [...orders]
+      .filter((o: Order) => new Date(o.createdAt) >= cutoff)
+      .sort(
+        (a: Order, b: Order) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      );
+  }, [orders]);
 
   const handleVoid = async (orderId: number) => {
     try {
@@ -65,10 +89,25 @@ export default function PosOrdersPage() {
     }
   };
 
+  const handleRefund = async () => {
+    if (!refundTarget) return;
+    try {
+      await refundMutation.mutateAsync({
+        orderId: refundTarget.id,
+        reason: refundReason.trim() || undefined,
+      });
+      toast.success(`Order #${refundTarget.id} refunded`);
+      setRefundTarget(null);
+      setRefundReason("");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Failed to refund order");
+    }
+  };
+
   if (!branchId) {
     return (
       <div className="p-10 text-center text-slate-500">
-        Select a branch to view today&apos;s orders.
+        Select a branch to view orders.
       </div>
     );
   }
@@ -76,29 +115,39 @@ export default function PosOrdersPage() {
   return (
     <AnimatedPage className="space-y-6">
       <PageHeader
-        title="Today's Orders"
+        title="Orders & Refunds"
         icon={Receipt}
-        description="Void same-day sales to restore inventory and reverse accounting entries."
+        description="Void same-day orders or refund completed sales from previous days."
       />
 
       <DataTable
         loading={isLoading}
         rowKey="id"
-        dataSource={todayOrders}
+        dataSource={recentOrders}
         columns={[
+          {
+            title: "Queue",
+            dataIndex: "queueNumber",
+            key: "queue",
+            render: (n: number | null) => (
+              <span className="font-mono font-bold text-emerald-600">
+                {formatQueueNumber(n)}
+              </span>
+            ),
+          },
           {
             title: "Order #",
             dataIndex: "id",
             key: "id",
             render: (id: number) => (
-              <span className="font-mono font-bold">#{id}</span>
+              <span className="font-mono text-slate-500">#{id}</span>
             ),
           },
           {
-            title: "Time",
+            title: "Date",
             dataIndex: "createdAt",
-            key: "time",
-            render: (v: string) => format(new Date(v), "HH:mm"),
+            key: "date",
+            render: (v: string) => format(new Date(v), "dd MMM HH:mm"),
           },
           {
             title: "Status",
@@ -126,35 +175,93 @@ export default function PosOrdersPage() {
           {
             title: "Items",
             key: "items",
-            render: (_: unknown, row: Order) =>
-              row.items?.length ?? 0,
+            render: (_: unknown, row: Order) => row.items?.length ?? 0,
           },
           {
             title: "Actions",
             key: "actions",
             align: "right" as const,
             render: (_: unknown, row: Order) => {
-              if (!canVoid || row.status === "CANCELLED") return null;
-              return (
-                <Popconfirm
-                  title={`Void order #${row.id}?`}
-                  description="Restores stock and posts a reversing journal entry."
-                  onConfirm={() => handleVoid(row.id)}
-                >
+              if (!canManage || isTerminal(row.status)) return null;
+
+              if (isToday(row.createdAt)) {
+                return (
+                  <Popconfirm
+                    title={`Void order #${row.id}?`}
+                    description="Same-day cancel — restores stock and reverses GL."
+                    onConfirm={() => handleVoid(row.id)}
+                  >
+                    <AntButton
+                      type="text"
+                      danger
+                      icon={<Ban className="w-4 h-4" />}
+                      loading={voidMutation.isPending}
+                    >
+                      Void
+                    </AntButton>
+                  </Popconfirm>
+                );
+              }
+
+              if (row.status === "COMPLETED") {
+                return (
                   <AntButton
                     type="text"
-                    danger
-                    icon={<Ban className="w-4 h-4" />}
-                    loading={voidMutation.isPending}
+                    icon={<RotateCcw className="w-4 h-4" />}
+                    onClick={() => {
+                      setRefundTarget(row);
+                      setRefundReason("");
+                    }}
                   >
-                    Void
+                    Refund
                   </AntButton>
-                </Popconfirm>
-              );
+                );
+              }
+
+              return null;
             },
           },
         ]}
       />
+
+      <Dialog
+        open={!!refundTarget}
+        onOpenChange={(open) => {
+          if (!open) {
+            setRefundTarget(null);
+            setRefundReason("");
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Refund order #{refundTarget?.id}</DialogTitle>
+            <DialogDescription>
+              Posts a refund journal entry and restores inventory for this
+              completed sale from a previous day.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 py-2">
+            <Label htmlFor="refund-reason">Reason (optional)</Label>
+            <Input
+              id="refund-reason"
+              value={refundReason}
+              onChange={(e) => setRefundReason(e.target.value)}
+              placeholder="Customer complaint, wrong item, etc."
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="destructive"
+              className="w-full"
+              disabled={refundMutation.isPending}
+              onClick={() => void handleRefund()}
+            >
+              Confirm refund
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AnimatedPage>
   );
 }

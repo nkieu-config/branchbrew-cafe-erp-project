@@ -7,3 +7,9 @@ export function isSameCalendarDay(a: Date, b: Date): boolean {
     a.getDate() === b.getDate()
   );
 }
+
+export function isTerminalOrderStatus(
+  status: 'PENDING' | 'PREPARING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED',
+): boolean {
+  return status === 'CANCELLED' || status === 'REFUNDED';
+}

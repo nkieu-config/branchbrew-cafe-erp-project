@@ -2,7 +2,7 @@
 
 export type Role = 'SUPER_ADMIN' | 'MANAGER' | 'STAFF';
 export type EmploymentType = 'FULL_TIME' | 'PART_TIME';
-export type OrderStatus = 'PENDING' | 'PREPARING' | 'COMPLETED' | 'CANCELLED';
+export type OrderStatus = 'PENDING' | 'PREPARING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED';
 export type PaymentMethod = 'CASH' | 'CREDIT_CARD' | 'QR_PROMPTPAY';
 export type POStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'RECEIVED';
 export type TransferStatus = 'PENDING' | 'SHIPPED' | 'COMPLETED' | 'CANCELLED';
@@ -165,6 +165,8 @@ export interface Order {
   promotionId?: number | null;
   queueNumber?: number | null;
   queueDate?: string | null;
+  refundReason?: string | null;
+  refundedAt?: string | null;
   createdAt: string;
   items?: OrderItem[];
   customer?: Customer | null;

@@ -42,6 +42,23 @@ export const useVoidOrder = () => {
   });
 };
 
+export const useRefundOrder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ orderId, reason }: { orderId: number; reason?: string }) =>
+      fetchAPI(API_ENDPOINTS.orders.refund(orderId), {
+        method: 'POST',
+        body: JSON.stringify(reason ? { reason } : {}),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['analyticsSummary'] });
+      queryClient.invalidateQueries({ queryKey: ['salesTrends'] });
+      queryClient.invalidateQueries({ queryKey: ['branchInventory'] });
+    },
+  });
+};
+
 export const useValidatePromotion = () => {
   return useMutation({
     mutationFn: ({ code, subtotal }: { code: string, subtotal: number }) => fetchAPI(API_ENDPOINTS.promotions.validate, { method: 'POST', body: JSON.stringify({ code, subtotal }) }),

@@ -13,6 +13,7 @@ import {
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { RefundOrderDto } from './dto/refund-order.dto';
 import type { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
 import { OrderStatus } from '@prisma/client';
 import { assertBranchAccess, resolveBranchId } from '../auth/branch-scope.util';
@@ -78,6 +79,17 @@ export class OrdersController {
     @Request() req: RequestWithUser,
   ) {
     return this.ordersService.voidOrder(id, req.user);
+  }
+
+  @Post(':id/refund')
+  @UseGuards(RolesGuard)
+  @Roles('SUPER_ADMIN', 'MANAGER')
+  refundOrder(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: RefundOrderDto,
+    @Request() req: RequestWithUser,
+  ) {
+    return this.ordersService.refundOrder(id, dto.reason, req.user);
   }
 
   @Get(':id')
