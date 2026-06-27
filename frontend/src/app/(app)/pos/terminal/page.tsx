@@ -24,6 +24,38 @@ import { toNumber, formatBaht } from "@/lib/money";
 import { formatQueueNumber } from "@/lib/queue";
 import { parseVatRatePercent } from "@/lib/vat";
 import type { Customer, ValidatedPromotion, ReceiptOrder, ModifierGroup } from "@/types/api";
+import {
+  posProductCardClassName,
+  posPriceClassName,
+  posAddButtonClassName,
+  posCartPanelClassName,
+  posCartHeaderClassName,
+  posCartSectionClassName,
+  posCartBadgeClassName,
+  posAccentIconClassName,
+  posAccentTextClassName,
+  posSummaryPanelClassName,
+  posSummaryMutedClassName,
+  posSummaryTotalClassName,
+  posPayActionClassName,
+  posCrmPanelClassName,
+  posCrmTitleClassName,
+  posCrmMutedClassName,
+  posPromoPanelClassName,
+  posPromoTitleClassName,
+  posDashedButtonClassName,
+  posInputClassName,
+  posRemoveItemClassName,
+  posEmptyProductsClassName,
+  posSuccessDialogClassName,
+  posSuccessTitleClassName,
+  posReceiptPreviewClassName,
+  posQueueNumberClassName,
+  posModifierSelectedClassName,
+  posPrimaryActionClassName,
+  posLoadingSpinnerClassName,
+  text,
+} from "@/lib/theme";
 
 export default function POSPage() {
   const { user, activeBranchId } = useAuth();
@@ -284,28 +316,28 @@ export default function POSPage() {
       <div className="flex-1 overflow-y-auto pr-2 pb-10">
         {loading ? (
           <div className="flex h-full items-center justify-center">
-            <Loader2 className="w-10 h-10 animate-spin text-emerald-600" />
+            <Loader2 className={`w-10 h-10 animate-spin ${posLoadingSpinnerClassName()}`} />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {products.map((product: Product) => (
             <Card 
               key={product.id} 
-              className="cursor-pointer hover:border-amber-400 hover:shadow-md transition-colors active:scale-95 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+              className={posProductCardClassName()}
               onClick={() => handleProductClick(product)}
             >
               <CardHeader className="p-4 pb-2">
-                <CardTitle className="text-lg text-slate-800 dark:text-slate-200">{product.name}</CardTitle>
-                <CardDescription className="dark:text-slate-400">{product.category}</CardDescription>
+                <CardTitle className={`text-lg ${text.primary}`}>{product.name}</CardTitle>
+                <CardDescription>{product.category}</CardDescription>
               </CardHeader>
               <CardContent className="p-4 pt-0 flex justify-between items-center">
-                <span className="font-bold text-amber-600 dark:text-amber-500 text-lg tabular-nums">{formatBaht(product.price)}</span>
-                <Button variant="secondary" size="sm" className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 hover:bg-amber-200 dark:hover:bg-amber-900/50">Add</Button>
+                <span className={posPriceClassName()}>{formatBaht(product.price)}</span>
+                <Button variant="secondary" size="sm" className={posAddButtonClassName()}>Add</Button>
               </CardContent>
             </Card>
           ))}
           {products.length === 0 && (
-            <div className="col-span-3 text-center text-slate-500 dark:text-slate-400 py-10 bg-white dark:bg-slate-900 rounded-xl border border-dashed border-slate-300 dark:border-slate-700">
+            <div className={posEmptyProductsClassName()}>
               No menu items yet. Ask a manager to add products under Products → Menu Items.
             </div>
           )}
@@ -314,34 +346,34 @@ export default function POSPage() {
       </div>
 
       {/* Cart Sidebar */}
-      <div className="w-[420px] bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col h-full">
-        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-950/50 rounded-t-xl">
-          <h2 className="text-xl font-bold flex items-center gap-2 text-slate-800 dark:text-slate-200">
-            <ShoppingBag size={20} className="text-amber-500" /> Current Order
+      <div className={posCartPanelClassName("w-[420px]")}>
+        <div className={posCartHeaderClassName()}>
+          <h2 className={`text-xl font-bold flex items-center gap-2 ${text.primary}`}>
+            <ShoppingBag size={20} className={posAccentIconClassName()} /> Current Order
           </h2>
-          <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-3 py-1 rounded-full text-xs font-bold tabular-nums">
+          <span className={posCartBadgeClassName()}>
             {cart.reduce((sum, item) => sum + item.quantity, 0)} Items
           </span>
         </div>
         
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {cart.map((item) => (
-            <div key={item.id} className="flex justify-between items-center border-b border-slate-50 dark:border-slate-800/50 pb-3">
+            <div key={item.id} className="flex justify-between items-center border-b border-[var(--pos-panel-border)]/50 pb-3">
               <div>
-                <div className="font-semibold text-slate-800 dark:text-slate-200">{item.product.name}</div>
-                {item.notes && <div className="text-xs text-amber-600 dark:text-amber-500 font-medium mb-1 line-clamp-2">{item.notes}</div>}
-                <div className="text-sm text-slate-500 dark:text-slate-400 tabular-nums">{formatBaht(item.unitPrice)} x {item.quantity}</div>
+                <div className={`font-semibold ${text.primary}`}>{item.product.name}</div>
+                {item.notes && <div className={`text-xs font-medium mb-1 line-clamp-2 ${posAccentTextClassName()}`}>{item.notes}</div>}
+                <div className={`text-sm tabular-nums ${text.muted}`}>{formatBaht(item.unitPrice)} x {item.quantity}</div>
               </div>
               <div className="flex items-center gap-4">
-                <span className="font-bold text-slate-700 dark:text-slate-300 tabular-nums">{formatBaht(item.unitPrice * item.quantity)}</span>
-                <Button aria-label="Remove item" variant="ghost" size="sm" className="text-red-500 hover:text-red-700 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 h-8 w-8 p-0" onClick={() => removeFromCart(item.id)}>
+                <span className={`font-bold tabular-nums ${text.secondary}`}>{formatBaht(item.unitPrice * item.quantity)}</span>
+                <Button aria-label="Remove item" variant="ghost" size="sm" className={posRemoveItemClassName("h-8 w-8 p-0")} onClick={() => removeFromCart(item.id)}>
                   ✕
                 </Button>
               </div>
             </div>
           ))}
           {cart.length === 0 && (
-            <div className="text-center text-slate-400 mt-10 flex flex-col items-center gap-2">
+            <div className={`text-center mt-10 flex flex-col items-center gap-2 ${text.muted}`}>
               <ShoppingBag size={48} className="opacity-20" />
               <span>Cart is empty</span>
             </div>
@@ -349,27 +381,27 @@ export default function POSPage() {
         </div>
 
         {/* CRM & Promo Section */}
-        <div className="bg-slate-50 dark:bg-slate-950/50 border-t border-slate-200 dark:border-slate-800 p-4 space-y-4">
+        <div className={posCartSectionClassName()}>
           
           {/* Customer CRM */}
           <div className="space-y-2">
             {!customer ? (
               <Button 
                 variant="outline" 
-                className="w-full h-12 bg-white dark:bg-slate-900 border-dashed border-2 border-slate-300 dark:border-slate-700 text-slate-500 hover:text-amber-600 hover:border-amber-400 dark:hover:text-amber-400"
+                className={posDashedButtonClassName("h-12")}
                 onClick={() => setShowNumpad(true)}
               >
                 <Search className="w-4 h-4 mr-2" /> Find Member via Phone
               </Button>
             ) : (
-              <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/50 p-3 rounded-lg relative">
-                <Button aria-label="Clear customer" variant="ghost" size="sm" className="absolute top-1 right-1 h-6 w-6 p-0 text-blue-400 hover:text-blue-600 dark:hover:text-blue-300" onClick={handleClearCRM}>
+              <div className={posCrmPanelClassName()}>
+                <Button aria-label="Clear customer" variant="ghost" size="sm" className={`absolute top-1 right-1 h-6 w-6 p-0 ${posCrmMutedClassName()}`} onClick={handleClearCRM}>
                   <X className="w-4 h-4" />
                 </Button>
-                <div className="flex items-center gap-2 font-bold text-blue-800 dark:text-blue-400 mb-1">
-                  <User className="w-4 h-4" /> {customer.name} <Badge variant="outline" className="bg-white dark:bg-slate-900 dark:border-slate-700 text-[10px] uppercase font-bold tracking-wider py-0 px-2">{customer.tier}</Badge>
+                <div className={`${posCrmTitleClassName()} mb-1`}>
+                  <User className="w-4 h-4" /> {customer.name} <Badge variant="outline" className={`bg-[var(--pos-input-bg)] text-[10px] uppercase font-bold tracking-wider py-0 px-2`}>{customer.tier}</Badge>
                 </div>
-                <div className="text-sm text-blue-600 dark:text-blue-500 mb-2">Available: {customer.points} pts (฿{pointsToDiscountBaht(customer.points)})</div>
+                <div className={`${posCrmMutedClassName()} mb-2`}>Available: {customer.points} pts (฿{pointsToDiscountBaht(customer.points)})</div>
                 {customer.points > 0 && (
                   <div className="flex gap-2 items-center">
                     <Input 
@@ -379,9 +411,9 @@ export default function POSPage() {
                       placeholder="Pts to redeem" 
                       value={pointsToRedeem || ''}
                       onChange={(e) => setPointsToRedeem(Number(e.target.value))}
-                      className="h-8 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
+                      className={posInputClassName("h-8")}
                     />
-                    <span className="text-xs text-slate-500 dark:text-slate-400 whitespace-nowrap">10 pts = ฿1</span>
+                    <span className={`text-xs whitespace-nowrap ${text.muted}`}>10 pts = ฿1</span>
                   </div>
                 )}
               </div>
@@ -396,16 +428,16 @@ export default function POSPage() {
                   placeholder="Promo Code" 
                   value={promoCode} 
                   onChange={(e) => setPromoCode(e.target.value.toUpperCase())} 
-                  className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 uppercase"
+                  className={posInputClassName("uppercase")}
                 />
-                <Button variant="secondary" className="dark:bg-slate-800 dark:text-slate-300" onClick={handleApplyPromo}>Apply</Button>
+                <Button variant="secondary" onClick={handleApplyPromo}>Apply</Button>
               </div>
             ) : (
-              <div className="bg-pink-50 dark:bg-pink-950/30 border border-pink-200 dark:border-pink-900/50 p-3 rounded-lg flex justify-between items-center">
-                <div className="flex items-center gap-2 font-bold text-pink-700 dark:text-pink-400">
+              <div className={posPromoPanelClassName()}>
+                <div className={posPromoTitleClassName()}>
                   <Ticket className="w-4 h-4" /> {appliedPromo.code}
                 </div>
-                <Button aria-label="Remove promotion" variant="ghost" size="sm" className="h-6 w-6 p-0 text-pink-500 hover:text-pink-700 dark:hover:text-pink-300" onClick={() => setAppliedPromo(null)}>
+                <Button aria-label="Remove promotion" variant="ghost" size="sm" className={`h-6 w-6 p-0 ${posPromoTitleClassName()}`} onClick={() => setAppliedPromo(null)}>
                   <X className="w-4 h-4" />
                 </Button>
               </div>
@@ -415,28 +447,28 @@ export default function POSPage() {
         </div>
 
         {/* Summary */}
-        <div className="p-5 bg-slate-800 dark:bg-slate-950 text-white rounded-b-xl space-y-2 border-t border-slate-700 dark:border-slate-900">
-          <div className="flex justify-between text-sm text-slate-300 dark:text-slate-400">
+        <div className={posSummaryPanelClassName()}>
+          <div className={`flex justify-between ${posSummaryMutedClassName()}`}>
             <span>Subtotal</span>
             <span className="tabular-nums">฿{subtotal.toLocaleString()}</span>
           </div>
           {totalDiscount > 0 && (
-            <div className="flex justify-between text-sm text-pink-300">
+            <div className="flex justify-between text-sm text-[var(--pos-summary-discount)]">
               <span>Discount</span>
               <span className="tabular-nums">- ฿{totalDiscount.toLocaleString()}</span>
             </div>
           )}
-          <div className="flex justify-between text-2xl font-bold pt-2 border-t border-slate-600">
+          <div className={`flex justify-between text-2xl font-bold pt-2 border-t border-[var(--pos-summary-divider)]`}>
             <span>Total</span>
-            <span className="text-amber-400 tabular-nums">฿{netTotal.toLocaleString()}</span>
+            <span className={posSummaryTotalClassName()}>฿{netTotal.toLocaleString()}</span>
           </div>
           {pointsEarned > 0 && (
-            <div className="flex justify-end text-xs text-blue-300 pt-1">
+            <div className="flex justify-end text-xs text-[var(--pos-summary-reward)] pt-1">
               <Award className="w-3 h-3 mr-1" /> Earn {pointsEarned} pts
             </div>
           )}
           <Button 
-            className="w-full h-12 text-lg font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-lg mt-4 transition-colors" 
+            className={posPayActionClassName("w-full h-12 text-lg font-bold mt-4")} 
             disabled={cart.length === 0}
             onClick={() => setShowCheckout(true)}
           >
@@ -479,13 +511,13 @@ export default function POSPage() {
                 id="tax-invoice"
                 checked={isTaxInvoiceRequested}
                 onChange={(e) => setIsTaxInvoiceRequested(e.target.checked)}
-                className="rounded border-slate-300 w-4 h-4"
+                className="rounded border-[var(--pos-input-border)] w-4 h-4"
               />
               <label htmlFor="tax-invoice" className="text-sm font-medium cursor-pointer">Request e-Tax Invoice</label>
             </div>
             
             {isTaxInvoiceRequested && (
-              <div className="space-y-3 p-3 bg-slate-50 dark:bg-slate-900 rounded-lg border">
+              <div className={`space-y-3 p-3 rounded-lg border bg-[var(--pos-panel-muted-bg)] border-[var(--pos-panel-border)]`}>
                 <Input 
                   placeholder="Company / Individual Name" 
                   value={taxInvoiceName}
@@ -505,7 +537,7 @@ export default function POSPage() {
             )}
           </div>
           <DialogFooter>
-            <Button onClick={handleCheckout} className="w-full bg-emerald-600 hover:bg-emerald-700">Pay ฿{netTotal.toLocaleString()}</Button>
+            <Button onClick={handleCheckout} className={posPrimaryActionClassName("w-full")}>Pay ฿{netTotal.toLocaleString()}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -514,9 +546,9 @@ export default function POSPage() {
       <Dialog open={showSuccess} onOpenChange={(open) => {
         if (!open) setShowSuccess(false);
       }}>
-        <DialogContent className="sm:max-w-[400px] bg-slate-100 dark:bg-slate-900">
+        <DialogContent className={posSuccessDialogClassName("sm:max-w-[400px]")}>
           <DialogHeader>
-            <DialogTitle className="text-center text-emerald-600 text-2xl font-bold flex flex-col items-center gap-2">
+            <DialogTitle className={posSuccessTitleClassName()}>
               <Award className="w-12 h-12" />
               Order Completed!
             </DialogTitle>
@@ -541,24 +573,24 @@ export default function POSPage() {
             </div>
             
             {/* Preview */}
-            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-4 shadow-sm text-sm text-center w-full max-w-[250px] rounded text-slate-900 dark:text-slate-100">
+            <div className={posReceiptPreviewClassName()}>
               {completedOrder?.queueNumber != null && completedOrder.queueNumber > 0 && (
-                <p className="text-4xl font-black text-emerald-600 tabular-nums mb-2">
+                <p className={posQueueNumberClassName()}>
                   #{formatQueueNumber(completedOrder.queueNumber)}
                 </p>
               )}
-              <p className="font-bold border-b border-slate-200 dark:border-slate-700 pb-2 mb-2">
+              <p className="font-bold border-b border-[var(--pos-panel-border)] pb-2 mb-2">
                 {completedOrder?.queueNumber ? 'Your Queue Number' : 'Receipt Preview'}
               </p>
               <p>Total: ฿{completedOrder?.netTotal?.toFixed(2)}</p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className={`text-xs ${text.muted}`}>
                 Order ref #{completedOrder?.id}
               </p>
             </div>
           </div>
 
           <DialogFooter className="flex-col sm:flex-col gap-2">
-            <Button onClick={() => handlePrint()} className="w-full h-12 text-lg bg-emerald-500 hover:bg-emerald-600">
+            <Button onClick={() => handlePrint()} className={posPrimaryActionClassName("w-full h-12 text-lg")}>
               <Printer className="w-5 h-5 mr-2" />
               Print Receipt
             </Button>
@@ -574,18 +606,18 @@ export default function POSPage() {
       <Dialog open={showModifiers} onOpenChange={setShowModifiers}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-xl"><Settings2 className="w-5 h-5 text-amber-500"/> Customize {selectedProduct?.name}</DialogTitle>
+            <DialogTitle className={`flex items-center gap-2 text-xl`}><Settings2 className={`w-5 h-5 ${posAccentIconClassName()}`}/> Customize {selectedProduct?.name}</DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-6">
             {modifierGroups.map((group) => (
               <div key={group.id} className="space-y-3">
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300">{group.name}</label>
+                <label className={`text-sm font-bold ${text.secondary}`}>{group.name}</label>
                 <div className="grid grid-cols-3 gap-2">
                   {group.options.map((opt) => (
                     <Button
                       key={opt.id}
                       variant={selectedModifiers[group.id] === opt.id ? 'default' : 'outline'}
-                      className={selectedModifiers[group.id] === opt.id ? 'bg-amber-500 hover:bg-amber-600 font-bold' : ''}
+                      className={selectedModifiers[group.id] === opt.id ? posModifierSelectedClassName() : ''}
                       onClick={() => setSelectedModifiers((prev) => ({ ...prev, [group.id]: opt.id }))}
                     >
                       {opt.name}
@@ -596,12 +628,12 @@ export default function POSPage() {
               </div>
             ))}
             {modifierGroups.length === 0 && (
-              <p className="text-sm text-slate-500">No modifiers configured for this category.</p>
+              <p className={`text-sm ${text.muted}`}>No modifiers configured for this category.</p>
             )}
           </div>
           <DialogFooter>
             <Button
-              className="w-full bg-emerald-500 hover:bg-emerald-600 h-12 text-lg font-bold"
+              className={posPrimaryActionClassName("w-full h-12 text-lg font-bold")}
               onClick={() => {
                 if (!selectedProduct) return;
                 const summary = getModifierSummary(modifierGroups, selectedModifiers);

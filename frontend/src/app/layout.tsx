@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${plusJakarta.className} flex min-h-screen bg-slate-50 dark:bg-slate-950 bg-[url('/bg-pattern.svg')] dark:bg-none bg-fixed text-slate-900 dark:text-slate-50 antialiased`}>
+      <body className={`${plusJakarta.className} flex min-h-screen bg-background text-foreground bg-[url('/bg-pattern.svg')] dark:bg-none bg-fixed antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <QueryProvider>
               {children}

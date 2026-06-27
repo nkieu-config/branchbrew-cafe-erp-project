@@ -19,6 +19,8 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { dashboardDragActiveClass, dashboardDragHandleClass } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
 function SortableWidget({
   id,
@@ -41,13 +43,9 @@ function SortableWidget({
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative group ${className ?? ""} ${isDragging ? "shadow-2xl ring-2 ring-emerald-500 rounded-xl opacity-80" : ""}`}
+      className={cn("relative group", className, dashboardDragActiveClass(isDragging))}
     >
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute top-4 right-4 z-20 p-2 cursor-grab active:cursor-grabbing text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity bg-white/80 dark:bg-slate-800/80 backdrop-blur rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 border shadow-sm"
-      >
+      <div {...attributes} {...listeners} className={dashboardDragHandleClass()}>
         <GripHorizontal className="w-5 h-5" />
       </div>
       {children}

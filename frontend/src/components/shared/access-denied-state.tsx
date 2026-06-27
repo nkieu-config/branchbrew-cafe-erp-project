@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { ShieldOff } from "lucide-react";
+import { surface, text } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
 type AccessDeniedStateProps = {
   title?: string;
@@ -13,14 +15,17 @@ export function AccessDeniedState({
   showBackLink = true,
 }: AccessDeniedStateProps) {
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-10 text-center max-w-lg mx-auto">
-      <ShieldOff className="w-10 h-10 text-rose-500 mx-auto mb-4" />
-      <p className="font-semibold text-slate-800 dark:text-slate-100">{title}</p>
-      <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">{description}</p>
+    <div className={cn(surface.empty)}>
+      <ShieldOff className="w-10 h-10 mx-auto mb-4 text-[var(--state-denied-icon)]" aria-hidden />
+      <p className={cn("font-semibold", text.primary)}>{title}</p>
+      <p className={cn("text-sm mt-2", text.muted)}>{description}</p>
       {showBackLink && (
         <Link
           href="/"
-          className="inline-flex mt-6 h-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+          className={cn(
+            "inline-flex mt-6 h-9 items-center justify-center rounded-lg border px-4 text-sm font-medium transition-colors",
+            "border-border bg-card text-foreground hover:bg-muted",
+          )}
         >
           Back to Dashboard
         </Link>

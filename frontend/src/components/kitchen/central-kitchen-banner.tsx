@@ -5,6 +5,13 @@ import { ChefHat } from "lucide-react"
 import { useAuth } from "@/context/AuthContext"
 import { useBranches } from "@/hooks/domains/useGeneralQueries"
 import type { Branch } from "@/types/api"
+import {
+  hubCtaClassName,
+  warningBannerClassName,
+  warningBannerIconClassName,
+  warningBannerTextClassName,
+  warningBannerTitleClassName,
+} from "@/lib/theme"
 
 type CentralKitchenBannerProps = {
   message?: string
@@ -25,21 +32,21 @@ export function CentralKitchenBanner({
   }
 
   return (
-    <div className="rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-950/20 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+    <div className={warningBannerClassName()}>
       <div className="flex items-start gap-3">
-        <ChefHat className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
+        <ChefHat className={warningBannerIconClassName("kitchen", "mt-0.5")} />
         <div>
-          <p className="font-semibold text-slate-800 dark:text-slate-100">
+          <p className={warningBannerTitleClassName()}>
             Viewing as {activeBranch?.name}
           </p>
-          <p className="text-sm text-slate-600 dark:text-slate-400 mt-0.5">
+          <p className={warningBannerTextClassName("mt-0.5")}>
             {message}
           </p>
         </div>
       </div>
       <Button
         type="primary"
-        className="bg-orange-500 hover:bg-orange-600 border-none font-bold shrink-0"
+        className={hubCtaClassName("kitchen", "border-none font-bold shrink-0")}
         onClick={() => setActiveBranchId(centralKitchen.id)}
       >
         Switch to {centralKitchen.name}

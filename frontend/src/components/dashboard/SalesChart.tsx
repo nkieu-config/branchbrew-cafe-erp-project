@@ -1,7 +1,6 @@
-"use client"
+"use client";
 
-import { useTheme } from "next-themes"
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 import {
   Area,
   AreaChart,
@@ -10,32 +9,37 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-} from "recharts"
-import type { SalesTrendPoint } from "@/types/api"
-import { format, parseISO } from "date-fns"
+} from "recharts";
+import type { SalesTrendPoint } from "@/types/api";
+import { format, parseISO } from "date-fns";
+import { dashboardSkeletonClass, getChartTheme } from "@/lib/theme";
 
 interface SalesChartProps {
-  data?: SalesTrendPoint[]
-  loading?: boolean
+  data?: SalesTrendPoint[];
+  loading?: boolean;
 }
 
 export function SalesChart({ data = [], loading }: SalesChartProps) {
-  const { theme } = useTheme()
-  const isDark = theme === "dark"
-  const [isMounted, setIsMounted] = useState(false)
+  const [isMounted, setIsMounted] = useState(false);
+  const [chartTheme, setChartTheme] = useState(getChartTheme);
 
   useEffect(() => {
-    setIsMounted(true)
-  }, [])
+    setIsMounted(true);
+    setChartTheme(getChartTheme());
+
+    const observer = new MutationObserver(() => setChartTheme(getChartTheme()));
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => observer.disconnect();
+  }, []);
 
   const chartData = data.map((row) => ({
     date: format(parseISO(row.date), "EEE"),
     revenue: Number(row.total),
     orders: row.orders,
-  }))
+  }));
 
   if (!isMounted || loading) {
-    return <div className="h-[350px] w-full animate-pulse bg-slate-100 dark:bg-slate-800/50 rounded-xl" />
+    return <div className={dashboardSkeletonClass("h-[350px] w-full")} />;
   }
 
   return (
@@ -52,44 +56,44 @@ export function SalesChart({ data = [], loading }: SalesChartProps) {
         >
           <defs>
             <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-              <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+              <stop offset="5%" stopColor={chartTheme.revenue} stopOpacity={0.3} />
+              <stop offset="95%" stopColor={chartTheme.revenue} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? "#1e293b" : "#e2e8f0"} />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.grid} />
           <XAxis
             dataKey="date"
             axisLine={false}
             tickLine={false}
-            tick={{ fill: isDark ? "#94a3b8" : "#64748b", fontSize: 12 }}
+            tick={{ fill: chartTheme.axis, fontSize: 12 }}
             dy={10}
           />
           <YAxis
             axisLine={false}
             tickLine={false}
-            tick={{ fill: isDark ? "#94a3b8" : "#64748b", fontSize: 12 }}
+            tick={{ fill: chartTheme.axis, fontSize: 12 }}
             tickFormatter={(value) => `฿${value / 1000}k`}
             dx={-10}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: isDark ? "#0f172a" : "#ffffff",
-              borderColor: isDark ? "#1e293b" : "#e2e8f0",
+              backgroundColor: chartTheme.tooltipBg,
+              borderColor: chartTheme.tooltipBorder,
               borderRadius: "8px",
               boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-              color: isDark ? "#f8fafc" : "#0f172a",
+              color: chartTheme.tooltipFg,
             }}
-            itemStyle={{ color: "#10b981", fontWeight: "bold" }}
+            itemStyle={{ color: chartTheme.revenue, fontWeight: "bold" }}
             formatter={(value, name) => {
               const num = Number(value ?? 0);
-              if (name === 'revenue') return [`฿${num.toLocaleString()}`, 'Revenue'];
-              return [num, 'Orders'];
+              if (name === "revenue") return [`฿${num.toLocaleString()}`, "Revenue"];
+              return [num, "Orders"];
             }}
           />
           <Area
             type="monotone"
             dataKey="revenue"
-            stroke="#10b981"
+            stroke={chartTheme.revenue}
             strokeWidth={3}
             fillOpacity={1}
             fill="url(#colorRevenue)"
@@ -97,5 +101,5 @@ export function SalesChart({ data = [], loading }: SalesChartProps) {
         </AreaChart>
       </ResponsiveContainer>
     </div>
-  )
+  );
 }

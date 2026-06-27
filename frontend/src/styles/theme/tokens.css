@@ -1,0 +1,401 @@
+/**
+ * Semantic theme tokens — single source of truth for colors, surfaces, and status.
+ * Change values here when tuning the system theme; avoid hardcoded palette classes in components.
+ */
+
+:root {
+  /* Surfaces */
+  --surface: var(--card);
+  --surface-foreground: var(--card-foreground);
+  --surface-muted: var(--muted);
+  --surface-elevated: #ffffff;
+  --surface-overlay: rgb(255 255 255 / 0.9);
+  --surface-inset: #f1f5f9;
+
+  /* Text hierarchy */
+  --text-secondary: #475569;
+  --text-subtle: #64748b;
+
+  /* Brand / focus */
+  --brand: var(--accent);
+  --brand-foreground: var(--accent-foreground);
+  --focus-ring: var(--ring);
+
+  /* Hub module accents */
+  --hub-inventory: #22c55e;
+  --hub-procurement: #3b82f6;
+  --hub-hr: #8b5cf6;
+  --hub-products: #d97706;
+  --hub-kitchen: #f97316;
+  --hub-crm: #ec4899;
+  --hub-finance: #059669;
+  --hub-assets: #64748b;
+  --hub-pos: #10b981;
+  --hub-settings: #64748b;
+  --hub-organization: #059669;
+
+  /* Hub chrome */
+  --hub-tab-track: #f1f5f9;
+  --hub-tab-active: #ffffff;
+  --hub-tab-active-fg: #0f172a;
+  --hub-tab-inactive-fg: #64748b;
+  --hub-tab-inactive-hover: #334155;
+  --hub-fade-from: #f8fafc;
+
+  /* Status — neutral */
+  --status-neutral-bg: #f1f5f9;
+  --status-neutral-fg: #334155;
+  --status-info-bg: #e0f2fe;
+  --status-info-fg: #0369a1;
+  --status-success-bg: #d1fae5;
+  --status-success-fg: #047857;
+  --status-warning-bg: #fef3c7;
+  --status-warning-fg: #b45309;
+  --status-danger-bg: #ffe4e6;
+  --status-danger-fg: #be123c;
+  --status-purple-bg: #f3e8ff;
+  --status-purple-fg: #7e22ce;
+  --status-blue-bg: #dbeafe;
+  --status-blue-fg: #1d4ed8;
+
+  /* Stat / metric accents */
+  --metric-emerald: #22c55e;
+  --metric-blue: #3b82f6;
+  --metric-red: #ef4444;
+  --metric-amber: #f59e0b;
+  --metric-indigo: #6366f1;
+  --metric-purple: #a855f7;
+  --metric-slate: #64748b;
+
+  /* Empty / feedback states */
+  --state-empty-icon: var(--brand);
+  --state-denied-icon: #f43f5e;
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --space-2xl: 3rem;
+  --space-3xl: 4rem;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px rgb(0 0 0 / 0.15);
+
+  /* Glass surfaces */
+  --glass-panel-bg: rgb(255 255 255 / 0.7);
+  --glass-panel-border: rgb(255 255 255 / 0.2);
+  --glass-panel-shadow: rgb(226 232 240 / 0.4);
+  --glass-card-bg: rgb(255 255 255 / 0.9);
+  --glass-card-border: rgb(226 232 240 / 0.6);
+  --glass-card-shadow: rgb(226 232 240 / 0.5);
+
+  /* App shell */
+  --shell-bg: rgb(248 250 252 / 0.5);
+  --sidebar-border: rgb(226 232 240 / 0.5);
+  --sidebar-divider: rgb(226 232 240 / 0.3);
+  --sidebar-user-panel-bg: rgb(255 255 255 / 0.2);
+  --sidebar-brand-mark-bg: var(--brand);
+  --sidebar-brand-mark-fg: var(--brand-foreground);
+  --sidebar-brand-gradient-from: #1e293b;
+  --sidebar-brand-gradient-to: #64748b;
+  --sidebar-group-label: #94a3b8;
+  --sidebar-group-label-hover: #334155;
+  --sidebar-nav-active-bg: #ecfdf5;
+  --sidebar-nav-active-fg: #059669;
+  --sidebar-nav-active-border: #d1fae5;
+  --sidebar-nav-active-icon: var(--brand);
+  --sidebar-nav-inactive-fg: #64748b;
+  --sidebar-nav-inactive-hover-bg: rgb(255 255 255 / 0.6);
+  --sidebar-nav-inactive-hover-fg: #1e293b;
+  --sidebar-nav-icon: #94a3b8;
+  --sidebar-logout-bg: rgb(255 255 255 / 0.5);
+  --sidebar-logout-border: #fecdd3;
+
+  --topbar-picker-bg: var(--card);
+  --topbar-picker-border: var(--border);
+  --topbar-picker-icon: var(--brand);
+
+  --breadcrumb-fg: var(--text-subtle);
+  --breadcrumb-separator: #cbd5e1;
+  --breadcrumb-link-hover: var(--foreground);
+  --breadcrumb-current: var(--foreground);
+  --breadcrumb-parent: var(--text-secondary);
+
+  --profile-menu-bg: var(--card);
+  --profile-menu-border: var(--border);
+  --profile-menu-divider: var(--border);
+  --profile-avatar-border: color-mix(in oklch, var(--brand), transparent 70%);
+  --profile-avatar-fg: var(--brand);
+
+  --skip-link-bg: var(--brand);
+  --skip-link-fg: var(--brand-foreground);
+
+  /* Dashboard widgets */
+  --widget-sales-bg-to: #ecfdf5;
+  --widget-sales-border: #a7f3d0;
+  --widget-sales-label: #059669;
+  --widget-sales-value: #047857;
+  --widget-sales-shadow: rgb(167 243 208 / 0.5);
+
+  --widget-branch-bg-to: #eff6ff;
+  --widget-branch-border: #bfdbfe;
+  --widget-branch-label: #2563eb;
+  --widget-branch-value: #1d4ed8;
+  --widget-branch-icon-bg: #dbeafe;
+  --widget-branch-icon-fg: #2563eb;
+
+  --widget-alerts-bg-to: #fff1f2;
+  --widget-alerts-border: #fecdd3;
+  --widget-alerts-header: #be123c;
+  --widget-alerts-divider: #ffe4e6;
+  --widget-alerts-low-row: rgb(255 241 242 / 0.5);
+  --widget-alerts-expiry-row: rgb(255 251 235 / 0.5);
+  --widget-alerts-low-value: #e11d48;
+  --widget-alerts-low-meta: #fb7185;
+  --widget-alerts-expiry-value: #d97706;
+  --widget-alerts-expiry-meta: #f59e0b;
+  --widget-alerts-empty-icon: var(--brand);
+  --widget-alerts-empty-text: var(--status-success-fg);
+
+  --widget-products-border: #fde68a;
+  --widget-products-title: #d97706;
+
+  --widget-chart-border: #e9d5ff;
+  --widget-chart-title: #9333ea;
+
+  --widget-skeleton: var(--muted);
+  --widget-error-bg: var(--status-danger-bg);
+  --widget-error-border: #fecdd3;
+  --widget-error-icon: var(--status-danger-fg);
+
+  --widget-drag-ring: var(--focus-ring);
+  --widget-drag-handle-bg: var(--surface-overlay);
+  --widget-drag-handle-fg: var(--text-subtle);
+  --widget-drag-handle-hover: var(--surface-muted);
+
+  --dashboard-header-border: var(--border);
+  --dashboard-badge-bg: var(--surface-inset);
+  --dashboard-badge-fg: var(--text-secondary);
+  --dashboard-badge-accent: var(--brand);
+
+  --chart-grid: #e2e8f0;
+  --chart-axis: var(--text-subtle);
+  --chart-tooltip-bg: var(--card);
+  --chart-tooltip-border: var(--border);
+  --chart-tooltip-fg: var(--foreground);
+  --chart-revenue: var(--chart-1);
+  --chart-cursor: var(--surface-muted);
+
+  /* Data tables (antd + native HTML) */
+  --table-container-bg: var(--card);
+  --table-container-border: var(--border);
+  --table-head-bg: var(--surface-inset);
+  --table-head-fg: var(--text-subtle);
+  --table-row-border: var(--border);
+  --table-row-hover: rgb(241 245 249 / 0.5);
+  --table-cell-fg: var(--foreground);
+  --table-empty-icon: var(--text-subtle);
+  --table-summary-bg: var(--surface-inset);
+
+  /* Ledger / finance amounts */
+  --ledger-debit-fg: var(--metric-emerald);
+  --ledger-credit-fg: var(--metric-red);
+
+  /* Inventory expiry heatmap */
+  --expiry-expired-bg: #e2e8f0;
+  --expiry-expired-fg: #1e293b;
+  --expiry-critical-bg: #ef4444;
+  --expiry-critical-fg: #ffffff;
+  --expiry-warning-bg: #f97316;
+  --expiry-warning-fg: #ffffff;
+  --expiry-notice-bg: var(--metric-amber);
+  --expiry-notice-fg: #451a03;
+  --expiry-safe-bg: var(--status-success-bg);
+  --expiry-safe-fg: var(--status-success-fg);
+  --expiry-panel-header-bg: var(--status-danger-bg);
+  --expiry-panel-header-fg: var(--status-danger-fg);
+
+  /* Form line rows (GRN, waste, etc.) */
+  --form-line-bg: var(--surface-inset);
+  --form-line-border: var(--border);
+
+  /* POS immersive (terminal, settlement) */
+  --pos-accent: var(--hub-pos);
+  --pos-accent-soft-bg: #d1fae5;
+  --pos-accent-soft-fg: #047857;
+  --pos-accent-hover-border: #34d399;
+  --pos-price-fg: #d97706;
+  --pos-panel-bg: var(--card);
+  --pos-panel-border: var(--border);
+  --pos-panel-header-bg: var(--surface-inset);
+  --pos-panel-muted-bg: var(--surface-inset);
+  --pos-summary-bg: #1e293b;
+  --pos-summary-fg: #f8fafc;
+  --pos-summary-muted: #94a3b8;
+  --pos-summary-divider: #475569;
+  --pos-summary-total: #fbbf24;
+  --pos-summary-discount: #f9a8d4;
+  --pos-summary-reward: #93c5fd;
+  --pos-crm-bg: #eff6ff;
+  --pos-crm-border: #bfdbfe;
+  --pos-crm-fg: #1d4ed8;
+  --pos-crm-muted: #2563eb;
+  --pos-promo-bg: #fdf2f8;
+  --pos-promo-border: #fbcfe8;
+  --pos-promo-fg: #be185d;
+  --pos-settlement-icon: var(--brand);
+  --pos-settlement-highlight: #3b82f6;
+  --pos-expense-icon: #d97706;
+  --pos-input-bg: var(--card);
+  --pos-input-border: var(--border);
+  --pos-numpad-bg: var(--surface-inset);
+  --pos-numpad-display-bg: var(--background);
+  --pos-numpad-key-bg: var(--card);
+  --pos-numpad-key-hover: rgb(217 119 6 / 0.08);
+  --pos-numpad-delete: var(--status-danger-fg);
+
+  /* KDS immersive */
+  --kds-ticket-bg: var(--card);
+  --kds-ticket-footer-bg: var(--surface-inset);
+  --kds-ticket-divider: var(--border);
+  --kds-on-time-border: var(--brand);
+  --kds-on-time-header: var(--brand);
+  --kds-warning-border: var(--metric-amber);
+  --kds-warning-header: var(--metric-amber);
+  --kds-late-border: #dc2626;
+  --kds-late-header: #dc2626;
+  --kds-connected-bg: var(--status-success-bg);
+  --kds-connected-fg: var(--status-success-fg);
+  --kds-connected-dot: var(--brand);
+  --kds-disconnected-bg: var(--status-danger-bg);
+  --kds-disconnected-fg: var(--status-danger-fg);
+  --kds-empty-icon: var(--brand);
+  --kds-item-qty: var(--brand);
+  --kds-note-bg: var(--status-danger-bg);
+  --kds-note-fg: var(--status-danger-fg);
+  --kds-start-btn: var(--metric-amber);
+  --kds-done-btn: var(--brand);
+  --kds-loading: var(--brand);
+}
+
+.dark {
+  --surface-elevated: #0f172a;
+  --surface-overlay: rgb(15 23 42 / 0.9);
+  --surface-inset: #1e293b;
+
+  --text-secondary: #cbd5e1;
+  --text-subtle: #94a3b8;
+
+  --hub-tab-track: rgb(30 41 59 / 0.5);
+  --hub-tab-active: #334155;
+  --hub-tab-active-fg: #ffffff;
+  --hub-tab-inactive-fg: #94a3b8;
+  --hub-tab-inactive-hover: #e2e8f0;
+  --hub-fade-from: #020617;
+
+  --status-neutral-bg: #1e293b;
+  --status-neutral-fg: #cbd5e1;
+  --status-info-bg: rgb(12 74 110 / 0.4);
+  --status-info-fg: #7dd3fc;
+  --status-success-bg: rgb(6 78 59 / 0.4);
+  --status-success-fg: #6ee7b7;
+  --status-warning-bg: rgb(120 53 15 / 0.4);
+  --status-warning-fg: #fcd34d;
+  --status-danger-bg: rgb(136 19 55 / 0.4);
+  --status-danger-fg: #fda4af;
+  --status-purple-bg: rgb(88 28 135 / 0.4);
+  --status-purple-fg: #d8b4fe;
+  --status-blue-bg: rgb(30 58 138 / 0.4);
+  --status-blue-fg: #93c5fd;
+
+  --glass-panel-bg: rgb(15 23 42 / 0.7);
+  --glass-panel-border: rgb(30 41 59 / 0.5);
+  --glass-panel-shadow: transparent;
+  --glass-card-bg: rgb(30 41 59 / 0.9);
+  --glass-card-border: rgb(51 65 85 / 0.6);
+  --glass-card-shadow: transparent;
+
+  --shell-bg: #020617;
+  --sidebar-border: rgb(30 41 59 / 0.5);
+  --sidebar-divider: rgb(30 41 59 / 0.5);
+  --sidebar-user-panel-bg: rgb(15 23 42 / 0.2);
+  --sidebar-brand-gradient-from: #f1f5f9;
+  --sidebar-brand-gradient-to: #94a3b8;
+  --sidebar-group-label: #64748b;
+  --sidebar-group-label-hover: #cbd5e1;
+  --sidebar-nav-active-bg: rgb(34 197 94 / 0.1);
+  --sidebar-nav-active-fg: #6ee7b7;
+  --sidebar-nav-active-border: rgb(34 197 94 / 0.2);
+  --sidebar-nav-active-icon: var(--brand);
+  --sidebar-nav-inactive-fg: #94a3b8;
+  --sidebar-nav-inactive-hover-bg: rgb(30 41 59 / 0.6);
+  --sidebar-nav-inactive-hover-fg: #e2e8f0;
+  --sidebar-nav-icon: #64748b;
+  --sidebar-logout-bg: rgb(15 23 42 / 0.5);
+  --sidebar-logout-border: rgb(127 29 29 / 0.5);
+
+  --breadcrumb-separator: #475569;
+
+  --widget-sales-bg-to: rgb(6 78 59 / 0.2);
+  --widget-sales-border: rgb(34 197 94 / 0.3);
+  --widget-sales-label: #6ee7b7;
+  --widget-sales-value: #a7f3d0;
+  --widget-sales-shadow: transparent;
+
+  --widget-branch-bg-to: rgb(30 58 138 / 0.2);
+  --widget-branch-border: rgb(59 130 246 / 0.3);
+  --widget-branch-label: #93c5fd;
+  --widget-branch-value: #bfdbfe;
+  --widget-branch-icon-bg: rgb(30 58 138 / 0.4);
+  --widget-branch-icon-fg: #93c5fd;
+
+  --widget-alerts-bg-to: rgb(136 19 55 / 0.15);
+  --widget-alerts-border: rgb(244 63 94 / 0.3);
+  --widget-alerts-header: #fda4af;
+  --widget-alerts-divider: rgb(136 19 55 / 0.3);
+  --widget-alerts-low-row: rgb(136 19 55 / 0.1);
+  --widget-alerts-expiry-row: rgb(120 53 15 / 0.15);
+  --widget-alerts-low-value: #fda4af;
+  --widget-alerts-low-meta: #fb7185;
+  --widget-alerts-expiry-value: #fcd34d;
+  --widget-alerts-expiry-meta: #fbbf24;
+
+  --widget-products-border: rgb(217 119 6 / 0.3);
+  --widget-products-title: #fbbf24;
+
+  --widget-chart-border: rgb(147 51 234 / 0.3);
+  --widget-chart-title: #c084fc;
+
+  --widget-error-border: rgb(127 29 29 / 0.5);
+
+  --chart-grid: #1e293b;
+  --chart-axis: #94a3b8;
+
+  --table-row-hover: rgb(30 41 59 / 0.5);
+  --expiry-expired-bg: #334155;
+  --expiry-expired-fg: #e2e8f0;
+  --expiry-notice-fg: #fef3c7;
+
+  --pos-accent-soft-bg: rgb(6 78 59 / 0.35);
+  --pos-accent-soft-fg: #6ee7b7;
+  --pos-accent-hover-border: #34d399;
+  --pos-price-fg: #fbbf24;
+  --pos-summary-bg: #020617;
+  --pos-summary-fg: #f8fafc;
+  --pos-summary-muted: #64748b;
+  --pos-summary-divider: #334155;
+  --pos-summary-total: #fbbf24;
+  --pos-crm-bg: rgb(30 58 138 / 0.25);
+  --pos-crm-border: rgb(59 130 246 / 0.35);
+  --pos-crm-fg: #93c5fd;
+  --pos-crm-muted: #60a5fa;
+  --pos-promo-bg: rgb(136 19 55 / 0.2);
+  --pos-promo-border: rgb(244 63 94 / 0.35);
+  --pos-promo-fg: #fda4af;
+  --pos-numpad-key-hover: rgb(217 119 6 / 0.15);
+}

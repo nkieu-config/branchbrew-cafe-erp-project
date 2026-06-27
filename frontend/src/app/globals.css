@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "../styles/theme/tokens.css";
+@import "../styles/theme/utilities.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -37,6 +39,23 @@
   --color-primary: var(--primary);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-subtle: var(--text-subtle);
+  --color-hub-inventory: var(--hub-inventory);
+  --color-hub-procurement: var(--hub-procurement);
+  --color-hub-hr: var(--hub-hr);
+  --color-hub-products: var(--hub-products);
+  --color-hub-kitchen: var(--hub-kitchen);
+  --color-hub-crm: var(--hub-crm);
+  --color-hub-finance: var(--hub-finance);
+  --color-hub-assets: var(--hub-assets);
+  --color-hub-pos: var(--hub-pos);
+  --color-hub-settings: var(--hub-settings);
+  --color-hub-organization: var(--hub-organization);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --radius-sm: calc(var(--radius) * 0.6);
@@ -149,20 +168,5 @@
   }
   html.dark {
     color-scheme: dark;
-  }
-}
-
-/* Glassmorphism Utilities */
-@layer utilities {
-  .glass-panel {
-    @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border border-white/20 dark:border-slate-800/50 shadow-xl shadow-slate-200/40 dark:shadow-none;
-  }
-  
-  .glass-card {
-    @apply bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200/60 dark:border-slate-700/60 shadow-lg shadow-slate-200/50 dark:shadow-none transition-[box-shadow,transform] duration-300 hover:shadow-xl hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:shadow-lg;
-  }
-
-  .interactive-item {
-    @apply transition-transform duration-200 active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100;
   }
 }

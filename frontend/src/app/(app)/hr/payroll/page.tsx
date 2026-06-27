@@ -16,6 +16,14 @@ import { StatusBadge, payrollStatusTone } from "@/components/shared/status-badge
 import { Button } from "@/components/ui/button";
 import { PayrollRun, Payslip } from "@/types/api";
 import { usePayrollRuns, useGeneratePayrollRun, useApprovePayrollRun } from "@/hooks/domains/useHrQueries";
+import {
+  antTableSummaryRowClassName,
+  hubCtaClassName,
+  metricValueClassName,
+  payrollExpandedPanelClassName,
+  tableActionAccentClassName,
+  text,
+} from "@/lib/theme";
 
 const { Text } = Typography;
 
@@ -75,7 +83,7 @@ export default function PayrollPage() {
       title: "Period",
       key: "period",
       render: (_: unknown, record: PayrollRun & { payslips: Payslip[] }) => (
-        <span className="font-semibold text-slate-800 dark:text-slate-200">
+        <span className={`font-semibold ${text.primary}`}>
           Month {record.month} / {record.year}
         </span>
       ),
@@ -85,7 +93,7 @@ export default function PayrollPage() {
       key: "payslips",
       render: (_: unknown, record: PayrollRun & { payslips: Payslip[] }) => (
         <div className="flex items-center gap-2">
-          <FileText className="w-4 h-4 text-slate-400" />
+          <FileText className={`w-4 h-4 ${text.muted}`} />
           <span>{record.payslips?.length || 0} Employees</span>
         </div>
       ),
@@ -121,7 +129,7 @@ export default function PayrollPage() {
               icon={CheckCircle}
               label="Approve"
               onClick={() => setApproveTarget(record)}
-              className="text-emerald-600 hover:text-emerald-700"
+              className={tableActionAccentClassName("emerald")}
             />
           );
         }
@@ -146,7 +154,7 @@ export default function PayrollPage() {
         key: "std",
         width: 100,
         align: "right" as const,
-        render: (val: number) => <span className="font-mono text-slate-500">{val.toFixed(1)}</span>,
+        render: (val: number) => <span className={`font-mono ${text.muted}`}>{val.toFixed(1)}</span>,
       },
       {
         title: "OT Hrs",
@@ -154,7 +162,7 @@ export default function PayrollPage() {
         key: "ot",
         width: 100,
         align: "right" as const,
-        render: (val: number) => <span className="font-mono text-amber-600">{val.toFixed(1)}</span>,
+        render: (val: number) => <span className={`font-mono ${metricValueClassName("amber")}`}>{val.toFixed(1)}</span>,
       },
       {
         title: "Base Pay",
@@ -170,7 +178,7 @@ export default function PayrollPage() {
         key: "otPay",
         width: 120,
         align: "right" as const,
-        render: (val: number) => <span className="font-mono text-amber-600">฿{val.toLocaleString()}</span>,
+        render: (val: number) => <span className={`font-mono ${metricValueClassName("amber")}`}>฿{val.toLocaleString()}</span>,
       },
       {
         title: "Gross Pay",
@@ -186,7 +194,7 @@ export default function PayrollPage() {
         key: "sso",
         width: 120,
         align: "right" as const,
-        render: (val: number) => <span className="font-mono text-rose-500">-฿{val.toLocaleString()}</span>,
+        render: (val: number) => <span className={`font-mono ${metricValueClassName("red")}`}>-฿{val.toLocaleString()}</span>,
       },
       {
         title: "Tax (3%)",
@@ -194,7 +202,7 @@ export default function PayrollPage() {
         key: "tax",
         width: 120,
         align: "right" as const,
-        render: (val: number) => <span className="font-mono text-rose-500">-฿{val.toLocaleString()}</span>,
+        render: (val: number) => <span className={`font-mono ${metricValueClassName("red")}`}>-฿{val.toLocaleString()}</span>,
       },
       {
         title: "Net Pay",
@@ -204,7 +212,7 @@ export default function PayrollPage() {
         width: 150,
         align: "right" as const,
         render: (val: number) => (
-          <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+          <span className={`font-mono font-bold ${metricValueClassName("emerald")}`}>
             ฿{val.toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </span>
         ),
@@ -212,7 +220,7 @@ export default function PayrollPage() {
     ];
 
     return (
-      <div className="p-4 bg-slate-50 dark:bg-slate-900/30 rounded-lg m-2 border border-slate-200 dark:border-slate-800">
+      <div className={payrollExpandedPanelClassName()}>
         <DataTable
           columns={payslipColumns}
           dataSource={record.payslips}
@@ -235,7 +243,7 @@ export default function PayrollPage() {
             });
 
             return (
-              <Table.Summary.Row className="bg-slate-100 dark:bg-slate-800 font-bold">
+              <Table.Summary.Row className={antTableSummaryRowClassName()}>
                 <Table.Summary.Cell index={0} colSpan={5}>
                   Total
                 </Table.Summary.Cell>
@@ -273,7 +281,7 @@ export default function PayrollPage() {
         description="View and generate monthly payroll runs."
         actions={
           <Button
-            className="bg-violet-600 hover:bg-violet-700 font-bold shadow-sm"
+            className={hubCtaClassName("hr", "font-bold shadow-sm")}
             onClick={() => void handleGenerate()}
             disabled={
               generatePayrollMutation.isPending ||

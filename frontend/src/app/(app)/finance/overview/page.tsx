@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { HubPageHeader } from "@/components/shared/hub-card"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
+import { StatusBadge, settlementStatusTone } from "@/components/shared/status-badge"
 import { exportSales } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, DollarSign, Download, RefreshCw } from "lucide-react"
@@ -13,6 +14,24 @@ import { useFinanceSettlements, useFinanceExpenses, useApproveSettlement } from 
 import { getErrorMessage } from "@/lib/errors"
 import { formatDate, formatDateTime } from "@/lib/intl-date"
 import { Settlement, Expense } from "@/types"
+import {
+  financeApproveButtonClassName,
+  financeErrorBannerClassName,
+  financeExpenseAmountClassName,
+  financeHubIconClassName,
+  financeMetricIconClassName,
+  financePrimaryActionClassName,
+  financeSectionTitleClassName,
+  nativeTableBodyClassName,
+  nativeTableCellMutedClassName,
+  nativeTableCellPrimaryClassName,
+  nativeTableClassName,
+  nativeTableEmptyCellClassName,
+  nativeTableHeadClassName,
+  nativeTableRowClassName,
+  settlementDifferenceClassName,
+  text,
+} from "@/lib/theme"
 
 function FinanceTableSkeleton({ rows = 4 }: { rows?: number }) {
   return (
@@ -88,7 +107,7 @@ export default function FinanceDashboardPage() {
             : "Showing all branches. Select a branch in the top bar to filter."
         }
         actions={
-          <Button onClick={handleExport} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm border-none">
+          <Button onClick={handleExport} className={financePrimaryActionClassName()}>
             <Download className="w-4 h-4 mr-2" />
             Export Sales (CSV)
           </Button>
@@ -96,8 +115,8 @@ export default function FinanceDashboardPage() {
       />
 
       {hasError && (
-        <div className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <p className="text-sm font-medium text-rose-800 dark:text-rose-200">{errorMessage}</p>
+        <div className={financeErrorBannerClassName()}>
+          <p className={`text-sm font-medium ${text.primary}`}>{errorMessage}</p>
           <Button variant="outline" size="sm" onClick={handleRetry} className="shrink-0">
             <RefreshCw className="w-4 h-4 mr-2" />
             Retry
@@ -107,16 +126,16 @@ export default function FinanceDashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="glass-panel p-6 rounded-2xl flex flex-col">
-          <h2 className="font-semibold text-lg text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+          <h2 className={financeSectionTitleClassName()}>
+            <CheckCircle2 className={financeHubIconClassName()} />
             Shift Settlements
           </h2>
           <div className="overflow-x-auto">
             {isLoading ? (
               <FinanceTableSkeleton />
             ) : (
-              <table className="w-full text-left text-sm whitespace-nowrap">
-                <thead className="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-slate-800/50">
+              <table className={nativeTableClassName()}>
+                <thead className={nativeTableHeadClassName()}>
                   <tr>
                     <th className="px-4 py-3 rounded-l-lg">Date</th>
                     <th className="px-4 py-3">Branch</th>
@@ -127,24 +146,22 @@ export default function FinanceDashboardPage() {
                     <th className="px-4 py-3 rounded-r-lg">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody className={nativeTableBodyClassName()}>
                   {settlements.map((s: Settlement) => (
-                    <tr key={s.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{formatDate(s.date)}</td>
-                      <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">{s.branch?.name || 'Main'}</td>
+                    <tr key={s.id} className={nativeTableRowClassName()}>
+                      <td className={nativeTableCellMutedClassName()}>{formatDate(s.date)}</td>
+                      <td className={nativeTableCellPrimaryClassName()}>{s.branch?.name || 'Main'}</td>
                       <td className="px-4 py-3 text-right tabular-nums">฿{s.expectedCash.toLocaleString()}</td>
                       <td className="px-4 py-3 text-right tabular-nums">฿{s.actualCash.toLocaleString()}</td>
-                      <td className={`px-4 py-3 text-right tabular-nums font-medium ${s.difference < 0 ? 'text-red-500' : s.difference > 0 ? 'text-emerald-500' : 'text-slate-400'}`}>
+                      <td className={settlementDifferenceClassName(s.difference)}>
                         {s.difference > 0 ? '+' : ''}{s.difference.toLocaleString()}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${s.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400'}`}>
-                          {s.status}
-                        </span>
+                        <StatusBadge tone={settlementStatusTone(s.status)}>{s.status}</StatusBadge>
                       </td>
                       <td className="px-4 py-3 text-center">
                         {s.status === 'PENDING' && (
-                          <Button size="sm" variant="ghost" className="text-emerald-500 hover:text-emerald-600 hover:bg-emerald-50" onClick={() => setApproveTarget(s)}>
+                          <Button size="sm" variant="ghost" className={financeApproveButtonClassName()} onClick={() => setApproveTarget(s)}>
                             Approve
                           </Button>
                         )}
@@ -153,7 +170,7 @@ export default function FinanceDashboardPage() {
                   ))}
                   {settlements.length === 0 && !isLoading && (
                     <tr>
-                      <td colSpan={7} className="text-center py-8 text-slate-400">No settlements found.</td>
+                      <td colSpan={7} className={nativeTableEmptyCellClassName()}>No settlements found.</td>
                     </tr>
                   )}
                 </tbody>
@@ -163,16 +180,16 @@ export default function FinanceDashboardPage() {
         </div>
 
         <div className="glass-panel p-6 rounded-2xl flex flex-col">
-          <h2 className="font-semibold text-lg text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-amber-500" />
+          <h2 className={financeSectionTitleClassName()}>
+            <DollarSign className={financeMetricIconClassName("amber")} />
             Petty Cash Expenses
           </h2>
           <div className="overflow-x-auto">
             {isLoading ? (
               <FinanceTableSkeleton />
             ) : (
-              <table className="w-full text-left text-sm whitespace-nowrap">
-                <thead className="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-slate-800/50">
+              <table className={nativeTableClassName()}>
+                <thead className={nativeTableHeadClassName()}>
                   <tr>
                     <th className="px-4 py-3 rounded-l-lg">Date</th>
                     <th className="px-4 py-3">Category</th>
@@ -181,19 +198,19 @@ export default function FinanceDashboardPage() {
                     <th className="px-4 py-3 rounded-r-lg">By</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                <tbody className={nativeTableBodyClassName()}>
                   {expenses.map((e: Expense) => (
-                    <tr key={e.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{formatDateTime(e.createdAt)}</td>
-                      <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">{e.category}</td>
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{e.description || '-'}</td>
-                      <td className="px-4 py-3 text-right text-red-500 font-medium tabular-nums">-฿{e.amount.toLocaleString()}</td>
-                      <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{e.recordedBy?.name}</td>
+                    <tr key={e.id} className={nativeTableRowClassName()}>
+                      <td className={nativeTableCellMutedClassName()}>{formatDateTime(e.createdAt)}</td>
+                      <td className={nativeTableCellPrimaryClassName()}>{e.category}</td>
+                      <td className={nativeTableCellMutedClassName()}>{e.description || '-'}</td>
+                      <td className={financeExpenseAmountClassName()}>-฿{e.amount.toLocaleString()}</td>
+                      <td className={nativeTableCellMutedClassName()}>{e.recordedBy?.name}</td>
                     </tr>
                   ))}
                   {expenses.length === 0 && !isLoading && (
                     <tr>
-                      <td colSpan={5} className="text-center py-8 text-slate-400">No expenses recorded.</td>
+                      <td colSpan={5} className={nativeTableEmptyCellClassName()}>No expenses recorded.</td>
                     </tr>
                   )}
                 </tbody>

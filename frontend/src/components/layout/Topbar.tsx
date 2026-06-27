@@ -13,6 +13,21 @@ import {
   resolveDefaultBranchId,
 } from "@/lib/branch-storage";
 import { resolveBreadcrumbTrail } from "@/lib/navigation";
+import {
+  breadcrumbCurrentClassName,
+  breadcrumbLinkClassName,
+  breadcrumbNavClassName,
+  breadcrumbParentClassName,
+  breadcrumbSeparatorClassName,
+  destructiveMenuItemClassName,
+  profileAvatarButtonClassName,
+  profileAvatarInitialClassName,
+  profileMenuPanelClassName,
+  selectFocusClassName,
+  text,
+  topbarBranchIconClassName,
+  topbarBranchPickerClassName,
+} from "@/lib/theme";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -36,8 +51,8 @@ function BranchPicker({
   const value = activeBranchId == null ? "all" : String(activeBranchId);
 
   return (
-    <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-2 py-1 shadow-sm min-h-[44px]">
-      <MapPin className="w-4 h-4 text-emerald-500 shrink-0" aria-hidden="true" />
+    <div className={topbarBranchPickerClassName()}>
+      <MapPin className={topbarBranchIconClassName()} aria-hidden="true" />
       <Select
         value={value}
         onValueChange={(next) => {
@@ -47,7 +62,9 @@ function BranchPicker({
       >
         <SelectTrigger
           aria-label="Select branch"
-          className="h-9 min-h-[36px] border-0 bg-transparent shadow-none focus-visible:ring-emerald-500/50 max-w-[140px] sm:max-w-[220px]"
+          className={selectFocusClassName(
+            "h-9 min-h-[36px] border-0 bg-transparent shadow-none max-w-[140px] sm:max-w-[220px]",
+          )}
         >
           <SelectValue placeholder="Select branch" />
         </SelectTrigger>
@@ -100,26 +117,20 @@ function ProfileMenu() {
         type="button"
         variant="outline"
         size="icon"
-        className="h-11 w-11 rounded-full border-emerald-200 dark:border-emerald-800"
+        className={profileAvatarButtonClassName()}
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Account menu"
         onClick={() => setOpen((prev) => !prev)}
       >
-        <span className="font-bold text-emerald-600 dark:text-emerald-400">{initial}</span>
+        <span className={profileAvatarInitialClassName()}>{initial}</span>
       </Button>
 
       {open && (
-        <div
-          role="menu"
-          aria-label="Account"
-          className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-2 shadow-lg"
-        >
-          <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800 mb-1">
-            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 truncate">
-              {user.name}
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 capitalize flex items-center gap-1">
+        <div role="menu" aria-label="Account" className={profileMenuPanelClassName()}>
+          <div className={cn("px-3 py-2 border-b mb-1 border-[var(--profile-menu-divider)]")}>
+            <p className={cn("text-sm font-semibold truncate", text.primary)}>{user.name}</p>
+            <p className={cn("text-xs capitalize flex items-center gap-1", text.muted)}>
               <User className="w-3 h-3" aria-hidden />
               {roleLabel}
             </p>
@@ -127,11 +138,7 @@ function ProfileMenu() {
           <button
             type="button"
             role="menuitem"
-            className={cn(
-              "flex w-full items-center gap-2 rounded-lg px-3 py-2.5 min-h-[44px] text-sm font-medium",
-              "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/40",
-            )}
+            className={destructiveMenuItemClassName()}
             onClick={() => {
               setOpen(false);
               void logout();
@@ -196,34 +203,25 @@ export function Topbar() {
           <Menu className="h-5 w-5" aria-hidden />
         </Button>
 
-        <nav
-          aria-label="Breadcrumb"
-          className="flex items-center min-w-0 text-sm font-medium text-slate-500 dark:text-slate-400 overflow-x-auto"
-        >
-          <Link
-            href="/"
-            className="shrink-0 hover:text-slate-800 dark:hover:text-slate-200 transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 rounded-sm"
-          >
+        <nav aria-label="Breadcrumb" className={breadcrumbNavClassName()}>
+          <Link href="/" className={breadcrumbLinkClassName()}>
             QafaCafe
           </Link>
           {trail.map((item, index) => (
             <Fragment key={`${item.label}-${index}`}>
-              <span className="mx-2 text-slate-300 dark:text-slate-600 shrink-0" aria-hidden="true">
+              <span className={breadcrumbSeparatorClassName()} aria-hidden="true">
                 /
               </span>
               {item.href ? (
-                <Link
-                  href={item.href}
-                  className="shrink-0 hover:text-slate-800 dark:hover:text-slate-200 transition-colors motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 rounded-sm"
-                >
+                <Link href={item.href} className={breadcrumbLinkClassName()}>
                   {item.label}
                 </Link>
               ) : (
                 <span
                   className={
                     index === trail.length - 1
-                      ? "text-slate-800 dark:text-slate-200 font-bold tracking-tight truncate"
-                      : "text-slate-600 dark:text-slate-300 shrink-0"
+                      ? breadcrumbCurrentClassName()
+                      : breadcrumbParentClassName()
                   }
                   aria-current={index === trail.length - 1 ? "page" : undefined}
                 >

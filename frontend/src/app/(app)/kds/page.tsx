@@ -14,23 +14,48 @@ import { formatQueueNumber } from "@/lib/queue";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { getErrorMessage } from "@/lib/errors";
 import { toast } from "sonner";
+import {
+  kdsConnectedBadgeClassName,
+  kdsConnectedDotClassName,
+  kdsDisconnectedBadgeClassName,
+  kdsDoneButtonClassName,
+  kdsEmptyStateClassName,
+  kdsErrorBannerClassName,
+  kdsErrorRetryClassName,
+  kdsItemDividerClassName,
+  kdsItemNoteClassName,
+  kdsItemQtyClassName,
+  kdsLoadingClassName,
+  kdsStartButtonClassName,
+  kdsTicketClassName,
+  kdsTicketFooterClassName,
+  kdsTicketHeaderClassName,
+  type KdsTicketUrgency,
+  text,
+} from "@/lib/theme";
 
 function ConnectionBadge({ isConnected }: { isConnected: boolean }) {
   if (isConnected) {
     return (
-      <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-mono text-sm font-bold bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 rounded-full">
-        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse motion-reduce:animate-none" aria-hidden="true" />
+      <div className={kdsConnectedBadgeClassName()}>
+        <div className={kdsConnectedDotClassName()} aria-hidden="true" />
         Live Sync
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-mono text-sm font-bold bg-rose-50 dark:bg-rose-900/30 px-3 py-1.5 rounded-full">
+    <div className={kdsDisconnectedBadgeClassName()}>
       <WifiOff className="w-3.5 h-3.5" aria-hidden="true" />
       Socket disconnected — polling every 30s
     </div>
   );
+}
+
+function ticketUrgency(waitMinutes: number): KdsTicketUrgency {
+  if (waitMinutes >= 10) return "late";
+  if (waitMinutes >= 5) return "warning";
+  return "on-time";
 }
 
 export default function KdsPage() {
@@ -92,12 +117,12 @@ export default function KdsPage() {
       />
 
       {fetchError && (
-        <div className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <p className="text-sm font-medium text-rose-800 dark:text-rose-200">{fetchError}</p>
+        <div className={kdsErrorBannerClassName()}>
+          <p className={`text-sm font-medium ${text.primary}`}>{fetchError}</p>
           <Button
             variant="outline"
             size="sm"
-            className="border-rose-300 text-rose-700 hover:bg-rose-100 dark:border-rose-800 dark:text-rose-300 shrink-0"
+            className={kdsErrorRetryClassName()}
             onClick={() => void refetch()}
           >
             <RefreshCw className="w-4 h-4 mr-2" />
@@ -109,36 +134,25 @@ export default function KdsPage() {
       <div className="flex-1 overflow-x-auto pb-4">
         {isLoading ? (
           <div className="flex h-64 items-center justify-center" role="status" aria-live="polite">
-            <Loader2 className="w-10 h-10 animate-spin motion-reduce:animate-none text-emerald-600" aria-hidden="true" />
+            <Loader2 className={`w-10 h-10 animate-spin motion-reduce:animate-none ${kdsLoadingClassName()}`} aria-hidden="true" />
             <span className="sr-only">Loading orders…</span>
           </div>
         ) : orders.length === 0 ? (
-          <div className="w-full py-20 text-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-            <ChefHat className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
-            <p className="font-semibold text-slate-800 dark:text-slate-100">No pending orders</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">Kitchen is clear — new orders will appear here automatically.</p>
+          <div className={kdsEmptyStateClassName()}>
+            <ChefHat className={`w-12 h-12 mx-auto mb-4 text-[var(--kds-empty-icon)]`} />
+            <p className={`font-semibold ${text.primary}`}>No pending orders</p>
+            <p className={`text-sm mt-2 ${text.muted}`}>Kitchen is clear — new orders will appear here automatically.</p>
           </div>
         ) : (
           <div className="flex gap-4 h-full items-start">
             {orders.map((order) => {
               const waitTime = getWaitTimeMinutes(order.createdAt);
-              const isLate = waitTime >= 10;
-              const isWarning = waitTime >= 5 && waitTime < 10;
+              const urgency = ticketUrgency(waitTime);
               const isUpdating = updatingOrderId === order.id;
 
-              const headerColorClass = isLate ? "bg-rose-600" : isWarning ? "bg-amber-500" : "bg-emerald-500";
-              const borderClass = isLate
-                ? "border-rose-600 animate-[pulse_2s_ease-in-out_infinite] motion-reduce:animate-none"
-                : isWarning
-                  ? "border-amber-500"
-                  : "border-emerald-500";
-
               return (
-                <div
-                  key={order.id}
-                  className={`flex-shrink-0 w-[400px] bg-white dark:bg-slate-800 rounded-2xl shadow-xl border-4 overflow-hidden flex flex-col transition-[border-color,box-shadow] duration-150 motion-reduce:transition-none ${borderClass}`}
-                >
-                  <div className={`p-5 flex justify-between items-center text-white ${headerColorClass}`}>
+                <div key={order.id} className={kdsTicketClassName(urgency)}>
+                  <div className={kdsTicketHeaderClassName(urgency)}>
                     <div>
                       <div className="font-black text-4xl tracking-wider tabular-nums">#{formatQueueNumber(order.queueNumber)}</div>
                       <div className="text-xs opacity-80 font-mono mt-0.5">Order ref {order.id}</div>
@@ -154,13 +168,13 @@ export default function KdsPage() {
 
                   <div className="p-5 flex-1 overflow-y-auto space-y-4">
                     {order.items?.map((item: OrderItem) => (
-                      <div key={item.id} className="border-b border-slate-100 dark:border-slate-700 pb-3">
+                      <div key={item.id} className={kdsItemDividerClassName()}>
                         <div className="flex gap-3 items-start">
-                          <span className="text-emerald-600 dark:text-emerald-400 font-black text-2xl">{item.quantity}x</span>
+                          <span className={kdsItemQtyClassName()}>{item.quantity}x</span>
                           <div className="flex flex-col">
-                            <span className="text-slate-800 dark:text-slate-100 font-black text-2xl leading-tight">{item.product?.name}</span>
+                            <span className={`${text.primary} font-black text-2xl leading-tight`}>{item.product?.name}</span>
                             {item.notes && (
-                              <div className="mt-2 text-xl font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/50 px-2 py-1 rounded inline-block">
+                              <div className={kdsItemNoteClassName()}>
                                 + {item.notes}
                               </div>
                             )}
@@ -170,10 +184,10 @@ export default function KdsPage() {
                     ))}
                   </div>
 
-                  <div className="p-5 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 flex gap-3">
+                  <div className={kdsTicketFooterClassName()}>
                     {order.status === "PENDING" && (
                       <Button
-                        className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-black text-2xl h-24 shadow-lg active:scale-95 motion-reduce:active:scale-100 transition-transform motion-reduce:transition-none"
+                        className={kdsStartButtonClassName()}
                         onClick={() => void handleUpdateStatus(order.id, "PREPARING")}
                         disabled={isUpdating}
                       >
@@ -181,7 +195,7 @@ export default function KdsPage() {
                       </Button>
                     )}
                     <Button
-                      className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-black text-2xl h-24 shadow-lg active:scale-95 motion-reduce:active:scale-100 transition-transform motion-reduce:transition-none"
+                      className={kdsDoneButtonClassName()}
                       onClick={() => void handleUpdateStatus(order.id, "COMPLETED")}
                       disabled={isUpdating}
                     >

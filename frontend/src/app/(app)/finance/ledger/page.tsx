@@ -12,6 +12,17 @@ import { StatusBadge, journalStatusTone } from "@/components/shared/status-badge
 import { Button } from "@/components/ui/button"
 import { formatDate } from "@/lib/intl-date"
 import type { JournalEntry, Branch } from "@/types/api"
+import {
+  antTableShellClassName,
+  antTableSummaryRowClassName,
+  dataTableContainerClassName,
+  financeMetricIconClassName,
+  hubInfoActionClassName,
+  ledgerCreditClassName,
+  ledgerDebitClassName,
+  ledgerPanelClassName,
+  text,
+} from "@/lib/theme"
 
 import { useAuth } from "@/context/AuthContext"
 import { useBranches } from '@/hooks/domains/useGeneralQueries';
@@ -62,7 +73,7 @@ export default function GeneralLedgerPage() {
       title: 'Date',
       dataIndex: 'date',
       key: 'date',
-      render: (date: string) => <span className="font-medium text-slate-600">{formatDate(date)}</span>,
+      render: (date: string) => <span className={`font-medium ${text.subtle}`}>{formatDate(date)}</span>,
     },
     {
       title: 'Reference',
@@ -76,7 +87,7 @@ export default function GeneralLedgerPage() {
       title: 'Description',
       dataIndex: 'description',
       key: 'description',
-      render: (desc: string) => <span className="text-slate-700">{desc}</span>
+      render: (desc: string) => <span className={text.secondary}>{desc}</span>
     },
     {
       title: 'Status',
@@ -90,21 +101,21 @@ export default function GeneralLedgerPage() {
 
   const expandedRowRender = (record: JournalEntry) => {
     const lineColumns = [
-      { title: 'Account Code', dataIndex: ['account', 'code'], key: 'code', render: (text: string) => <span className="font-mono font-bold text-slate-500">{text}</span> },
-      { title: 'Account Name', dataIndex: ['account', 'name'], key: 'name', render: (text: string) => <span className="font-semibold text-slate-700">{text}</span> },
-      { title: 'Description', dataIndex: 'description', key: 'desc', render: (text: string) => <span className="text-slate-500 italic">{text || '-'}</span> },
+      { title: 'Account Code', dataIndex: ['account', 'code'], key: 'code', render: (textVal: string) => <span className={`font-mono font-bold ${text.muted}`}>{textVal}</span> },
+      { title: 'Account Name', dataIndex: ['account', 'name'], key: 'name', render: (textVal: string) => <span className={`font-semibold ${text.secondary}`}>{textVal}</span> },
+      { title: 'Description', dataIndex: 'description', key: 'desc', render: (textVal: string) => <span className={`italic ${text.muted}`}>{textVal || '-'}</span> },
       { 
         title: 'Debit (THB)', 
         dataIndex: 'debit', 
         key: 'debit',
-        render: (val: number) => val > 0 ? <span className="text-emerald-600 font-bold">{val.toLocaleString('en-US', {minimumFractionDigits: 2})}</span> : '-',
+        render: (val: number) => val > 0 ? <span className={ledgerDebitClassName()}>{val.toLocaleString('en-US', {minimumFractionDigits: 2})}</span> : '-',
         align: 'right' as const,
       },
       { 
         title: 'Credit (THB)', 
         dataIndex: 'credit', 
         key: 'credit',
-        render: (val: number) => val > 0 ? <span className="text-rose-600 font-bold">{val.toLocaleString('en-US', {minimumFractionDigits: 2})}</span> : '-',
+        render: (val: number) => val > 0 ? <span className={ledgerCreditClassName()}>{val.toLocaleString('en-US', {minimumFractionDigits: 2})}</span> : '-',
         align: 'right' as const,
       },
     ]
@@ -116,7 +127,7 @@ export default function GeneralLedgerPage() {
         pagination={false} 
         rowKey="id" 
         size="small" 
-        className="my-2 border border-slate-200 rounded-lg overflow-hidden"
+        className={antTableShellClassName()}
         summary={(pageData: readonly { debit?: number; credit?: number }[]) => {
           let totalDebit = 0;
           let totalCredit = 0;
@@ -127,13 +138,13 @@ export default function GeneralLedgerPage() {
           });
 
           return (
-            <Table.Summary.Row className="bg-slate-50 font-black">
+            <Table.Summary.Row className={antTableSummaryRowClassName()}>
               <Table.Summary.Cell index={0} colSpan={3}>Total</Table.Summary.Cell>
               <Table.Summary.Cell index={1} align="right">
-                <span className="text-emerald-600">{totalDebit.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                <span className={ledgerDebitClassName()}>{totalDebit.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
               </Table.Summary.Cell>
               <Table.Summary.Cell index={2} align="right">
-                <span className="text-rose-600">{totalCredit.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                <span className={ledgerCreditClassName()}>{totalCredit.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
               </Table.Summary.Cell>
             </Table.Summary.Row>
           );
@@ -151,7 +162,7 @@ export default function GeneralLedgerPage() {
         actions={
           entries.length === 0 && !loading ? (
             <Button
-              className="bg-indigo-600 hover:bg-indigo-700"
+              className={hubInfoActionClassName()}
               disabled={isSeeding}
               onClick={() => setShowSeedConfirm(true)}
             >
@@ -162,8 +173,8 @@ export default function GeneralLedgerPage() {
         }
       />
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 mb-6">
-        <h2 className="text-lg font-black text-slate-800 dark:text-slate-100 mb-6 flex items-center gap-2">
+      <div className={ledgerPanelClassName("mb-6")}>
+        <h2 className={`text-lg font-black mb-6 flex items-center gap-2 ${text.primary}`}>
           Profit & Loss Trend
         </h2>
         <div className="h-[350px] w-full">
@@ -177,10 +188,11 @@ export default function GeneralLedgerPage() {
         </div>
       </div>
 
-      <div className="pt-2 bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6">
-        <h2 className="font-semibold text-lg text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-          <FileText className="w-5 h-5 text-indigo-500" /> General Ledger (Journal Entries)
+      <div className={ledgerPanelClassName("pt-2")}>
+        <h2 className={`font-semibold text-lg mb-4 flex items-center gap-2 ${text.primary}`}>
+          <FileText className={financeMetricIconClassName("indigo")} /> General Ledger (Journal Entries)
         </h2>
+        <div className={dataTableContainerClassName()}>
         <Table 
           columns={columns} 
           dataSource={entries} 
@@ -188,9 +200,9 @@ export default function GeneralLedgerPage() {
           loading={isEntriesLoading}
           expandable={{ expandedRowRender }}
           pagination={{ pageSize: 20 }}
-          className="border border-slate-200 rounded-xl overflow-hidden"
           locale={{ emptyText: "No journal entries found." }}
         />
+        </div>
       </div>
 
       <ConfirmDialog

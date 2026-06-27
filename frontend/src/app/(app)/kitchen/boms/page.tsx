@@ -14,6 +14,15 @@ import { Button } from "@/components/ui/button";
 import { Progress, ProgressIndicator, ProgressTrack, ProgressValue } from "@/components/ui/progress";
 import { groupProductionBoms } from "@/lib/bom";
 import type { BomGroupRow, BomTableRow, ProductionBOM } from "@/types/api";
+import {
+  foodCostProgressIndicatorClassName,
+  foodCostStatusClassName,
+  hubCardIconFor,
+  hubCtaClassName,
+  metricValueClassName,
+  text,
+} from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
 export default function BOMPage() {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -36,12 +45,12 @@ export default function BOMPage() {
       render: (_: unknown, record) => {
         if ("isGroup" in record && record.isGroup) {
           return (
-            <span className="font-bold text-slate-800 dark:text-slate-200 text-base">
+            <span className={cn("font-bold text-base", text.primary)}>
               {record.targetName}
             </span>
           );
         }
-        return <span className="text-slate-600 dark:text-slate-400 pl-4">{record.rawName}</span>;
+        return <span className={cn(text.secondary, "pl-4")}>{record.rawName}</span>;
       },
     },
     {
@@ -50,7 +59,7 @@ export default function BOMPage() {
       render: (_: unknown, record) => {
         if ("isGroup" in record && record.isGroup) {
           return (
-            <span className="text-slate-400 text-xs uppercase tracking-wider">
+            <span className={cn("text-xs uppercase tracking-wider", text.muted)}>
               Per 1 {record.targetUnit}
             </span>
           );
@@ -69,13 +78,13 @@ export default function BOMPage() {
         if ("isGroup" in record && record.isGroup) {
           const total = record.children.reduce((sum, c) => sum + c.totalCost, 0);
           return (
-            <span className="font-black text-rose-600 dark:text-rose-400">
+            <span className={cn("font-black", metricValueClassName("red"))}>
               ฿{total.toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </span>
           );
         }
         return (
-          <span className="text-slate-500 font-mono">
+          <span className={cn(text.subtle, "font-mono")}>
             ฿{record.totalCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}
           </span>
         );
@@ -96,10 +105,10 @@ export default function BOMPage() {
             <div className="flex items-center gap-4">
               <Progress value={percent} className="w-28 gap-1">
                 <ProgressTrack className="h-2">
-                  <ProgressIndicator className={isWarning ? "bg-rose-500" : "bg-emerald-500"} />
+                  <ProgressIndicator className={foodCostProgressIndicatorClassName(isWarning)} />
                 </ProgressTrack>
                 <ProgressValue
-                  className={`text-xs font-black tabular-nums ${isWarning ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}
+                  className={cn("text-xs font-black tabular-nums", foodCostStatusClassName(isWarning ? "bad" : "good"))}
                 />
               </Progress>
               {isWarning && (
@@ -125,7 +134,7 @@ export default function BOMPage() {
         description="Define raw ingredients and quantities for each finished product produced in the central kitchen."
         actions={
           <Button
-            className="bg-orange-500 hover:bg-orange-600 shadow-sm font-bold"
+            className={hubCtaClassName("kitchen", "shadow-sm font-bold")}
             onClick={() => setIsModalVisible(true)}
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -135,14 +144,14 @@ export default function BOMPage() {
       >
         {!loading && bomsGrouped.length === 0 ? (
           <div className="py-16 text-center">
-            <ListTree className="w-12 h-12 text-orange-400 mx-auto mb-4" />
-            <p className="font-semibold text-slate-800 dark:text-slate-100">No production BOMs yet</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-md mx-auto">
+            <ListTree className={hubCardIconFor("kitchen", "w-12 h-12 mx-auto mb-4")} />
+            <p className={cn("font-semibold", text.primary)}>No production BOMs yet</p>
+            <p className={cn("text-sm mt-2 max-w-md mx-auto", text.muted)}>
               Create a production BOM to define raw ingredients and quantities for each finished
               product.
             </p>
             <Button
-              className="mt-6 bg-orange-500 hover:bg-orange-600 font-bold"
+              className={hubCtaClassName("kitchen", "mt-6 font-bold")}
               onClick={() => setIsModalVisible(true)}
             >
               <Plus className="w-4 h-4 mr-2" />

@@ -1,47 +1,15 @@
 "use client"
 
-import { ConfigProvider, theme } from 'antd';
+import { ConfigProvider } from 'antd';
 import { useTheme } from 'next-themes';
 import React from 'react';
+import { getAntdThemeConfig } from '@/lib/theme';
 
 export function AntdProvider({ children }: { children: React.ReactNode }) {
   const { resolvedTheme } = useTheme();
 
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: resolvedTheme === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
-        token: {
-          fontFamily: 'inherit',
-          colorPrimary: '#22c55e', // Tailwind Green 500 (Matches Shadcn --ring and --accent)
-          colorBgContainer: resolvedTheme === 'dark' ? '#0f172a' : '#ffffff',
-          borderRadius: 12,
-          controlHeight: 40,
-        },
-        components: {
-          Button: {
-            controlHeight: 40,
-            borderRadius: 12,
-          },
-          Input: {
-            controlHeight: 40,
-            borderRadius: 12,
-          },
-          Select: {
-            controlHeight: 40,
-            borderRadius: 12,
-          },
-          InputNumber: {
-            controlHeight: 40,
-            borderRadius: 12,
-          },
-          DatePicker: {
-            controlHeight: 40,
-            borderRadius: 12,
-          }
-        }
-      }}
-    >
+    <ConfigProvider theme={getAntdThemeConfig(resolvedTheme)}>
       {children}
     </ConfigProvider>
   );

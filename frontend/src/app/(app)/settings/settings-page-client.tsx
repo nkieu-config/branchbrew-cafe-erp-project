@@ -8,6 +8,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { getErrorMessage } from "@/lib/errors";
+import {
+  financeErrorBannerClassName,
+  hubCardIconFor,
+  hubCtaClassName,
+  metricValueClassName,
+  settingsSectionClassName,
+  settingsSectionHeaderClassName,
+  settingsSectionTitleClassName,
+  statusInlineAlertClassName,
+  text,
+} from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
 const EMPTY_FORM: Record<string, string> = {
   companyName: "",
@@ -62,17 +74,14 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6 max-w-4xl w-full">
       {isDirty && (
-        <div
-          role="status"
-          className="rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/30 px-4 py-3 text-sm font-medium text-amber-900 dark:text-amber-100"
-        >
+        <div role="status" className={statusInlineAlertClassName("warning")}>
           You have unsaved changes. Save before leaving this page.
         </div>
       )}
 
       <div className="flex justify-end">
         <Button
-          className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-2"
+          className={hubCtaClassName("settings", "flex items-center gap-2")}
           onClick={handleSave}
           disabled={isLoading || isError || updateSettingsMutation.isPending || !isDirty}
         >
@@ -82,8 +91,8 @@ export default function SettingsPage() {
       </div>
 
       {isError && (
-        <div className="rounded-xl border border-rose-200 dark:border-rose-900/50 bg-rose-50 dark:bg-rose-950/30 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <p className="text-sm font-medium text-rose-800 dark:text-rose-200">
+        <div className={financeErrorBannerClassName()}>
+          <p className={cn("text-sm font-medium", text.primary)}>
             {getErrorMessage(error, "Failed to load settings")}
           </p>
           <Button variant="outline" size="sm" onClick={() => void refetch()} className="shrink-0">
@@ -95,14 +104,14 @@ export default function SettingsPage() {
 
       {isLoading ? (
         <div className="flex h-64 items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+          <Loader2 className={cn("w-8 h-8 animate-spin motion-reduce:animate-none", hubCardIconFor("settings"))} />
         </div>
       ) : !isError ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 space-y-6">
-            <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
-              <Store className="w-5 h-5 text-blue-500" />
-              <h3 className="font-semibold text-lg text-slate-800 dark:text-slate-100">Company Information</h3>
+          <div className={settingsSectionClassName()}>
+            <div className={settingsSectionHeaderClassName()}>
+              <Store className={cn("w-5 h-5", metricValueClassName("blue"))} />
+              <h3 className={settingsSectionTitleClassName()}>Company Information</h3>
             </div>
 
             <div className="space-y-4">
@@ -128,10 +137,10 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 space-y-6">
-            <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
-              <Calculator className="w-5 h-5 text-emerald-500" />
-              <h3 className="font-semibold text-lg text-slate-800 dark:text-slate-100">Finance & Tax</h3>
+          <div className={settingsSectionClassName()}>
+            <div className={settingsSectionHeaderClassName()}>
+              <Calculator className={hubCardIconFor("finance")} />
+              <h3 className={settingsSectionTitleClassName()}>Finance & Tax</h3>
             </div>
 
             <div className="space-y-4">
@@ -150,7 +159,7 @@ export default function SettingsPage() {
                 <div className="space-y-2">
                   <Label htmlFor="settings-currency">Default Currency</Label>
                   <div className="relative">
-                    <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Banknote className={cn("absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4", text.muted)} />
                     <Input
                       id="settings-currency"
                       className="pl-9"
@@ -164,10 +173,10 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 space-y-6 md:col-span-2">
-            <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-4">
-              <Receipt className="w-5 h-5 text-orange-500" />
-              <h3 className="font-semibold text-lg text-slate-800 dark:text-slate-100">Point of Sale (POS)</h3>
+          <div className={settingsSectionClassName("md:col-span-2")}>
+            <div className={settingsSectionHeaderClassName()}>
+              <Receipt className={hubCardIconFor("pos")} />
+              <h3 className={settingsSectionTitleClassName()}>Point of Sale (POS)</h3>
             </div>
 
             <div className="space-y-4">
@@ -179,7 +188,9 @@ export default function SettingsPage() {
                   onChange={(e) => handleChange("receiptFooter", e.target.value)}
                   placeholder="e.g. Thank you for your business! Password WiFi: qafa123"
                 />
-                <p className="text-xs text-slate-500">This message will be printed at the bottom of all customer receipts.</p>
+                <p className={cn("text-xs", text.muted)}>
+                  This message will be printed at the bottom of all customer receipts.
+                </p>
               </div>
             </div>
           </div>

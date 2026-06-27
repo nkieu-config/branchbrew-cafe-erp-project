@@ -1,5 +1,7 @@
 import { ReactNode } from "react";
 import { LucideIcon } from "lucide-react";
+import type { HubId } from "@/lib/navigation";
+import { hubCardIconClass, surfaceCardClassName, text } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 export interface HubCardProps {
@@ -9,6 +11,8 @@ export interface HubCardProps {
   actions?: ReactNode;
   children?: ReactNode;
   className?: string;
+  /** Optional hub id for module accent on the icon */
+  accentHub?: HubId;
   /** Page title level — use h1 on standalone pages without HubShell. */
   titleLevel?: "h1" | "h2" | "h3";
 }
@@ -19,6 +23,7 @@ function HubHeading({
   description,
   actions,
   className,
+  accentHub,
   titleLevel = "h2",
 }: HubCardProps) {
   const TitleTag = titleLevel;
@@ -31,12 +36,12 @@ function HubHeading({
       )}
     >
       <div>
-        <TitleTag className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-          {Icon && <Icon className="w-5 h-5 text-amber-600" aria-hidden />}
+        <TitleTag className={cn("text-lg font-bold flex items-center gap-2", text.primary)}>
+          {Icon && <Icon className={hubCardIconClass(accentHub)} aria-hidden />}
           {title}
         </TitleTag>
         {description && (
-          <p className="text-sm text-slate-500">{description}</p>
+          <p className={cn("text-sm", text.muted)}>{description}</p>
         )}
       </div>
       {actions && (
@@ -56,20 +61,17 @@ export function HubCard({
   actions,
   children,
   className,
+  accentHub,
   titleLevel,
 }: HubCardProps) {
   return (
-    <div
-      className={cn(
-        "bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6",
-        className,
-      )}
-    >
+    <div className={surfaceCardClassName(className)}>
       <HubHeading
         title={title}
         icon={icon}
         description={description}
         actions={actions}
+        accentHub={accentHub}
         titleLevel={titleLevel}
         className="mb-6"
       />

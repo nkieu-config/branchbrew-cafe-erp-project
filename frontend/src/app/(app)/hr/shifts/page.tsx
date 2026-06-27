@@ -1,16 +1,30 @@
 "use client"
 
-import Link from "next/link"
 import { useAuth } from "@/context/AuthContext"
 import { useShifts } from '@/hooks/domains/useHrQueries';
 import { CalendarDays, Plus, UserPlus, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { ButtonLink } from "@/components/ui/button-link"
 import { HubPageHeader } from "@/components/shared/hub-card";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { formatDate, formatTime } from "@/lib/intl-date";
-import { DataTable } from "@/components/shared/data-table"
 import { Shift, User } from "@/types/api"
 import { Avatar, Tooltip } from "antd"
+import {
+  ganttGridLineClassName,
+  ganttHeaderClassName,
+  ganttHourLabelClassName,
+  ganttHourMarkerClassName,
+  ganttPanelClassName,
+  ganttTimeAxisClassName,
+  ganttTrackClassName,
+  ganttUserColumnClassName,
+  hrAvatarClassName,
+  hubInfoActionClassName,
+  hubLoadingSpinnerClassName,
+  shiftBarClassName,
+  text,
+} from "@/lib/theme"
 
 export default function EmployeesShiftsPage() {
   const { user, activeBranchId } = useAuth()
@@ -19,11 +33,6 @@ export default function EmployeesShiftsPage() {
   const { data: shiftsData, isLoading: loading } = useShifts(role, activeBranchId ?? undefined)
   const shifts = shiftsData || []
 
-
-
-  // Group shifts by user for the Gantt view
-  // For simplicity, we just filter today's shifts or show all in a generic 06:00 to 22:00 grid
-  // We'll show the most recent or upcoming shifts (today)
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
   const todayEnd = new Date();
@@ -36,7 +45,6 @@ export default function EmployeesShiftsPage() {
 
   const usersWithShifts = Array.from(new Set(todaysShifts.map((s: Shift & { user: User }) => s.user?.name || 'Unknown'))) as string[];
 
-  // Time blocks from 06:00 to 22:00 (16 hours)
   const HOURS_START = 6;
   const HOURS_END = 22;
   const hoursRange = Array.from({ length: HOURS_END - HOURS_START + 1 }, (_, i) => i + HOURS_START);
@@ -78,55 +86,52 @@ export default function EmployeesShiftsPage() {
           (role === 'SUPER_ADMIN' || role === 'MANAGER') && (
             <div className="flex gap-2">
               {role === 'SUPER_ADMIN' && (
-                <Button
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-sm"
-                  render={<Link href="/organization/users" />}
+                <ButtonLink
+                  className={hubInfoActionClassName("font-bold")}
+                  href="/organization/users"
                 >
                   <Plus className="w-4 h-4 mr-2" /> Add Employee
-                </Button>
+                </ButtonLink>
               )}
-              <Button
+              <ButtonLink
                 variant="outline"
-                className="border-slate-200 dark:border-slate-700 bg-white font-bold shadow-sm"
-                render={<Link href="/hr/employees" />}
+                className="font-bold shadow-sm"
+                href="/hr/employees"
               >
                 <UserPlus className="w-4 h-4 mr-2" /> Directory
-              </Button>
+              </ButtonLink>
             </div>
           )
         }
       />
 
-      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col">
-        <div className="p-4 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-          <h2 className="font-black text-slate-800 dark:text-slate-100 text-lg">Today&apos;s Timeline ({formatDate(new Date())})</h2>
+      <div className={ganttPanelClassName()}>
+        <div className={ganttHeaderClassName()}>
+          <h2 className={`font-black text-lg ${text.primary}`}>Today&apos;s Timeline ({formatDate(new Date())})</h2>
         </div>
 
         {loading ? (
           <div className="flex h-64 items-center justify-center">
-            <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+            <Loader2 className={`w-8 h-8 ${hubLoadingSpinnerClassName()}`} />
           </div>
         ) : todaysShifts.length === 0 ? (
-          <div className="p-12 text-center text-slate-500 font-bold">No shifts scheduled for today.</div>
+          <div className={`p-12 text-center font-bold ${text.muted}`}>No shifts scheduled for today.</div>
         ) : (
           <div className="p-4 overflow-x-auto">
             <div className="min-w-[800px]">
-              {/* Header: Time Slots */}
-              <div className="flex ml-40 border-b border-slate-200 dark:border-slate-800 pb-2 relative">
+              <div className={ganttTimeAxisClassName()}>
                 {hoursRange.map(hour => (
-                  <div key={hour} className="flex-1 text-xs font-black text-slate-400 text-center relative">
-                    <span className="absolute -left-3 top-0 bg-white dark:bg-slate-900 px-1 z-10">{hour.toString().padStart(2, '0')}:00</span>
-                    {hour === HOURS_END && <span className="absolute -right-3 top-0 bg-white dark:bg-slate-900 px-1 z-10">22:00</span>}
+                  <div key={hour} className={ganttHourLabelClassName()}>
+                    <span className={ganttHourMarkerClassName("-left-3")}>{hour.toString().padStart(2, '0')}:00</span>
+                    {hour === HOURS_END && <span className={ganttHourMarkerClassName("-right-3")}>22:00</span>}
                   </div>
                 ))}
               </div>
 
-              {/* Body: Employees and Shifts */}
               <div className="relative mt-4 space-y-4">
-                {/* Background Grid Lines */}
                 <div className="absolute top-0 bottom-0 left-40 right-0 flex pointer-events-none">
                   {hoursRange.slice(0, -1).map(hour => (
-                    <div key={hour} className="flex-1 border-l border-slate-100 dark:border-slate-800/50 border-dashed" />
+                    <div key={hour} className={ganttGridLineClassName()} />
                   ))}
                 </div>
 
@@ -134,21 +139,15 @@ export default function EmployeesShiftsPage() {
                   const userShifts = todaysShifts.filter((s: Shift & { user: User }) => s.user?.name === userName);
                   return (
                     <div key={idx} className="flex items-center h-12 relative group">
-                      {/* User Column */}
-                      <div className="w-40 flex items-center gap-2 pr-4 shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-10 group-hover:bg-slate-50 transition-colors">
-                        <Avatar className="bg-indigo-500 font-bold shrink-0">{userName.charAt(0)}</Avatar>
-                        <span className="font-bold text-sm text-slate-700 dark:text-slate-200 truncate">{userName}</span>
+                      <div className={ganttUserColumnClassName()}>
+                        <Avatar className={hrAvatarClassName()}>{userName.charAt(0)}</Avatar>
+                        <span className={`font-bold text-sm truncate ${text.secondary}`}>{userName}</span>
                       </div>
 
-                      {/* Shifts Track */}
-                      <div className="flex-1 h-full relative group-hover:bg-slate-50/50 transition-colors rounded-r-xl">
+                      <div className={ganttTrackClassName()}>
                         {userShifts.map((shift: Shift & { user: User }, i: number) => {
                           const left = calculateLeftPercent(shift.startTime);
                           const width = calculateWidthPercent(shift.startTime, shift.endTime);
-                          
-                          let colorClass = "bg-indigo-500 border-indigo-600";
-                          if (shift.status === 'COMPLETED') colorClass = "bg-emerald-500 border-emerald-600";
-                          if (shift.status === 'ABSENT') colorClass = "bg-rose-500 border-rose-600";
 
                           return (
                             <Tooltip 
@@ -156,7 +155,7 @@ export default function EmployeesShiftsPage() {
                               title={`${formatTime(shift.startTime)} - ${formatTime(shift.endTime)} (${shift.status})`}
                             >
                               <div 
-                                className={`absolute top-1 bottom-1 rounded-md border text-white text-[10px] font-black flex items-center justify-center overflow-hidden shadow-sm transition-transform motion-reduce:transition-none hover:scale-[1.02] motion-reduce:hover:scale-100 cursor-pointer z-20 ${colorClass}`}
+                                className={shiftBarClassName(shift.status)}
                                 style={{ left: `${left}%`, width: `${width}%` }}
                               >
                                 {width > 10 ? shift.status : ''}

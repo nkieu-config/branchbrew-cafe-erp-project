@@ -9,6 +9,7 @@ import { DataTable } from "@/components/shared/data-table";
 import { HubCard } from "@/components/shared/hub-card";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { hubCtaClassName, text } from "@/lib/theme";
 import type { Ingredient } from "@/types/api";
 import { formatBaht } from "@/lib/money";
 
@@ -35,7 +36,7 @@ export default function IngredientsPage() {
         icon={FlaskConical}
         description="Manage all raw materials used in your recipes."
         actions={
-          <Button onClick={handleAddNew} className="bg-emerald-600 hover:bg-emerald-700">
+          <Button onClick={handleAddNew} className={hubCtaClassName("inventory")}>
             <Plus className="w-4 h-4 mr-2" /> Add Ingredient
           </Button>
         }
@@ -48,26 +49,26 @@ export default function IngredientsPage() {
               title: "ID",
               dataIndex: "id",
               key: "id",
-              render: (id) => <span className="text-slate-400">#{id}</span>,
+              render: (id) => <span className={text.muted}>#{id}</span>,
             },
             {
               title: "Ingredient Name",
               dataIndex: "name",
               key: "name",
-              render: (name) => <span className="font-medium text-slate-800 dark:text-slate-200">{name}</span>,
+              render: (name) => <span className={`font-medium ${text.primary}`}>{name}</span>,
             },
             {
               title: "Unit",
               dataIndex: "unit",
               key: "unit",
-              render: (unit) => <span className="text-slate-500">{unit}</span>,
+              render: (unit) => <span className={text.muted}>{unit}</span>,
             },
             {
               title: "Cost / Unit (฿)",
               dataIndex: "costPerUnit",
               key: "costPerUnit",
               render: (costPerUnit) => (
-                <span className="text-slate-500 tabular-nums">{formatBaht(costPerUnit)}</span>
+                <span className={`tabular-nums ${text.muted}`}>{formatBaht(costPerUnit)}</span>
               ),
             },
             {

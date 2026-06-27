@@ -12,6 +12,12 @@ import { TableActionButton } from "@/components/shared/table-action-button";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { formatBaht } from "@/lib/money";
 import { calcProductFoodCost, foodCostStatus } from "@/lib/food-cost";
+import {
+  foodCostStatusClassName,
+  hubCtaClassName,
+  inlineLinkClassName,
+  text,
+} from "@/lib/theme";
 import type { Product } from "@/types/api";
 
 export default function ProductsPage() {
@@ -37,7 +43,7 @@ export default function ProductsPage() {
         icon={Coffee}
         description="Manage products that appear on the POS terminal."
         actions={
-          <Button onClick={handleAddNew} className="bg-amber-600 hover:bg-amber-700 text-white">
+          <Button onClick={handleAddNew} className={hubCtaClassName("products")}>
             <Plus className="w-4 h-4 mr-2" /> Add Menu Item
           </Button>
         }
@@ -50,13 +56,13 @@ export default function ProductsPage() {
               title: "ID",
               dataIndex: "id",
               key: "id",
-              render: (id) => <span className="text-slate-400">#{id}</span>,
+              render: (id) => <span className={text.muted}>#{id}</span>,
             },
             {
               title: "Menu Name",
               dataIndex: "name",
               key: "name",
-              render: (name) => <span className="font-medium text-slate-800 dark:text-slate-200">{name}</span>,
+              render: (name) => <span className={`font-medium ${text.primary}`}>{name}</span>,
             },
             {
               title: "Category",
@@ -68,7 +74,7 @@ export default function ProductsPage() {
               title: "Price (฿)",
               dataIndex: "price",
               key: "price",
-              render: (price) => <span className="font-bold text-slate-700 dark:text-slate-300">{formatBaht(price)}</span>,
+              render: (price) => <span className={`font-bold tabular-nums ${text.secondary}`}>{formatBaht(price)}</span>,
             },
             {
               title: "Food Cost %",
@@ -76,16 +82,10 @@ export default function ProductsPage() {
               render: (_: unknown, record: Product) => {
                 const { cost, foodCostPercent } = calcProductFoodCost(record);
                 const status = foodCostStatus(foodCostPercent);
-                const color =
-                  status === "good"
-                    ? "text-emerald-600"
-                    : status === "warn"
-                      ? "text-amber-600"
-                      : "text-rose-600";
                 return (
                   <div>
-                    <span className={`font-bold tabular-nums ${color}`}>{foodCostPercent.toFixed(1)}%</span>
-                    <div className="text-xs text-slate-400">COGS {formatBaht(cost)}</div>
+                    <span className={foodCostStatusClassName(status)}>{foodCostPercent.toFixed(1)}%</span>
+                    <div className={`text-xs ${text.muted}`}>COGS {formatBaht(cost)}</div>
                   </div>
                 );
               },
@@ -125,12 +125,9 @@ export default function ProductsPage() {
           hideBorders
         />
         {!isLoading && (products?.length ?? 0) === 0 && (
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-4">
+          <p className={`text-sm mt-4 ${text.muted}`}>
             Setting up a new menu? Start with{" "}
-            <Link
-              href="/products/ingredients"
-              className="font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300"
-            >
+            <Link href="/products/ingredients" className={inlineLinkClassName()}>
               Raw Ingredients
             </Link>
             , then return here to add menu items.

@@ -23,6 +23,15 @@ import { DataTable } from "@/components/shared/data-table";
 import { HubCard } from "@/components/shared/hub-card";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { formatDateTime } from "@/lib/intl-date";
+import {
+  formLineRowClassName,
+  formPanelClassName,
+  formPanelHeaderClassName,
+  formRemoveButtonClassName,
+  hubDangerActionClassName,
+  metricValueClassName,
+  text,
+} from "@/lib/theme";
 
 const emptyLine = (): WasteLineItem => ({
   ingredientId: 0,
@@ -102,13 +111,13 @@ export default function WasteLogPage() {
 
   return (
     <div className="space-y-8">
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 max-w-4xl">
-        <div className="mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
-          <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-            <Trash2 className="w-5 h-5 text-red-500" />
+      <div className={formPanelClassName()}>
+        <div className={formPanelHeaderClassName()}>
+          <h2 className={`text-lg font-bold flex items-center gap-2 ${text.primary}`}>
+            <Trash2 className={`w-5 h-5 ${metricValueClassName("red")}`} />
             Record Waste
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className={`text-sm ${text.muted}`}>
             Record spoiled items, spillages, or staff consumption. Stock will be
             deducted immediately.
           </p>
@@ -116,10 +125,7 @@ export default function WasteLogPage() {
 
         <div className="space-y-4">
           {items.map((item, idx) => (
-            <div
-              key={idx}
-              className="flex items-end gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800"
-            >
+            <div key={idx} className={formLineRowClassName()}>
               <div className="flex-1 space-y-2">
                 <Label htmlFor={`waste-ingredient-${idx}`}>Ingredient</Label>
                 <Select
@@ -173,7 +179,7 @@ export default function WasteLogPage() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-10 w-10 text-slate-400 hover:text-red-500"
+                className={formRemoveButtonClassName("h-10 w-10")}
                 aria-label="Remove line"
                 onClick={() => handleRemoveItem(idx)}
                 disabled={items.length === 1}
@@ -196,7 +202,7 @@ export default function WasteLogPage() {
         <div className="mt-8 flex justify-end">
           <Button
             onClick={handleSubmit}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className={hubDangerActionClassName()}
             disabled={recordWasteMutation.isPending}
           >
             {recordWasteMutation.isPending

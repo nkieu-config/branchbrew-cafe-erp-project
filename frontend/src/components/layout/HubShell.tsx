@@ -13,6 +13,12 @@ import {
   isTabActive,
   type HubId,
 } from "@/lib/navigation";
+import {
+  hubAccentIconClass,
+  hubTabClassName,
+  hubTabTrackClassName,
+  text,
+} from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 type HubShellProps = {
@@ -54,11 +60,11 @@ export function HubShell({
     <AnimatedPage className="max-w-[1600px] w-full mx-auto space-y-6 h-full flex flex-col">
       <div className="flex justify-between items-end shrink-0">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-slate-100 text-balance flex items-center gap-2">
-            <HubIcon className={hub.iconClassName} aria-hidden />
+          <h1 className={cn("text-xl sm:text-2xl font-bold text-balance flex items-center gap-2", text.primary)}>
+            <HubIcon className={hubAccentIconClass(hubId)} aria-hidden />
             {hub.label}
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{hub.description}</p>
+          <p className={cn("text-sm mt-1", text.muted)}>{hub.description}</p>
         </div>
       </div>
 
@@ -69,7 +75,7 @@ export function HubShell({
         >
           <div
             ref={tabsRef}
-            className="inline-flex max-w-full space-x-2 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-xl overflow-x-auto scrollbar-thin scroll-smooth snap-x snap-mandatory"
+            className={hubTabTrackClassName()}
           >
             {tabs.map((tab) => {
               const isActive = isTabActive(pathname, tab.path, hub.basePath);
@@ -80,12 +86,7 @@ export function HubShell({
                   href={tab.path}
                   aria-current={isActive ? "page" : undefined}
                   data-active={isActive ? "true" : undefined}
-                  className={cn(
-                    "flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-lg transition-opacity duration-150 whitespace-nowrap snap-start shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 motion-reduce:transition-none",
-                    isActive
-                      ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
-                      : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200",
-                  )}
+                  className={hubTabClassName(isActive)}
                 >
                   <TabIcon className="w-4 h-4 shrink-0" aria-hidden="true" />
                   {tab.label}
@@ -94,11 +95,11 @@ export function HubShell({
             })}
           </div>
           <div
-            className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-slate-50 dark:from-slate-950 to-transparent lg:hidden motion-reduce:opacity-0"
+            className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[var(--hub-fade-from)] to-transparent lg:hidden motion-reduce:opacity-0"
             aria-hidden="true"
           />
           <div
-            className="pointer-events-none absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-slate-50 dark:from-slate-950 to-transparent lg:hidden motion-reduce:opacity-0"
+            className="pointer-events-none absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-[var(--hub-fade-from)] to-transparent lg:hidden motion-reduce:opacity-0"
             aria-hidden="true"
           />
         </nav>

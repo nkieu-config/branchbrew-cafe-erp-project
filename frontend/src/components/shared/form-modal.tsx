@@ -27,7 +27,7 @@ export function FormModal({
     <Modal
       title={
         <div className="text-lg font-bold flex items-center gap-2 mb-2">
-          {Icon && <Icon className="w-5 h-5 text-indigo-500" />}
+          {Icon && <Icon className="w-5 h-5 text-[var(--metric-indigo)]" />}
           {title}
         </div>
       }
@@ -37,7 +37,7 @@ export function FormModal({
       width={width}
       forceRender={forceRender}
       destroyOnHidden={destroyOnHidden}
-      className="dark:[&_.ant-modal-content]:bg-slate-900 [&_.ant-modal-content]:rounded-2xl"
+      className="dark:[&_.ant-modal-content]:bg-[var(--table-container-bg)] [&_.ant-modal-content]:rounded-2xl"
     >
       <div className="mt-4">
         {children}

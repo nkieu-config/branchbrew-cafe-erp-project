@@ -18,7 +18,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import {
+  expiryCellClassName,
+  expiryDateTextClassName,
+  expiryHeatmapHeaderClassName,
+  expiryHeatmapPanelClassName,
+  expiryLegendDotClassName,
+  expiryUrgency,
+  formFieldInsetClassName,
+  hubDangerActionClassName,
+  hubPrimaryActionClassName,
+  inventoryHubIconClassName,
+  inventoryLinkCardClassName,
+  inventoryLinkIconWrapClassName,
+  metricValueClassName,
+  text,
+} from "@/lib/theme";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { HubPageHeader } from "@/components/shared/hub-card";
 import { DataTable } from "@/components/shared/data-table";
@@ -151,30 +166,15 @@ export default function InventoryPage() {
     if (!expiringBatches) return null;
 
     const daysLeft = differenceInDays(value.toDate(), new Date());
-    
-    let colorClass = "bg-slate-200 text-slate-800";
-    let title = "Expired";
-    if (daysLeft >= 0 && daysLeft <= 1) {
-      colorClass = "bg-red-500 text-white animate-pulse shadow-red-500/50 shadow-md";
-      title = "Critical";
-    } else if (daysLeft > 1 && daysLeft <= 3) {
-      colorClass = "bg-orange-500 text-white shadow-orange-500/30 shadow-md";
-      title = "Warning";
-    } else if (daysLeft > 3 && daysLeft <= 7) {
-      colorClass = "bg-amber-400 text-amber-950";
-      title = "Notice";
-    } else if (daysLeft > 7) {
-      colorClass = "bg-emerald-100 text-emerald-800";
-      title = "Safe";
-    }
+    const urgency = expiryUrgency(daysLeft);
 
     const popoverContent = (
       <div className="max-w-xs space-y-2">
-        <div className="font-black text-slate-800 border-b pb-1 mb-2">Expiring Items</div>
+        <div className={`font-black border-b pb-1 mb-2 ${text.primary}`}>Expiring Items</div>
         {expiringBatches.map((b) => (
           <div key={b.id} className="flex justify-between items-center text-sm gap-4">
-            <span className="font-semibold text-slate-700">{b.ingredient?.name}</span>
-            <span className="font-mono bg-slate-100 px-1 rounded">{b.quantity} {b.ingredient?.unit}</span>
+            <span className={`font-semibold ${text.secondary}`}>{b.ingredient?.name}</span>
+            <span className="font-mono bg-[var(--form-line-bg)] px-1 rounded">{b.quantity} {b.ingredient?.unit}</span>
           </div>
         ))}
       </div>
@@ -182,7 +182,7 @@ export default function InventoryPage() {
 
     return (
       <Popover content={popoverContent} title={null} trigger="hover">
-        <div className={cn("w-full h-full flex flex-col items-center justify-center rounded-lg p-1 mt-1 cursor-pointer transition-transform hover:scale-110", colorClass)}>
+        <div className={expiryCellClassName(urgency)}>
           <AlertCircle className="w-4 h-4 mb-1" />
           <span className="text-[10px] font-black leading-none">{expiringBatches.length} Items</span>
         </div>
@@ -197,7 +197,7 @@ export default function InventoryPage() {
       key: 'name',
       sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) => a.ingredient.name.localeCompare(b.ingredient.name),
       render: (_: unknown, record: InventoryWithIngredient) => (
-        <div className="font-bold text-slate-800 dark:text-slate-200">{record.ingredient.name}</div>
+        <div className={`font-bold ${text.primary}`}>{record.ingredient.name}</div>
       )
     },
     { 
@@ -247,15 +247,12 @@ export default function InventoryPage() {
         title: 'Expiry Date',
         key: 'expiryDate',
         render: (_: unknown, b: BatchWithSupplier) => {
-          if (!b.expiryDate) return <span className="text-xs text-slate-400">No Expiry</span>;
+          if (!b.expiryDate) return <span className={`text-xs ${text.muted}`}>No Expiry</span>;
           const expiring = isExpiringSoon(b.expiryDate ?? null);
           const expired = new Date(b.expiryDate).getTime() < new Date().getTime();
           return (
             <div className="flex items-center gap-2">
-              <span className={cn(
-                "text-sm font-medium",
-                expired ? "text-red-600" : expiring ? "text-amber-600" : "text-slate-600 dark:text-slate-400"
-              )}>
+              <span className={expiryDateTextClassName(expired, expiring)}>
                 {formatDate(b.expiryDate)}
               </span>
               {expired ? (
@@ -320,7 +317,7 @@ export default function InventoryPage() {
         actions={
         <Dialog>
           <DialogTrigger render={
-            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm font-bold">
+            <Button className={hubPrimaryActionClassName("font-bold")}>
               <PackagePlus className="w-4 h-4 mr-2" /> Receive Stock
             </Button>
           } />
@@ -330,14 +327,14 @@ export default function InventoryPage() {
             </DialogHeader>
             <form onSubmit={handleAddBatch} className="space-y-4 pt-4">
               <div className="space-y-2">
-                <Label htmlFor="batch-ingredient" className="font-bold text-slate-700">Ingredient</Label>
+                <Label htmlFor="batch-ingredient" className={`font-bold ${text.secondary}`}>Ingredient</Label>
                 <Select
                   value={batchIngredient}
                   onValueChange={(value) => {
                     if (value != null) setBatchIngredient(value);
                   }}
                 >
-                  <SelectTrigger id="batch-ingredient" className="h-11 w-full rounded-xl bg-slate-50 dark:bg-slate-950">
+                  <SelectTrigger id="batch-ingredient" className={formFieldInsetClassName("h-11 w-full")}>
                     <SelectValue placeholder="Select ingredient…" />
                   </SelectTrigger>
                   <SelectContent>
@@ -350,14 +347,14 @@ export default function InventoryPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="batch-quantity" className="font-bold text-slate-700">Quantity</Label>
-                <Input id="batch-quantity" className="h-11 rounded-xl bg-slate-50" type="number" min="0.1" step="0.1" value={batchQty} onChange={(e) => setBatchQty(e.target.value)} required />
+                <Label htmlFor="batch-quantity" className={`font-bold ${text.secondary}`}>Quantity</Label>
+                <Input id="batch-quantity" className={formFieldInsetClassName("h-11")} type="number" min="0.1" step="0.1" value={batchQty} onChange={(e) => setBatchQty(e.target.value)} required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="batch-expiry" className="font-bold text-slate-700">Expiry Date (Optional)</Label>
-                <Input id="batch-expiry" className="h-11 rounded-xl bg-slate-50" type="date" value={batchExpiry} onChange={(e) => setBatchExpiry(e.target.value)} />
+                <Label htmlFor="batch-expiry" className={`font-bold ${text.secondary}`}>Expiry Date (Optional)</Label>
+                <Input id="batch-expiry" className={formFieldInsetClassName("h-11")} type="date" value={batchExpiry} onChange={(e) => setBatchExpiry(e.target.value)} />
               </div>
-              <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white h-11 font-bold rounded-xl" disabled={isAddingBatch}>
+              <Button type="submit" className={hubPrimaryActionClassName("w-full h-11 font-bold rounded-xl")} disabled={isAddingBatch}>
                 {isAddingBatch ? "Saving…" : "Save Batch"}
               </Button>
             </form>
@@ -402,7 +399,7 @@ export default function InventoryPage() {
               Cancel
             </Button>
             <Button
-              className="bg-rose-600 hover:bg-rose-700 text-white"
+              className={hubDangerActionClassName()}
               onClick={() => void handleWasteSubmit()}
               disabled={reportWasteMutation.isPending}
             >
@@ -415,9 +412,9 @@ export default function InventoryPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Heatmap Section */}
         <div className="lg:col-span-1">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-1 h-full">
-            <div className="p-4 bg-rose-50 dark:bg-rose-900/20 rounded-t-xl font-black text-rose-800 dark:text-rose-100 flex items-center gap-2">
-              <CalendarDays className="w-5 h-5 text-rose-500" />
+          <div className={expiryHeatmapPanelClassName()}>
+            <div className={expiryHeatmapHeaderClassName()}>
+              <CalendarDays className={`w-5 h-5 ${metricValueClassName("red")}`} />
               Expiry Heatmap
             </div>
             <div className="p-4">
@@ -432,13 +429,13 @@ export default function InventoryPage() {
                   if (info.type === 'date') return dateCellRender(current);
                   return info.originNode;
                 }} 
-                className="rounded-xl border border-slate-100 overflow-hidden [&_.ant-picker-calendar-date-value]:font-bold [&_.ant-picker-calendar-date-value]:text-slate-600"
+                className="rounded-xl border border-[var(--table-row-border)] overflow-hidden [&_.ant-picker-calendar-date-value]:font-bold [&_.ant-picker-calendar-date-value]:text-[var(--text-secondary)]"
               />
               <div className="mt-6 space-y-2">
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Legend</div>
-                <div className="flex items-center gap-2 text-sm font-medium text-slate-700"><div className="w-3 h-3 rounded-full bg-red-500 animate-pulse shadow-sm shadow-red-500"></div> Critical (0-1 Days)</div>
-                <div className="flex items-center gap-2 text-sm font-medium text-slate-700"><div className="w-3 h-3 rounded-full bg-orange-500 shadow-sm shadow-orange-500"></div> Warning (2-3 Days)</div>
-                <div className="flex items-center gap-2 text-sm font-medium text-slate-700"><div className="w-3 h-3 rounded-full bg-amber-400"></div> Notice (4-7 Days)</div>
+                <div className={`text-xs font-bold uppercase tracking-wider mb-3 ${text.muted}`}>Legend</div>
+                <div className={`flex items-center gap-2 text-sm font-medium ${text.secondary}`}><div className={expiryLegendDotClassName("critical")}></div> Critical (0-1 Days)</div>
+                <div className={`flex items-center gap-2 text-sm font-medium ${text.secondary}`}><div className={expiryLegendDotClassName("warning")}></div> Warning (2-3 Days)</div>
+                <div className={`flex items-center gap-2 text-sm font-medium ${text.secondary}`}><div className={expiryLegendDotClassName("notice")}></div> Notice (4-7 Days)</div>
               </div>
             </div>
           </div>
@@ -447,8 +444,8 @@ export default function InventoryPage() {
         {/* Tables Section */}
         <div className="lg:col-span-2 space-y-6">
           <div className="pt-2">
-            <h2 className="font-semibold text-lg text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-              <PackageOpen className="w-5 h-5 text-emerald-500" /> Aggregated Stock & Batches
+            <h2 className={`font-semibold text-lg mb-4 flex items-center gap-2 ${text.primary}`}>
+              <PackageOpen className={inventoryHubIconClassName()} /> Aggregated Stock & Batches
             </h2>
             <DataTable 
               loading={loading}
@@ -462,20 +459,20 @@ export default function InventoryPage() {
 
           <Link
             href="/inventory/transfers"
-            className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors"
+            className={inventoryLinkCardClassName()}
           >
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-900/30">
-                <ArrowRightLeft className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              <div className={inventoryLinkIconWrapClassName()}>
+                <ArrowRightLeft className={`h-5 w-5 ${metricValueClassName("emerald")}`} />
               </div>
               <div>
-                <p className="font-semibold text-slate-900 dark:text-slate-100">Stock Transfers</p>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className={`font-semibold ${text.primary}`}>Stock Transfers</p>
+                <p className={`text-sm ${text.muted}`}>
                   Request and accept transfers between branches
                 </p>
               </div>
             </div>
-            <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400 shrink-0">
+            <span className={`text-sm font-medium shrink-0 ${metricValueClassName("emerald")}`}>
               Open →
             </span>
           </Link>

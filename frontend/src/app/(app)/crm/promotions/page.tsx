@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { usePromotions, useCreatePromotion, useTogglePromotion } from '@/hooks/domains/useCrmQueries';
-import { Badge } from "@/components/ui/badge";
 import { TicketPercent, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -20,12 +19,12 @@ import { Switch } from "@/components/ui/switch";
 import { HubCard } from "@/components/shared/hub-card";
 import { DataTable } from "@/components/shared/data-table";
 import { Promotion } from "@/types/api";
+import { hubCtaClassName, metricValueClassName, text } from "@/lib/theme";
 
 export default function PromotionsPage() {
   const { data: promotionsData, isLoading: loading } = usePromotions();
   const promotions = promotionsData || [];
 
-  // Form State
   const [code, setCode] = useState("");
   const [description, setDescription] = useState("");
   const [discountType, setDiscountType] = useState<"PERCENTAGE" | "FIXED_AMOUNT">("PERCENTAGE");
@@ -72,8 +71,6 @@ export default function PromotionsPage() {
     }
   };
 
-
-
   return (
     <HubCard
       title="Campaigns"
@@ -81,7 +78,7 @@ export default function PromotionsPage() {
       description="Create and manage discount codes and marketing campaigns."
       actions={
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger render={<Button className="bg-pink-600 hover:bg-pink-700">
+            <DialogTrigger render={<Button className={hubCtaClassName("crm")}>
               <Plus className="w-4 h-4 mr-2" /> New Promo Code
             </Button>} />
             <DialogContent>
@@ -126,7 +123,7 @@ export default function PromotionsPage() {
                   <Label htmlFor="promo-min-purchase">Minimum Purchase (Optional)</Label>
                   <Input id="promo-min-purchase" type="number" min="0" value={minPurchase} onChange={(e) => setMinPurchase(e.target.value)} placeholder="0" />
                 </div>
-                <Button type="submit" className="w-full bg-pink-600 hover:bg-pink-700" disabled={isSubmitting}>
+                <Button type="submit" className={hubCtaClassName("crm", "w-full")} disabled={isSubmitting}>
                   {isSubmitting ? "Creating…" : "Create Promotion"}
                 </Button>
               </form>
@@ -147,13 +144,13 @@ export default function PromotionsPage() {
               />
             )
           },
-          { title: "Code", dataIndex: "code", key: "code", render: (code: string) => <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{code}</span> },
+          { title: "Code", dataIndex: "code", key: "code", render: (code: string) => <span className={`font-mono font-bold ${text.secondary}`}>{code}</span> },
           { title: "Description", dataIndex: "description", key: "desc" },
           { 
             title: "Discount", 
             key: "discount",
             render: (_, record: Promotion) => (
-              <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+              <span className={`font-semibold ${metricValueClassName("emerald")}`}>
                 {record.discountType === 'PERCENTAGE' ? `${record.discountValue}%` : `฿${record.discountValue}`}
               </span>
             )
@@ -162,7 +159,7 @@ export default function PromotionsPage() {
             title: "Min Purchase", 
             dataIndex: "minPurchase", 
             key: "minPurchase",
-            render: (min: number | null) => <span className="text-slate-500 dark:text-slate-400">{min ? `฿${min}` : 'None'}</span>
+            render: (min: number | null) => <span className={text.muted}>{min ? `฿${min}` : 'None'}</span>
           }
         ]}
         dataSource={promotions}

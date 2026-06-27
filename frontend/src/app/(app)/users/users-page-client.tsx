@@ -26,6 +26,13 @@ import { StatusBadge, roleTone } from "@/components/shared/status-badge";
 import { RoleGuard } from "@/components/RoleGuard";
 import type { User, Branch, CreateUserPayload, Role, EmploymentType } from "@/types/api";
 import { getErrorMessage } from "@/lib/errors";
+import {
+  avatarPlaceholderClassName,
+  hubCtaClassName,
+  inlineLinkClassName,
+  text,
+} from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
 export default function UsersPageClient({ embedded = false }: { embedded?: boolean }) {
   const { data: users, isLoading: usersLoading } = useHrUsers();
@@ -108,7 +115,7 @@ export default function UsersPageClient({ embedded = false }: { embedded?: boole
         description="Manage system access, passwords, and branch assignments."
         actions={
           <Button 
-            className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-2"
+            className={hubCtaClassName("organization", "flex items-center gap-2")}
             onClick={handleAddNew}
           >
             <Plus className="w-4 h-4" />
@@ -117,9 +124,9 @@ export default function UsersPageClient({ embedded = false }: { embedded?: boole
         }
       />
 
-      <p className="text-sm text-slate-500 dark:text-slate-400 -mt-4">
+      <p className={cn("text-sm -mt-4", text.muted)}>
         To update hourly rates or browse staff by branch, use{" "}
-        <Link href="/hr/employees" className="font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300">
+        <Link href="/hr/employees" className={inlineLinkClassName()}>
           HR → Employee Directory
         </Link>
         .
@@ -133,12 +140,12 @@ export default function UsersPageClient({ embedded = false }: { embedded?: boole
               key: "user",
               render: (_, record: User) => (
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                    <UserIcon className="w-4 h-4 text-slate-500" />
+                  <div className={avatarPlaceholderClassName()}>
+                    <UserIcon className={cn("w-4 h-4", text.muted)} />
                   </div>
                   <div>
-                    <div className="font-medium text-slate-800 dark:text-slate-200">{record.name || 'Unnamed User'}</div>
-                    <div className="text-xs text-slate-500 flex items-center gap-1">
+                    <div className={cn("font-medium", text.primary)}>{record.name || 'Unnamed User'}</div>
+                    <div className={cn("text-xs flex items-center gap-1", text.muted)}>
                       <Mail className="w-3 h-3" /> {record.email}
                     </div>
                   </div>
@@ -164,8 +171,8 @@ export default function UsersPageClient({ embedded = false }: { embedded?: boole
               render: (_, record: User) => {
                 const branchName = (branches as Branch[] | undefined)?.find((b) => b.id === record.branchId)?.name || "All Branches (HQ)";
                 return (
-                  <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
-                    <Building className="w-4 h-4 text-slate-400" />
+                  <div className={cn("flex items-center gap-1.5", text.secondary)}>
+                    <Building className={cn("w-4 h-4", text.muted)} />
                     {branchName}
                   </div>
                 );
@@ -175,7 +182,7 @@ export default function UsersPageClient({ embedded = false }: { embedded?: boole
               title: "Employment",
               key: "employment",
               render: (_, record: User) => (
-                <div className="text-slate-600 dark:text-slate-300">
+                <div className={text.secondary}>
                   {record.employmentType ? record.employmentType.replace('_', ' ') : 'N/A'}
                 </div>
               )
@@ -214,7 +221,7 @@ export default function UsersPageClient({ embedded = false }: { embedded?: boole
 
             <div className="space-y-2">
               <Label htmlFor="user-password">
-                Password {editingUser && <span className="text-slate-400 font-normal">(Leave blank to keep current)</span>}
+                Password {editingUser && <span className={cn(text.muted, "font-normal")}>(Leave blank to keep current)</span>}
               </Label>
               <Input id="user-password" type="text" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} placeholder={editingUser ? "••••••••" : "e.g. qafa1234"} />
             </div>

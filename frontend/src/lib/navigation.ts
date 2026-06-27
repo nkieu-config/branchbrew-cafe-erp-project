@@ -80,7 +80,6 @@ export type HubConfig = {
   label: string;
   description: string;
   icon: LucideIcon;
-  iconClassName: string;
   basePath: string;
   tabs: HubTab[];
   wrapAntd?: boolean;
@@ -249,7 +248,6 @@ export const HUBS: Record<HubId, HubConfig> = {
     label: "Inventory",
     description: "Manage stock levels, batches, receipts, transfers, and waste.",
     icon: Package,
-    iconClassName: "w-6 h-6 text-emerald-500",
     basePath: "/inventory",
     wrapAntd: true,
     tabs: [
@@ -295,7 +293,6 @@ export const HUBS: Record<HubId, HubConfig> = {
     label: "Procurement",
     description: "Manage suppliers and purchase orders.",
     icon: Truck,
-    iconClassName: "w-6 h-6 text-blue-500",
     basePath: "/procurement",
     wrapAntd: true,
     tabs: [
@@ -322,7 +319,6 @@ export const HUBS: Record<HubId, HubConfig> = {
     label: "Human Resources",
     description: "Manage staff, shifts, attendance, and payroll.",
     icon: UserSquare2,
-    iconClassName: "w-6 h-6 text-violet-500",
     basePath: "/hr",
     wrapAntd: true,
     tabs: [
@@ -373,7 +369,6 @@ export const HUBS: Record<HubId, HubConfig> = {
     label: "Products",
     description: "Manage menu catalog, ingredients, modifiers, and food cost.",
     icon: ClipboardList,
-    iconClassName: "w-6 h-6 text-amber-600",
     basePath: "/products",
     wrapAntd: true,
     tabs: [
@@ -412,7 +407,6 @@ export const HUBS: Record<HubId, HubConfig> = {
     label: "Central Kitchen",
     description: "Manage production orders and production BOMs.",
     icon: ChefHat,
-    iconClassName: "w-7 h-7 text-orange-500",
     basePath: "/kitchen",
     wrapAntd: true,
     tabs: [
@@ -437,7 +431,6 @@ export const HUBS: Record<HubId, HubConfig> = {
     label: "CRM",
     description: "Manage customer loyalty and marketing campaigns.",
     icon: Gift,
-    iconClassName: "w-6 h-6 text-pink-500",
     basePath: "/crm",
     wrapAntd: true,
     tabs: [
@@ -462,7 +455,6 @@ export const HUBS: Record<HubId, HubConfig> = {
     label: "Finance",
     description: "Manage HQ finances, ledger, and accounts.",
     icon: Landmark,
-    iconClassName: "w-6 h-6 text-emerald-500",
     basePath: "/finance",
     wrapAntd: true,
     tabs: [
@@ -494,7 +486,6 @@ export const HUBS: Record<HubId, HubConfig> = {
     label: "Assets",
     description: "Register equipment and track maintenance for store assets.",
     icon: Wrench,
-    iconClassName: "w-6 h-6 text-slate-500",
     basePath: "/assets",
     wrapAntd: true,
     tabs: [
@@ -512,7 +503,6 @@ export const HUBS: Record<HubId, HubConfig> = {
     label: "Point of Sale",
     description: "Process sales and manage cash register.",
     icon: ShoppingCart,
-    iconClassName: "w-6 h-6 text-emerald-500",
     basePath: "/pos",
     wrapAntd: false,
     tabs: [
@@ -544,7 +534,6 @@ export const HUBS: Record<HubId, HubConfig> = {
     label: "Settings",
     description: "Global settings and audit logs for the ERP.",
     icon: Settings,
-    iconClassName: "w-6 h-6 text-slate-500",
     basePath: "/settings",
     wrapAntd: false,
     tabs: [
@@ -557,7 +546,6 @@ export const HUBS: Record<HubId, HubConfig> = {
     label: "Organization",
     description: "Manage branches, locations, and user access.",
     icon: Building2,
-    iconClassName: "w-6 h-6 text-emerald-500",
     basePath: "/organization",
     wrapAntd: true,
     tabs: [

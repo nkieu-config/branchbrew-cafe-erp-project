@@ -14,6 +14,14 @@ import { Button } from "@/components/ui/button";
 import { User, Shift } from "@/types/api";
 import { formatDate, formatTime, formatDateTimeSeconds } from "@/lib/intl-date";
 import { isSameDay, differenceInMinutes } from "date-fns";
+import {
+  attendanceLateRowClassName,
+  attendanceLateTimeClassName,
+  attendanceOnTimeClassName,
+  hubCtaClassName,
+  hubPrimaryActionClassName,
+  text,
+} from "@/lib/theme";
 
 interface AttendanceRecord {
   id: number;
@@ -66,7 +74,7 @@ export default function AttendancePage() {
       dataIndex: "clockIn",
       key: "date",
       render: (val: string) => (
-        <span className="font-medium text-slate-800 dark:text-slate-200">
+        <span className={`font-medium ${text.primary}`}>
           {formatDate(val)}
         </span>
       ),
@@ -92,9 +100,7 @@ export default function AttendancePage() {
 
         return (
           <div className="flex items-center gap-2">
-            <span
-              className={`font-mono font-bold ${isLate ? "text-rose-600" : "text-emerald-600 dark:text-emerald-400"}`}
-            >
+            <span className={isLate ? attendanceLateTimeClassName() : attendanceOnTimeClassName()}>
               {formatDateTimeSeconds(val)}
             </span>
             {isLate && dayShift && (
@@ -118,11 +124,11 @@ export default function AttendancePage() {
       key: "out",
       render: (val: string) =>
         val ? (
-          <span className="font-mono text-slate-600 dark:text-slate-400 font-medium">
+          <span className={`font-mono font-medium ${text.subtle}`}>
             {formatDateTimeSeconds(val)}
           </span>
         ) : (
-          <StatusBadge tone="info" className="animate-pulse">
+          <StatusBadge tone="info" className="animate-pulse motion-reduce:animate-none">
             Active
           </StatusBadge>
         ),
@@ -136,7 +142,7 @@ export default function AttendancePage() {
         val ? (
           <span className="font-bold">{val.toFixed(2)} hrs</span>
         ) : (
-          <span className="text-slate-400">-</span>
+          <span className={text.muted}>-</span>
         ),
     },
   ];
@@ -164,7 +170,7 @@ export default function AttendancePage() {
           </Button>
         ) : (
           <Button
-            className="bg-emerald-500 hover:bg-emerald-600 h-10 px-6 rounded-xl font-bold tracking-wide shadow-sm"
+            className={hubPrimaryActionClassName("h-10 px-6 rounded-xl font-bold tracking-wide")}
             disabled={(!activeBranchId && user?.role === "SUPER_ADMIN") || clockInMutation.isPending}
             onClick={() => void handleClockIn()}
           >
@@ -186,7 +192,7 @@ export default function AttendancePage() {
           const dayShift = shifts.find((s: Shift) => isSameDay(new Date(s.startTime), clockInDate));
           if (dayShift) {
             const lateMinutes = differenceInMinutes(clockInDate, new Date(dayShift.startTime));
-            if (lateMinutes > 15) return "bg-rose-50/50 dark:bg-rose-900/10";
+            if (lateMinutes > 15) return attendanceLateRowClassName();
           }
           return "";
         }}

@@ -3,13 +3,13 @@
 import { useState } from "react";
 import { useEquipment, useCreateEquipment, useLogMaintenance } from '@/hooks/domains/useProcurementQueries';
 import { useAuth } from "@/context/AuthContext";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus, Wrench, Coffee } from "lucide-react";
 import { toast } from "sonner";
 import { HubPageHeader } from "@/components/shared/hub-card";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { DataTable } from "@/components/shared/data-table";
+import { StatusBadge, equipmentStatusTone } from "@/components/shared/status-badge";
 import { Equipment, Branch } from "@/types/api";
 import { formatDate } from "@/lib/intl-date";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { hubCtaClassName, text } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 const EQUIPMENT_TYPES = [
@@ -107,7 +108,7 @@ export default function EquipmentPage() {
         description="Track machines, appliances, and schedule preventative maintenance."
         actions={
           <Dialog>
-          <DialogTrigger render={<Button className="bg-blue-600 hover:bg-blue-700">
+          <DialogTrigger render={<Button className={hubCtaClassName("assets")}>
             <Plus className="w-4 h-4 mr-2" />
             Register Equipment
           </Button>} />
@@ -139,7 +140,7 @@ export default function EquipmentPage() {
                 <Label htmlFor="equipment-serial">Serial Number</Label>
                 <Input id="equipment-serial" value={serial} onChange={e => setSerial(e.target.value)} placeholder="e.g. SN-12345" />
               </div>
-              <Button type="submit" className="w-full bg-blue-600">Register</Button>
+              <Button type="submit" className={cn("w-full", hubCtaClassName("assets"))}>Register</Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -149,7 +150,7 @@ export default function EquipmentPage() {
       <DataTable 
         loading={loading}
         columns={[
-          { title: "Name", dataIndex: "name", key: "name", render: (text: string) => <span className="font-medium">{text}</span> },
+          { title: "Name", dataIndex: "name", key: "name", render: (name: string) => <span className={cn("font-medium", text.primary)}>{name}</span> },
           { title: "Type", dataIndex: "type", key: "type", render: (type: string) => type.replace('_', ' ') },
           { title: "Branch", dataIndex: "branch", key: "branch", render: (branch: Branch) => branch?.name },
           { 
@@ -157,13 +158,9 @@ export default function EquipmentPage() {
             dataIndex: "status", 
             key: "status",
             render: (status: string) => (
-              <Badge className={cn(
-                status === "OPERATIONAL" && "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30",
-                status === "NEEDS_MAINTENANCE" && "bg-amber-100 text-amber-800 dark:bg-amber-900/30",
-                status === "OUT_OF_ORDER" && "bg-rose-100 text-rose-800 dark:bg-rose-900/30",
-              )}>
+              <StatusBadge tone={equipmentStatusTone(status)}>
                 {status.replace('_', ' ')}
-              </Badge>
+              </StatusBadge>
             )
           },
           { 

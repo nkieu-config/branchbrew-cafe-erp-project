@@ -17,6 +17,12 @@ import {
 } from "@/components/ui/table";
 import type { AuditLog, User as ApiUser } from "@/types/api";
 import { formatDateTime } from "@/lib/intl-date";
+import {
+  dataTableContainerClassName,
+  nativeTableEmptyCellClassName,
+  text,
+} from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 15;
 
@@ -38,7 +44,7 @@ export default function AuditLogsPage() {
       icon={History}
       description="Comprehensive log of critical system actions and data modifications."
     >
-      <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+      <div className={dataTableContainerClassName()}>
         <Table>
           <TableHeader>
             <TableRow>
@@ -62,35 +68,35 @@ export default function AuditLogsPage() {
               ))
             ) : pageLogs.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-slate-500">
+                <TableCell colSpan={5} className={nativeTableEmptyCellClassName("h-24")}>
                   No audit entries recorded yet.
                 </TableCell>
               </TableRow>
             ) : (
               pageLogs.map((log: AuditLog & { user: ApiUser }) => (
                 <TableRow key={log.id}>
-                  <TableCell className="font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                  <TableCell className={cn("font-medium whitespace-nowrap", text.subtle)}>
                     {formatDateTime(log.createdAt)}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-slate-400 shrink-0" />
-                      <span className="font-medium">{log.user?.name || log.user?.email}</span>
-                      <span className="text-xs text-slate-400">({log.user?.role})</span>
+                      <User className={cn("w-4 h-4 shrink-0", text.muted)} />
+                      <span className={cn("font-medium", text.primary)}>{log.user?.name || log.user?.email}</span>
+                      <span className={cn("text-xs", text.muted)}>({log.user?.role})</span>
                     </div>
                   </TableCell>
                   <TableCell>
                     <StatusBadge tone={auditActionTone(log.action)}>{log.action}</StatusBadge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300">
-                      <Activity className="w-4 h-4 text-slate-400 shrink-0" />
+                    <div className={cn("flex items-center gap-1.5", text.secondary)}>
+                      <Activity className={cn("w-4 h-4 shrink-0", text.muted)} />
                       <span>{log.targetType}</span>
-                      {log.targetId && <span className="text-slate-400">#{log.targetId}</span>}
+                      {log.targetId && <span className={text.muted}>#{log.targetId}</span>}
                     </div>
                   </TableCell>
                   <TableCell className="max-w-md">
-                    <div className="flex items-start gap-1.5 text-sm text-slate-500 dark:text-slate-400 truncate">
+                    <div className={cn("flex items-start gap-1.5 text-sm truncate", text.muted)}>
                       <FileText className="w-4 h-4 mt-0.5 shrink-0" />
                       <span className="truncate">{log.details || "-"}</span>
                     </div>
@@ -104,7 +110,7 @@ export default function AuditLogsPage() {
 
       {!loading && logsData.length > PAGE_SIZE && (
         <div className="flex items-center justify-between pt-4">
-          <p className="text-sm text-slate-500">
+          <p className={cn("text-sm", text.muted)}>
             Page {currentPage} of {totalPages} ({logsData.length} entries)
           </p>
           <div className="flex gap-2">

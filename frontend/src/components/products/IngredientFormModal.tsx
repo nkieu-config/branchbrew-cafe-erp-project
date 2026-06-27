@@ -10,6 +10,7 @@ import { toast } from "sonner";
 
 import type { Ingredient } from '@/types/api';
 import { getErrorMessage } from '@/lib/errors';
+import { hubCtaClassName } from "@/lib/theme";
 
 export function IngredientFormModal({ isOpen, onClose, ingredient }: { isOpen: boolean, onClose: () => void, ingredient?: Ingredient }) {
   const [name, setName] = useState("");
@@ -76,20 +77,20 @@ export function IngredientFormModal({ isOpen, onClose, ingredient }: { isOpen: b
               <Input type="number" min="0" step="0.01" value={costPerUnit} onChange={e => setCostPerUnit(e.target.value === "" ? "" : Number(e.target.value))} />
             </div>
           </div>
-          <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-2 pt-2 border-t border-[var(--table-row-border)]">
             <input 
               type="checkbox" 
               id="isActive" 
               checked={isActive} 
               onChange={e => setIsActive(e.target.checked)} 
-              className="w-4 h-4 rounded border-slate-300"
+              className="w-4 h-4 rounded border-input"
             />
             <Label htmlFor="isActive" className="cursor-pointer">Active (Available for recipes and POs)</Label>
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSubmit} className="bg-emerald-600 hover:bg-emerald-700">Save Ingredient</Button>
+          <Button onClick={handleSubmit} className={hubCtaClassName("products")}>Save Ingredient</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

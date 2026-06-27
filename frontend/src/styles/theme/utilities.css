@@ -1,0 +1,40 @@
+@layer utilities {
+  .glass-panel {
+    background: var(--glass-panel-bg);
+    border: 1px solid var(--glass-panel-border);
+    box-shadow: var(--shadow-xl), var(--glass-panel-shadow);
+    @apply backdrop-blur-md;
+  }
+
+  .glass-card {
+    background: var(--glass-card-bg);
+    border: 1px solid var(--glass-card-border);
+    box-shadow: var(--shadow-lg), var(--glass-card-shadow);
+    @apply backdrop-blur-sm transition-[box-shadow,transform] duration-300 hover:shadow-xl hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:shadow-lg;
+  }
+
+  .interactive-item {
+    @apply transition-transform duration-200 active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100;
+  }
+
+  .surface-card {
+    @apply rounded-xl border shadow-sm;
+    background: var(--surface);
+    color: var(--surface-foreground);
+    border-color: var(--border);
+  }
+
+  .surface-empty {
+    @apply rounded-xl border p-10 text-center max-w-lg mx-auto;
+    background: var(--surface);
+    border-color: var(--border);
+  }
+
+  .text-secondary {
+    color: var(--text-secondary);
+  }
+
+  .text-subtle {
+    color: var(--text-subtle);
+  }
+}

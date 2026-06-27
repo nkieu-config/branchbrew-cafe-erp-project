@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import { Landmark } from "lucide-react"
 import { HubPageHeader } from "@/components/shared/hub-card"
 import { BranchEmptyState } from "@/components/shared/branch-empty-state"
@@ -8,7 +7,7 @@ import { useAuth } from "@/context/AuthContext"
 import { useExpectedCash } from '@/hooks/domains/useFinanceQueries';
 import { SettlementForm } from "@/components/pos/SettlementForm"
 import { ExpenseForm } from "@/components/pos/ExpenseForm"
-import { Button } from "@/components/ui/button"
+import { ButtonLink } from "@/components/ui/button-link"
 
 export default function SettlementPage() {
   const { user, activeBranchId } = useAuth()
@@ -30,10 +29,10 @@ export default function SettlementPage() {
         description="Reconcile all payment channels and submit to HQ."
         actions={
           canViewFinance ? (
-            <Button variant="outline" render={<Link href="/finance/overview" />}>
+            <ButtonLink variant="outline" href="/finance/overview">
               <Landmark className="w-4 h-4 mr-2" aria-hidden />
               Finance Overview
-            </Button>
+            </ButtonLink>
           ) : undefined
         }
       />

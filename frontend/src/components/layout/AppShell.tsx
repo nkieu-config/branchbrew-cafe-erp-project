@@ -8,6 +8,7 @@ import { SocketProvider } from "@/context/SocketContext";
 import { MobileNavProvider, useMobileNav } from "@/context/MobileNavContext";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { shell, skipLinkClassName } from "@/lib/theme";
 
 function isImmersiveRoute(pathname: string) {
   return pathname.startsWith("/pos/terminal") || pathname === "/kds";
@@ -25,11 +26,8 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
   }, [pathname, close]);
 
   return (
-    <div className="flex h-dvh w-full overflow-hidden bg-slate-50/50 dark:bg-slate-950">
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:rounded-lg focus:bg-emerald-600 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lg focus:outline-none"
-      >
+    <div className={cn("flex h-dvh w-full overflow-hidden", shell.bg)}>
+      <a href="#main-content" className={skipLinkClassName()}>
         Skip to main content
       </a>
 
@@ -40,7 +38,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent
           side="left"
-          className="w-[min(100vw,16rem)] max-w-[16rem] p-0 gap-0 border-r border-slate-200 dark:border-slate-800"
+          className={cn("w-[min(100vw,16rem)] max-w-[16rem] p-0 gap-0 border-r border-border", shell.sidebarBorder)}
           showCloseButton
         >
           <SheetTitle className="sr-only">Navigation menu</SheetTitle>

@@ -4,6 +4,8 @@ import { Plus, MinusCircle, Save } from "lucide-react"
 import { toast } from "sonner"
 import { useCreateProductionBOM } from '@/hooks/domains/useAccountingQueries'
 import { Ingredient } from "@/types/api"
+import { formDashedButtonClassName, formRemoveButtonClassName, hubCtaClassName, text } from "@/lib/theme"
+import { cn } from "@/lib/utils"
 
 interface BOMModalFormProps {
   isOpen: boolean;
@@ -60,7 +62,7 @@ export function BOMModalForm({ isOpen, onClose, ingredients }: BOMModalFormProps
           />
         </Form.Item>
 
-        <div className="mb-3 font-black text-slate-700 dark:text-slate-300">Raw Ingredients</div>
+        <div className={cn("mb-3 font-black", text.primary)}>Raw Ingredients</div>
         
         <Form.List name="rawIngredients" initialValue={[{}]}>
           {(fields, { add, remove }) => (
@@ -89,11 +91,14 @@ export function BOMModalForm({ isOpen, onClose, ingredients }: BOMModalFormProps
                   >
                     <InputNumber placeholder="Quantity" min={0.01} step={0.01} className="w-full h-11 flex items-center" />
                   </Form.Item>
-                  <MinusCircle onClick={() => remove(name)} className="text-rose-500 hover:text-rose-700 cursor-pointer w-5 h-5 ml-2 mt-2" />
+                  <MinusCircle
+                    onClick={() => remove(name)}
+                    className={cn(formRemoveButtonClassName(), "cursor-pointer w-5 h-5 ml-2 mt-2 bg-transparent")}
+                  />
                 </Space>
               ))}
               <Form.Item className="mt-4">
-                <Button type="dashed" onClick={() => add()} block icon={<Plus className="w-4 h-4" />} className="font-bold border-slate-300">
+                <Button type="dashed" onClick={() => add()} block icon={<Plus className="w-4 h-4" />} className={formDashedButtonClassName()}>
                   Add Raw Ingredient
                 </Button>
               </Form.Item>
@@ -103,7 +108,7 @@ export function BOMModalForm({ isOpen, onClose, ingredients }: BOMModalFormProps
 
         <div className="flex justify-end gap-2 mt-6">
           <Button onClick={onClose} className="font-bold">Cancel</Button>
-          <Button type="primary" htmlType="submit" className="bg-orange-500 hover:bg-orange-600 border-none font-bold px-6" icon={<Save className="w-4 h-4" />}>
+          <Button type="primary" htmlType="submit" className={hubCtaClassName("kitchen", "border-none font-bold px-6")} icon={<Save className="w-4 h-4" />}>
             Save Production BOM
           </Button>
         </div>

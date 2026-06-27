@@ -17,6 +17,19 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import type { ProductionOrder, Ingredient } from "@/types/api";
 import { formatDate } from "@/lib/intl-date";
+import {
+  hubAccentIconClass,
+  kanbanCardClassName,
+  kanbanColumnClassName,
+  kanbanColumnHeaderClassName,
+  kanbanMetaChipClassName,
+  kanbanOrderBadgeClassName,
+  metricValueClassName,
+  productionColumnTone,
+  text,
+} from "@/lib/theme";
+import type { StatusTone } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
 export type ProductionOrderWithTarget = ProductionOrder & { targetIngredient: Ingredient };
 
@@ -24,22 +37,19 @@ function KanbanColumn({
   id,
   title,
   icon,
-  color,
+  tone,
   children,
 }: {
   id: string;
   title: string;
   icon: ReactNode;
-  color: string;
+  tone: StatusTone;
   children: ReactNode;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id });
   return (
-    <div
-      ref={setNodeRef}
-      className={`flex flex-col min-w-[320px] max-w-[350px] flex-1 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border ${isOver ? "border-orange-400 bg-orange-50/50 dark:bg-orange-900/20" : "border-slate-200 dark:border-slate-800"} overflow-hidden transition-colors`}
-    >
-      <div className={`p-4 border-b border-slate-200 dark:border-slate-800 font-black text-slate-700 dark:text-slate-200 flex items-center justify-between ${color}`}>
+    <div ref={setNodeRef} className={kanbanColumnClassName(isOver)}>
+      <div className={kanbanColumnHeaderClassName(tone)}>
         <div className="flex items-center gap-2">
           {icon}
           <span>{title}</span>
@@ -67,24 +77,24 @@ function KanbanCard({ order, isOverlay = false }: { order: ProductionOrderWithTa
       style={style}
       {...listeners}
       {...attributes}
-      className={`bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow ${isOverlay ? "shadow-xl scale-105 rotate-2" : ""}`}
+      className={kanbanCardClassName(isOverlay)}
     >
       <div className="flex justify-between items-start mb-2">
-        <span className="text-xs font-bold text-slate-400 font-mono bg-slate-100 dark:bg-slate-900 px-2 py-0.5 rounded-md">
-          {order.orderNumber}
-        </span>
-        {order.status === "COMPLETED" && <CheckCircle2 className="w-4 h-4 text-emerald-500" />}
+        <span className={kanbanOrderBadgeClassName()}>{order.orderNumber}</span>
+        {order.status === "COMPLETED" && (
+          <CheckCircle2 className={cn("w-4 h-4", metricValueClassName("emerald"))} />
+        )}
       </div>
-      <div className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-1">
-        <PackageOpen className="w-4 h-4 text-orange-500 shrink-0" />
+      <div className={cn("font-bold flex items-center gap-2 mb-1", text.primary)}>
+        <PackageOpen className={hubAccentIconClass("kitchen", "w-4 h-4 shrink-0")} />
         <span className="truncate">{order.targetIngredient?.name}</span>
       </div>
-      <div className="text-sm font-black text-slate-600 dark:text-slate-300">
+      <div className={cn("text-sm font-black", text.secondary)}>
         {order.quantityToProduce}{" "}
-        <span className="text-xs font-bold text-slate-400">{order.targetIngredient?.unit}</span>
+        <span className={cn("text-xs font-bold", text.muted)}>{order.targetIngredient?.unit}</span>
       </div>
       {order.plannedStartDate && (
-        <div className="mt-3 text-xs text-slate-500 flex items-center gap-1 font-medium bg-slate-50 dark:bg-slate-900/50 w-fit px-2 py-1 rounded-md">
+        <div className={kanbanMetaChipClassName()}>
           <Clock className="w-3 h-3" />
           {formatDate(order.plannedStartDate)}
         </div>
@@ -119,19 +129,34 @@ export function KitchenKanbanBoard({
   return (
     <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={onDragStart} onDragEnd={onDragEnd}>
       <div className="flex gap-4 overflow-x-auto pb-4 h-[calc(100vh-200px)]">
-        <KanbanColumn id="PLANNED" title="Planned" icon={<Clock className="w-5 h-5" />} color="text-blue-600 bg-blue-50 dark:bg-blue-900/20">
+        <KanbanColumn
+          id="PLANNED"
+          title="Planned"
+          icon={<Clock className="w-5 h-5" />}
+          tone={productionColumnTone("PLANNED")}
+        >
           {plannedOrders.map((o) => (
             <KanbanCard key={o.id} order={o} />
           ))}
         </KanbanColumn>
 
-        <KanbanColumn id="IN_PROGRESS" title="In Progress" icon={<PlayCircle className="w-5 h-5" />} color="text-amber-600 bg-amber-50 dark:bg-amber-900/20">
+        <KanbanColumn
+          id="IN_PROGRESS"
+          title="In Progress"
+          icon={<PlayCircle className="w-5 h-5" />}
+          tone={productionColumnTone("IN_PROGRESS")}
+        >
           {inProgressOrders.map((o) => (
             <KanbanCard key={o.id} order={o} />
           ))}
         </KanbanColumn>
 
-        <KanbanColumn id="COMPLETED" title="Completed" icon={<CheckCircle2 className="w-5 h-5" />} color="text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20">
+        <KanbanColumn
+          id="COMPLETED"
+          title="Completed"
+          icon={<CheckCircle2 className="w-5 h-5" />}
+          tone={productionColumnTone("COMPLETED")}
+        >
           {completedOrders.map((o) => (
             <KanbanCard key={o.id} order={o} />
           ))}

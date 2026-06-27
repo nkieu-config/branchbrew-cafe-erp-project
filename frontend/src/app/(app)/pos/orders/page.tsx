@@ -26,6 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
+import { posQueueHighlightClassName, text } from "@/lib/theme";
 
 function isToday(iso: string) {
   const d = new Date(iso);
@@ -114,7 +115,7 @@ export default function PosOrdersPage() {
               dataIndex: "queueNumber",
               key: "queue",
               render: (n: number | null) => (
-                <span className="font-mono font-bold text-emerald-600">
+                <span className={posQueueHighlightClassName()}>
                   {formatQueueNumber(n)}
                 </span>
               ),
@@ -124,7 +125,7 @@ export default function PosOrdersPage() {
               dataIndex: "id",
               key: "id",
               render: (id: number) => (
-                <span className="font-mono text-slate-500">#{id}</span>
+                <span className={`font-mono ${text.muted}`}>#{id}</span>
               ),
             },
             {

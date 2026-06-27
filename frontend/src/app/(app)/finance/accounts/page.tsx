@@ -8,6 +8,7 @@ import { HubCard } from "@/components/shared/hub-card";
 import { DataTable } from "@/components/shared/data-table";
 import { StatusBadge, accountTypeTone } from "@/components/shared/status-badge";
 import { groupAccountsByType } from "@/lib/accounts";
+import { text } from "@/lib/theme";
 import type { AccountTableRow } from "@/types/api";
 
 export default function ChartOfAccountsPage() {
@@ -23,7 +24,7 @@ export default function ChartOfAccountsPage() {
       width: 150,
       render: (code: string, record) =>
         "isGroup" in record && record.isGroup ? (
-          <span className="font-semibold text-slate-800 dark:text-slate-200">{record.type}</span>
+          <span className={`font-semibold ${text.primary}`}>{record.type}</span>
         ) : (
           <span className="font-mono font-medium">{code}</span>
         ),
@@ -34,7 +35,7 @@ export default function ChartOfAccountsPage() {
       key: "name",
       render: (name: string, record) =>
         "isGroup" in record && record.isGroup ? (
-          <span className="font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+          <span className={`font-bold uppercase tracking-wider ${text.primary}`}>
             {name}
           </span>
         ) : (

@@ -7,6 +7,7 @@ import { DataTable } from "@/components/shared/data-table"
 import { HubCard } from "@/components/shared/hub-card"
 import { toNumber, formatBaht } from "@/lib/money"
 import { formatDateTime } from "@/lib/intl-date"
+import { ledgerCreditClassName, metricValueClassName, text } from "@/lib/theme"
 import { Order } from "@/types/api"
 
 export default function CostingReportPage() {
@@ -50,17 +51,17 @@ export default function CostingReportPage() {
       <HubCard title="Transaction History" icon={TrendingUp}>
         <DataTable 
           columns={[
-            { title: "Order ID", dataIndex: "id", key: "id", render: (id: number) => <span className="font-medium text-slate-900 dark:text-slate-100">#{id}</span> },
-            { title: "Date", dataIndex: "createdAt", key: "date", render: (date: string) => <span className="text-slate-600 dark:text-slate-400">{formatDateTime(date)}</span> },
+            { title: "Order ID", dataIndex: "id", key: "id", render: (id: number) => <span className={`font-medium ${text.primary}`}>#{id}</span> },
+            { title: "Date", dataIndex: "createdAt", key: "date", render: (date: string) => <span className={text.subtle}>{formatDateTime(date)}</span> },
             { title: "Revenue", dataIndex: "netAmount", key: "rev", align: "right", render: (val: number | string) => <span className="tabular-nums">{formatBaht(val)}</span> },
-            { title: "COGS", dataIndex: "totalCogs", key: "cogs", align: "right", render: (val: number | string) => <span className="text-red-500 tabular-nums">{formatBaht(val)}</span> },
+            { title: "COGS", dataIndex: "totalCogs", key: "cogs", align: "right", render: (val: number | string) => <span className={`tabular-nums ${ledgerCreditClassName()}`}>{formatBaht(val)}</span> },
             { 
               title: "Profit", 
               key: "profit", 
               align: "right",
               render: (_, record: Order) => {
                 const profit = toNumber(record.netAmount) - toNumber(record.totalCogs);
-                return <span className="text-blue-500 font-medium tabular-nums">{formatBaht(profit)}</span>
+                return <span className={`font-medium tabular-nums ${metricValueClassName("blue")}`}>{formatBaht(profit)}</span>
               }
             },
           ]}

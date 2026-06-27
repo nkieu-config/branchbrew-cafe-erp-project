@@ -8,6 +8,16 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { ClockInOutWidget } from "@/components/hr/ClockInOutWidget";
 import { SIDEBAR_GROUPS, isSidebarItemActive } from "@/lib/navigation";
+import {
+  sidebarBrandTitleClassName,
+  sidebarGroupButtonClassName,
+  sidebarLogoutButtonClassName,
+  sidebarNavIconClassName,
+  sidebarNavLinkClassName,
+  sidebarRootClassName,
+  shell,
+  text,
+} from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types/api";
 
@@ -52,25 +62,26 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
   };
 
   return (
-    <div
-      className={cn(
-        "w-64 glass-panel border-r-slate-200/50 dark:border-r-slate-800/50 h-screen flex flex-col z-40 relative",
-        className,
-      )}
-    >
-      <div className="h-16 flex items-center px-6 border-b border-slate-200/30 dark:border-slate-800/50 shrink-0">
-        <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center mr-3 shadow-sm">
-          <Coffee className="w-5 h-5 text-white" aria-hidden />
+    <div className={sidebarRootClassName(className)}>
+      <div className={cn("h-16 flex items-center px-6 border-b shrink-0", shell.sidebarDivider)}>
+        <div
+          className="w-8 h-8 rounded-lg flex items-center justify-center mr-3 shadow-sm bg-[var(--sidebar-brand-mark-bg)]"
+          aria-hidden
+        >
+          <Coffee className="w-5 h-5 text-[var(--sidebar-brand-mark-fg)]" />
         </div>
-        <span className="font-extrabold text-xl tracking-tight bg-gradient-to-br from-slate-800 to-slate-500 dark:from-slate-100 dark:to-slate-400 bg-clip-text text-transparent">
-          QafaCafe
-        </span>
+        <span className={sidebarBrandTitleClassName()}>QafaCafe</span>
       </div>
 
       {user && (
-        <div className="px-6 py-4 border-b border-slate-200/30 dark:border-slate-800/50 bg-white/20 dark:bg-slate-900/20 shrink-0">
-          <p className="text-sm font-bold text-slate-800 dark:text-slate-100 text-balance">{user.name}</p>
-          <p className="text-xs text-slate-500 dark:text-slate-400 capitalize">{user.role.replace("_", " ")}</p>
+        <div
+          className={cn(
+            "px-6 py-4 border-b shrink-0 bg-[var(--sidebar-user-panel-bg)]",
+            shell.sidebarDivider,
+          )}
+        >
+          <p className={cn("text-sm font-bold text-balance", text.primary)}>{user.name}</p>
+          <p className={cn("text-xs capitalize", text.muted)}>{user.role.replace("_", " ")}</p>
         </div>
       )}
 
@@ -91,7 +102,7 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                 aria-expanded={isExpanded}
                 aria-controls={`sidebar-group-${groupId}`}
                 onClick={() => toggleGroup(group.group)}
-                className="w-full flex items-center justify-between px-3 py-2 min-h-[44px] mb-1 text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 motion-reduce:transition-none"
+                className={sidebarGroupButtonClassName()}
               >
                 {group.group}
                 <ChevronDown
@@ -115,20 +126,10 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
                         href={item.href}
                         onClick={onNavigate}
                         aria-current={isReallyActive ? "page" : undefined}
-                        className={cn(
-                          "flex items-center px-3 py-2.5 min-h-[44px] rounded-xl transition-colors duration-200 font-semibold text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 motion-reduce:transition-none",
-                          isReallyActive
-                            ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shadow-sm border border-emerald-100 dark:border-emerald-500/20"
-                            : "text-slate-500 dark:text-slate-400 hover:bg-white/60 dark:hover:bg-slate-800/60 hover:text-slate-800 dark:hover:text-slate-200 interactive-item border border-transparent",
-                        )}
+                        className={sidebarNavLinkClassName(isReallyActive)}
                       >
                         <ItemIcon
-                          className={cn(
-                            "w-4 h-4 mr-3 transition-colors shrink-0",
-                            isReallyActive
-                              ? "text-emerald-500 dark:text-emerald-400"
-                              : "text-slate-400 dark:text-slate-500",
-                          )}
+                          className={sidebarNavIconClassName(isReallyActive)}
                           aria-hidden
                         />
                         {item.label}
@@ -144,12 +145,8 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
 
       {user && <ClockInOutWidget />}
 
-      <div className="p-4 border-t border-slate-200/30 dark:border-slate-800/50 shrink-0">
-        <Button
-          variant="outline"
-          className="w-full justify-start min-h-[44px] text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl interactive-item border-red-100 dark:border-red-900/50 bg-white/50 dark:bg-slate-900/50 transition-colors"
-          onClick={handleLogout}
-        >
+      <div className={cn("p-4 border-t shrink-0", shell.sidebarDivider)}>
+        <Button variant="outline" className={sidebarLogoutButtonClassName()} onClick={handleLogout}>
           Logout
         </Button>
       </div>

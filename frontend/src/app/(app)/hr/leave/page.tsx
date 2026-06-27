@@ -28,6 +28,7 @@ import { useLeaveRequests, useUpdateLeaveStatus, useCreateLeave } from "@/hooks/
 import { formatDateRange } from "@/lib/intl-date";
 import { getErrorMessage } from "@/lib/errors";
 import { toast } from "sonner";
+import { hubCtaClassName, tableActionAccentClassName } from "@/lib/theme";
 import { useState } from "react";
 import { DatePicker } from "antd";
 import type { Dayjs } from "dayjs";
@@ -114,7 +115,7 @@ export default function LeaveRequestsPage() {
         actions={
           <Button
             onClick={() => setIsModalOpen(true)}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg shadow-emerald-500/20"
+            className={hubCtaClassName("hr", "rounded-xl shadow-lg")}
           >
             <Plus className="w-4 h-4 mr-2" />
             Request Leave
@@ -154,7 +155,7 @@ export default function LeaveRequestsPage() {
                             label="Approve"
                             iconOnly
                             onClick={() => approveLeave(req.id, "APPROVED")}
-                            className="text-emerald-600 hover:text-emerald-700"
+                            className={tableActionAccentClassName("emerald")}
                           />
                           <TableActionButton
                             icon={XCircle}
@@ -230,7 +231,7 @@ export default function LeaveRequestsPage() {
             </Button>
             <Button
               type="button"
-              className="bg-emerald-600 hover:bg-emerald-700"
+              className={hubCtaClassName("hr")}
               disabled={createLeaveMutation.isPending}
               onClick={() => void handleCreateLeave()}
             >

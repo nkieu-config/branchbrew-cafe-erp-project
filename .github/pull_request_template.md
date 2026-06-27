@@ -15,7 +15,7 @@
 
 ### UI / UX (required for frontend UI changes)
 
-Reference: [`design-system/qafacafe-erp/MASTER.md`](../design-system/qafacafe-erp/MASTER.md)
+Reference: `frontend/src/styles/theme/tokens.css` and `frontend/src/lib/theme/`
 
 - [ ] **375px** — no horizontal scroll; mobile nav (hamburger) works
 - [ ] **768px** — tablet layout readable (POS/KDS if touched)

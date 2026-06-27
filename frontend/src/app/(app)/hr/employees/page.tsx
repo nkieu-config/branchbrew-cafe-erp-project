@@ -16,6 +16,16 @@ import { StatusBadge, employeeRoleTone } from "@/components/shared/status-badge"
 import { User } from "@/types/api";
 import { formatBaht } from "@/lib/money";
 import {
+  expandedRowPanelClassName,
+  formLineRowClassName,
+  hrAvatarClassName,
+  hubInfoActionClassName,
+  inlineLinkClassName,
+  metricValueClassName,
+  tableActionAccentClassName,
+  text,
+} from "@/lib/theme";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -74,10 +84,10 @@ export default function EmployeeDirectoryPage() {
       key: "employee",
       render: (_: unknown, record: User) => (
         <div className="flex items-center gap-3">
-          <Avatar className="bg-violet-500 font-bold">{record.name?.charAt(0) || "U"}</Avatar>
+          <Avatar className={hrAvatarClassName()}>{record.name?.charAt(0) || "U"}</Avatar>
           <div>
-            <div className="font-bold text-slate-800 dark:text-slate-200">{record.name || "Unknown User"}</div>
-            <div className="text-xs text-slate-500">{record.email}</div>
+            <div className={`font-bold ${text.primary}`}>{record.name || "Unknown User"}</div>
+            <div className={`text-xs ${text.muted}`}>{record.email}</div>
           </div>
         </div>
       ),
@@ -86,9 +96,9 @@ export default function EmployeeDirectoryPage() {
       title: "Role",
       dataIndex: "role",
       key: "role",
-      render: (text: string) => (
-        <StatusBadge tone={employeeRoleTone(text)} className="font-bold">
-          {text}
+      render: (roleText: string) => (
+        <StatusBadge tone={employeeRoleTone(roleText)} className="font-bold">
+          {roleText}
         </StatusBadge>
       ),
     },
@@ -96,9 +106,9 @@ export default function EmployeeDirectoryPage() {
       title: "Type",
       dataIndex: "employmentType",
       key: "type",
-      render: (text: string) => (
-        <span className="text-slate-600 dark:text-slate-300">
-          {text ? text.replace("_", " ") : "N/A"}
+      render: (typeText: string) => (
+        <span className={text.subtle}>
+          {typeText ? typeText.replace("_", " ") : "N/A"}
         </span>
       ),
     },
@@ -106,11 +116,11 @@ export default function EmployeeDirectoryPage() {
       title: "Branch",
       dataIndex: ["branch", "name"],
       key: "branch",
-      render: (text: string) =>
-        text ? (
-          <StatusBadge tone="category">{text}</StatusBadge>
+      render: (branchName: string) =>
+        branchName ? (
+          <StatusBadge tone="category">{branchName}</StatusBadge>
         ) : (
-          <span className="text-slate-400">HQ / All</span>
+          <span className={text.muted}>HQ / All</span>
         ),
     },
     {
@@ -119,7 +129,7 @@ export default function EmployeeDirectoryPage() {
       key: "rate",
       align: "right" as const,
       render: (val: number | string) => (
-        <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+        <span className={`font-mono font-bold ${metricValueClassName("emerald")}`}>
           {formatBaht(val)} / hr
         </span>
       ),
@@ -135,7 +145,7 @@ export default function EmployeeDirectoryPage() {
               icon={Edit3}
               label="Edit Rate"
               onClick={() => handleEditRate(record)}
-              className="text-indigo-600 hover:text-indigo-800"
+              className={tableActionAccentClassName("indigo")}
             />
           );
         }
@@ -158,9 +168,9 @@ export default function EmployeeDirectoryPage() {
         description="View staff details and manage compensation rates. Login accounts are managed separately."
       >
         {role === "SUPER_ADMIN" && (
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-4 -mt-2">
+          <p className={`text-sm mb-4 -mt-2 ${text.muted}`}>
             To create login accounts or reset passwords, go to{" "}
-            <Link href="/organization/users" className="font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300">
+            <Link href="/organization/users" className={inlineLinkClassName()}>
               Organization → Users &amp; Roles
             </Link>
             .
@@ -184,13 +194,13 @@ export default function EmployeeDirectoryPage() {
             </DialogTitle>
           </DialogHeader>
 
-          <div className="mb-4 bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center gap-3">
-            <Avatar size="large" className="bg-violet-500 font-bold">
+          <div className={`mb-4 flex items-center gap-3 ${formLineRowClassName("items-center")}`}>
+            <Avatar size="large" className={hrAvatarClassName()}>
               {selectedUser?.name?.charAt(0)}
             </Avatar>
             <div>
               <div className="font-bold">{selectedUser?.name}</div>
-              <div className="text-sm text-slate-500">{selectedUser?.role}</div>
+              <div className={`text-sm ${text.muted}`}>{selectedUser?.role}</div>
             </div>
           </div>
 
@@ -204,7 +214,7 @@ export default function EmployeeDirectoryPage() {
               value={hourlyRate}
               onChange={(e) => setHourlyRate(e.target.value)}
             />
-            <p className="text-xs text-slate-500">
+            <p className={`text-xs ${text.muted}`}>
               This rate is used to calculate payroll based on total clocked hours.
             </p>
           </div>
@@ -215,7 +225,7 @@ export default function EmployeeDirectoryPage() {
             </Button>
             <Button
               type="button"
-              className="bg-indigo-600 hover:bg-indigo-700"
+              className={hubInfoActionClassName()}
               disabled={updateHourlyRateMutation.isPending}
               onClick={() => void handleUpdateSubmit()}
             >

@@ -39,6 +39,12 @@ import type { ModifierGroup, ModifierOption, Ingredient } from "@/types/api";
 import { getErrorMessage } from "@/lib/errors";
 import { formatBaht } from "@/lib/money";
 import { toNumber } from "@/lib/money";
+import { StatusBadge } from "@/components/shared/status-badge";
+import {
+  hubCtaClassName,
+  modifierGroupPanelClassName,
+  text,
+} from "@/lib/theme";
 
 const CATEGORY_OPTIONS = ["Coffee", "Beverage", "Food", ""];
 const EMPTY_INGREDIENT = "__none__";
@@ -246,25 +252,22 @@ export default function ModifiersPage() {
         icon={SlidersHorizontal}
         description="Configure POS modifiers, price adjustments, and ingredient swaps (e.g. oat milk)."
         actions={
-          <Button onClick={openCreateGroup} className="bg-amber-600 hover:bg-amber-700">
+          <Button onClick={openCreateGroup} className={hubCtaClassName("products")}>
             <Plus className="w-4 h-4 mr-2" /> New Group
           </Button>
         }
       >
 
       {isLoading ? (
-        <p className="text-sm text-slate-500">Loading modifiers…</p>
+        <p className={`text-sm ${text.muted}`}>Loading modifiers…</p>
       ) : groups.length === 0 ? (
-        <p className="text-sm text-slate-500 py-8 text-center">No modifier groups yet. Create one to customize POS orders.</p>
+        <p className={`text-sm py-8 text-center ${text.muted}`}>No modifier groups yet. Create one to customize POS orders.</p>
       ) : (
         groups.map((group: ModifierGroup) => (
-          <div
-            key={group.id}
-            className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/30 p-5 space-y-4 mb-4 last:mb-0"
-          >
+          <div key={group.id} className={modifierGroupPanelClassName()}>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
+                <h3 className={`text-lg font-bold ${text.primary}`}>
                   {group.name}
                 </h3>
                 <div className="flex flex-wrap gap-2 mt-1">
@@ -273,9 +276,7 @@ export default function ModifiersPage() {
                   )}
                   <Badge variant="outline">Order: {group.sortOrder}</Badge>
                   {group.swapIngredient && (
-                    <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
-                      Swaps: {group.swapIngredient.name}
-                    </Badge>
+                    <StatusBadge tone="success">Swaps: {group.swapIngredient.name}</StatusBadge>
                   )}
                 </div>
               </div>

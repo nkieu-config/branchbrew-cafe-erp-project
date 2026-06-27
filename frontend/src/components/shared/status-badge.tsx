@@ -1,44 +1,31 @@
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { statusToneClassName, type StatusTone } from "@/lib/theme";
 
-export type StatusBadgeTone =
-  | "neutral"
-  | "info"
-  | "success"
-  | "warning"
-  | "danger"
-  | "purple"
-  | "blue"
-  | "category";
-
-const toneClass: Record<StatusBadgeTone, string> = {
-  neutral: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300",
-  info: "bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300",
-  success: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300",
-  warning: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300",
-  danger: "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300",
-  purple: "bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300",
-  blue: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
-  category: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border border-slate-200 dark:border-slate-700",
-};
+export type { StatusTone as StatusBadgeTone };
 
 export function StatusBadge({
   tone = "neutral",
   children,
   className,
 }: {
-  tone?: StatusBadgeTone;
+  tone?: StatusTone;
   children: React.ReactNode;
   className?: string;
 }) {
   return (
-    <Badge variant="outline" className={cn("border-transparent font-medium", toneClass[tone], className)}>
+    <span
+      className={cn(
+        "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium",
+        statusToneClassName(tone),
+        className,
+      )}
+    >
       {children}
-    </Badge>
+    </span>
   );
 }
 
-export function roleTone(role: string): StatusBadgeTone {
+export function roleTone(role: string): StatusTone {
   switch (role) {
     case "SUPER_ADMIN":
       return "purple";
@@ -49,7 +36,7 @@ export function roleTone(role: string): StatusBadgeTone {
   }
 }
 
-export function employeeRoleTone(role: string): StatusBadgeTone {
+export function employeeRoleTone(role: string): StatusTone {
   switch (role) {
     case "SUPER_ADMIN":
       return "purple";
@@ -62,7 +49,7 @@ export function employeeRoleTone(role: string): StatusBadgeTone {
   }
 }
 
-export function payrollStatusTone(status: string): StatusBadgeTone {
+export function payrollStatusTone(status: string): StatusTone {
   switch (status) {
     case "APPROVED":
       return "success";
@@ -75,7 +62,7 @@ export function payrollStatusTone(status: string): StatusBadgeTone {
   }
 }
 
-export function orderStatusTone(status: string): StatusBadgeTone {
+export function orderStatusTone(status: string): StatusTone {
   switch (status) {
     case "COMPLETED":
       return "success";
@@ -91,7 +78,7 @@ export function orderStatusTone(status: string): StatusBadgeTone {
   }
 }
 
-export function leaveStatusTone(status: string): StatusBadgeTone {
+export function leaveStatusTone(status: string): StatusTone {
   switch (status) {
     case "APPROVED":
       return "success";
@@ -102,7 +89,7 @@ export function leaveStatusTone(status: string): StatusBadgeTone {
   }
 }
 
-export function auditActionTone(action: string): StatusBadgeTone {
+export function auditActionTone(action: string): StatusTone {
   if (action.includes("CREATE")) return "info";
   if (action.includes("APPROVE")) return "success";
   if (action.includes("REJECT") || action.includes("DELETE")) return "danger";
@@ -110,7 +97,7 @@ export function auditActionTone(action: string): StatusBadgeTone {
   return "neutral";
 }
 
-export function poStatusTone(status: string): StatusBadgeTone {
+export function poStatusTone(status: string): StatusTone {
   switch (status) {
     case "APPROVED":
       return "info";
@@ -123,7 +110,7 @@ export function poStatusTone(status: string): StatusBadgeTone {
   }
 }
 
-export function transferStatusTone(status: string): StatusBadgeTone {
+export function transferStatusTone(status: string): StatusTone {
   switch (status) {
     case "COMPLETED":
       return "success";
@@ -138,11 +125,28 @@ export function transferStatusTone(status: string): StatusBadgeTone {
   }
 }
 
-export function journalStatusTone(status: string): StatusBadgeTone {
+export function journalStatusTone(status: string): StatusTone {
   return status === "POSTED" ? "success" : "neutral";
 }
 
-export function accountTypeTone(type: string): StatusBadgeTone {
+export function settlementStatusTone(status: string): StatusTone {
+  return status === "APPROVED" ? "success" : "warning";
+}
+
+export function equipmentStatusTone(status: string): StatusTone {
+  switch (status) {
+    case "OPERATIONAL":
+      return "success";
+    case "NEEDS_MAINTENANCE":
+      return "warning";
+    case "OUT_OF_ORDER":
+      return "danger";
+    default:
+      return "neutral";
+  }
+}
+
+export function accountTypeTone(type: string): StatusTone {
   switch (type) {
     case "ASSET":
       return "blue";

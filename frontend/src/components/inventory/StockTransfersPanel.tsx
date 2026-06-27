@@ -27,6 +27,14 @@ import { TableActionButton } from "@/components/shared/table-action-button";
 import { StatusBadge, transferStatusTone } from "@/components/shared/status-badge";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { Button } from "@/components/ui/button";
+import {
+  compactPanelLinkClassName,
+  formLineRowClassName,
+  hubInfoActionClassName,
+  metricValueClassName,
+  procurementHubIconClassName,
+  text,
+} from "@/lib/theme";
 import type { Branch, Ingredient, StockTransfer } from "@/types/api";
 
 type SourceInventory = { ingredient: Ingredient; stock: number };
@@ -50,8 +58,8 @@ function branchLabel(name: string | undefined) {
 
 function BranchCell({ name }: { name: string | undefined }) {
   return (
-    <span className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
-      <Building2 className="w-3.5 h-3.5 shrink-0 text-slate-400" aria-hidden />
+    <span className={`inline-flex items-center gap-1.5 ${text.secondary}`}>
+      <Building2 className={`w-3.5 h-3.5 shrink-0 ${text.muted}`} aria-hidden />
       <span className="font-medium">{branchLabel(name)}</span>
     </span>
   );
@@ -179,7 +187,7 @@ export const StockTransfersPanel = forwardRef<
         key: "createdAt",
         width: variant === "compact" ? 120 : 160,
         render: (date: string) => (
-          <span className="text-slate-600 dark:text-slate-300 whitespace-nowrap tabular-nums">
+          <span className={`whitespace-nowrap tabular-nums ${text.subtle}`}>
             {variant === "compact"
               ? formatDateTime(date)
               : formatDateTime(date)}
@@ -204,7 +212,7 @@ export const StockTransfersPanel = forwardRef<
         title: "Ingredient",
         key: "ingredient",
         render: (_: unknown, record: StockTransfer) => (
-          <span className="font-medium text-slate-800 dark:text-slate-200">
+          <span className={`font-medium ${text.primary}`}>
             {record.ingredient?.name ?? "—"}
           </span>
         ),
@@ -215,10 +223,10 @@ export const StockTransfersPanel = forwardRef<
         align: "right" as const,
         width: 100,
         render: (_: unknown, record: StockTransfer) => (
-          <span className="font-mono tabular-nums text-slate-600 dark:text-slate-300">
+          <span className={`font-mono tabular-nums ${text.subtle}`}>
             {record.quantity}
             {record.ingredient?.unit ? (
-              <span className="text-slate-400 ml-1 text-xs">{record.ingredient.unit}</span>
+              <span className={`ml-1 text-xs ${text.muted}`}>{record.ingredient.unit}</span>
             ) : null}
           </span>
         ),
@@ -229,7 +237,7 @@ export const StockTransfersPanel = forwardRef<
               title: "Requested by",
               key: "requestedBy",
               render: (_: unknown, record: StockTransfer) => (
-                <span className="text-slate-500">
+                <span className={text.muted}>
                   {record.requestedBy?.name ?? record.requestedBy?.email ?? "—"}
                 </span>
               ),
@@ -257,7 +265,7 @@ export const StockTransfersPanel = forwardRef<
                 icon={CheckCircle2}
                 label="Accept"
                 onClick={() => setAcceptTarget(record)}
-                className="text-emerald-600 font-bold"
+                className={`font-bold ${metricValueClassName("emerald")}`}
               />
             );
           }
@@ -267,7 +275,7 @@ export const StockTransfersPanel = forwardRef<
             record.fromBranchId === branchId
           ) {
             return (
-              <span className="text-xs text-slate-400 italic">
+              <span className={`text-xs italic ${text.muted}`}>
                 Awaiting {record.toBranch?.name ?? "destination"}
               </span>
             );
@@ -312,8 +320,8 @@ export const StockTransfersPanel = forwardRef<
       {variant === "compact" && (
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="font-semibold text-lg text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <ArrowRightLeft className="w-5 h-5 text-blue-500" aria-hidden />
+            <h2 className={`font-semibold text-lg flex items-center gap-2 ${text.primary}`}>
+              <ArrowRightLeft className={procurementHubIconClassName()} aria-hidden />
               Pending Transfers
             </h2>
             <div className="flex gap-2">
@@ -324,7 +332,7 @@ export const StockTransfersPanel = forwardRef<
               )}
               <Link
                 href="/inventory/transfers"
-                className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-200 px-3 py-1.5 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800"
+                className={compactPanelLinkClassName()}
               >
                 All transfers <ExternalLink className="w-3.5 h-3.5" aria-hidden />
               </Link>
@@ -369,9 +377,9 @@ export const StockTransfersPanel = forwardRef<
           )}
 
           {branchId && (
-            <p className="mb-4 text-sm text-slate-500 rounded-lg bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 px-3 py-2">
+            <p className={`mb-4 text-sm rounded-lg px-3 py-2 ${formLineRowClassName("items-stretch")}`}>
               Transferring from{" "}
-              <span className="font-medium text-slate-700 dark:text-slate-200">
+              <span className={`font-medium ${text.secondary}`}>
                 {branches.find((b: Branch) => b.id === branchId)?.name ?? "selected branch"}
               </span>
             </p>
@@ -417,7 +425,7 @@ export const StockTransfersPanel = forwardRef<
             </Button>
             <Button
               type="button"
-              className="bg-indigo-600 hover:bg-indigo-700"
+              className={hubInfoActionClassName()}
               disabled={submitting}
               onClick={() => form.submit()}
             >

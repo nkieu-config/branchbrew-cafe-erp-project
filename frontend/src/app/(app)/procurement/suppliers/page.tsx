@@ -24,6 +24,7 @@ import {
 import { Building2, Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Supplier } from "@/types/api";
+import { hubCtaClassName } from "@/lib/theme";
 
 export default function SuppliersPage() {
   const { data: suppliers = [], isLoading } = useSuppliers();
@@ -107,7 +108,7 @@ export default function SuppliersPage() {
         icon={Building2}
         description="Manage vendor contacts for purchase orders."
         actions={
-          <Button className="bg-blue-600 hover:bg-blue-700" onClick={openCreate}>
+          <Button className={hubCtaClassName("procurement")} onClick={openCreate}>
             <Plus className="w-4 h-4 mr-2" />
             Add Supplier
           </Button>
@@ -188,7 +189,7 @@ export default function SuppliersPage() {
             </Button>
             <Button
               type="button"
-              className="bg-blue-600 hover:bg-blue-700"
+              className={hubCtaClassName("procurement")}
               disabled={saving}
               onClick={() => void handleSubmit()}
             >

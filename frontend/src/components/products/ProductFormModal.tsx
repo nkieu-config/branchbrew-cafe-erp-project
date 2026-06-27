@@ -12,6 +12,13 @@ import { Plus, Trash2 } from "lucide-react";
 import type { Product, Ingredient } from "@/types/api";
 import { updateLineItem } from "@/lib/form";
 import { getErrorMessage } from "@/lib/errors";
+import {
+  formRemoveButtonClassName,
+  formSectionClassName,
+  hubCtaClassName,
+  text,
+} from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
 export function ProductFormModal({ isOpen, onClose, product }: { isOpen: boolean, onClose: () => void, product?: Product }) {
   const [name, setName] = useState("");
@@ -99,8 +106,8 @@ export function ProductFormModal({ isOpen, onClose, product }: { isOpen: boolean
         </DialogHeader>
         
         <div className="space-y-6 py-4">
-          <div className="space-y-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-100 dark:border-slate-800">
-            <h3 className="font-bold text-slate-800 dark:text-slate-200">1. Basic Info</h3>
+          <div className={formSectionClassName("mb-0 space-y-4")}>
+            <h3 className={cn("font-bold", text.primary)}>1. Basic Info</h3>
             <div className="space-y-2">
               <Label>Product Name</Label>
               <Input placeholder="e.g. Iced Latte" value={name} onChange={e => setName(e.target.value)} />
@@ -115,28 +122,28 @@ export function ProductFormModal({ isOpen, onClose, product }: { isOpen: boolean
                 <Input type="number" min="0" value={price} onChange={e => setPrice(e.target.value === "" ? "" : Number(e.target.value))} />
               </div>
             </div>
-            <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-2 pt-2 border-t border-[var(--table-row-border)]">
               <input 
                 type="checkbox" 
                 id="isActiveProduct" 
                 checked={isActive} 
                 onChange={e => setIsActive(e.target.checked)} 
-                className="w-4 h-4 rounded border-slate-300"
+                className="w-4 h-4 rounded border-input"
               />
               <Label htmlFor="isActiveProduct" className="cursor-pointer">Active (Available for sale on POS)</Label>
             </div>
           </div>
 
-          <div className="space-y-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-lg border border-slate-100 dark:border-slate-800">
+          <div className={formSectionClassName("mb-0 space-y-4")}>
             <div className="flex justify-between items-center">
-              <h3 className="font-bold text-slate-800 dark:text-slate-200">2. Menu Recipe</h3>
+              <h3 className={cn("font-bold", text.primary)}>2. Menu Recipe</h3>
               <Button type="button" variant="outline" size="sm" onClick={handleAddRecipeItem} className="h-8">
                 <Plus className="w-4 h-4 mr-1" /> Add Ingredient
               </Button>
             </div>
             
             {recipeItems.length === 0 ? (
-              <p className="text-sm text-slate-500 italic">No menu recipe defined. This item will not deduct inventory when sold.</p>
+              <p className={cn("text-sm italic", text.muted)}>No menu recipe defined. This item will not deduct inventory when sold.</p>
             ) : (
               <div className="space-y-3">
                 {recipeItems.map((item, idx) => (
@@ -164,7 +171,7 @@ export function ProductFormModal({ isOpen, onClose, product }: { isOpen: boolean
                         onChange={(e) => handleRecipeItemChange(idx, 'quantity', Number(e.target.value))} 
                       />
                     </div>
-                    <Button type="button" variant="ghost" size="icon" className="h-10 w-10 text-red-500" onClick={() => handleRemoveRecipeItem(idx)}>
+                    <Button type="button" variant="ghost" size="icon" className={cn(formRemoveButtonClassName(), "h-10 w-10")} onClick={() => handleRemoveRecipeItem(idx)}>
                       <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
@@ -176,7 +183,7 @@ export function ProductFormModal({ isOpen, onClose, product }: { isOpen: boolean
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSubmit} className="bg-amber-600 hover:bg-amber-700 text-white">Save Product</Button>
+          <Button onClick={handleSubmit} className={hubCtaClassName("products")}>Save Product</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

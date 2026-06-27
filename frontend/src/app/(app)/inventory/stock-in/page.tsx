@@ -5,6 +5,7 @@ import { useStockIn } from "@/hooks/domains/useInventoryQueries";
 import { useIngredients } from "@/hooks/domains/useProductQueries";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-link";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -16,13 +17,13 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ArrowDownToLine, Plus, Trash2 } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { filterActive, updateLineItem } from "@/lib/form";
 import type { Ingredient, StockLineItem } from "@/types/api";
 import { getErrorMessage } from "@/lib/errors";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { HubCard } from "@/components/shared/hub-card";
+import { formLineRowClassName, formRemoveButtonClassName, hubInfoActionClassName } from "@/lib/theme";
 
 export default function StockInPage() {
   const { activeBranchId } = useAuth();
@@ -94,7 +95,7 @@ export default function StockInPage() {
     >
       <div className="space-y-4">
         {items.map((item, idx) => (
-          <div key={idx} className="flex items-end gap-4 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-800">
+          <div key={idx} className={formLineRowClassName()}>
             <div className="flex-1 space-y-2">
               <Label htmlFor={`grn-ingredient-${idx}`}>Ingredient</Label>
               <Select
@@ -145,7 +146,7 @@ export default function StockInPage() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-10 w-10 text-red-500"
+              className={formRemoveButtonClassName("h-10 w-10")}
               aria-label="Remove line"
               onClick={() => handleRemoveItem(idx)}
               disabled={items.length === 1}
@@ -161,8 +162,8 @@ export default function StockInPage() {
       </div>
 
       <div className="mt-8 flex justify-end gap-3">
-        <Button variant="outline" render={<Link href="/inventory" />}>Cancel</Button>
-        <Button onClick={handleSubmit} className="bg-blue-600 hover:bg-blue-700" disabled={stockInMutation.isPending}>
+        <ButtonLink variant="outline" href="/inventory">Cancel</ButtonLink>
+        <Button onClick={handleSubmit} className={hubInfoActionClassName()} disabled={stockInMutation.isPending}>
           {stockInMutation.isPending ? "Saving…" : "Confirm & Receive Stock"}
         </Button>
       </div>

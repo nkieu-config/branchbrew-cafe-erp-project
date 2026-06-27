@@ -21,6 +21,13 @@ import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { useAuth } from "@/context/AuthContext";
 import type { Branch } from "@/types/api";
 import type { ProductionOrderWithTarget } from "@/components/kitchen/KitchenKanbanBoard";
+import {
+  hubCtaClassName,
+  warningBannerIconClassName,
+  warningBannerPanelClassName,
+  warningBannerTextClassName,
+  warningBannerTitleClassName,
+} from "@/lib/theme";
 
 const KitchenKanbanBoard = dynamic(
   () => import("@/components/kitchen/KitchenKanbanBoard").then((m) => m.KitchenKanbanBoard),
@@ -119,16 +126,16 @@ export default function CentralKitchenPage() {
   const branchGuard = !activeBranchId ? (
     <BranchEmptyState description="Use the branch selector in the top bar to manage production." />
   ) : !isCentralKitchen ? (
-    <div className="rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50/50 dark:bg-amber-950/20 p-10 text-center max-w-lg mx-auto">
-      <ChefHat className="w-10 h-10 text-orange-500 mx-auto mb-4" />
-      <p className="font-semibold text-slate-800 dark:text-slate-100">{activeBranch?.name} is not a central kitchen</p>
-      <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+    <div className={warningBannerPanelClassName()}>
+      <ChefHat className={warningBannerIconClassName("kitchen", "w-10 h-10 mx-auto mb-4")} />
+      <p className={warningBannerTitleClassName()}>{activeBranch?.name} is not a central kitchen</p>
+      <p className={warningBannerTextClassName("mt-2")}>
         Production orders are managed at a central kitchen branch. Switch branches to continue.
       </p>
       {centralKitchen && (
         <Button
           type="primary"
-          className="mt-6 bg-orange-500 hover:bg-orange-600 border-none font-bold"
+          className={hubCtaClassName("kitchen", "mt-6 border-none font-bold")}
           onClick={() => setActiveBranchId(centralKitchen.id)}
         >
           Switch to {centralKitchen.name}
@@ -147,7 +154,7 @@ export default function CentralKitchenPage() {
           isCentralKitchen ? (
             <Button
               type="primary"
-              className="bg-orange-500 hover:bg-orange-600 shadow-sm font-bold flex items-center border-none"
+              className={hubCtaClassName("kitchen", "shadow-sm font-bold flex items-center border-none")}
               onClick={() => setIsModalVisible(true)}
               icon={<Plus className="w-4 h-4" />}
             >
@@ -210,7 +217,7 @@ export default function CentralKitchenPage() {
             <Button onClick={() => setIsModalVisible(false)} className="font-bold">
               Cancel
             </Button>
-            <Button type="primary" htmlType="submit" className="bg-orange-500 hover:bg-orange-600 border-none font-bold px-6">
+            <Button type="primary" htmlType="submit" className={hubCtaClassName("kitchen", "border-none font-bold px-6")}>
               Create Order
             </Button>
           </div>
