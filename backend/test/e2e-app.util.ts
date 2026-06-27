@@ -6,6 +6,12 @@ import { AppModule } from '../src/app.module';
 import { OutboxProcessor } from '../src/outbox/outbox.processor';
 import { InventoryBatchExpiryProcessor } from '../src/inventory/inventory-batch-expiry.processor';
 
+class TestOutboxProcessor extends OutboxProcessor {
+  async handleCron() {
+    await super.handleCron();
+  }
+}
+
 export async function createE2eApp(): Promise<INestApplication<App>> {
   process.env.JWT_SECRET =
     process.env.JWT_SECRET ?? 'test-jwt-secret-for-e2e-only-32chars';
@@ -14,7 +20,7 @@ export async function createE2eApp(): Promise<INestApplication<App>> {
     imports: [AppModule],
   })
     .overrideProvider(OutboxProcessor)
-    .useValue({ handleCron: jest.fn() })
+    .useClass(TestOutboxProcessor)
     .overrideProvider(InventoryBatchExpiryProcessor)
     .useValue({ markExpiredBatches: jest.fn() })
     .compile();

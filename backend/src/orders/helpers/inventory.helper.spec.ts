@@ -141,7 +141,7 @@ describe('InventoryHelper', () => {
       } as any);
 
       await InventoryHelper.restoreInventory(
-        txMock as unknown as Prisma.TransactionClient,
+        txMock,
         branchId,
         restoreRequirements,
       );

@@ -28,7 +28,7 @@ describe('queue-number.helper', () => {
   it('allocates first queue number of the day', async () => {
     db.order.findFirst.mockResolvedValue(null);
 
-    const result = await allocateQueueNumber(db as any, 1);
+    const result = await allocateQueueNumber(db, 1);
 
     expect(result.queueNumber).toBe(1);
     expect(getQueueBusinessDateString(result.queueDate)).toBe(
@@ -39,7 +39,7 @@ describe('queue-number.helper', () => {
   it('increments from the latest queue number', async () => {
     db.order.findFirst.mockResolvedValue({ queueNumber: 41 } as any);
 
-    const result = await allocateQueueNumber(db as any, 2);
+    const result = await allocateQueueNumber(db, 2);
 
     expect(result.queueNumber).toBe(42);
   });

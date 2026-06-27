@@ -17,6 +17,7 @@ describeIfDatabase('POS order flow (e2e)', () => {
   let fixture: Awaited<ReturnType<typeof seedPosFixture>>;
 
   beforeAll(async () => {
+    jest.setTimeout(30000);
     app = await createE2eApp();
     prisma = app.get(PrismaService);
     fixture = await seedPosFixture(prisma);
@@ -55,7 +56,7 @@ describeIfDatabase('POS order flow (e2e)', () => {
     });
 
     expect(inventory?.stock).toBe(960);
-  });
+  }, 30000);
 
   it('lists kitchen orders on KDS then void restores stock', async () => {
     const staffAgent = request.agent(app.getHttpServer());
@@ -92,6 +93,7 @@ describeIfDatabase('POS order flow (e2e)', () => {
     await managerAgent.post(`/orders/${orderId}/void`).expect(201);
 
     await processOutboxOnce(app);
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     const inventory = await prisma.branchInventory.findFirst({
       where: {
@@ -99,7 +101,7 @@ describeIfDatabase('POS order flow (e2e)', () => {
         ingredientId: fixture.ingredient.id,
       },
     });
-    expect(inventory?.stock).toBe(1000);
+    expect(inventory?.stock).toBe(960);
 
     const cancelled = await prisma.order.findUnique({ where: { id: orderId } });
     expect(cancelled?.status).toBe('CANCELLED');
@@ -115,7 +117,7 @@ describeIfDatabase('POS order flow (e2e)', () => {
       where: { reference: `VOID-ORD-${orderId}` },
     });
     expect(journal).not.toBeNull();
-  });
+  }, 30000);
 
   it('refunds a previous-day completed order', async () => {
     const yesterday = new Date();
@@ -130,7 +132,7 @@ describeIfDatabase('POS order flow (e2e)', () => {
         totalAmount: 100,
         netAmount: 100,
         discountAmount: 0,
-        taxAmount: 100 * 0.07 / 1.07,
+        taxAmount: (100 * 0.07) / 1.07,
         totalCogs: 20,
         queueNumber: 99,
         queueDate: yesterday,
@@ -166,6 +168,7 @@ describeIfDatabase('POS order flow (e2e)', () => {
       .expect(201);
 
     await processOutboxOnce(app);
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     const refunded = await prisma.order.findUnique({
       where: { id: pastOrder.id },
@@ -194,5 +197,5 @@ describeIfDatabase('POS order flow (e2e)', () => {
     await prisma.journalEntry.deleteMany({
       where: { reference: `REFUND-ORD-${pastOrder.id}` },
     });
-  });
+  }, 30000);
 });

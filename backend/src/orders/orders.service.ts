@@ -163,8 +163,7 @@ export class OrdersService {
           }
         }
         for (const [ingredientId, qty] of itemRequirements.entries()) {
-          totalCogs +=
-            (costByIngredient.get(ingredientId) ?? 0) * qty;
+          totalCogs += (costByIngredient.get(ingredientId) ?? 0) * qty;
         }
 
         const notesText =
@@ -427,11 +426,7 @@ export class OrdersService {
     });
   }
 
-  async refundOrder(
-    orderId: number,
-    reason?: string,
-    user?: BranchScopedUser,
-  ) {
+  async refundOrder(orderId: number, reason?: string, user?: BranchScopedUser) {
     const existing = await this.loadOrderForReversal(orderId, user);
 
     try {
@@ -488,7 +483,9 @@ export class OrdersService {
       case 'ORDER_ALREADY_REVERSED':
         return new BadRequestException('Order is already voided or refunded.');
       case 'REFUND_NOT_COMPLETED':
-        return new BadRequestException('Only completed orders can be refunded.');
+        return new BadRequestException(
+          'Only completed orders can be refunded.',
+        );
       case 'REFUND_SAME_DAY':
         return new BadRequestException(
           'Same-day orders should be voided, not refunded.',

@@ -4,11 +4,21 @@ export const MONEY_SCALE = 2;
 export const UNIT_COST_SCALE = 4;
 const MONEY_EPSILON = 0.01;
 
-/** Coerce Prisma Decimal (or number) to JS number for arithmetic/comparisons. */
-export function toNum(value: DecimalLike | number | null | undefined): number {
+export function toNum(
+  value: number | string | DecimalLike | null | undefined,
+): number {
   if (value == null) return 0;
   if (typeof value === 'number') return value;
-  return value.toNumber();
+  if (typeof value === 'string') return parseFloat(value);
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    'toNumber' in value &&
+    typeof value.toNumber === 'function'
+  ) {
+    return value.toNumber();
+  }
+  return Number(value);
 }
 
 export function roundMoney(value: number): number {

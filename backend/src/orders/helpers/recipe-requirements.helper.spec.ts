@@ -20,17 +20,12 @@ describe('recipe-requirements.helper', () => {
         [milkId, 150],
       ]);
 
-      applyIngredientSwaps(
-        map,
-        recipe,
-        1,
-        [
-          {
-            swapToIngredientId: oatId,
-            group: { swapIngredientId: milkId },
-          },
-        ],
-      );
+      applyIngredientSwaps(map, recipe, 1, [
+        {
+          swapToIngredientId: oatId,
+          group: { swapIngredientId: milkId },
+        },
+      ]);
 
       expect(map.get(milkId)).toBeUndefined();
       expect(map.get(oatId)).toBe(150);

@@ -19,7 +19,8 @@ export function toDbSettings(
   const out: Record<string, string> = {};
   for (const [key, value] of Object.entries(data)) {
     const dbKey =
-      SETTINGS_KEY_MAP[key as SettingsCamelKey] ?? key.replace(/([A-Z])/g, '_$1').toLowerCase();
+      SETTINGS_KEY_MAP[key as SettingsCamelKey] ??
+      key.replace(/([A-Z])/g, '_$1').toLowerCase();
     out[dbKey] = value;
   }
   return out;

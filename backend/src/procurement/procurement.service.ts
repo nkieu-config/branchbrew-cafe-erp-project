@@ -134,7 +134,9 @@ export class ProcurementService {
     assertBranchAccess(user, po.branchId);
 
     if (po.items.length === 0) {
-      throw new BadRequestException('Cannot submit a purchase order with no items');
+      throw new BadRequestException(
+        'Cannot submit a purchase order with no items',
+      );
     }
 
     const updatedPo = await this.prisma.purchaseOrder.update({

@@ -8,7 +8,13 @@ import { OutboxModule } from '../outbox/outbox.module';
 import { SettingsModule } from '../settings/settings.module';
 
 @Module({
-  imports: [ProcurementModule, CustomersModule, AccountingModule, OutboxModule, SettingsModule],
+  imports: [
+    ProcurementModule,
+    CustomersModule,
+    AccountingModule,
+    OutboxModule,
+    SettingsModule,
+  ],
   controllers: [OrdersController],
   providers: [OrdersService],
 })

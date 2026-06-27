@@ -1,8 +1,5 @@
 import { OrderStatus } from '@prisma/client';
-import {
-  isSameCalendarDay,
-  isTerminalOrderStatus,
-} from '../order-void.util';
+import { isSameCalendarDay, isTerminalOrderStatus } from '../order-void.util';
 
 export function assertVoidable(createdAt: Date, status: OrderStatus): void {
   if (isTerminalOrderStatus(status)) {

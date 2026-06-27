@@ -3,11 +3,13 @@ import { Prisma } from '@prisma/client';
 /** Default reorder alert threshold for newly provisioned branch–ingredient rows. */
 export const DEFAULT_BRANCH_MIN_STOCK = 100;
 
-type DbClient = Prisma.TransactionClient | {
-  ingredient: Prisma.TransactionClient['ingredient'];
-  branch: Prisma.TransactionClient['branch'];
-  branchInventory: Prisma.TransactionClient['branchInventory'];
-};
+type DbClient =
+  | Prisma.TransactionClient
+  | {
+      ingredient: Prisma.TransactionClient['ingredient'];
+      branch: Prisma.TransactionClient['branch'];
+      branchInventory: Prisma.TransactionClient['branchInventory'];
+    };
 
 /**
  * Creates BranchInventory rows (stock 0) for every ingredient missing at a branch.

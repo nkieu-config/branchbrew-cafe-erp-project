@@ -103,7 +103,9 @@ export async function cleanupPosFixture(prisma: PrismaService, email: string) {
   await prisma.orderItemModifier.deleteMany({
     where: { orderItem: { order: { userId: { in: userIds } } } },
   });
-  await prisma.orderItem.deleteMany({ where: { order: { userId: { in: userIds } } } });
+  await prisma.orderItem.deleteMany({
+    where: { order: { userId: { in: userIds } } },
+  });
   await prisma.order.deleteMany({ where: { userId: { in: userIds } } });
   await prisma.recipeItem.deleteMany({
     where: { product: { name: 'E2E Latte' } },

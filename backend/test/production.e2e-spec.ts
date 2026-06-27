@@ -67,13 +67,44 @@ describeIfDatabase('Central kitchen production flow (e2e)', () => {
 
   afterAll(async () => {
     await prisma.productionOrder.deleteMany({
-      where: { branch: { name: 'E2E Central Kitchen' } },
+      where: {
+        OR: [
+          { branch: { name: 'E2E Central Kitchen' } },
+          {
+            targetIngredient: {
+              name: { in: ['E2E Production Beans', 'E2E Cold Brew Base'] },
+            },
+          },
+        ],
+      },
     });
     await prisma.productionBOM.deleteMany({
-      where: { targetIngredient: { name: 'E2E Cold Brew Base' } },
+      where: {
+        OR: [
+          {
+            targetIngredient: {
+              name: { in: ['E2E Production Beans', 'E2E Cold Brew Base'] },
+            },
+          },
+          {
+            rawIngredient: {
+              name: { in: ['E2E Production Beans', 'E2E Cold Brew Base'] },
+            },
+          },
+        ],
+      },
     });
     await prisma.branchInventory.deleteMany({
-      where: { branch: { name: 'E2E Central Kitchen' } },
+      where: {
+        OR: [
+          { branch: { name: 'E2E Central Kitchen' } },
+          {
+            ingredient: {
+              name: { in: ['E2E Production Beans', 'E2E Cold Brew Base'] },
+            },
+          },
+        ],
+      },
     });
     await prisma.ingredient.deleteMany({
       where: { name: { in: ['E2E Production Beans', 'E2E Cold Brew Base'] } },

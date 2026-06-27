@@ -27,9 +27,7 @@ export class ModifiersService {
 
   findAll(category?: string) {
     return this.prisma.modifierGroup.findMany({
-      where: category
-        ? { OR: [{ category: null }, { category }] }
-        : undefined,
+      where: category ? { OR: [{ category: null }, { category }] } : undefined,
       include: groupInclude,
       orderBy: { sortOrder: 'asc' },
     });
@@ -40,9 +38,7 @@ export class ModifiersService {
     return this.prisma.modifierGroup.create({
       data: {
         ...groupData,
-        options: options?.length
-          ? { create: options }
-          : undefined,
+        options: options?.length ? { create: options } : undefined,
       },
       include: groupInclude,
     });
@@ -108,7 +104,9 @@ export class ModifiersService {
   }
 
   private async ensureOption(id: number) {
-    const option = await this.prisma.modifierOption.findUnique({ where: { id } });
+    const option = await this.prisma.modifierOption.findUnique({
+      where: { id },
+    });
     if (!option) throw new NotFoundException(`Modifier option ${id} not found`);
     return option;
   }

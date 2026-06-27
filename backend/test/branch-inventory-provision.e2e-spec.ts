@@ -100,7 +100,11 @@ describeIfDatabase('Branch inventory auto-provision (e2e)', () => {
 
     const ingredientRes = await agent
       .post('/ingredients')
-      .send({ name: 'E2E Provision New Ingredient', unit: 'pcs', costPerUnit: 5 })
+      .send({
+        name: 'E2E Provision New Ingredient',
+        unit: 'pcs',
+        costPerUnit: 5,
+      })
       .expect(201);
 
     const ingredientId = ingredientRes.body.id as number;
