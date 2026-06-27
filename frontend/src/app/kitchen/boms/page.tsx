@@ -9,6 +9,7 @@ import { ListTree, Plus, AlertTriangle } from "lucide-react"
 import { HubCard } from "@/components/shared/hub-card"
 import { DataTable } from "@/components/shared/data-table"
 import { BOMModalForm } from "@/components/kitchen/BOMModalForm"
+import { CentralKitchenBanner } from "@/components/kitchen/central-kitchen-banner"
 import { groupProductionBoms } from "@/lib/bom"
 import type { BomGroupRow, BomTableRow, ProductionBOM } from "@/types/api"
 
@@ -96,7 +97,9 @@ export default function BOMPage() {
   ]
 
   return (
-    <>
+    <div className="space-y-6">
+      <CentralKitchenBanner message="BOM recipes are managed at the central kitchen branch." />
+
       <HubCard
         title="Bill of Materials (Recipes)"
         icon={ListTree}
@@ -112,14 +115,32 @@ export default function BOMPage() {
           </Button>
         }
       >
-      <DataTable 
-        columns={columns} 
-        dataSource={bomsGrouped as BomGroupRow[]} 
-        rowKey="id"
-        loading={loading}
-        pagination={false}
-        defaultExpandAllRows={true}
-      />
+        {!loading && bomsGrouped.length === 0 ? (
+          <div className="py-16 text-center">
+            <ListTree className="w-12 h-12 text-orange-400 mx-auto mb-4" />
+            <p className="font-semibold text-slate-800 dark:text-slate-100">No recipes yet</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 max-w-md mx-auto">
+              Create a bill of materials to define raw ingredients and quantities for each finished product.
+            </p>
+            <Button
+              type="primary"
+              className="mt-6 bg-orange-500 hover:bg-orange-600 border-none font-bold"
+              onClick={() => setIsModalVisible(true)}
+              icon={<Plus className="w-4 h-4" />}
+            >
+              Create first BOM
+            </Button>
+          </div>
+        ) : (
+          <DataTable 
+            columns={columns} 
+            dataSource={bomsGrouped as BomGroupRow[]} 
+            rowKey="id"
+            loading={loading}
+            pagination={false}
+            defaultExpandAllRows={true}
+          />
+        )}
       </HubCard>
 
       <BOMModalForm 
@@ -127,6 +148,6 @@ export default function BOMPage() {
         onClose={() => setIsModalVisible(false)} 
         ingredients={ingredients} 
       />
-    </>
+    </div>
   )
 }

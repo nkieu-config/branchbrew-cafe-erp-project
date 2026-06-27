@@ -7,7 +7,7 @@ import {
   LayoutDashboard, ShoppingCart, Package, Coffee, Truck, Users, 
   UserSquare2, Wallet, ChefHat, Wrench, Landmark, 
   MonitorPlay, Settings, ShieldCheck, Building2, Gift, ClipboardList,
-  ChevronDown, ChevronRight, History
+  ChevronDown, ChevronRight
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,7 @@ const menuGroups = [
     group: "Back Office",
     items: [
       { name: "Menu & Products", href: "/products", icon: ClipboardList, roles: ["SUPER_ADMIN", "MANAGER"] },
-      { name: "Procurement", href: "/procurement", icon: Truck, roles: ["SUPER_ADMIN", "MANAGER"] },
+      { name: "Procurement", href: "/procurement", icon: Truck, roles: ["SUPER_ADMIN", "MANAGER", "STAFF"] },
       { name: "Central Kitchen", href: "/kitchen", icon: ChefHat, roles: ["SUPER_ADMIN", "MANAGER"] },
       { name: "Human Resources", href: "/hr", icon: UserSquare2, roles: ["SUPER_ADMIN", "MANAGER"] },
       { name: "Finance & Accounts", href: "/finance", icon: Landmark, roles: ["SUPER_ADMIN", "MANAGER"] },
@@ -45,7 +45,6 @@ const menuGroups = [
     items: [
       { name: "Branches", href: "/branches", icon: Building2, roles: ["SUPER_ADMIN"] },
       { name: "Users & Roles", href: "/users", icon: ShieldCheck, roles: ["SUPER_ADMIN"] },
-      { name: "Audit Trail", href: "/settings/audit", icon: History, roles: ["SUPER_ADMIN"] },
       { name: "Settings", href: "/settings", icon: Settings, roles: ["SUPER_ADMIN"] },
     ]
   }

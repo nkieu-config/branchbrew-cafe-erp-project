@@ -30,6 +30,17 @@ export default function LoginPage() {
     }
   };
 
+  const fillDemo = (demoEmail: string) => {
+    setEmail(demoEmail);
+    setPassword("password123");
+  };
+
+  const demoAccounts = [
+    { label: "Admin", email: "admin@qafacafe.com" },
+    { label: "Manager", email: "manager@qafacafe.com" },
+    { label: "Staff", email: "staff.siam@qafacafe.com" },
+  ];
+
   return (
     <div className="min-h-screen w-full flex bg-white dark:bg-slate-950 absolute top-0 left-0 z-50">
       {/* Left Form Side */}
@@ -95,11 +106,23 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-12 p-6 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-sm text-slate-500 dark:text-slate-400">
-            <p className="font-semibold text-slate-700 dark:text-slate-300 mb-2">Demo Access</p>
-            <div className="space-y-1.5 font-mono text-xs">
-              <div className="flex justify-between"><span>Admin:</span> <span className="text-slate-900 dark:text-white">admin@qafacafe.com</span></div>
-              <div className="flex justify-between"><span>Staff:</span> <span className="text-slate-900 dark:text-white">staff.siam@qafacafe.com</span></div>
-              <div className="flex justify-between mt-2 pt-2 border-t border-slate-200 dark:border-slate-800"><span>Password:</span> <span className="text-slate-900 dark:text-white">password123</span></div>
+            <p className="font-semibold text-slate-700 dark:text-slate-300 mb-3">Demo Access</p>
+            <div className="space-y-2">
+              {demoAccounts.map((account) => (
+                <button
+                  key={account.email}
+                  type="button"
+                  onClick={() => fillDemo(account.email)}
+                  className="w-full flex justify-between items-center font-mono text-xs rounded-lg px-3 py-2 hover:bg-white dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition-colors text-left"
+                >
+                  <span>{account.label}:</span>
+                  <span className="text-slate-900 dark:text-white">{account.email}</span>
+                </button>
+              ))}
+              <div className="flex justify-between mt-2 pt-2 border-t border-slate-200 dark:border-slate-800 font-mono text-xs px-1">
+                <span>Password:</span>
+                <span className="text-slate-900 dark:text-white">password123</span>
+              </div>
             </div>
           </div>
         </motion.div>

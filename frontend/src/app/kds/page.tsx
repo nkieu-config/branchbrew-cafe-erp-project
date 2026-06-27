@@ -7,7 +7,7 @@ import { getKdsOrders, updateOrderStatus } from "@/lib/api"
 import { useAuth } from "@/context/AuthContext"
 import { useSocket } from "@/context/SocketContext"
 import { Button } from "@/components/ui/button"
-import { CheckCircle2, Clock, Play } from "lucide-react"
+import { CheckCircle2, Clock, Play, WifiOff } from "lucide-react"
 import { Order, OrderItem, OrderStatus } from "@/types/api"
 import { formatQueueNumber } from "@/lib/queue"
 import { BranchEmptyState } from "@/components/shared/branch-empty-state"
@@ -112,10 +112,17 @@ export default function KdsPage() {
         title="Kitchen Display System (KDS)"
         description="Real-time order queue"
         actions={
-          <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-mono text-sm font-bold bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 rounded-full">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-            Live Sync
-          </div>
+          isConnected ? (
+            <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-mono text-sm font-bold bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 rounded-full">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Live Sync
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-rose-600 dark:text-rose-400 font-mono text-sm font-bold bg-rose-50 dark:bg-rose-900/30 px-3 py-1.5 rounded-full">
+              <WifiOff className="w-3.5 h-3.5" />
+              Socket disconnected — polling every 30s
+            </div>
+          )
         }
       />
 
