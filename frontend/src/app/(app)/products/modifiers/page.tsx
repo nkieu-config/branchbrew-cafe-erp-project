@@ -1,13 +1,26 @@
 "use client";
 
-import { useState } from "react";
-import { SlidersHorizontal, Plus, Pencil, Trash2 } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
+import type { ColumnsType } from "antd/es/table";
+import Link from "next/link";
+import {
+  SlidersHorizontal,
+  Plus,
+  Pencil,
+  Trash2,
+  Loader2,
+  Monitor,
+} from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "@/components/shared/data-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { HubCard } from "@/components/shared/hub-card";
+import { HubPageHeader } from "@/components/shared/hub-card";
+import { ListToolbar } from "@/components/shared/list-toolbar";
+import { QueryErrorBanner } from "@/components/shared/query-error-banner";
+import { TableActionButton } from "@/components/shared/table-action-button";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { ButtonLink } from "@/components/ui/button-link";
+import { ProductsHubLinks } from "@/components/products/ProductsHubLinks";
 import {
   Dialog,
   DialogContent,
@@ -25,6 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import {
   useModifiers,
   useCreateModifierGroup,
@@ -34,20 +48,43 @@ import {
   useUpdateModifierOption,
   useDeleteModifierOption,
 } from "@/hooks/domains/useModifierQueries";
-import { useIngredients } from "@/hooks/domains/useProductQueries";
-import type { ModifierGroup, ModifierOption, Ingredient } from "@/types/api";
+import { useIngredients, useProducts } from "@/hooks/domains/useProductQueries";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import type { ModifierGroup, ModifierOption, Ingredient, Product } from "@/types/api";
 import { getErrorMessage } from "@/lib/errors";
-import { formatBaht } from "@/lib/money";
-import { toNumber } from "@/lib/money";
+import { formatBaht, toNumber } from "@/lib/money";
+import {
+  buildModifierCategoryOptions,
+  countModifierOptions,
+  matchesModifierCategoryFilter,
+  matchesModifierHighlightFilter,
+  matchesModifierSearch,
+  modifierGroupHasSwap,
+  modifierGroupIsEmpty,
+  type ModifierCategoryFilter,
+  type ModifierHighlightFilter,
+} from "@/lib/modifier-filters";
 import { StatusBadge } from "@/components/shared/status-badge";
 import {
-  formRemoveButtonClassName,
+  formFieldInsetClassName,
+  formSelectContentClassName,
   hubCtaClassName,
+  hubLoadingSpinnerClassName,
+  inlineLinkClassName,
+  inventorySummaryStripClassName,
+  listToolbarFieldClassName,
+  metricValueClassName,
   modifierGroupPanelClassName,
+  productsCategoryBadgeClassName,
+  productsDialogContentClassName,
+  productsSectionPanelClassName,
+  productsSummaryChipClassName,
+  tableCellMutedClassName,
   text,
 } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
-const CATEGORY_OPTIONS = ["Coffee", "Beverage", "Food", ""];
+const ALL_CATEGORIES = "__all__";
 const EMPTY_INGREDIENT = "__none__";
 
 function IngredientSelect({
@@ -69,12 +106,14 @@ function IngredientSelect({
   return (
     <Select
       value={selectValue}
-      onValueChange={(v) => onChange(v === EMPTY_INGREDIENT || v == null ? "" : Number(v))}
+      onValueChange={(v) =>
+        onChange(v === EMPTY_INGREDIENT || v == null ? "" : Number(v))
+      }
     >
-      <SelectTrigger id={id} className="w-full">
+      <SelectTrigger id={id} className={formFieldInsetClassName("w-full")}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className={formSelectContentClassName()}>
         {allowEmpty && (
           <SelectItem value={EMPTY_INGREDIENT}>{placeholder}</SelectItem>
         )}
@@ -89,13 +128,26 @@ function IngredientSelect({
 }
 
 export default function ModifiersPage() {
-  const { data: groups = [], isLoading } = useModifiers();
+  const {
+    data: groups = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useModifiers();
+  const { data: products = [] } = useProducts();
   const createGroup = useCreateModifierGroup();
   const updateGroup = useUpdateModifierGroup();
   const deleteGroup = useDeleteModifierGroup();
   const createOption = useCreateModifierOption();
   const updateOption = useUpdateModifierOption();
   const deleteOption = useDeleteModifierOption();
+
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const [categoryFilter, setCategoryFilter] = useState<ModifierCategoryFilter>("ALL");
+  const [highlightFilter, setHighlightFilter] = useState<ModifierHighlightFilter>("ALL");
 
   const [groupDialogOpen, setGroupDialogOpen] = useState(false);
   const [optionDialogOpen, setOptionDialogOpen] = useState(false);
@@ -119,15 +171,70 @@ export default function ModifiersPage() {
     | { type: "option"; item: ModifierOption };
   const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
 
-  const resetGroupForm = () => {
+  const productCategories = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          products
+            .map((p: Product) => p.category)
+            .filter(Boolean) as string[],
+        ),
+      ).sort((a, b) => a.localeCompare(b)),
+    [products],
+  );
+
+  const formCategoryOptions = useMemo(
+    () => buildModifierCategoryOptions(groups, productCategories),
+    [groups, productCategories],
+  );
+
+  const toolbarCategories = useMemo(
+    () => buildModifierCategoryOptions(groups, productCategories),
+    [groups, productCategories],
+  );
+
+  const summary = useMemo(() => {
+    let emptyGroups = 0;
+    let withSwap = 0;
+    for (const group of groups) {
+      if (modifierGroupIsEmpty(group)) emptyGroups += 1;
+      if (modifierGroupHasSwap(group)) withSwap += 1;
+    }
+    return {
+      totalGroups: groups.length,
+      totalOptions: countModifierOptions(groups),
+      emptyGroups,
+      withSwap,
+    };
+  }, [groups]);
+
+  const filteredGroups = useMemo(() => {
+    return groups.filter((group: ModifierGroup) => {
+      const matchesSearch = matchesModifierSearch(group, debouncedSearch);
+      const matchesCategory = matchesModifierCategoryFilter(group, categoryFilter);
+      const matchesHighlight = matchesModifierHighlightFilter(group, highlightFilter);
+      return matchesSearch && matchesCategory && matchesHighlight;
+    });
+  }, [groups, debouncedSearch, categoryFilter, highlightFilter]);
+
+  const hasActiveFilters =
+    search.trim().length > 0 ||
+    categoryFilter !== "ALL" ||
+    highlightFilter !== "ALL";
+
+  const isSavingGroup = createGroup.isPending || updateGroup.isPending;
+  const isSavingOption = createOption.isPending || updateOption.isPending;
+  const isDeleting = deleteGroup.isPending || deleteOption.isPending;
+
+  const resetGroupForm = useCallback(() => {
     setEditingGroup(null);
     setGroupName("");
-    setGroupCategory("Coffee");
+    setGroupCategory(formCategoryOptions[0] ?? "Coffee");
     setGroupSortOrder("0");
     setGroupSwapIngredientId("");
-  };
+  }, [formCategoryOptions]);
 
-  const resetOptionForm = () => {
+  const resetOptionForm = useCallback(() => {
     setEditingOption(null);
     setOptionGroupId(null);
     setOptionName("");
@@ -135,29 +242,32 @@ export default function ModifiersPage() {
     setOptionSortOrder("0");
     setOptionIsDefault(false);
     setOptionSwapToId("");
-  };
+  }, []);
 
-  const openCreateGroup = () => {
+  const openCreateGroup = useCallback(() => {
     resetGroupForm();
     setGroupDialogOpen(true);
-  };
+  }, [resetGroupForm]);
 
-  const openEditGroup = (group: ModifierGroup) => {
+  const openEditGroup = useCallback((group: ModifierGroup) => {
     setEditingGroup(group);
     setGroupName(group.name);
-    setGroupCategory(group.category ?? "");
+    setGroupCategory(group.category ?? ALL_CATEGORIES);
     setGroupSortOrder(String(group.sortOrder));
     setGroupSwapIngredientId(group.swapIngredientId ?? "");
     setGroupDialogOpen(true);
-  };
+  }, []);
 
-  const openCreateOption = (groupId: number) => {
-    resetOptionForm();
-    setOptionGroupId(groupId);
-    setOptionDialogOpen(true);
-  };
+  const openCreateOption = useCallback(
+    (groupId: number) => {
+      resetOptionForm();
+      setOptionGroupId(groupId);
+      setOptionDialogOpen(true);
+    },
+    [resetOptionForm],
+  );
 
-  const openEditOption = (option: ModifierOption) => {
+  const openEditOption = useCallback((option: ModifierOption) => {
     setEditingOption(option);
     setOptionGroupId(option.groupId);
     setOptionName(option.name);
@@ -166,6 +276,10 @@ export default function ModifiersPage() {
     setOptionIsDefault(option.isDefault);
     setOptionSwapToId(option.swapToIngredientId ?? "");
     setOptionDialogOpen(true);
+  }, []);
+
+  const toggleHighlightFilter = (next: ModifierHighlightFilter) => {
+    setHighlightFilter((current) => (current === next ? "ALL" : next));
   };
 
   const handleSaveGroup = async () => {
@@ -173,19 +287,31 @@ export default function ModifiersPage() {
       toast.error("Group name is required");
       return;
     }
+    const categoryValue =
+      groupCategory === ALL_CATEGORIES
+        ? editingGroup
+          ? null
+          : undefined
+        : groupCategory || undefined;
     try {
-      const payload = {
-        name: groupName.trim(),
-        category: groupCategory || undefined,
-        sortOrder: Number(groupSortOrder) || 0,
-        swapIngredientId:
-          groupSwapIngredientId === "" ? undefined : Number(groupSwapIngredientId),
-      };
       if (editingGroup) {
-        await updateGroup.mutateAsync({ id: editingGroup.id, ...payload });
+        await updateGroup.mutateAsync({
+          id: editingGroup.id,
+          name: groupName.trim(),
+          category: categoryValue,
+          sortOrder: Number(groupSortOrder) || 0,
+          swapIngredientId:
+            groupSwapIngredientId === "" ? null : Number(groupSwapIngredientId),
+        });
         toast.success("Modifier group updated");
       } else {
-        await createGroup.mutateAsync(payload);
+        await createGroup.mutateAsync({
+          name: groupName.trim(),
+          category: categoryValue === null ? undefined : categoryValue,
+          sortOrder: Number(groupSortOrder) || 0,
+          swapIngredientId:
+            groupSwapIngredientId === "" ? undefined : Number(groupSwapIngredientId),
+        });
         toast.success("Modifier group created");
       }
       setGroupDialogOpen(false);
@@ -199,6 +325,7 @@ export default function ModifiersPage() {
     try {
       await deleteGroup.mutateAsync(group.id);
       toast.success("Modifier group deleted");
+      setPendingDelete(null);
     } catch (err: unknown) {
       toast.error(getErrorMessage(err, "Failed to delete group"));
     }
@@ -241,129 +368,330 @@ export default function ModifiersPage() {
     try {
       await deleteOption.mutateAsync(option.id);
       toast.success("Option deleted");
+      setPendingDelete(null);
     } catch (err: unknown) {
       toast.error(getErrorMessage(err, "Failed to delete option"));
     }
   };
 
-  return (
-    <>
-      <HubCard
-        title="Modifier Groups"
-        icon={SlidersHorizontal}
-        description="Configure POS modifiers, price adjustments, and ingredient swaps (e.g. oat milk)."
-        actions={
-          <Button onClick={openCreateGroup} className={hubCtaClassName("products")}>
-            <Plus className="w-4 h-4 mr-2" /> New Group
-          </Button>
-        }
-      >
-
-      {isLoading ? (
-        <p className={`text-sm ${text.muted}`}>Loading modifiers…</p>
-      ) : groups.length === 0 ? (
-        <p className={`text-sm py-8 text-center ${text.muted}`}>No modifier groups yet. Create one to customize POS orders.</p>
-      ) : (
-        groups.map((group: ModifierGroup) => (
-          <div key={group.id} className={modifierGroupPanelClassName()}>
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h3 className={`text-lg font-bold ${text.primary}`}>
-                  {group.name}
-                </h3>
-                <div className="flex flex-wrap gap-2 mt-1">
-                  {group.category && (
-                    <Badge variant="secondary">{group.category}</Badge>
-                  )}
-                  <Badge variant="outline">Order: {group.sortOrder}</Badge>
-                  {group.swapIngredient && (
-                    <StatusBadge tone="success">Swaps: {group.swapIngredient.name}</StatusBadge>
-                  )}
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => openEditGroup(group)}>
-                  <Pencil className="w-4 h-4 mr-1" /> Edit
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => openCreateOption(group.id)}
-                >
-                  <Plus className="w-4 h-4 mr-1" /> Option
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className={formRemoveButtonClassName()}
-                  onClick={() => setPendingDelete({ type: "group", item: group })}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-
-            <DataTable
-              rowKey="id"
-              dataSource={group.options}
-              pagination={false}
-              hideBorders
-              emptyDescription="No options in this group yet."
-              columns={[
-                { title: "Name", dataIndex: "name", key: "name" },
-                {
-                  title: "Price +",
-                  key: "price",
-                  render: (_: unknown, record: ModifierOption) =>
-                    formatBaht(toNumber(record.priceDelta)),
-                },
-                {
-                  title: "Default",
-                  dataIndex: "isDefault",
-                  key: "default",
-                  render: (v: boolean) => (v ? "Yes" : "—"),
-                },
-                {
-                  title: "Swap to",
-                  key: "swap",
-                  render: (_: unknown, record: ModifierOption) =>
-                    record.swapToIngredient?.name ?? "—",
-                },
-                { title: "Sort", dataIndex: "sortOrder", key: "sort" },
-                {
-                  title: "",
-                  key: "actions",
-                  render: (_: unknown, record: ModifierOption) => (
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openEditOption(record)}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className={formRemoveButtonClassName()}
-                        onClick={() => setPendingDelete({ type: "option", item: record })}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ),
-                },
-              ]}
+  const makeOptionColumns = useCallback(
+    (group: ModifierGroup): ColumnsType<ModifierOption> => [
+      {
+        title: "Name",
+        dataIndex: "name",
+        key: "name",
+        render: (name: string) => (
+          <span className={cn("font-medium", text.primary)}>{name}</span>
+        ),
+      },
+      {
+        title: "Price +",
+        key: "price",
+        render: (_: unknown, record: ModifierOption) => (
+          <span
+            className={cn(
+              "font-bold tabular-nums",
+              metricValueClassName("emerald"),
+            )}
+          >
+            {formatBaht(toNumber(record.priceDelta))}
+          </span>
+        ),
+      },
+      {
+        title: "Default",
+        dataIndex: "isDefault",
+        key: "default",
+        responsive: ["md"],
+        render: (v: boolean) =>
+          v ? (
+            <StatusBadge tone="success">Yes</StatusBadge>
+          ) : (
+            <StatusBadge tone="neutral">No</StatusBadge>
+          ),
+      },
+      {
+        title: "Swap to",
+        key: "swap",
+        responsive: ["lg"],
+        render: (_: unknown, record: ModifierOption) =>
+          record.swapToIngredient?.name ? (
+            <StatusBadge tone="success">{record.swapToIngredient.name}</StatusBadge>
+          ) : (
+            <span className={text.muted}>—</span>
+          ),
+      },
+      {
+        title: "Sort",
+        dataIndex: "sortOrder",
+        key: "sort",
+        responsive: ["lg"],
+        render: (sortOrder: number) => (
+          <span className={tableCellMutedClassName()}>{sortOrder}</span>
+        ),
+      },
+      {
+        title: "",
+        key: "actions",
+        width: 96,
+        align: "right" as const,
+        render: (_: unknown, record: ModifierOption) => (
+          <div className="flex items-center justify-end gap-1">
+            <TableActionButton
+              icon={Pencil}
+              label={`Edit ${record.name} in ${group.name}`}
+              iconOnly
+              tone="purple"
+              onClick={() => openEditOption(record)}
+            />
+            <TableActionButton
+              icon={Trash2}
+              label={`Delete ${record.name}`}
+              iconOnly
+              destructive
+              onClick={() => setPendingDelete({ type: "option", item: record })}
             />
           </div>
-        ))
-      )}
-      </HubCard>
+        ),
+      },
+    ],
+    [openEditOption],
+  );
 
-      <Dialog open={groupDialogOpen} onOpenChange={setGroupDialogOpen}>
-        <DialogContent>
+  const groupActionButtonClass =
+    "min-h-[44px] font-medium";
+
+  return (
+    <>
+      <HubPageHeader
+        hideTitle
+        icon={SlidersHorizontal}
+        accentHub="products"
+        description="Configure POS modifiers, price adjustments, and ingredient swaps (e.g. oat milk)."
+        actions={
+          <ProductsHubLinks
+            current="modifiers"
+            contextual={
+              <ButtonLink href="/pos/terminal" variant="outline" className="font-medium">
+                <Monitor className="w-4 h-4 mr-2" aria-hidden />
+                POS Terminal
+              </ButtonLink>
+            }
+          >
+            <Button
+              onClick={openCreateGroup}
+              className={hubCtaClassName("products", "font-bold")}
+            >
+              <Plus className="w-4 h-4 mr-2" aria-hidden />
+              New Group
+            </Button>
+          </ProductsHubLinks>
+        }
+      />
+
+      <div className={productsSectionPanelClassName()}>
+        {isError && (
+          <QueryErrorBanner
+            message={getErrorMessage(error, "Failed to load modifier groups")}
+            onRetry={() => void refetch()}
+            loading={isFetching}
+          />
+        )}
+
+        {!isLoading && !isError && (
+          <div
+            className={inventorySummaryStripClassName()}
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <span className={cn("font-semibold tabular-nums", text.primary)}>
+              {summary.totalGroups} group{summary.totalGroups === 1 ? "" : "s"}
+            </span>
+            {summary.totalOptions > 0 && (
+              <span className={productsCategoryBadgeClassName()}>
+                {summary.totalOptions} option{summary.totalOptions === 1 ? "" : "s"}
+              </span>
+            )}
+            {summary.emptyGroups > 0 && (
+              <button
+                type="button"
+                className={productsSummaryChipClassName(
+                  highlightFilter === "empty",
+                  metricValueClassName("amber"),
+                )}
+                onClick={() => toggleHighlightFilter("empty")}
+              >
+                {summary.emptyGroups} empty group{summary.emptyGroups === 1 ? "" : "s"}
+              </button>
+            )}
+            {summary.withSwap > 0 && (
+              <button
+                type="button"
+                className={productsSummaryChipClassName(
+                  highlightFilter === "with-swap",
+                  metricValueClassName("emerald"),
+                )}
+                onClick={() => toggleHighlightFilter("with-swap")}
+              >
+                {summary.withSwap} with swap
+              </button>
+            )}
+            {summary.totalGroups === 0 && (
+              <span className={text.muted}>
+                No modifier groups yet — attach to{" "}
+                <Link href="/products" className={inlineLinkClassName()}>
+                  menu items
+                </Link>{" "}
+                by category
+              </span>
+            )}
+            {isFetching && !isLoading && (
+              <span className={cn("inline-flex items-center gap-1.5", text.muted)}>
+                <Loader2
+                  className="w-3.5 h-3.5 animate-spin motion-reduce:animate-none"
+                  aria-hidden
+                />
+                Updating…
+              </span>
+            )}
+          </div>
+        )}
+
+        <ListToolbar
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Search groups and options…"
+          showReset={hasActiveFilters}
+          onReset={() => {
+            setSearch("");
+            setCategoryFilter("ALL");
+            setHighlightFilter("ALL");
+          }}
+          filters={
+            <Select
+              value={categoryFilter}
+              onValueChange={(value) => {
+                if (value != null) setCategoryFilter(value as ModifierCategoryFilter);
+              }}
+            >
+              <SelectTrigger
+                className={listToolbarFieldClassName("min-h-[44px] w-full sm:w-[200px]")}
+                aria-label="Filter by menu category"
+              >
+                <SelectValue placeholder="All categories" />
+              </SelectTrigger>
+              <SelectContent className={formSelectContentClassName()}>
+                <SelectItem value="ALL">All categories</SelectItem>
+                {toolbarCategories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    {cat}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
+        />
+
+        {isLoading ? (
+          <div
+            className="flex flex-col items-center justify-center gap-3 py-16"
+            role="status"
+            aria-live="polite"
+          >
+            <Loader2
+              className={hubLoadingSpinnerClassName("w-8 h-8 animate-spin motion-reduce:animate-none")}
+              aria-hidden
+            />
+            <span className={text.muted}>Loading modifier groups…</span>
+          </div>
+        ) : !isError && filteredGroups.length === 0 ? (
+          <p className={cn("text-sm py-8 text-center", text.muted)}>
+            {hasActiveFilters
+              ? "No modifier groups match your filters."
+              : "No modifier groups yet. Create one to customize POS orders."}
+          </p>
+        ) : (
+          !isError &&
+          filteredGroups.map((group: ModifierGroup) => (
+            <div key={group.id} className={modifierGroupPanelClassName()}>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <h3 className={cn("text-lg font-bold", text.primary)}>
+                    {group.name}
+                  </h3>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {group.category ? (
+                      <span className={productsCategoryBadgeClassName()}>
+                        {group.category}
+                      </span>
+                    ) : (
+                      <span className={productsCategoryBadgeClassName()}>
+                        All categories
+                      </span>
+                    )}
+                    <span className={productsCategoryBadgeClassName()}>
+                      Order: {group.sortOrder}
+                    </span>
+                    {group.swapIngredient && (
+                      <StatusBadge tone="success">
+                        Swaps: {group.swapIngredient.name}
+                      </StatusBadge>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={groupActionButtonClass}
+                    onClick={() => openEditGroup(group)}
+                  >
+                    <Pencil className="w-4 h-4 mr-1" aria-hidden />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className={groupActionButtonClass}
+                    onClick={() => openCreateOption(group.id)}
+                  >
+                    <Plus className="w-4 h-4 mr-1" aria-hidden />
+                    Option
+                  </Button>
+                  <TableActionButton
+                    icon={Trash2}
+                    label={`Delete ${group.name}`}
+                    iconOnly
+                    variant="outline"
+                    destructive
+                    onClick={() => setPendingDelete({ type: "group", item: group })}
+                  />
+                </div>
+              </div>
+
+              <DataTable
+                rowKey="id"
+                dataSource={group.options}
+                pagination={false}
+                hideBorders
+                emptyDescription="No options in this group yet."
+                columns={makeOptionColumns(group)}
+              />
+            </div>
+          ))
+        )}
+      </div>
+
+      <Dialog
+        open={groupDialogOpen}
+        onOpenChange={(open) => {
+          setGroupDialogOpen(open);
+          if (!open) resetGroupForm();
+        }}
+      >
+        <DialogContent className={productsDialogContentClassName()}>
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-xl font-bold">
               {editingGroup ? "Edit Modifier Group" : "New Modifier Group"}
             </DialogTitle>
             <DialogDescription>
@@ -373,38 +701,59 @@ export default function ModifiersPage() {
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <div className="space-y-2">
-              <Label htmlFor="modifier-group-name">Name</Label>
-              <Input id="modifier-group-name" value={groupName} onChange={(e) => setGroupName(e.target.value)} />
+              <Label htmlFor="modifier-group-name" className={text.secondary}>
+                Name
+              </Label>
+              <Input
+                id="modifier-group-name"
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
+                className={formFieldInsetClassName()}
+              />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="modifier-group-category">Category filter</Label>
-                <Select value={groupCategory} onValueChange={(v) => v != null && setGroupCategory(v)}>
-                  <SelectTrigger id="modifier-group-category" className="w-full">
+                <Label htmlFor="modifier-group-category" className={text.secondary}>
+                  Category filter
+                </Label>
+                <Select
+                  value={groupCategory || ALL_CATEGORIES}
+                  onValueChange={(v) => v != null && setGroupCategory(v)}
+                >
+                  <SelectTrigger
+                    id="modifier-group-category"
+                    className={formFieldInsetClassName("w-full")}
+                  >
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORY_OPTIONS.map((c) => (
-                      <SelectItem key={c || "all"} value={c}>
-                        {c || "All categories"}
+                  <SelectContent className={formSelectContentClassName()}>
+                    <SelectItem value={ALL_CATEGORIES}>All categories</SelectItem>
+                    {formCategoryOptions.map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {c}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="modifier-group-sort-order">Sort order</Label>
+                <Label htmlFor="modifier-group-sort-order" className={text.secondary}>
+                  Sort order
+                </Label>
                 <Input
                   id="modifier-group-sort-order"
                   type="number"
                   min={0}
                   value={groupSortOrder}
                   onChange={(e) => setGroupSortOrder(e.target.value)}
+                  className={formFieldInsetClassName()}
                 />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="modifier-group-swap-ingredient">Menu recipe ingredient to swap (optional)</Label>
+              <Label htmlFor="modifier-group-swap-ingredient" className={text.secondary}>
+                Menu recipe ingredient to swap (optional)
+              </Label>
               <IngredientSelect
                 id="modifier-group-swap-ingredient"
                 value={groupSwapIngredientId}
@@ -414,17 +763,30 @@ export default function ModifiersPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={() => void handleSaveGroup()} className="w-full">
+            <Button
+              onClick={() => void handleSaveGroup()}
+              disabled={isSavingGroup}
+              className={cn("w-full", hubCtaClassName("products", "font-bold"))}
+            >
+              {isSavingGroup && (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />
+              )}
               {editingGroup ? "Save changes" : "Create group"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <Dialog open={optionDialogOpen} onOpenChange={setOptionDialogOpen}>
-        <DialogContent>
+      <Dialog
+        open={optionDialogOpen}
+        onOpenChange={(open) => {
+          setOptionDialogOpen(open);
+          if (!open) resetOptionForm();
+        }}
+      >
+        <DialogContent className={productsDialogContentClassName()}>
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-xl font-bold">
               {editingOption ? "Edit Option" : "New Option"}
             </DialogTitle>
             <DialogDescription>
@@ -434,42 +796,64 @@ export default function ModifiersPage() {
           </DialogHeader>
           <div className="space-y-4 pt-2">
             <div className="space-y-2">
-              <Label htmlFor="modifier-option-name">Name</Label>
-              <Input id="modifier-option-name" value={optionName} onChange={(e) => setOptionName(e.target.value)} />
+              <Label htmlFor="modifier-option-name" className={text.secondary}>
+                Name
+              </Label>
+              <Input
+                id="modifier-option-name"
+                value={optionName}
+                onChange={(e) => setOptionName(e.target.value)}
+                className={formFieldInsetClassName()}
+              />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="modifier-option-price-delta">Price delta (฿)</Label>
+                <Label htmlFor="modifier-option-price-delta" className={text.secondary}>
+                  Price delta (฿)
+                </Label>
                 <Input
                   id="modifier-option-price-delta"
                   type="number"
                   min={0}
                   value={optionPriceDelta}
                   onChange={(e) => setOptionPriceDelta(e.target.value)}
+                  className={formFieldInsetClassName()}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="modifier-option-sort-order">Sort order</Label>
+                <Label htmlFor="modifier-option-sort-order" className={text.secondary}>
+                  Sort order
+                </Label>
                 <Input
                   id="modifier-option-sort-order"
                   type="number"
                   min={0}
                   value={optionSortOrder}
                   onChange={(e) => setOptionSortOrder(e.target.value)}
+                  className={formFieldInsetClassName()}
                 />
               </div>
             </div>
-            <label className="flex items-center gap-2 text-sm">
-              <input
+            <div className="flex items-center justify-between gap-4 rounded-lg border border-[var(--form-line-border)] bg-[var(--form-line-bg)] px-4 py-3">
+              <div className="space-y-0.5">
+                <Label htmlFor="modifier-option-is-default" className={text.secondary}>
+                  Default selection
+                </Label>
+                <p className={cn("text-xs", text.muted)}>
+                  Pre-selected when the group opens on POS
+                </p>
+              </div>
+              <Switch
                 id="modifier-option-is-default"
-                type="checkbox"
                 checked={optionIsDefault}
-                onChange={(e) => setOptionIsDefault(e.target.checked)}
+                onCheckedChange={setOptionIsDefault}
+                aria-label="Default selection"
               />
-              Default selection
-            </label>
+            </div>
             <div className="space-y-2">
-              <Label htmlFor="modifier-option-swap-ingredient">Swap to ingredient (optional)</Label>
+              <Label htmlFor="modifier-option-swap-ingredient" className={text.secondary}>
+                Swap to ingredient (optional)
+              </Label>
               <IngredientSelect
                 id="modifier-option-swap-ingredient"
                 value={optionSwapToId}
@@ -479,7 +863,14 @@ export default function ModifiersPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={() => void handleSaveOption()} className="w-full">
+            <Button
+              onClick={() => void handleSaveOption()}
+              disabled={isSavingOption}
+              className={cn("w-full", hubCtaClassName("products", "font-bold"))}
+            >
+              {isSavingOption && (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />
+              )}
               {editingOption ? "Save option" : "Add option"}
             </Button>
           </DialogFooter>
@@ -501,6 +892,7 @@ export default function ModifiersPage() {
         }
         confirmLabel="Delete"
         destructive
+        loading={isDeleting}
         onConfirm={async () => {
           if (!pendingDelete) return;
           if (pendingDelete.type === "group") {

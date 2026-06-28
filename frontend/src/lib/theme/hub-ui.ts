@@ -374,6 +374,40 @@ export function crmSummaryChipClassName(active = false, className?: string) {
   );
 }
 
+export function productsSectionPanelClassName(className?: string) {
+  return cn(
+    "rounded-xl shadow-sm border p-4 sm:p-6 space-y-4",
+    "bg-[var(--table-container-bg)] border-[var(--table-container-border)]",
+    className,
+  );
+}
+
+export function productsSummaryChipClassName(active = false, className?: string) {
+  return cn(
+    "rounded-md px-2 py-0.5 font-medium tabular-nums transition-colors",
+    active
+      ? "bg-[var(--tone-products-subtle)] ring-1 ring-[var(--tone-products-border)]"
+      : "hover:bg-[var(--tone-products-subtle)] cursor-pointer",
+    className,
+  );
+}
+
+export function productsCategoryBadgeClassName(className?: string) {
+  return cn(
+    "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium uppercase tracking-wide",
+    "bg-[var(--tone-products-subtle)] text-[var(--tone-products-fg)] border-[var(--tone-products-border)]",
+    className,
+  );
+}
+
+export function productsDialogContentClassName(className?: string) {
+  return cn(
+    "sm:max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto",
+    "bg-[var(--table-container-bg)] border-[var(--table-container-border)] text-foreground",
+    className,
+  );
+}
+
 /** @deprecated Use listToolbarFieldClassName from @/lib/theme instead. */
 export function crmSearchInputClassName(className?: string) {
   return cn(
