@@ -12,11 +12,20 @@ export const text = {
   secondary: "text-secondary",
   subtle: "text-subtle",
   muted: "text-muted-foreground",
-  brand: "text-brand",
+  brand: "text-[var(--brand-text)]",
 } as const;
 
 export function surfaceCardClassName(className?: string) {
   return cn(surface.card, "p-6", className);
+}
+
+/** Solid elevated panel — tables, forms, CRM shell (replaces glass). */
+export function elevatedPanelClassName(className?: string) {
+  return cn(
+    "rounded-2xl border shadow-[var(--shadow-sm)]",
+    "bg-[var(--table-container-bg)] border-[var(--table-container-border)]",
+    className,
+  );
 }
 
 export function hubTabTrackClassName(className?: string) {

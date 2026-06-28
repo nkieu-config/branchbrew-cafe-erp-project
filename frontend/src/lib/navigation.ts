@@ -34,6 +34,7 @@ import {
   BookOpen,
   Receipt,
   History,
+  Menu,
 } from "lucide-react";
 import type { Role } from "@/types/api";
 
@@ -492,7 +493,7 @@ export const HUBS: Record<HubId, HubConfig> = {
       {
         id: "equipment",
         label: "Equipment",
-        path: "/assets/equipment",
+        path: "/assets",
         icon: Wrench,
         roles: ["SUPER_ADMIN", "MANAGER"],
       },
@@ -567,7 +568,113 @@ export const HUBS: Record<HubId, HubConfig> = {
   },
 };
 
+export type MobileBottomNavItem = {
+  id: string;
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  roles: NavRole[];
+  /** Opens the full navigation sheet instead of navigating. */
+  action?: "menu";
+};
+
+export const MOBILE_BOTTOM_NAV_ITEMS: MobileBottomNavItem[] = [
+  {
+    id: "pos",
+    label: "POS",
+    href: "/pos/terminal",
+    icon: ShoppingCart,
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+  },
+  {
+    id: "kds",
+    label: "KDS",
+    href: "/kds",
+    icon: MonitorPlay,
+    roles: ["STAFF"],
+  },
+  {
+    id: "orders",
+    label: "Orders",
+    href: "/pos/orders",
+    icon: Receipt,
+    roles: ["SUPER_ADMIN", "MANAGER"],
+  },
+  {
+    id: "inventory",
+    label: "Stock",
+    href: "/inventory",
+    icon: Package,
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+  },
+  {
+    id: "dashboard",
+    label: "Home",
+    href: "/",
+    icon: LayoutDashboard,
+    roles: ["SUPER_ADMIN", "MANAGER"],
+  },
+  {
+    id: "more",
+    label: "More",
+    href: "#menu",
+    icon: Menu,
+    roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+    action: "menu",
+  },
+];
+
+export function getMobileBottomNavItems(role: string): MobileBottomNavItem[] {
+  const navRole = role as NavRole;
+  const visible = MOBILE_BOTTOM_NAV_ITEMS.filter((item) => item.roles.includes(navRole));
+  const more = visible.find((item) => item.action === "menu");
+  const links = visible.filter((item) => item.action !== "menu");
+  if (!more) return links.slice(0, 4);
+  return [...links.slice(0, 3), more];
+}
+
+export function isMobileBottomNavActive(item: MobileBottomNavItem, pathname: string): boolean {
+  if (item.action === "menu") return false;
+  if (item.href === "/") return pathname === "/";
+  if (item.id === "pos") {
+    return pathname.startsWith("/pos") && !pathname.startsWith("/pos/orders");
+  }
+  if (item.id === "orders") {
+    return pathname.startsWith("/pos/orders");
+  }
+  return pathname === item.href || pathname.startsWith(`${item.href}/`);
+}
+
+/** Maps mobile bottom-nav item ids to sidebar badge keys. */
+export function getMobileBottomNavBadgeId(navItemId: string): string | null {
+  if (navItemId === "inventory") return "inventory";
+  if (navItemId === "more") return "aggregate";
+  return null;
+}
+
 export const FLAT_SIDEBAR_ITEMS = SIDEBAR_GROUPS.flatMap((g) => g.items);
+
+const SIDEBAR_HUB_IDS = new Set<HubId>([
+  "inventory",
+  "procurement",
+  "hr",
+  "products",
+  "kitchen",
+  "crm",
+  "finance",
+  "assets",
+  "pos",
+  "settings",
+  "organization",
+]);
+
+/** Maps a sidebar item id to its hub config when the item represents a hub. */
+export function resolveSidebarHubId(itemId: string): HubId | null {
+  if (SIDEBAR_HUB_IDS.has(itemId as HubId)) {
+    return itemId as HubId;
+  }
+  return null;
+}
 
 export function getHubConfig(hubId: HubId): HubConfig {
   return HUBS[hubId];
@@ -590,6 +697,12 @@ export function isTabActive(pathname: string, tabPath: string, basePath: string)
     return pathname === basePath;
   }
   return pathname === tabPath || pathname.startsWith(`${tabPath}/`);
+}
+
+/** Hide sidebar/hub sub-nav when a hub has a single root-level tab. */
+export function shouldShowHubSubNav(tabs: HubTab[], basePath: string): boolean {
+  if (tabs.length === 0) return false;
+  return !(tabs.length === 1 && tabs[0].path === basePath);
 }
 
 export function resolvePathLabel(segment: string): string {
@@ -774,6 +887,7 @@ const LEGACY_PATH_PREFIXES: Record<string, string> = {
   "/users": "/organization",
   "/inventory/stock": "/inventory",
   "/procurement/transfers": "/inventory",
+  "/assets/equipment": "/assets",
 };
 
 export function isSidebarItemActive(item: SidebarItem, pathname: string): boolean {

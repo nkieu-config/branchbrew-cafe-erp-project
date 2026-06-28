@@ -7,10 +7,13 @@ import { useReducedMotion } from "framer-motion";
 import { AnimatedPage } from "@/components/animated-page";
 import { AntdScope } from "@/components/providers/AntdScope";
 import { useAuth } from "@/context/AuthContext";
+import { useMobileNav } from "@/context/MobileNavContext";
+import { isImmersiveRoute } from "@/lib/shell-routes";
 import {
   getHubConfig,
   getVisibleHubTabs,
   isTabActive,
+  shouldShowHubSubNav,
   type HubId,
 } from "@/lib/navigation";
 import {
@@ -38,11 +41,17 @@ export function HubShell({
   const tabsRef = useRef<HTMLDivElement>(null);
   const prefersReducedMotion = useReducedMotion();
   const { user } = useAuth();
+  const { open: mobileNavOpen } = useMobileNav();
   const hub = getHubConfig(hubId);
   const role = user?.role ?? "";
   const tabs = getVisibleHubTabs(hubId, role);
   const shouldWrapAntd = wrapAntd ?? hub.wrapAntd ?? true;
   const HubIcon = hub.icon;
+  const immersive = isImmersiveRoute(pathname);
+  /** Desktop sidebar tree covers hub tabs; keep tabs on mobile unless the nav drawer is open. */
+  const showHubTabs =
+    shouldShowHubSubNav(tabs, hub.basePath) && !mobileNavOpen;
+  const hubTabsClassName = cn("relative shrink-0 w-fit max-w-full", !immersive && "lg:hidden");
 
   useEffect(() => {
     const container = tabsRef.current;
@@ -68,10 +77,10 @@ export function HubShell({
         </div>
       </div>
 
-      {tabs.length > 0 && (
+      {showHubTabs && (
         <nav
           aria-label={`${hub.label} sections`}
-          className="relative shrink-0 w-fit max-w-full"
+          className={hubTabsClassName}
         >
           <div
             ref={tabsRef}

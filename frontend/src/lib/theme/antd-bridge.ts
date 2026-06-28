@@ -33,6 +33,15 @@ export function getAntdThemeConfig(resolvedTheme: string | undefined): ThemeConf
       Select: { controlHeight: 40, borderRadius },
       InputNumber: { controlHeight: 40, borderRadius },
       DatePicker: { controlHeight: 40, borderRadius },
+      Table: {
+        headerBg: readThemeToken("--table-head-bg", mode, "muted"),
+        headerColor: readThemeToken("--table-head-fg", mode, "mutedForeground"),
+        rowHoverBg: readThemeToken("--table-row-hover", mode, "muted"),
+        borderColor: readThemeToken("--table-row-border", mode, "border"),
+        footerBg: readThemeToken("--table-summary-bg", mode, "muted"),
+        headerSortActiveBg: readThemeToken("--table-head-bg", mode, "muted"),
+        bodySortBg: readThemeToken("--table-row-hover", mode, "muted"),
+      },
     },
   };
 }

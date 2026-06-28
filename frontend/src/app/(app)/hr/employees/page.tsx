@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useHrUsers, useUpdateHourlyRate } from "@/hooks/domains/useHrQueries";
+import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { Avatar } from "antd";
 import { Users, UserCog, Edit3 } from "lucide-react";
 import { getErrorMessage } from "@/lib/errors";
@@ -11,9 +12,11 @@ import { toast } from "sonner";
 import { HubCard } from "@/components/shared/hub-card";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { DataTable } from "@/components/shared/data-table";
+import { ListToolbar } from "@/components/shared/list-toolbar";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { StatusBadge, employeeRoleTone } from "@/components/shared/status-badge";
-import { User } from "@/types/api";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { User, Branch } from "@/types/api";
 import { formatBaht } from "@/lib/money";
 import {
   expandedRowPanelClassName,
@@ -23,8 +26,10 @@ import {
   inlineLinkClassName,
   metricValueClassName,
   tableActionAccentClassName,
+  tableCellMutedClassName,
   text,
 } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -39,16 +44,42 @@ import { Label } from "@/components/ui/label";
 export default function EmployeeDirectoryPage() {
   const { user, activeBranchId } = useAuth();
   const role = user?.role;
+  const { data: branches = [] } = useBranches();
   const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
+  const branchName = (branches as Branch[]).find((b) => b.id === branchIdNum)?.name;
 
-  const { data: usersData, isLoading } = useHrUsers(branchIdNum);
+  const {
+    data: usersData,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useHrUsers(branchIdNum);
   const updateHourlyRateMutation = useUpdateHourlyRate();
+
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const [roleFilter, setRoleFilter] = useState<string>("ALL");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [hourlyRate, setHourlyRate] = useState("");
 
   const employees = usersData || [];
+
+  const filteredEmployees = useMemo(() => {
+    return employees.filter((record: User) => {
+      const matchesRole = roleFilter === "ALL" || record.role === roleFilter;
+      if (!debouncedSearch) return matchesRole;
+      const haystack = [record.name, record.email, record.role, record.branch?.name ?? ""]
+        .join(" ")
+        .toLowerCase();
+      return matchesRole && haystack.includes(debouncedSearch);
+    });
+  }, [employees, debouncedSearch, roleFilter]);
+
+  const hasActiveFilters = search.trim().length > 0 || roleFilter !== "ALL";
 
   const handleEditRate = (record: User) => {
     setSelectedUser(record);
@@ -87,7 +118,7 @@ export default function EmployeeDirectoryPage() {
           <Avatar className={hrAvatarClassName()}>{record.name?.charAt(0) || "U"}</Avatar>
           <div>
             <div className={`font-bold ${text.primary}`}>{record.name || "Unknown User"}</div>
-            <div className={`text-xs ${text.muted}`}>{record.email}</div>
+            <div className={`text-xs ${tableCellMutedClassName()}`}>{record.email}</div>
           </div>
         </div>
       ),
@@ -176,11 +207,45 @@ export default function EmployeeDirectoryPage() {
             .
           </p>
         )}
+        <ListToolbar
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Search employees…"
+          branchName={branchName}
+          showReset={hasActiveFilters}
+          onReset={() => {
+            setSearch("");
+            setRoleFilter("ALL");
+          }}
+          filters={
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className={cn(
+                "min-h-[44px] rounded-md border px-3 text-sm",
+                "border-[var(--border)] bg-[var(--table-container-bg)] text-[var(--foreground)]",
+              )}
+              aria-label="Filter by role"
+            >
+              <option value="ALL">All roles</option>
+              <option value="SUPER_ADMIN">Super Admin</option>
+              <option value="MANAGER">Manager</option>
+              <option value="STAFF">Staff</option>
+            </select>
+          }
+        />
         <DataTable
           columns={columns}
-          dataSource={employees}
+          dataSource={filteredEmployees}
           rowKey="id"
           loading={isLoading}
+          isError={isError}
+          errorMessage={getErrorMessage(error, "Failed to load employees")}
+          onRetry={() => void refetch()}
+          retryLoading={isFetching}
+          emptyDescription={
+            hasActiveFilters ? "No employees match your filters." : "No employees found for this branch."
+          }
           pagination={{ pageSize: 15 }}
         />
       </HubCard>

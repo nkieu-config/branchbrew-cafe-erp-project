@@ -12,7 +12,8 @@ import {
 } from "recharts";
 import type { SalesTrendPoint } from "@/types/api";
 import { format, parseISO } from "date-fns";
-import { dashboardSkeletonClass, getChartTheme } from "@/lib/theme";
+import { dashboardSkeletonClass } from "@/lib/theme";
+import { useChartTheme } from "@/hooks/useChartTheme";
 
 interface SalesChartProps {
   data?: SalesTrendPoint[];
@@ -21,15 +22,10 @@ interface SalesChartProps {
 
 export function SalesChart({ data = [], loading }: SalesChartProps) {
   const [isMounted, setIsMounted] = useState(false);
-  const [chartTheme, setChartTheme] = useState(getChartTheme);
+  const chartTheme = useChartTheme();
 
   useEffect(() => {
     setIsMounted(true);
-    setChartTheme(getChartTheme());
-
-    const observer = new MutationObserver(() => setChartTheme(getChartTheme()));
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
   }, []);
 
   const chartData = data.map((row) => ({
@@ -80,7 +76,7 @@ export function SalesChart({ data = [], loading }: SalesChartProps) {
               backgroundColor: chartTheme.tooltipBg,
               borderColor: chartTheme.tooltipBorder,
               borderRadius: "8px",
-              boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+              boxShadow: chartTheme.tooltipShadow,
               color: chartTheme.tooltipFg,
             }}
             itemStyle={{ color: chartTheme.revenue, fontWeight: "bold" }}

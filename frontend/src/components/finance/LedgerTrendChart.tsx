@@ -11,7 +11,8 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { getChartTheme, readCssVar, themeDefaults } from "@/lib/theme";
+import { readCssVar, themeDefaults } from "@/lib/theme";
+import { useChartTheme } from "@/hooks/useChartTheme";
 
 type LedgerChartPoint = {
   month: string;
@@ -20,22 +21,14 @@ type LedgerChartPoint = {
 };
 
 export function LedgerTrendChart({ data }: { data: LedgerChartPoint[] }) {
-  const [chartTheme, setChartTheme] = useState(getChartTheme);
+  const chartTheme = useChartTheme();
   const [expenseColor, setExpenseColor] = useState(() =>
     readCssVar("--metric-red", themeDefaults.light.destructive),
   );
 
   useEffect(() => {
-    const refresh = () => {
-      setChartTheme(getChartTheme());
-      setExpenseColor(readCssVar("--metric-red", themeDefaults.light.destructive));
-    };
-    refresh();
-
-    const observer = new MutationObserver(refresh);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
-  }, []);
+    setExpenseColor(readCssVar("--metric-red", themeDefaults.light.destructive));
+  }, [chartTheme]);
 
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -58,7 +51,7 @@ export function LedgerTrendChart({ data }: { data: LedgerChartPoint[] }) {
             backgroundColor: chartTheme.tooltipBg,
             borderColor: chartTheme.tooltipBorder,
             borderRadius: "12px",
-            boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+            boxShadow: chartTheme.tooltipShadow,
             color: chartTheme.tooltipFg,
             fontWeight: "bold",
           }}

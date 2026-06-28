@@ -16,15 +16,15 @@ export function authLoadingClassName(className?: string) {
 
 export function authBrandMarkClassName(className?: string) {
   return cn(
-    "w-10 h-10 rounded-xl flex items-center justify-center text-[var(--brand-foreground)] shadow-lg",
-    "bg-[var(--brand)] shadow-[color-mix(in_oklch,var(--brand),transparent_80%)]",
+    "w-10 h-10 rounded-xl flex items-center justify-center text-[var(--on-brand-solid-fg)] shadow-lg",
+    "bg-[var(--brand-solid)] shadow-[color-mix(in_oklch,var(--brand-solid),transparent_80%)]",
     className,
   );
 }
 
 export function authInputClassName(className?: string) {
   return cn(
-    "h-12 bg-[var(--form-line-bg)] border-[var(--form-line-border)] focus-visible:ring-[var(--brand)]",
+    "h-12 bg-[var(--form-line-bg)] border-[var(--form-line-border)] focus-visible:ring-[var(--focus-ring)]",
     className,
   );
 }
@@ -77,18 +77,30 @@ export function authHeroGlowClassName(className?: string) {
 
 export function authHeroCardClassName(className?: string) {
   return cn(
-    "rounded-3xl border p-10 backdrop-blur-2xl shadow-2xl",
-    "border-white/10 bg-white/5",
+    "rounded-3xl border p-10 shadow-2xl",
+    "border-[var(--auth-hero-card-border)] bg-[var(--auth-hero-card-bg)]",
     className,
   );
 }
 
+export function authHeroTitleClassName(className?: string) {
+  return cn("text-3xl font-bold mb-4", text.primary, className);
+}
+
+export function authHeroTextClassName(className?: string) {
+  return cn("leading-relaxed mb-8", text.secondary, className);
+}
+
 export function authHeroStatClassName(className?: string) {
-  return cn("bg-white/5 p-4 rounded-xl border border-white/10", className);
+  return cn(
+    "p-4 rounded-xl border",
+    "bg-[var(--auth-hero-stat-bg)] border-[var(--auth-hero-stat-border)]",
+    className,
+  );
 }
 
 export function authHeroStatValueClassName(className?: string) {
-  return cn("font-bold text-xl mb-1 text-[var(--brand)]", className);
+  return cn("font-bold text-xl mb-1 text-[var(--brand-text)]", className);
 }
 
 export function authHeroStatLabelClassName(className?: string) {

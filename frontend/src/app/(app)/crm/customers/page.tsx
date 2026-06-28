@@ -31,6 +31,7 @@ import {
   crmSectionLabelClassName,
   customerTierIconClassName,
   customerTierTone,
+  elevatedPanelClassName,
   hubCardIconFor,
   hubCtaClassName,
   hubLoadingSpinnerClassName,
@@ -112,7 +113,7 @@ export default function CustomersPage() {
         }
       />
 
-      <Card className="glass-card shadow-sm border-[var(--table-container-border)]">
+      <Card className={elevatedPanelClassName()}>
         <CardHeader className="pb-4">
           <div className="relative w-full max-w-sm">
             <Search className={`w-4 h-4 absolute left-3 top-3 ${text.muted}`} />

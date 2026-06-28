@@ -1,20 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useIngredients } from "@/hooks/domains/useProductQueries";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, FlaskConical } from "lucide-react";
 import { IngredientFormModal } from "@/components/products/IngredientFormModal";
 import { DataTable } from "@/components/shared/data-table";
 import { HubCard } from "@/components/shared/hub-card";
+import { ListToolbar } from "@/components/shared/list-toolbar";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { hubCtaClassName, text } from "@/lib/theme";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { getErrorMessage } from "@/lib/errors";
+import { hubCtaClassName, tableCellMutedClassName, text } from "@/lib/theme";
 import type { Ingredient } from "@/types/api";
 import { formatBaht } from "@/lib/money";
 
 export default function IngredientsPage() {
-  const { data: ingredients, isLoading } = useIngredients();
+  const { data: ingredients, isLoading, isError, error, refetch, isFetching } = useIngredients();
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+
+  const filteredIngredients = useMemo(() => {
+    return (ingredients ?? []).filter((item: Ingredient) => {
+      if (!debouncedSearch) return true;
+      const haystack = [item.name, item.unit, String(item.id)].join(" ").toLowerCase();
+      return haystack.includes(debouncedSearch);
+    });
+  }, [ingredients, debouncedSearch]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedIngredient, setSelectedIngredient] = useState<Ingredient | null>(null);
@@ -41,15 +54,28 @@ export default function IngredientsPage() {
           </Button>
         }
       >
+        <ListToolbar
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Search ingredients…"
+          showReset={search.trim().length > 0}
+          onReset={() => setSearch("")}
+        />
         <DataTable
           loading={isLoading}
-          emptyDescription="No ingredients yet. Add raw materials to build menu recipes and production BOMs."
+          isError={isError}
+          errorMessage={getErrorMessage(error, "Failed to load ingredients")}
+          onRetry={() => void refetch()}
+          retryLoading={isFetching}
+          emptyDescription={
+            search.trim() ? "No ingredients match your search." : "No ingredients yet. Add raw materials to build menu recipes and production BOMs."
+          }
           columns={[
             {
               title: "ID",
               dataIndex: "id",
               key: "id",
-              render: (id) => <span className={text.muted}>#{id}</span>,
+              render: (id) => <span className={tableCellMutedClassName()}>#{id}</span>,
             },
             {
               title: "Ingredient Name",
@@ -95,7 +121,7 @@ export default function IngredientsPage() {
               ),
             },
           ]}
-          dataSource={ingredients || []}
+          dataSource={filteredIngredients}
           rowKey="id"
           pagination={{ pageSize: 10 }}
           hideBorders

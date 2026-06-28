@@ -6,14 +6,18 @@ import { useBranchOrders, useVoidOrder, useRefundOrder } from "@/hooks/domains/u
 import { HubCard } from "@/components/shared/hub-card";
 import { DataTable } from "@/components/shared/data-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { ListToolbar } from "@/components/shared/list-toolbar";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { StatusBadge, orderStatusTone } from "@/components/shared/status-badge";
 import { Receipt, Ban, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { formatBaht } from "@/lib/money";
 import { formatQueueNumber } from "@/lib/queue";
-import type { Order, OrderStatus } from "@/types/api";
+import type { Order, OrderStatus, Branch } from "@/types/api";
 import { formatDateTime } from "@/lib/intl-date";
+import { getErrorMessage } from "@/lib/errors";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import {
   Dialog,
   DialogContent,
@@ -26,7 +30,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
-import { posQueueHighlightClassName, text } from "@/lib/theme";
+import { posQueueHighlightClassName, tableCellMutedClassName, text } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
 function isToday(iso: string) {
   const d = new Date(iso);
@@ -43,14 +48,33 @@ function isTerminal(status: OrderStatus) {
 }
 
 const LOOKBACK_DAYS = 14;
+const STATUS_OPTIONS: OrderStatus[] = [
+  "PENDING",
+  "PREPARING",
+  "COMPLETED",
+  "CANCELLED",
+  "REFUNDED",
+];
 
 export default function PosOrdersPage() {
   const { activeBranchId, user } = useAuth();
+  const { data: branches = [] } = useBranches();
   const branchId = activeBranchId ? Number(activeBranchId) : undefined;
-  const { data: orders = [], isLoading } = useBranchOrders(branchId);
+  const branchName = (branches as Branch[]).find((b) => b.id === branchId)?.name;
+  const {
+    data: orders = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useBranchOrders(branchId);
   const voidMutation = useVoidOrder();
   const refundMutation = useRefundOrder();
 
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const [statusFilter, setStatusFilter] = useState<OrderStatus | "ALL">("ALL");
   const [refundTarget, setRefundTarget] = useState<Order | null>(null);
   const [refundReason, setRefundReason] = useState("");
   const [voidTarget, setVoidTarget] = useState<Order | null>(null);
@@ -67,6 +91,29 @@ export default function PosOrdersPage() {
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
   }, [orders]);
+
+  const filteredOrders = useMemo(() => {
+    return recentOrders.filter((o) => {
+      const matchesStatus = statusFilter === "ALL" || o.status === statusFilter;
+      if (!debouncedSearch) return matchesStatus;
+      const haystack = [
+        String(o.id),
+        o.status,
+        o.paymentMethod ?? "",
+        formatQueueNumber(o.queueNumber),
+      ]
+        .join(" ")
+        .toLowerCase();
+      return matchesStatus && haystack.includes(debouncedSearch);
+    });
+  }, [recentOrders, debouncedSearch, statusFilter]);
+
+  const hasActiveFilters = search.trim().length > 0 || statusFilter !== "ALL";
+
+  const handleResetFilters = () => {
+    setSearch("");
+    setStatusFilter("ALL");
+  };
 
   const handleVoid = async (orderId: number) => {
     try {
@@ -105,10 +152,45 @@ export default function PosOrdersPage() {
         icon={Receipt}
         description="Void same-day orders or refund completed sales from previous days."
       >
+        <ListToolbar
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Search by order #, queue, status…"
+          branchName={branchName}
+          showReset={hasActiveFilters}
+          onReset={handleResetFilters}
+          filters={
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as OrderStatus | "ALL")}
+              className={cn(
+                "min-h-[44px] rounded-md border px-3 text-sm",
+                "border-[var(--border)] bg-[var(--table-container-bg)] text-[var(--foreground)]",
+              )}
+              aria-label="Filter by status"
+            >
+              <option value="ALL">All statuses</option>
+              {STATUS_OPTIONS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          }
+        />
         <DataTable
           loading={isLoading}
+          isError={isError}
+          errorMessage={getErrorMessage(error, "Failed to load orders")}
+          onRetry={() => void refetch()}
+          retryLoading={isFetching}
           rowKey="id"
-          dataSource={recentOrders}
+          dataSource={filteredOrders}
+          emptyDescription={
+            hasActiveFilters
+              ? "No orders match your filters."
+              : "No orders in the last 14 days."
+          }
           columns={[
             {
               title: "Queue",
@@ -125,7 +207,7 @@ export default function PosOrdersPage() {
               dataIndex: "id",
               key: "id",
               render: (id: number) => (
-                <span className={`font-mono ${text.muted}`}>#{id}</span>
+                <span className={cn("font-mono", tableCellMutedClassName())}>#{id}</span>
               ),
             },
             {
@@ -154,7 +236,7 @@ export default function PosOrdersPage() {
               key: "net",
               align: "right" as const,
               render: (v: number | string) => (
-                <span className="font-mono font-bold">{formatBaht(v)}</span>
+                <span className="font-mono font-bold tabular-nums">{formatBaht(v)}</span>
               ),
             },
             {
@@ -185,6 +267,7 @@ export default function PosOrdersPage() {
                     <TableActionButton
                       icon={RotateCcw}
                       label="Refund"
+                      tone="amber"
                       onClick={() => {
                         setRefundTarget(row);
                         setRefundReason("");
@@ -242,7 +325,7 @@ export default function PosOrdersPage() {
           <DialogFooter>
             <Button
               variant="destructive"
-              className="w-full"
+              className="w-full min-h-[44px]"
               disabled={refundMutation.isPending}
               onClick={() => void handleRefund()}
             >

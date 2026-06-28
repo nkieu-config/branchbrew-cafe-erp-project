@@ -54,7 +54,7 @@ export function foodCostStatusClassName(status: "good" | "warn" | "bad", classNa
 }
 
 export function inlineLinkClassName(className?: string) {
-  return cn("font-medium text-brand hover:opacity-80", className);
+  return cn("font-medium text-[var(--brand-text)] hover:opacity-80", className);
 }
 
 export function expandedRowPanelClassName(className?: string) {

@@ -1,22 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Coffee, ChevronDown } from "lucide-react";
+import { Coffee, ChevronDown, PanelLeftClose } from "lucide-react";
+import { BranchPicker } from "@/components/shared/branch-picker";
+import { SidebarNavItem } from "@/components/layout/SidebarNavItem";
 import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
-import { ClockInOutWidget } from "@/components/hr/ClockInOutWidget";
-import { SIDEBAR_GROUPS, isSidebarItemActive } from "@/lib/navigation";
+import { useBranchPickerInit } from "@/hooks/useBranchPickerInit";
+import { useSidebarExpandedGroups } from "@/hooks/useSidebarExpandedGroups";
+import { useSidebarNavBadges } from "@/hooks/useSidebarNavBadges";
+import { useSidebarPinnedItems } from "@/hooks/useSidebarPinnedItems";
+import { FLAT_SIDEBAR_ITEMS, SIDEBAR_GROUPS } from "@/lib/navigation";
 import {
   sidebarBrandTitleClassName,
   sidebarGroupButtonClassName,
-  sidebarLogoutButtonClassName,
-  sidebarNavIconClassName,
-  sidebarNavLinkClassName,
+  sidebarIconButtonClassName,
+  sidebarPinnedLabelClassName,
   sidebarRootClassName,
   shell,
-  text,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types/api";
@@ -27,68 +27,85 @@ function toGroupId(groupName: string) {
 
 type SidebarProps = {
   onNavigate?: () => void;
+  onCollapse?: () => void;
   className?: string;
 };
 
-export function Sidebar({ onNavigate, className }: SidebarProps) {
+export function Sidebar({ onNavigate, onCollapse, className }: SidebarProps) {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
+  const role = (user?.role ?? "STAFF") as Role;
+  const { expandedGroups, toggleGroup } = useSidebarExpandedGroups(user?.role as Role | undefined);
+  const { isSuperAdmin, branches, activeBranchId, setActiveBranchId } = useBranchPickerInit();
+  const { badges, childTabBadges } = useSidebarNavBadges();
+  const { canPin, pinnedIds, togglePin, isPinned } = useSidebarPinnedItems();
 
-  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
-    "Overview & Analytics": true,
-    "Store Operations": true,
-    "Back Office": false,
-    "System Admin": false,
-  });
-
-  useEffect(() => {
-    SIDEBAR_GROUPS.forEach((group) => {
-      const hasActiveItem = group.items.some((item) =>
-        isSidebarItemActive(item, pathname),
-      );
-      if (hasActiveItem) {
-        setExpandedGroups((prev) => ({ ...prev, [group.group]: true }));
-      }
-    });
-  }, [pathname]);
-
-  const toggleGroup = (groupName: string) => {
-    setExpandedGroups((prev) => ({ ...prev, [groupName]: !prev[groupName] }));
-  };
-
-  const handleLogout = () => {
-    onNavigate?.();
-    void logout();
-  };
+  const pinnedItems = pinnedIds
+    .map((id) => FLAT_SIDEBAR_ITEMS.find((item) => item.id === id))
+    .filter((item): item is (typeof FLAT_SIDEBAR_ITEMS)[number] => !!item && item.roles.includes(role));
 
   return (
     <div className={sidebarRootClassName(className)}>
-      <div className={cn("h-16 flex items-center px-6 border-b shrink-0", shell.sidebarDivider)}>
-        <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center mr-3 shadow-sm bg-[var(--sidebar-brand-mark-bg)]"
-          aria-hidden
-        >
-          <Coffee className="w-5 h-5 text-[var(--sidebar-brand-mark-fg)]" />
+      <div className={cn("shrink-0 border-b", shell.sidebarDivider)}>
+        <div className="h-16 flex items-center px-4">
+          <div
+            className="w-8 h-8 rounded-lg flex items-center justify-center mr-3 shadow-sm bg-[var(--sidebar-brand-mark-bg)]"
+            aria-hidden
+          >
+            <Coffee className="w-5 h-5 text-[var(--sidebar-brand-mark-fg)]" />
+          </div>
+          <span className={cn(sidebarBrandTitleClassName(), "flex-1 min-w-0 truncate")}>QafaCafe</span>
+          {onCollapse && (
+            <button
+              type="button"
+              onClick={onCollapse}
+              className={cn(sidebarIconButtonClassName(), "ml-2")}
+              aria-label="Collapse sidebar to icon rail"
+              title="Collapse sidebar"
+            >
+              <PanelLeftClose className="w-4 h-4" aria-hidden />
+            </button>
+          )}
         </div>
-        <span className={sidebarBrandTitleClassName()}>QafaCafe</span>
+
+        {isSuperAdmin && branches.length > 0 && (
+          <div className="px-4 pb-4">
+            <BranchPicker
+              variant="sidebar"
+              branches={branches}
+              activeBranchId={activeBranchId}
+              onChange={setActiveBranchId}
+            />
+          </div>
+        )}
       </div>
 
-      {user && (
-        <div
-          className={cn(
-            "px-6 py-4 border-b shrink-0 bg-[var(--sidebar-user-panel-bg)]",
-            shell.sidebarDivider,
-          )}
-        >
-          <p className={cn("text-sm font-bold text-balance", text.primary)}>{user.name}</p>
-          <p className={cn("text-xs capitalize", text.muted)}>{user.role.replace("_", " ")}</p>
-        </div>
-      )}
+      <nav className="flex-1 p-4 overflow-y-auto custom-scrollbar" aria-label="Primary navigation">
+        {pinnedItems.length > 0 && (
+          <div className="mb-4">
+            <p className={sidebarPinnedLabelClassName()}>Pinned</p>
+            <div className="space-y-0.5">
+              {pinnedItems.map((item) => (
+                <SidebarNavItem
+                  key={`pinned-${item.id}`}
+                  item={item}
+                  pathname={pathname}
+                  role={role}
+                  onNavigate={onNavigate}
+                  badges={badges}
+                  childTabBadges={childTabBadges}
+                  canPin={canPin}
+                  isPinned={isPinned(item.id)}
+                  onTogglePin={togglePin}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
-      <nav className="flex-1 p-3 overflow-y-auto custom-scrollbar" aria-label="Primary navigation">
         {SIDEBAR_GROUPS.map((group, groupIdx) => {
-          const visibleItems = group.items.filter((item) =>
-            item.roles.includes((user?.role ?? "STAFF") as Role),
+          const visibleItems = group.items.filter(
+            (item) => item.roles.includes(role) && !pinnedIds.includes(item.id),
           );
           if (visibleItems.length === 0) return null;
 
@@ -116,40 +133,26 @@ export function Sidebar({ onNavigate, className }: SidebarProps) {
 
               {isExpanded && (
                 <div id={`sidebar-group-${groupId}`} className="space-y-0.5">
-                  {visibleItems.map((item) => {
-                    const isReallyActive = isSidebarItemActive(item, pathname);
-                    const ItemIcon = item.icon;
-
-                    return (
-                      <Link
-                        key={item.id}
-                        href={item.href}
-                        onClick={onNavigate}
-                        aria-current={isReallyActive ? "page" : undefined}
-                        className={sidebarNavLinkClassName(isReallyActive)}
-                      >
-                        <ItemIcon
-                          className={sidebarNavIconClassName(isReallyActive)}
-                          aria-hidden
-                        />
-                        {item.label}
-                      </Link>
-                    );
-                  })}
+                  {visibleItems.map((item) => (
+                    <SidebarNavItem
+                      key={item.id}
+                      item={item}
+                      pathname={pathname}
+                      role={role}
+                      onNavigate={onNavigate}
+                      badges={badges}
+                      childTabBadges={childTabBadges}
+                      canPin={canPin}
+                      isPinned={isPinned(item.id)}
+                      onTogglePin={togglePin}
+                    />
+                  ))}
                 </div>
               )}
             </div>
           );
         })}
       </nav>
-
-      {user && <ClockInOutWidget />}
-
-      <div className={cn("p-4 border-t shrink-0", shell.sidebarDivider)}>
-        <Button variant="outline" className={sidebarLogoutButtonClassName()} onClick={handleLogout}>
-          Logout
-        </Button>
-      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useProducts } from "@/hooks/domains/useProductQueries";
 import { Button } from "@/components/ui/button";
@@ -8,23 +8,55 @@ import { Plus, Edit, Coffee } from "lucide-react";
 import { ProductFormModal } from "@/components/products/ProductFormModal";
 import { DataTable } from "@/components/shared/data-table";
 import { HubCard } from "@/components/shared/hub-card";
+import { ListToolbar } from "@/components/shared/list-toolbar";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { getErrorMessage } from "@/lib/errors";
 import { formatBaht } from "@/lib/money";
 import { calcProductFoodCost, foodCostStatus } from "@/lib/food-cost";
 import {
   foodCostStatusClassName,
   hubCtaClassName,
   inlineLinkClassName,
+  tableCellMutedClassName,
   text,
 } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 import type { Product } from "@/types/api";
 
 export default function ProductsPage() {
-  const { data: products, isLoading } = useProducts();
+  const { data: products, isLoading, isError, error, refetch, isFetching } = useProducts();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "active" | "inactive">("ALL");
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of products ?? []) {
+      if (p.category) set.add(p.category);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [products]);
+
+  const filteredProducts = useMemo(() => {
+    return (products ?? []).filter((p: Product) => {
+      const matchesCategory = categoryFilter === "ALL" || p.category === categoryFilter;
+      const matchesStatus =
+        statusFilter === "ALL" ||
+        (statusFilter === "active" ? p.isActive !== false : p.isActive === false);
+      const haystack = [p.name, p.category, String(p.id)].join(" ").toLowerCase();
+      const matchesSearch = !debouncedSearch || haystack.includes(debouncedSearch);
+      return matchesCategory && matchesStatus && matchesSearch;
+    });
+  }, [products, categoryFilter, statusFilter, debouncedSearch]);
+
+  const hasActiveFilters =
+    search.trim().length > 0 || categoryFilter !== "ALL" || statusFilter !== "ALL";
 
   const handleEdit = (product: Product) => {
     setSelectedProduct(product);
@@ -48,15 +80,65 @@ export default function ProductsPage() {
           </Button>
         }
       >
+        <ListToolbar
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Search menu items…"
+          showReset={hasActiveFilters}
+          onReset={() => {
+            setSearch("");
+            setCategoryFilter("ALL");
+            setStatusFilter("ALL");
+          }}
+          filters={
+            <>
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className={cn(
+                  "min-h-[44px] rounded-md border px-3 text-sm",
+                  "border-[var(--border)] bg-[var(--table-container-bg)] text-[var(--foreground)]",
+                )}
+                aria-label="Filter by category"
+              >
+                <option value="ALL">All categories</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as "ALL" | "active" | "inactive")}
+                className={cn(
+                  "min-h-[44px] rounded-md border px-3 text-sm",
+                  "border-[var(--border)] bg-[var(--table-container-bg)] text-[var(--foreground)]",
+                )}
+                aria-label="Filter by status"
+              >
+                <option value="ALL">All statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </>
+          }
+        />
         <DataTable
           loading={isLoading}
-          emptyDescription="No menu items yet. Add raw ingredients first, then create menu items for the POS."
+          isError={isError}
+          errorMessage={getErrorMessage(error, "Failed to load menu items")}
+          onRetry={() => void refetch()}
+          retryLoading={isFetching}
+          emptyDescription={
+            hasActiveFilters
+              ? "No menu items match your filters."
+              : "No menu items yet. Add raw ingredients first, then create menu items for the POS."
+          }
           columns={[
             {
               title: "ID",
               dataIndex: "id",
               key: "id",
-              render: (id) => <span className={text.muted}>#{id}</span>,
+              render: (id) => <span className={tableCellMutedClassName()}>#{id}</span>,
             },
             {
               title: "Menu Name",
@@ -85,7 +167,7 @@ export default function ProductsPage() {
                 return (
                   <div>
                     <span className={foodCostStatusClassName(status)}>{foodCostPercent.toFixed(1)}%</span>
-                    <div className={`text-xs ${text.muted}`}>COGS {formatBaht(cost)}</div>
+                    <div className={`text-xs ${tableCellMutedClassName()}`}>COGS {formatBaht(cost)}</div>
                   </div>
                 );
               },
@@ -119,7 +201,7 @@ export default function ProductsPage() {
               ),
             },
           ]}
-          dataSource={products || []}
+          dataSource={filteredProducts}
           rowKey="id"
           pagination={{ pageSize: 10 }}
           hideBorders

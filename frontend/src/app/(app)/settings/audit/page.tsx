@@ -20,6 +20,7 @@ import { formatDateTime } from "@/lib/intl-date";
 import {
   dataTableContainerClassName,
   nativeTableEmptyCellClassName,
+  semanticTableClassName,
   text,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -45,6 +46,7 @@ export default function AuditLogsPage() {
       description="Comprehensive log of critical system actions and data modifications."
     >
       <div className={dataTableContainerClassName()}>
+        <div className={semanticTableClassName()}>
         <Table>
           <TableHeader>
             <TableRow>
@@ -106,6 +108,7 @@ export default function AuditLogsPage() {
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
 
       {!loading && logsData.length > PAGE_SIZE && (

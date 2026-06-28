@@ -6,6 +6,7 @@ import { useSubmitSettlement } from '@/hooks/domains/useFinanceQueries'
 import type { SettlementExpected } from '@/types/api'
 import { getErrorMessage } from '@/lib/errors'
 import {
+  posFormPanelClassName,
   posNativeInputClassName,
   posPrimaryActionClassName,
   posSettlementHighlightClassName,
@@ -13,6 +14,7 @@ import {
   posSettlementSummaryClassName,
   text,
 } from '@/lib/theme'
+import { cn } from '@/lib/utils'
 
 export function SettlementForm({ branchIdNum, expected }: { branchIdNum: number | undefined, expected: SettlementExpected | undefined }) {
   const [actualCash, setActualCash] = useState<string>("")
@@ -41,7 +43,7 @@ export function SettlementForm({ branchIdNum, expected }: { branchIdNum: number 
   }
 
   return (
-    <div className="glass-panel p-6 rounded-2xl flex flex-col gap-6">
+    <div className={posFormPanelClassName()}>
       <div className="flex items-center gap-3">
         <Calculator className={`w-5 h-5 ${posSettlementIconClassName()}`} />
         <h2 className={`font-semibold text-lg ${text.primary}`}>Submit Shift Settlement</h2>
@@ -107,8 +109,12 @@ export function SettlementForm({ branchIdNum, expected }: { branchIdNum: number 
             />
           </div>
         </div>
-        <Button type="submit" className={posPrimaryActionClassName("w-full py-6 mt-2 border-0 shadow-lg")}>
-          Submit Shift Settlement
+        <Button
+          type="submit"
+          className={cn(posPrimaryActionClassName(), "w-full min-h-[44px] py-6 mt-2 border-0 shadow-lg")}
+          disabled={submitSettlementMutation.isPending || !actualCash}
+        >
+          {submitSettlementMutation.isPending ? "Submitting…" : "Submit Shift Settlement"}
         </Button>
       </form>
     </div>

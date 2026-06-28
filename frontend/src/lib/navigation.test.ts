@@ -2,9 +2,14 @@ import { describe, expect, it } from "vitest";
 import {
   HUBS,
   findHubByPathname,
+  getMobileBottomNavBadgeId,
+  getMobileBottomNavItems,
   getVisibleHubTabs,
+  isMobileBottomNavActive,
   isTabActive,
+  shouldShowHubSubNav,
   resolveBreadcrumbTrail,
+  resolveSidebarHubId,
 } from "./navigation";
 
 describe("resolveBreadcrumbTrail", () => {
@@ -74,9 +79,14 @@ describe("hub completeness", () => {
     }
   });
 
-  it("assets hub includes equipment tab", () => {
+  it("assets hub serves equipment at /assets", () => {
     const assets = HUBS.assets;
-    expect(assets.tabs.some((tab) => tab.path === "/assets/equipment")).toBe(true);
+    expect(assets.tabs.some((tab) => tab.path === "/assets")).toBe(true);
+  });
+
+  it("shouldShowHubSubNav hides single root tab hubs", () => {
+    expect(shouldShowHubSubNav(HUBS.assets.tabs, HUBS.assets.basePath)).toBe(false);
+    expect(shouldShowHubSubNav(HUBS.inventory.tabs, HUBS.inventory.basePath)).toBe(true);
   });
 });
 
@@ -95,6 +105,41 @@ describe("getVisibleHubTabs", () => {
     const staffHrTabs = getVisibleHubTabs("hr", "STAFF");
     expect(staffHrTabs.some((tab) => tab.path === "/hr/payroll")).toBe(false);
     expect(staffHrTabs.some((tab) => tab.path === "/hr/employees")).toBe(true);
+  });
+});
+
+describe("getMobileBottomNavItems", () => {
+  it("returns four items for staff with KDS instead of orders", () => {
+    const items = getMobileBottomNavItems("STAFF");
+    expect(items).toHaveLength(4);
+    expect(items.map((item) => item.id)).toEqual(["pos", "kds", "inventory", "more"]);
+  });
+
+  it("returns orders for manager instead of KDS", () => {
+    const items = getMobileBottomNavItems("MANAGER");
+    expect(items.map((item) => item.id)).toEqual(["pos", "orders", "inventory", "more"]);
+  });
+
+  it("marks POS active on terminal but not orders", () => {
+    const pos = getMobileBottomNavItems("STAFF")[0];
+    expect(isMobileBottomNavActive(pos, "/pos/terminal")).toBe(true);
+    expect(isMobileBottomNavActive(pos, "/pos/orders")).toBe(false);
+  });
+});
+
+describe("resolveSidebarHubId", () => {
+  it("maps hub sidebar items to hub ids", () => {
+    expect(resolveSidebarHubId("inventory")).toBe("inventory");
+    expect(resolveSidebarHubId("pos")).toBe("pos");
+  });
+
+  it("returns aggregate key for more item", () => {
+    expect(getMobileBottomNavBadgeId("more")).toBe("aggregate");
+  });
+
+  it("returns null for non-hub items", () => {
+    expect(resolveSidebarHubId("dashboard")).toBeNull();
+    expect(resolveSidebarHubId("kds")).toBeNull();
   });
 });
 

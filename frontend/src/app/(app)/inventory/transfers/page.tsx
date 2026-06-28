@@ -8,6 +8,7 @@ import {
 import { HubCard } from "@/components/shared/hub-card";
 import { Button } from "@/components/ui/button";
 import { ArrowRightLeft, Plus } from "lucide-react";
+import { hubInfoActionClassName } from "@/lib/theme";
 
 export default function TransfersPage() {
   const panelRef = useRef<StockTransfersPanelHandle>(null);
@@ -19,7 +20,7 @@ export default function TransfersPage() {
       description="Request and accept stock transfers between branches."
       actions={
         <Button
-          className="bg-indigo-600 hover:bg-indigo-700 font-bold"
+          className={hubInfoActionClassName("font-bold")}
           onClick={() => panelRef.current?.openCreate()}
         >
           <Plus className="w-4 h-4 mr-2" aria-hidden />

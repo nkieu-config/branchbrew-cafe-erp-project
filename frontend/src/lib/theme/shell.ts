@@ -9,10 +9,130 @@ export const shell = {
   sidebarDivider: "border-[var(--sidebar-divider)]",
 } as const;
 
-export function sidebarRootClassName(className?: string) {
+export function sidebarRootClassName(className?: string, collapsed?: boolean) {
   return cn(
-    "w-64 glass-panel border-r h-screen flex flex-col z-40 relative",
+    collapsed ? "w-16" : "w-64",
+    "border-r h-screen flex flex-col z-40 relative transition-[width] duration-200 motion-reduce:transition-none",
+    "bg-[var(--sidebar-panel-bg)] shadow-[var(--shadow-sm)]",
     shell.sidebarBorder,
+    className,
+  );
+}
+
+export function sidebarRailLinkClassName(isActive: boolean, isCurrentPage: boolean, className?: string) {
+  return cn(
+    "relative flex items-center justify-center w-11 h-11 min-h-[44px] min-w-[44px] rounded-xl transition-colors border",
+    focusRing,
+    isActive
+      ? "bg-[var(--sidebar-nav-active-bg)] text-[var(--sidebar-nav-active-fg)] border-[var(--sidebar-nav-active-border)]"
+      : "text-[var(--sidebar-nav-inactive-fg)] border-transparent hover:bg-[var(--sidebar-nav-inactive-hover-bg)] hover:text-[var(--sidebar-nav-inactive-hover-fg)]",
+    isCurrentPage &&
+      "before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-[3px] before:rounded-full before:bg-[var(--sidebar-nav-active-indicator)]",
+    className,
+  );
+}
+
+export function sidebarRailExpandButtonClassName(className?: string) {
+  return cn(
+    "flex items-center justify-center w-11 h-11 min-h-[44px] min-w-[44px] rounded-xl transition-colors border border-transparent",
+    "text-[var(--sidebar-nav-inactive-fg)] hover:bg-[var(--sidebar-nav-inactive-hover-bg)] hover:text-[var(--sidebar-nav-inactive-hover-fg)]",
+    focusRing,
+    className,
+  );
+}
+
+export function mobileBottomNavClassName(className?: string) {
+  return cn(
+    "fixed inset-x-0 bottom-0 z-50 flex items-stretch justify-around border-t",
+    "bg-[var(--mobile-nav-bg)] border-[var(--mobile-nav-border)] shadow-[var(--shadow-lg)]",
+    "pb-[env(safe-area-inset-bottom,0px)] lg:hidden",
+    className,
+  );
+}
+
+export function mobileBottomNavItemClassName(isActive: boolean, className?: string) {
+  return cn(
+    "flex flex-1 flex-col items-center justify-center gap-0.5 min-h-[56px] px-1 py-2 text-[10px] font-semibold transition-colors",
+    focusRing,
+    isActive
+      ? "text-[var(--sidebar-nav-active-fg)]"
+      : "text-[var(--sidebar-nav-inactive-fg)] hover:text-[var(--sidebar-nav-inactive-hover-fg)]",
+    className,
+  );
+}
+
+export function mobileBottomNavIconClassName(isActive: boolean) {
+  return cn(
+    "w-5 h-5 shrink-0",
+    isActive ? "text-[var(--sidebar-nav-active-icon)]" : "text-[var(--sidebar-nav-icon)]",
+  );
+}
+
+export function mainContentWithMobileNavClassName(className?: string) {
+  return cn("pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0", className);
+}
+
+export function sidebarPinnedLabelClassName(className?: string) {
+  return cn(
+    "px-3 py-2 mb-1 text-[11px] font-medium uppercase tracking-widest",
+    "text-[var(--sidebar-group-label)]",
+    className,
+  );
+}
+
+/** Tree ul indent — keep in sync with child link active-indicator offset. */
+export const sidebarTreeIndentClassName =
+  "ml-3 border-l border-[var(--sidebar-tree-border)] pl-2";
+
+const sidebarTreeChildIndicatorClassName =
+  "before:absolute before:-left-[calc(0.5rem+1px)] before:top-1/2 before:-translate-y-1/2 before:h-4 before:w-[3px] before:rounded-full before:bg-[var(--sidebar-nav-active-indicator)]";
+
+export function sidebarIconButtonClassName(className?: string) {
+  return cn(
+    "flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg transition-colors",
+    "text-[var(--sidebar-nav-inactive-fg)] hover:bg-[var(--sidebar-nav-inactive-hover-bg)] hover:text-[var(--sidebar-nav-inactive-hover-fg)]",
+    focusRing,
+    className,
+  );
+}
+
+export function sidebarPinButtonClassName(isPinned: boolean, className?: string) {
+  return cn(
+    sidebarIconButtonClassName(),
+    "text-[var(--sidebar-nav-icon)]",
+    !isPinned && "md:opacity-40 md:group-hover/navitem:opacity-100 md:focus-visible:opacity-100",
+    isPinned && "text-[var(--sidebar-nav-active-icon)]",
+    className,
+  );
+}
+
+export function sidebarNavBadgeClassName(tone: "warning" | "danger" | "info" = "warning", className?: string) {
+  const toneClass =
+    tone === "danger"
+      ? "bg-[var(--status-danger-bg)] text-[var(--status-danger-fg)]"
+      : tone === "info"
+        ? "bg-[var(--status-info-bg)] text-[var(--status-info-fg)]"
+        : "bg-[var(--status-warning-bg)] text-[var(--status-warning-fg)]";
+
+  return cn(
+    "ml-auto inline-flex min-w-[1.25rem] h-5 items-center justify-center rounded-full px-1.5",
+    "text-[10px] font-bold tabular-nums leading-none shrink-0",
+    toneClass,
+    className,
+  );
+}
+
+export function sidebarRailBadgeDotClassName(tone: "warning" | "danger" | "info" = "warning", className?: string) {
+  const toneClass =
+    tone === "danger"
+      ? "bg-[var(--status-danger-fg)]"
+      : tone === "info"
+        ? "bg-[var(--status-info-fg)]"
+        : "bg-[var(--status-warning-fg)]";
+
+  return cn(
+    "absolute top-1 right-1 h-2 w-2 rounded-full ring-2 ring-[var(--sidebar-panel-bg)]",
+    toneClass,
     className,
   );
 }
@@ -27,20 +147,57 @@ export function sidebarBrandTitleClassName() {
 export function sidebarGroupButtonClassName(className?: string) {
   return cn(
     "w-full flex items-center justify-between px-3 py-2 min-h-[44px] mb-1",
-    "text-xs font-bold uppercase tracking-wider rounded-lg transition-colors",
+    "text-[11px] font-medium uppercase tracking-widest rounded-lg transition-colors",
     "text-[var(--sidebar-group-label)] hover:text-[var(--sidebar-group-label-hover)]",
+    "hover:bg-[var(--sidebar-nav-inactive-hover-bg)]",
     focusRing,
     className,
   );
 }
 
-export function sidebarNavLinkClassName(isActive: boolean, className?: string) {
+export function sidebarNavLinkClassName(
+  isActive: boolean,
+  isCurrentPage = isActive,
+  className?: string,
+) {
   return cn(
-    "flex items-center px-3 py-2.5 min-h-[44px] rounded-xl transition-colors duration-200 font-semibold text-sm border",
+    "relative flex items-center px-3 py-2.5 min-h-[44px] rounded-xl transition-colors duration-200 font-semibold text-sm border",
     focusRing,
     isActive
       ? "bg-[var(--sidebar-nav-active-bg)] text-[var(--sidebar-nav-active-fg)] border-[var(--sidebar-nav-active-border)] shadow-sm"
       : "text-[var(--sidebar-nav-inactive-fg)] border-transparent hover:bg-[var(--sidebar-nav-inactive-hover-bg)] hover:text-[var(--sidebar-nav-inactive-hover-fg)] interactive-item",
+    isCurrentPage &&
+      "before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-[3px] before:rounded-full before:bg-[var(--sidebar-nav-active-indicator)]",
+    className,
+  );
+}
+
+export function sidebarNavChildLinkClassName(isActive: boolean, className?: string) {
+  return cn(
+    "relative flex items-center gap-2 px-2.5 py-2 min-h-[44px] rounded-lg text-xs font-medium transition-colors",
+    focusRing,
+    isActive
+      ? "bg-[var(--sidebar-nav-active-bg)] text-[var(--sidebar-nav-active-fg)] font-semibold"
+      : "text-[var(--sidebar-nav-inactive-fg)] hover:bg-[var(--sidebar-nav-inactive-hover-bg)] hover:text-[var(--sidebar-nav-inactive-hover-fg)]",
+    isActive && sidebarTreeChildIndicatorClassName,
+    className,
+  );
+}
+
+/** Branch scope pill shown in the sidebar header (SUPER_ADMIN). */
+export function sidebarBranchPillClassName(className?: string) {
+  return cn(
+    "flex items-center gap-2 rounded-lg px-2.5 py-1.5 min-h-[36px] w-full border",
+    "bg-[var(--topbar-picker-bg)] border-[var(--topbar-picker-border)] shadow-sm",
+    className,
+  );
+}
+
+/** Compact clock-in/out control in the top bar. */
+export function topbarClockWidgetClassName(className?: string) {
+  return cn(
+    "flex items-center gap-2 rounded-lg border px-2 py-1 min-h-[44px]",
+    "bg-[var(--topbar-picker-bg)] border-[var(--topbar-picker-border)] shadow-sm",
     className,
   );
 }
@@ -113,7 +270,8 @@ export function profileMenuPanelClassName(className?: string) {
 
 export function profileAvatarButtonClassName(className?: string) {
   return cn(
-    "h-11 w-11 rounded-full border-[var(--profile-avatar-border)]",
+    "h-11 min-h-[44px] rounded-full border-[var(--profile-avatar-border)]",
+    "md:rounded-xl md:pl-1.5 md:pr-3 md:gap-2",
     className,
   );
 }

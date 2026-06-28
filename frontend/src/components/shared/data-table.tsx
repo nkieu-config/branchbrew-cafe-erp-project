@@ -2,6 +2,7 @@ import React from "react";
 import { Table, Skeleton } from "antd";
 import type { TableProps } from "antd";
 import { Inbox } from "lucide-react";
+import { QueryErrorBanner } from "@/components/shared/query-error-banner";
 import {
   dataTableContainerClassName,
   dataTableEmptyIconClassName,
@@ -13,6 +14,11 @@ interface DataTableProps<RecordType extends object = object> extends TableProps<
   containerClassName?: string;
   hideBorders?: boolean;
   emptyDescription?: string;
+  /** When true, shows recoverable error banner above the table shell. */
+  isError?: boolean;
+  errorMessage?: string;
+  onRetry?: () => void;
+  retryLoading?: boolean;
 }
 
 function TableEmptyState({ description }: { description: string }) {
@@ -28,6 +34,10 @@ export function DataTable<RecordType extends object = object>({
   containerClassName = "",
   hideBorders = false,
   emptyDescription = "No records found.",
+  isError = false,
+  errorMessage = "Failed to load data.",
+  onRetry,
+  retryLoading = false,
   locale,
   ...props
 }: DataTableProps<RecordType>) {
@@ -40,20 +50,29 @@ export function DataTable<RecordType extends object = object>({
   }
 
   return (
-    <div className={dataTableContainerClassName({ hideBorders }, containerClassName)}>
-      <Table
-        pagination={{
-          placement: ['bottomEnd'],
-          showSizeChanger: true,
-          ...props.pagination,
-        }}
-        scroll={{ x: 'max-content', ...props.scroll }}
-        locale={{
-          emptyText: <TableEmptyState description={emptyDescription} />,
-          ...locale,
-        }}
-        {...props}
-      />
+    <div className="space-y-3">
+      {isError && (
+        <QueryErrorBanner
+          message={errorMessage}
+          onRetry={onRetry}
+          loading={retryLoading}
+        />
+      )}
+      <div className={dataTableContainerClassName({ hideBorders }, containerClassName)}>
+        <Table
+          pagination={{
+            placement: ["bottomEnd"],
+            showSizeChanger: true,
+            ...props.pagination,
+          }}
+          scroll={{ x: "max-content", ...props.scroll }}
+          locale={{
+            emptyText: <TableEmptyState description={emptyDescription} />,
+            ...locale,
+          }}
+          {...props}
+        />
+      </div>
     </div>
   );
 }

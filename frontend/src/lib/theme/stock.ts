@@ -172,7 +172,10 @@ export function procurementHubIconClassName(className?: string) {
 }
 
 export function hubPrimaryActionClassName(className?: string) {
-  return cn("bg-[var(--brand)] text-[var(--brand-foreground)] hover:opacity-90 shadow-sm", className);
+  return cn(
+    "bg-[var(--brand-solid)] text-[var(--on-brand-solid-fg)] hover:opacity-90 shadow-sm",
+    className,
+  );
 }
 
 export function hubDangerActionClassName(className?: string) {

@@ -4,15 +4,14 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { LogOut, MapPin, Menu, User } from "lucide-react";
+import { ClockInOutWidget } from "@/components/hr/ClockInOutWidget";
+import { BranchPicker } from "@/components/shared/branch-picker";
+import { LogOut, Menu, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useMobileNav } from "@/context/MobileNavContext";
-import { useBranches } from "@/hooks/domains/useGeneralQueries";
-import {
-  getStoredBranchSelection,
-  resolveDefaultBranchId,
-} from "@/lib/branch-storage";
+import { useBranchPickerInit } from "@/hooks/useBranchPickerInit";
 import { resolveBreadcrumbTrail } from "@/lib/navigation";
+import { isImmersiveRoute } from "@/lib/shell-routes";
 import {
   breadcrumbCurrentClassName,
   breadcrumbLinkClassName,
@@ -23,63 +22,10 @@ import {
   profileAvatarButtonClassName,
   profileAvatarInitialClassName,
   profileMenuPanelClassName,
-  selectFocusClassName,
   text,
-  topbarBranchIconClassName,
-  topbarBranchPickerClassName,
 } from "@/lib/theme";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import type { Branch } from "@/types/api";
-
-function BranchPicker({
-  branches,
-  activeBranchId,
-  onChange,
-}: {
-  branches: Branch[];
-  activeBranchId: number | null;
-  onChange: (branchId: number | null) => void;
-}) {
-  const value = activeBranchId == null ? "all" : String(activeBranchId);
-
-  return (
-    <div className={topbarBranchPickerClassName()}>
-      <MapPin className={topbarBranchIconClassName()} aria-hidden="true" />
-      <Select
-        value={value}
-        onValueChange={(next) => {
-          if (next == null) return;
-          onChange(next === "all" ? null : Number(next));
-        }}
-      >
-        <SelectTrigger
-          aria-label="Select branch"
-          className={selectFocusClassName(
-            "h-9 min-h-[36px] border-0 bg-transparent shadow-none max-w-[140px] sm:max-w-[220px]",
-          )}
-        >
-          <SelectValue placeholder="Select branch" />
-        </SelectTrigger>
-        <SelectContent align="end">
-          <SelectItem value="all">All Branches (HQ)</SelectItem>
-          {branches.map((branch) => (
-            <SelectItem key={branch.id} value={String(branch.id)}>
-              {branch.name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
-}
 
 function ProfileMenu() {
   const { user, logout } = useAuth();
@@ -116,14 +62,25 @@ function ProfileMenu() {
       <Button
         type="button"
         variant="outline"
-        size="icon"
-        className={profileAvatarButtonClassName()}
+        size={undefined}
+        className={cn(profileAvatarButtonClassName(), "w-11 md:w-auto")}
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Account menu"
         onClick={() => setOpen((prev) => !prev)}
       >
-        <span className={profileAvatarInitialClassName()}>{initial}</span>
+        <span
+          className={cn(
+            profileAvatarInitialClassName(),
+            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full md:bg-[var(--surface-inset)]",
+          )}
+        >
+          {initial}
+        </span>
+        <span className="hidden md:flex flex-col items-start text-left min-w-0 max-w-[140px]">
+          <span className={cn("text-sm font-semibold truncate w-full", text.primary)}>{user.name}</span>
+          <span className={cn("text-xs capitalize truncate w-full", text.muted)}>{roleLabel}</span>
+        </span>
       </Button>
 
       {open && (
@@ -155,39 +112,10 @@ function ProfileMenu() {
 
 export function Topbar() {
   const pathname = usePathname();
-  const { user, activeBranchId, setActiveBranchId, isInitialized } = useAuth();
   const { toggle } = useMobileNav();
-  const isSuperAdmin = user?.role === "SUPER_ADMIN";
-  const { data: branchesData = [] } = useBranches(isSuperAdmin);
-  const branches = branchesData as Branch[];
-  const hasAppliedBranchPref = useRef(false);
-
+  const { isSuperAdmin, branches, activeBranchId, setActiveBranchId } = useBranchPickerInit();
   const trail = resolveBreadcrumbTrail(pathname);
-
-  useEffect(() => {
-    if (!isSuperAdmin || !isInitialized || branches.length === 0) return;
-    if (hasAppliedBranchPref.current) return;
-    hasAppliedBranchPref.current = true;
-
-    const selection = getStoredBranchSelection();
-    if (selection === "unset") {
-      const defaultId = resolveDefaultBranchId(branches);
-      if (defaultId != null) setActiveBranchId(defaultId);
-      return;
-    }
-
-    if (selection === null) {
-      setActiveBranchId(null);
-      return;
-    }
-
-    if (branches.some((b) => b.id === selection)) {
-      setActiveBranchId(selection);
-    } else {
-      const defaultId = resolveDefaultBranchId(branches);
-      if (defaultId != null) setActiveBranchId(defaultId);
-    }
-  }, [isSuperAdmin, isInitialized, branches, setActiveBranchId]);
+  const immersive = isImmersiveRoute(pathname);
 
   return (
     <header className="h-14 lg:h-16 shrink-0 flex items-center justify-between gap-3 px-3 md:px-6 lg:px-8 bg-transparent mb-2 lg:mb-4 z-20 relative">
@@ -235,12 +163,16 @@ export function Topbar() {
 
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
         {isSuperAdmin && branches.length > 0 && (
-          <BranchPicker
-            branches={branches}
-            activeBranchId={activeBranchId}
-            onChange={setActiveBranchId}
-          />
+          <div className={cn(!immersive && "lg:hidden")}>
+            <BranchPicker
+              variant="topbar"
+              branches={branches}
+              activeBranchId={activeBranchId}
+              onChange={setActiveBranchId}
+            />
+          </div>
         )}
+        <ClockInOutWidget />
         <ThemeToggle />
         <ProfileMenu />
       </div>

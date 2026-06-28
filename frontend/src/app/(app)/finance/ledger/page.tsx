@@ -7,7 +7,11 @@ import { Table, Spin } from "antd"
 import { FileText, TrendingUp, Play } from "lucide-react"
 import { toast } from "sonner"
 import { HubPageHeader } from "@/components/shared/hub-card"
+import { QueryErrorBanner } from "@/components/shared/query-error-banner"
+import { BranchScopeIndicator } from "@/components/shared/branch-scope-indicator"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
+import { dataTableEmptyTextClassName } from "@/lib/theme"
+import { getErrorMessage } from "@/lib/errors"
 import { StatusBadge, journalStatusTone } from "@/components/shared/status-badge"
 import { Button } from "@/components/ui/button"
 import { formatDate } from "@/lib/intl-date"
@@ -47,9 +51,11 @@ export default function GeneralLedgerPage() {
   const [showSeedConfirm, setShowSeedConfirm] = useState(false)
 
   const { data: branches = [] } = useBranches()
-  const { data: chartData = [], isLoading: isChartLoading } = useLedger(selectedBranch)
-  const { data: entries = [], isLoading: isEntriesLoading, refetch: refetchEntries } = useJournalEntries(selectedBranch)
+  const { data: chartData = [], isLoading: isChartLoading, isError: chartError, error: chartErr, refetch: refetchChart } = useLedger(selectedBranch)
+  const { data: entries = [], isLoading: isEntriesLoading, isError: entriesError, error: entriesErr, refetch: refetchEntries } = useJournalEntries(selectedBranch)
   const loading = isChartLoading || isEntriesLoading;
+  const hasError = chartError || entriesError;
+  const errorMessage = getErrorMessage(chartErr ?? entriesErr, "Failed to load ledger data");
 
   const branchLabel = activeBranchId
     ? (branches as Branch[]).find((b) => b.id === activeBranchId)?.name ?? `Branch #${activeBranchId}`
@@ -160,18 +166,31 @@ export default function GeneralLedgerPage() {
         icon={TrendingUp}
         description={`Profit & loss trends and journal entries for ${branchLabel}. Use the top bar branch selector to change scope.`}
         actions={
-          entries.length === 0 && !loading ? (
-            <Button
-              className={hubInfoActionClassName()}
-              disabled={isSeeding}
-              onClick={() => setShowSeedConfirm(true)}
-            >
-              <Play className="w-4 h-4 mr-2" />
-              Seed Accounts
-            </Button>
-          ) : undefined
+          <div className="flex flex-wrap items-center gap-2">
+            <BranchScopeIndicator branchName={activeBranchId ? branchLabel : undefined} allBranches={!activeBranchId} />
+            {entries.length === 0 && !loading ? (
+              <Button
+                className={hubInfoActionClassName()}
+                disabled={isSeeding}
+                onClick={() => setShowSeedConfirm(true)}
+              >
+                <Play className="w-4 h-4 mr-2" />
+                Seed Accounts
+              </Button>
+            ) : null}
+          </div>
         }
       />
+
+      {hasError && (
+        <QueryErrorBanner
+          message={errorMessage}
+          onRetry={() => {
+            void refetchChart();
+            void refetchEntries();
+          }}
+        />
+      )}
 
       <div className={ledgerPanelClassName("mb-6")}>
         <h2 className={`text-lg font-black mb-6 flex items-center gap-2 ${text.primary}`}>
@@ -200,7 +219,7 @@ export default function GeneralLedgerPage() {
           loading={isEntriesLoading}
           expandable={{ expandedRowRender }}
           pagination={{ pageSize: 20 }}
-          locale={{ emptyText: "No journal entries found." }}
+          locale={{ emptyText: <span className={dataTableEmptyTextClassName()}>No journal entries found.</span> }}
         />
         </div>
       </div>

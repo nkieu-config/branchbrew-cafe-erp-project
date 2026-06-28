@@ -23,6 +23,8 @@ import {
   authHeroStatClassName,
   authHeroStatLabelClassName,
   authHeroStatValueClassName,
+  authHeroTextClassName,
+  authHeroTitleClassName,
   authInputClassName,
   authLoadingClassName,
   authPageShellClassName,
@@ -172,8 +174,8 @@ export default function LoginContent() {
           className="relative z-10 p-12 max-w-xl text-center"
         >
           <div className={authHeroCardClassName()}>
-            <h2 className="text-3xl font-bold text-white mb-4">Enterprise Grade Efficiency</h2>
-            <p className="text-white/70 leading-relaxed mb-8">
+            <h2 className={authHeroTitleClassName()}>Enterprise Grade Efficiency</h2>
+            <p className={authHeroTextClassName()}>
               QafaCafe streamlines your operations from point-of-sale to inventory and human resources, giving you the clarity needed to scale.
             </p>
             <div className="grid grid-cols-2 gap-4">

@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 import { dashboardErrorPanelClass } from "./dashboard";
 import { metricValueClassName } from "./metric";
 import { hubCardIconClass } from "./hub-accent";
-import { text } from "./surface";
+import { elevatedPanelClassName, text } from "./surface";
 
 export function ledgerDebitClassName(className?: string) {
   return cn("font-bold text-[var(--ledger-debit-fg)]", className);
@@ -13,11 +13,12 @@ export function ledgerCreditClassName(className?: string) {
 }
 
 export function ledgerPanelClassName(className?: string) {
-  return cn(
-    "rounded-2xl shadow-sm border p-6",
-    "bg-[var(--table-container-bg)] border-[var(--table-container-border)]",
-    className,
-  );
+  return elevatedPanelClassName(cn("p-6", className));
+}
+
+/** Solid elevated panel for finance sections (replaces glass on light). */
+export function financeSectionPanelClassName(className?: string) {
+  return ledgerPanelClassName(className);
 }
 
 export function financeSectionTitleClassName(className?: string) {
@@ -34,7 +35,7 @@ export function financeMetricIconClassName(tone: "emerald" | "amber" | "indigo",
 
 export function financePrimaryActionClassName(className?: string) {
   return cn(
-    "bg-[var(--brand)] text-[var(--brand-foreground)] hover:opacity-90 shadow-sm border-none",
+    "bg-[var(--brand-solid)] text-[var(--on-brand-solid-fg)] hover:opacity-90 shadow-sm border-none",
     className,
   );
 }
@@ -59,7 +60,7 @@ export function settlementDifferenceClassName(difference: number, className?: st
 
 export function financeApproveButtonClassName(className?: string) {
   return cn(
-    "text-[var(--brand)] hover:bg-[var(--status-success-bg)]",
+    "text-[var(--brand-text)] hover:bg-[var(--status-success-bg)]",
     className,
   );
 }

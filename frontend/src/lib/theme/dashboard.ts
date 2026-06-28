@@ -62,7 +62,7 @@ export function dashboardWidgetValueClass(variant: DashboardWidgetVariant, class
 export function dashboardWidgetIconSolidClass() {
   return cn(
     "p-4 rounded-2xl shadow-lg",
-    "bg-[var(--brand)] text-[var(--brand-foreground)]",
+    "bg-[var(--brand-solid)] text-[var(--on-brand-solid-fg)]",
   );
 }
 

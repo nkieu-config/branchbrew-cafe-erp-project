@@ -4,6 +4,7 @@ export {
   surface,
   text,
   surfaceCardClassName,
+  elevatedPanelClassName,
   hubTabTrackClassName,
   hubTabClassName,
 } from "./surface";
@@ -22,13 +23,20 @@ export { getAntdThemeConfig } from "./antd-bridge";
 export {
   shell,
   sidebarRootClassName,
+  sidebarRailLinkClassName,
+  sidebarRailExpandButtonClassName,
   sidebarBrandTitleClassName,
   sidebarGroupButtonClassName,
   sidebarNavLinkClassName,
+  sidebarNavChildLinkClassName,
   sidebarNavIconClassName,
+  sidebarTreeIndentClassName,
+  sidebarIconButtonClassName,
+  sidebarBranchPillClassName,
   sidebarLogoutButtonClassName,
   topbarBranchPickerClassName,
   topbarBranchIconClassName,
+  topbarClockWidgetClassName,
   breadcrumbNavClassName,
   breadcrumbLinkClassName,
   breadcrumbSeparatorClassName,
@@ -40,6 +48,14 @@ export {
   destructiveMenuItemClassName,
   skipLinkClassName,
   selectFocusClassName,
+  mobileBottomNavClassName,
+  mobileBottomNavItemClassName,
+  mobileBottomNavIconClassName,
+  mainContentWithMobileNavClassName,
+  sidebarPinnedLabelClassName,
+  sidebarPinButtonClassName,
+  sidebarNavBadgeClassName,
+  sidebarRailBadgeDotClassName,
 } from "./shell";
 export {
   dashboardWidgetCardClass,
@@ -61,12 +77,20 @@ export {
   dashboardBranchBadgeAccentClass,
   type DashboardWidgetVariant,
 } from "./dashboard";
-export { getChartTheme, getChartPalette, type ChartTheme } from "./chart-styles";
+export {
+  getChartTheme,
+  getChartPalette,
+  getChartSeriesColor,
+  chartSeriesKeys,
+  type ChartTheme,
+  type ChartSeriesKey,
+} from "./chart-styles";
 export {
   posProductCardClassName,
   posPriceClassName,
   posAddButtonClassName,
   posCartPanelClassName,
+  posFormPanelClassName,
   posCartHeaderClassName,
   posCartSectionClassName,
   posCartBadgeClassName,
@@ -134,6 +158,7 @@ export {
   nativeTableCellMutedClassName,
   nativeTableCellPrimaryClassName,
   nativeTableEmptyCellClassName,
+  semanticTableClassName,
 } from "./data-table";
 export {
   stockLevel,
@@ -167,6 +192,7 @@ export {
   ledgerDebitClassName,
   ledgerCreditClassName,
   ledgerPanelClassName,
+  financeSectionPanelClassName,
   financeSectionTitleClassName,
   financeHubIconClassName,
   financeMetricIconClassName,
@@ -188,6 +214,8 @@ export {
   authHeroPanelClassName,
   authHeroGlowClassName,
   authHeroCardClassName,
+  authHeroTitleClassName,
+  authHeroTextClassName,
   authHeroStatClassName,
   authHeroStatValueClassName,
   authHeroStatLabelClassName,
@@ -258,3 +286,13 @@ export {
   customerTierIconClassName,
   type ShiftBarStatus,
 } from "./hub-ui";
+export {
+  queryErrorBannerClassName,
+  queryErrorMessageClassName,
+  listToolbarClassName,
+  listToolbarSearchClassName,
+  listToolbarFiltersClassName,
+  branchScopeIndicatorClassName,
+  branchScopeAllClassName,
+  tableCellMutedClassName,
+} from "./feedback";

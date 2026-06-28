@@ -67,92 +67,95 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* QafaCafe — Cursor-inspired warm cream + roast orange (light) */
 :root {
-  --background: #F8FAFC;
-  --foreground: #0F172A;
-  --card: #FFFFFF;
-  --card-foreground: #0F172A;
-  --popover: #FFFFFF;
-  --popover-foreground: #0F172A;
-  
-  --primary: #0F172A;
-  --primary-foreground: #F8FAFC;
-  
-  --secondary: #1E293B;
-  --secondary-foreground: #F8FAFC;
-  
-  --muted: #F1F5F9;
-  --muted-foreground: #64748B;
-  
-  --accent: #22C55E;
-  --accent-foreground: #FFFFFF;
-  
-  --destructive: #EF4444;
-  --destructive-foreground: #FFFFFF;
-  
-  --border: #E2E8F0;
-  --input: #E2E8F0;
-  --ring: #22C55E;
-  
-  --chart-1: #22C55E;
-  --chart-2: #0EA5E9;
-  --chart-3: #8B5CF6;
-  --chart-4: #F59E0B;
-  --chart-5: #EC4899;
-  
+  --background: #f7f7f4;
+  --foreground: #26251e;
+  --card: #ffffff;
+  --card-foreground: #26251e;
+  --popover: #ffffff;
+  --popover-foreground: #26251e;
+
+  --primary: #26251e;
+  --primary-foreground: #f7f7f4;
+
+  --secondary: #ebeae5;
+  --secondary-foreground: #26251e;
+
+  --muted: #ebeae5;
+  --muted-foreground: #6b675c;
+
+  --accent: #d4842a;
+  --accent-foreground: #ffffff;
+
+  --destructive: #cf2d56;
+  --destructive-foreground: #ffffff;
+
+  --border: #e6e5e0;
+  --input: #e6e5e0;
+  --ring: #d4842a;
+
+  /* Café chart palette — chart-1 = brand caramel; chart-5 = deep roast umber (not brass) */
+  --chart-1: #d4842a;
+  --chart-2: #7ec8b8;
+  --chart-3: #b8a9c9;
+  --chart-4: #e8a87c;
+  --chart-5: #7a5540;
+
   --radius: 0.75rem;
-  
-  --sidebar: rgba(255, 255, 255, 0.7);
-  --sidebar-foreground: #0F172A;
-  --sidebar-primary: #0F172A;
-  --sidebar-primary-foreground: #F8FAFC;
-  --sidebar-accent: #F1F5F9;
-  --sidebar-accent-foreground: #0F172A;
-  --sidebar-border: rgba(226, 232, 240, 0.5);
-  --sidebar-ring: #22C55E;
+
+  --sidebar: rgba(247, 247, 244, 0.85);
+  --sidebar-foreground: #26251e;
+  --sidebar-primary: #26251e;
+  --sidebar-primary-foreground: #f7f7f4;
+  --sidebar-accent: #ebeae5;
+  --sidebar-accent-foreground: #26251e;
+  --sidebar-border: rgba(230, 229, 224, 0.8);
+  --sidebar-ring: #d4842a;
 }
 
+/* Warm dark — espresso night (not cold slate) */
 .dark {
-  --background: #020617;
-  --foreground: #F8FAFC;
-  --card: #0F172A;
-  --card-foreground: #F8FAFC;
-  --popover: #0F172A;
-  --popover-foreground: #F8FAFC;
-  
-  --primary: #F8FAFC;
-  --primary-foreground: #020617;
-  
-  --secondary: #1E293B;
-  --secondary-foreground: #F8FAFC;
-  
-  --muted: #1E293B;
-  --muted-foreground: #94A3B8;
-  
-  --accent: #22C55E;
-  --accent-foreground: #020617;
-  
-  --destructive: #7f1d1d;
-  --destructive-foreground: #f8fafc;
-  
-  --border: #1E293B;
-  --input: #1E293B;
-  --ring: #22C55E;
-  
-  --chart-1: #22C55E;
-  --chart-2: #0EA5E9;
-  --chart-3: #8B5CF6;
-  --chart-4: #F59E0B;
-  --chart-5: #EC4899;
-  
-  --sidebar: rgba(15, 23, 42, 0.7);
-  --sidebar-foreground: #F8FAFC;
-  --sidebar-primary: #22C55E;
-  --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #1E293B;
-  --sidebar-accent-foreground: #F8FAFC;
-  --sidebar-border: rgba(30, 41, 59, 0.5);
-  --sidebar-ring: #22C55E;
+  --background: #1a1814;
+  --foreground: #f7f7f4;
+  --card: #222019;
+  --card-foreground: #f7f7f4;
+  --popover: #222019;
+  --popover-foreground: #f7f7f4;
+
+  --primary: #f7f7f4;
+  --primary-foreground: #1a1814;
+
+  --secondary: #3d3b33;
+  --secondary-foreground: #f7f7f4;
+
+  --muted: #3d3b33;
+  --muted-foreground: #a09c92;
+
+  --accent: #d4842a;
+  --accent-foreground: #ffffff;
+
+  --destructive: #cf2d56;
+  --destructive-foreground: #ffffff;
+
+  --border: #4a4740;
+  --input: #4a4740;
+  --ring: #d4842a;
+
+  --chart-1: #d4842a;
+  --chart-2: #7ec8b8;
+  --chart-3: #b8a9c9;
+  --chart-4: #e8a87c;
+  --chart-5: #b8a088;
+
+  --sidebar: rgba(38, 37, 30, 0.92);
+  --sidebar-foreground: #f7f7f4;
+  --sidebar-primary: #d4842a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #3d3b33;
+  --sidebar-accent-foreground: #f7f7f4;
+  --sidebar-border: rgba(74, 71, 64, 0.6);
+  --sidebar-ring: #d4842a;
 }
 
 @layer base {

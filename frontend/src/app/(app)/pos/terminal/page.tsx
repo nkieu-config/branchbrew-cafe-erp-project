@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useProducts, useCreateOrder, useCustomerByPhone, useValidatePromotion } from '@/hooks/domains/usePosQueries';
 import { useModifiers } from '@/hooks/domains/useModifierQueries';
 import { useSettings } from '@/hooks/domains/useSettingsQueries';
@@ -56,12 +56,37 @@ import {
   posLoadingSpinnerClassName,
   text,
 } from "@/lib/theme";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { cn } from "@/lib/utils";
 
 export default function POSPage() {
   const { user, activeBranchId } = useAuth();
   const { data: settings } = useSettings();
   const { data: productsData, isLoading: loading } = useProducts();
   const products = filterActive<Product>((productsData || []) as Product[]);
+  const [productSearch, setProductSearch] = useState("");
+  const debouncedProductSearch = useDebouncedValue(productSearch.trim().toLowerCase(), 200);
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+
+  const categories = useMemo(() => {
+    const set = new Set<string>();
+    for (const p of products) {
+      if (p.category) set.add(p.category);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [products]);
+
+  const filteredProducts = useMemo(() => {
+    return products.filter((p) => {
+      const matchesCategory = !categoryFilter || p.category === categoryFilter;
+      const q = debouncedProductSearch;
+      const matchesSearch =
+        !q ||
+        p.name.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q);
+      return matchesCategory && matchesSearch;
+    });
+  }, [products, categoryFilter, debouncedProductSearch]);
   const [cart, setCart] = useState<{
     id: string;
     product: Product;
@@ -313,14 +338,52 @@ export default function POSPage() {
   return (
     <div className="flex h-full gap-6 w-full">
       {/* Products Grid */}
-      <div className="flex-1 overflow-y-auto pr-2 pb-10">
+      <div className="flex-1 overflow-y-auto pr-2 pb-10 space-y-4">
+        <div className="sticky top-0 z-10 space-y-3 rounded-xl border border-[var(--pos-panel-border)] bg-[var(--pos-panel-bg)] p-3 shadow-sm">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-subtle)] pointer-events-none" aria-hidden />
+            <Input
+              type="search"
+              value={productSearch}
+              onChange={(e) => setProductSearch(e.target.value)}
+              placeholder="Search menu items…"
+              className={cn(posInputClassName(), "pl-9 min-h-[44px]")}
+              aria-label="Search menu items"
+            />
+          </div>
+          {categories.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={categoryFilter === null ? "default" : "outline"}
+                className="min-h-[44px]"
+                onClick={() => setCategoryFilter(null)}
+              >
+                All
+              </Button>
+              {categories.map((cat) => (
+                <Button
+                  key={cat}
+                  type="button"
+                  size="sm"
+                  variant={categoryFilter === cat ? "default" : "outline"}
+                  className="min-h-[44px]"
+                  onClick={() => setCategoryFilter(cat)}
+                >
+                  {cat}
+                </Button>
+              ))}
+            </div>
+          )}
+        </div>
         {loading ? (
-          <div className="flex h-full items-center justify-center">
+          <div className="flex h-64 items-center justify-center">
             <Loader2 className={`w-10 h-10 animate-spin ${posLoadingSpinnerClassName()}`} />
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {products.map((product: Product) => (
+            {filteredProducts.map((product: Product) => (
             <Card 
               key={product.id} 
               className={posProductCardClassName()}
@@ -332,13 +395,15 @@ export default function POSPage() {
               </CardHeader>
               <CardContent className="p-4 pt-0 flex justify-between items-center">
                 <span className={posPriceClassName()}>{formatBaht(product.price)}</span>
-                <Button variant="secondary" size="sm" className={posAddButtonClassName()}>Add</Button>
+                <Button variant="secondary" size="sm" className={cn(posAddButtonClassName(), "min-h-[44px]")}>Add</Button>
               </CardContent>
             </Card>
           ))}
-          {products.length === 0 && (
+          {filteredProducts.length === 0 && (
             <div className={posEmptyProductsClassName()}>
-              No menu items yet. Ask a manager to add products under Products → Menu Items.
+              {products.length === 0
+                ? "No menu items yet. Ask a manager to add products under Products → Menu Items."
+                : "No items match your search. Try another keyword or category."}
             </div>
           )}
           </div>

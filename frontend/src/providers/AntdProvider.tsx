@@ -9,7 +9,7 @@ export function AntdProvider({ children }: { children: React.ReactNode }) {
   const { resolvedTheme } = useTheme();
 
   return (
-    <ConfigProvider theme={getAntdThemeConfig(resolvedTheme)}>
+    <ConfigProvider key={resolvedTheme ?? "light"} theme={getAntdThemeConfig(resolvedTheme)}>
       {children}
     </ConfigProvider>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   useSuppliers,
   useCreateSupplier,
@@ -9,11 +9,14 @@ import {
 } from "@/hooks/domains/useProcurementQueries";
 import { HubCard } from "@/components/shared/hub-card";
 import { DataTable } from "@/components/shared/data-table";
+import { ListToolbar } from "@/components/shared/list-toolbar";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { getErrorMessage } from "@/lib/errors";
 import {
   Dialog,
   DialogContent,
@@ -27,10 +30,21 @@ import type { Supplier } from "@/types/api";
 import { hubCtaClassName } from "@/lib/theme";
 
 export default function SuppliersPage() {
-  const { data: suppliers = [], isLoading } = useSuppliers();
+  const { data: suppliers = [], isLoading, isError, error, refetch, isFetching } = useSuppliers();
   const createMutation = useCreateSupplier();
   const updateMutation = useUpdateSupplier();
   const deleteMutation = useDeleteSupplier();
+
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+
+  const filteredSuppliers = useMemo(() => {
+    if (!debouncedSearch) return suppliers;
+    return suppliers.filter((s: Supplier) => {
+      const haystack = [s.name, s.contactEmail ?? "", s.phone ?? ""].join(" ").toLowerCase();
+      return haystack.includes(debouncedSearch);
+    });
+  }, [suppliers, debouncedSearch]);
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Supplier | null>(null);
@@ -114,10 +128,22 @@ export default function SuppliersPage() {
           </Button>
         }
       >
+        <ListToolbar
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Search suppliers…"
+          showReset={search.trim().length > 0}
+          onReset={() => setSearch("")}
+        />
         <DataTable
           loading={isLoading}
+          isError={isError}
+          errorMessage={getErrorMessage(error, "Failed to load suppliers")}
+          onRetry={() => void refetch()}
+          retryLoading={isFetching}
+          emptyDescription={search.trim() ? "No suppliers match your search." : "No suppliers yet."}
           rowKey="id"
-          dataSource={suppliers}
+          dataSource={filteredSuppliers}
           columns={[
             { title: "Name", dataIndex: "name", key: "name" },
             { title: "Email", dataIndex: "contactEmail", key: "email", render: (v: string) => v || "-" },

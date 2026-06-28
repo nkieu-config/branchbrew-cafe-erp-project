@@ -14,7 +14,7 @@ export function resolveThemeMode(resolvedTheme: string | undefined): ThemeMode {
 export function readThemeToken(
   name: `--${string}`,
   mode: ThemeMode,
-  tokenKey: "accent" | "background" | "foreground" | "card" | "muted" | "mutedForeground" | "border",
+  tokenKey: keyof (typeof themeDefaults)["light"],
 ): string {
   const fromCss = readCssVar(name);
   if (fromCss) return fromCss;

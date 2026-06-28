@@ -13,12 +13,18 @@
     @apply backdrop-blur-sm transition-[box-shadow,transform] duration-300 hover:shadow-xl hover:-translate-y-1 motion-reduce:transition-none motion-reduce:hover:translate-y-0 motion-reduce:hover:shadow-lg;
   }
 
+  .dark .glass-panel,
+  .dark .glass-card {
+    backdrop-filter: none;
+  }
+
   .interactive-item {
     @apply transition-transform duration-200 active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100;
   }
 
   .surface-card {
-    @apply rounded-xl border shadow-sm;
+    @apply rounded-xl border;
+    box-shadow: var(--shadow-sm);
     background: var(--surface);
     color: var(--surface-foreground);
     border-color: var(--border);
@@ -36,5 +42,201 @@
 
   .text-subtle {
     color: var(--text-subtle);
+  }
+}
+
+@layer components {
+  /*
+   * Table shells use CSS variables (not antd ConfigProvider colors) so light/dark
+   * toggles update row/header backgrounds synchronously with text tokens.
+   */
+  .data-table-shell {
+    @apply rounded-2xl shadow-sm border overflow-hidden w-full;
+    background: var(--table-container-bg);
+    border-color: var(--table-container-border);
+    color: var(--table-cell-fg);
+  }
+
+  .data-table-shell.data-table-shell--flat {
+    @apply border-none shadow-none;
+  }
+
+  /* Nested in HubCard — one outer shell; table keeps inset header + row hover */
+  .surface-card .data-table-shell {
+    @apply border-none shadow-none rounded-xl;
+  }
+
+  .data-table-shell .ant-table-wrapper,
+  .data-table-shell .ant-table,
+  .data-table-shell .ant-table-container,
+  .data-table-shell .ant-table-content,
+  .data-table-shell .ant-table-body {
+    background: transparent !important;
+  }
+
+  .data-table-shell .ant-table-thead > tr > th,
+  .data-table-shell .ant-table-thead > tr > td {
+    background: var(--table-head-bg) !important;
+    color: var(--table-head-fg) !important;
+    border-bottom-color: var(--table-row-border) !important;
+  }
+
+  .data-table-shell .ant-table-tbody > tr > td {
+    background: var(--table-container-bg) !important;
+    color: var(--table-cell-fg) !important;
+    border-bottom-color: var(--table-row-border) !important;
+  }
+
+  .data-table-shell .ant-table-tbody > tr:last-child > td {
+    border-bottom: none !important;
+  }
+
+  .data-table-shell .ant-table-tbody > tr:hover > td,
+  .data-table-shell .ant-table-tbody > tr.ant-table-row:hover > td {
+    background: var(--table-row-hover) !important;
+  }
+
+  .data-table-shell .ant-table-tbody > tr.ant-table-row-selected > td {
+    background: var(--table-row-hover) !important;
+  }
+
+  .data-table-shell .ant-table-expanded-row > td,
+  .data-table-shell .ant-table-expanded-row-fixed > td {
+    background: var(--table-summary-bg) !important;
+  }
+
+  .data-table-shell .ant-table-summary > tr > td,
+  .data-table-shell .ant-table-summary > tr > th {
+    background: var(--table-summary-bg) !important;
+    color: var(--table-cell-fg) !important;
+    border-bottom-color: var(--table-row-border) !important;
+  }
+
+  .data-table-shell .ant-table-placeholder .ant-table-cell {
+    background: var(--table-container-bg) !important;
+    color: var(--table-cell-fg) !important;
+  }
+
+  .data-table-shell .ant-table-cell-fix-left,
+  .data-table-shell .ant-table-cell-fix-right {
+    background: var(--table-container-bg) !important;
+  }
+
+  .data-table-shell .ant-table-thead .ant-table-cell-fix-left,
+  .data-table-shell .ant-table-thead .ant-table-cell-fix-right {
+    background: var(--table-head-bg) !important;
+  }
+
+  .data-table-shell .ant-table-tbody > tr:hover > .ant-table-cell-fix-left,
+  .data-table-shell .ant-table-tbody > tr:hover > .ant-table-cell-fix-right,
+  .data-table-shell .ant-table-tbody > tr.ant-table-row-selected > .ant-table-cell-fix-left,
+  .data-table-shell .ant-table-tbody > tr.ant-table-row-selected > .ant-table-cell-fix-right {
+    background: var(--table-row-hover) !important;
+  }
+
+  .data-table-shell .ant-pagination {
+    color: var(--table-cell-fg);
+  }
+
+  .data-table-shell .ant-pagination .ant-pagination-item,
+  .data-table-shell .ant-pagination .ant-pagination-prev .ant-pagination-item-link,
+  .data-table-shell .ant-pagination .ant-pagination-next .ant-pagination-item-link {
+    background: var(--table-container-bg);
+    border-color: var(--table-container-border);
+  }
+
+  .data-table-shell .ant-pagination .ant-pagination-item a,
+  .data-table-shell .ant-pagination .ant-pagination-item-link {
+    color: var(--table-cell-fg);
+  }
+
+  .data-table-shell .ant-pagination .ant-pagination-item-active {
+    border-color: var(--brand-text);
+  }
+
+  .data-table-shell .ant-pagination .ant-pagination-item-active a {
+    color: var(--brand-text);
+  }
+
+  .data-table-shell .ant-pagination .ant-pagination-disabled .ant-pagination-item-link {
+    color: var(--text-subtle);
+    background: var(--table-container-bg);
+    border-color: var(--table-container-border);
+  }
+
+  .data-table-shell .ant-pagination .ant-select-selector {
+    background: var(--table-container-bg) !important;
+    border-color: var(--table-container-border) !important;
+    color: var(--table-cell-fg) !important;
+  }
+
+  .data-table-shell .ant-pagination .ant-pagination-options-quick-jumper input {
+    background: var(--table-container-bg);
+    border-color: var(--table-container-border);
+    color: var(--table-cell-fg);
+  }
+
+  .native-table {
+    @apply w-full text-left text-sm whitespace-nowrap;
+    color: var(--table-cell-fg);
+  }
+
+  .native-table thead {
+    @apply text-xs uppercase;
+    background: var(--table-head-bg);
+    color: var(--table-head-fg);
+  }
+
+  .native-table tbody tr {
+    background: var(--table-container-bg);
+  }
+
+  .native-table tbody tr:hover {
+    background: var(--table-row-hover);
+  }
+
+  .native-table :is(th, td) {
+    border-color: var(--table-row-border);
+  }
+
+  .native-table tbody {
+    @apply divide-y;
+    --tw-divide-opacity: 1;
+    border-color: var(--table-row-border);
+  }
+
+  /* shadcn/ui Table — same semantic tokens as antd shell */
+  .semantic-table [data-slot="table-header"] {
+    @apply sticky top-0 z-10;
+    background: var(--table-head-bg);
+    color: var(--table-head-fg);
+  }
+
+  .semantic-table [data-slot="table-header"] [data-slot="table-row"] {
+    border-bottom-color: var(--table-row-border);
+  }
+
+  .semantic-table [data-slot="table-body"] [data-slot="table-row"] {
+    background: var(--table-container-bg);
+    border-bottom-color: var(--table-row-border);
+  }
+
+  .semantic-table [data-slot="table-body"] [data-slot="table-row"]:hover,
+  .semantic-table [data-slot="table-body"] [data-slot="table-row"][data-state="selected"] {
+    background: var(--table-row-hover);
+  }
+
+  .semantic-table [data-slot="table-head"] {
+    color: var(--table-head-fg);
+  }
+
+  .semantic-table [data-slot="table-cell"] {
+    color: var(--table-cell-fg);
+  }
+
+  .semantic-table [data-slot="table-footer"] {
+    background: var(--table-summary-bg);
+    border-top-color: var(--table-row-border);
+    color: var(--table-cell-fg);
   }
 }

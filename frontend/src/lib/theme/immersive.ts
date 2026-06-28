@@ -45,6 +45,14 @@ export function posCartPanelClassName(className?: string) {
   );
 }
 
+export function posFormPanelClassName(className?: string) {
+  return cn(
+    "p-6 rounded-2xl flex flex-col gap-6",
+    "bg-[var(--table-container-bg)] border border-[var(--table-container-border)] shadow-[var(--shadow-sm)]",
+    className,
+  );
+}
+
 export function posCartHeaderClassName(className?: string) {
   return cn(
     "p-4 border-b flex items-center justify-between rounded-t-xl",
@@ -94,14 +102,14 @@ export function posSummaryTotalClassName(className?: string) {
 
 export function posPrimaryActionClassName(className?: string) {
   return cn(
-    "bg-[var(--pos-accent)] text-[var(--brand-foreground)] hover:opacity-90 shadow-lg",
+    "bg-[var(--brand-solid)] text-[var(--on-brand-solid-fg)] hover:opacity-90 shadow-lg",
     className,
   );
 }
 
 export function posPayActionClassName(className?: string) {
   return cn(
-    "bg-[var(--metric-amber)] text-[var(--on-metric-amber-fg)] hover:opacity-90 shadow-lg transition-colors",
+    "bg-[var(--brand-solid)] text-[var(--on-brand-solid-fg)] hover:opacity-90 shadow-lg transition-colors",
     className,
   );
 }
@@ -186,7 +194,7 @@ export function posQueueNumberClassName(className?: string) {
 }
 
 export function posModifierSelectedClassName(className?: string) {
-  return cn("bg-[var(--pos-accent)] hover:opacity-90 font-bold text-[var(--brand-foreground)]", className);
+  return cn("bg-[var(--brand-solid)] hover:opacity-90 font-bold text-[var(--on-brand-solid-fg)]", className);
 }
 
 export function posSettlementIconClassName(className?: string) {
@@ -254,7 +262,7 @@ export function posNumpadDeleteClassName(className?: string) {
 export function posNumpadSubmitClassName(className?: string) {
   return cn(
     "h-16 border-none font-bold text-lg shadow-sm",
-    "bg-[var(--brand)] hover:opacity-90 text-[var(--brand-foreground)]",
+    "bg-[var(--brand-solid)] hover:opacity-90 text-[var(--on-brand-solid-fg)]",
     className,
   );
 }

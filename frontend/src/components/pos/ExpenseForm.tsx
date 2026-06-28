@@ -4,7 +4,8 @@ import { Wallet } from "lucide-react"
 import { toast } from "sonner"
 import { getErrorMessage } from '@/lib/errors'
 import { useCreateExpense } from '@/hooks/domains/useFinanceQueries'
-import { posExpenseIconClassName, posNativeInputClassName, text } from '@/lib/theme'
+import { posExpenseIconClassName, posFormPanelClassName, posNativeInputClassName, text } from '@/lib/theme'
+import { cn } from '@/lib/utils'
 
 export function ExpenseForm({ branchIdNum }: { branchIdNum: number | undefined }) {
   const [expenseForm, setExpenseForm] = useState({ amount: "", category: "", description: "" })
@@ -28,7 +29,7 @@ export function ExpenseForm({ branchIdNum }: { branchIdNum: number | undefined }
   }
 
   return (
-    <div className="glass-panel p-6 rounded-2xl flex flex-col gap-6">
+    <div className={posFormPanelClassName()}>
       <div className="flex items-center gap-3">
         <Wallet className={`w-5 h-5 ${posExpenseIconClassName()}`} />
         <h2 className={`font-semibold text-lg ${text.primary}`}>Record Petty Cash Expense</h2>
@@ -71,8 +72,13 @@ export function ExpenseForm({ branchIdNum }: { branchIdNum: number | undefined }
             placeholder="e.g. Bought 3 bags of ice"
           />
         </div>
-        <Button type="submit" className="w-full mt-2" variant="outline">
-          Record Expense
+        <Button
+          type="submit"
+          className={cn("w-full mt-2 min-h-[44px]")}
+          variant="outline"
+          disabled={createExpenseMutation.isPending}
+        >
+          {createExpenseMutation.isPending ? "Recording…" : "Record Expense"}
         </Button>
       </form>
     </div>

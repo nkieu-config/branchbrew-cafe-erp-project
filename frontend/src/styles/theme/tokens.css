@@ -16,53 +16,62 @@
   --text-secondary: color-mix(in oklch, var(--foreground) 72%, var(--muted-foreground));
   --text-subtle: var(--muted-foreground);
 
-  /* Brand / focus */
+  /* Brand / focus — orange is brand only; success/debit use --semantic-success */
   --brand: var(--accent);
   --brand-foreground: var(--accent-foreground);
-  --focus-ring: var(--ring);
+  --brand-text: color-mix(in oklch, var(--brand) 85%, black);
+  --brand-solid: color-mix(in oklch, var(--brand) 72%, black);
+  --on-brand-solid-fg: var(--accent-foreground);
+  --focus-ring: var(--brand-text);
 
-  /* Stat / metric accents — anchor to shadcn base where possible */
-  --metric-emerald: var(--brand);
+  --semantic-success: #1f8a65;
+  --semantic-warning: var(--chart-4);
+  --semantic-danger: var(--destructive);
+  --on-vivid-surface-fg: var(--accent-foreground);
+  --on-pastel-surface-fg: color-mix(in oklch, var(--foreground) 90%, black);
+
+  /* Stat / metric accents — decoupled from brand orange */
+  --metric-emerald: var(--semantic-success);
   --metric-blue: var(--chart-2);
   --metric-red: var(--destructive);
   --metric-amber: var(--chart-4);
-  --metric-indigo: color-mix(in oklch, var(--metric-blue) 82%, var(--metric-purple));
+  --metric-indigo: color-mix(in oklch, var(--metric-blue) 72%, var(--metric-purple));
   --metric-purple: var(--chart-3);
   --metric-slate: var(--muted-foreground);
 
-  /* Hub module accents */
-  --hub-inventory: var(--metric-emerald);
-  --hub-procurement: var(--metric-blue);
-  --hub-hr: var(--metric-purple);
-  --hub-products: var(--metric-amber);
-  --hub-kitchen: color-mix(in oklch, var(--metric-amber) 55%, var(--metric-red));
-  --hub-crm: var(--chart-5);
-  --hub-finance: color-mix(in oklch, var(--metric-emerald) 78%, black);
-  --hub-assets: var(--metric-slate);
-  --hub-pos: var(--metric-emerald);
-  --hub-settings: var(--metric-slate);
-  --hub-organization: color-mix(in oklch, var(--metric-emerald) 78%, black);
+  /* Hub accents — café warm palette (not rainbow SaaS) */
+  --hub-inventory: var(--semantic-success);
+  --hub-procurement: var(--chart-2);
+  --hub-hr: var(--chart-3);
+  --hub-products: var(--chart-5);
+  --hub-kitchen: var(--chart-4);
+  --hub-crm: color-mix(in oklch, var(--chart-3) 42%, var(--chart-5));
+  --hub-finance: color-mix(in oklch, var(--foreground) 88%, var(--brand) 12%);
+  --hub-assets: var(--muted);
+  --hub-pos: var(--brand-solid);
+  --hub-settings: var(--muted);
+  --hub-organization: color-mix(in oklch, var(--foreground) 88%, var(--brand) 12%);
 
-  /* Foregrounds on solid hub / metric surfaces (CTAs, bars, KDS headers) */
-  --hub-inventory-fg: var(--brand-foreground);
-  --hub-procurement-fg: var(--accent-foreground);
-  --hub-hr-fg: var(--accent-foreground);
-  --hub-products-fg: color-mix(in oklch, var(--hub-products) 22%, var(--foreground));
-  --hub-kitchen-fg: var(--destructive-foreground);
-  --hub-crm-fg: var(--accent-foreground);
-  --hub-finance-fg: var(--brand-foreground);
-  --hub-assets-fg: var(--card-foreground);
-  --hub-pos-fg: var(--brand-foreground);
-  --hub-settings-fg: var(--card-foreground);
-  --hub-organization-fg: var(--brand-foreground);
-  --on-metric-emerald-fg: var(--brand-foreground);
-  --on-metric-indigo-fg: var(--accent-foreground);
-  --on-metric-amber-fg: color-mix(in oklch, var(--metric-amber) 22%, var(--foreground));
+  /* Foregrounds on hub CTA surfaces */
+  --hub-inventory-fg: var(--on-vivid-surface-fg);
+  --hub-procurement-fg: var(--on-pastel-surface-fg);
+  --hub-hr-fg: var(--on-pastel-surface-fg);
+  --hub-products-fg: var(--on-pastel-surface-fg);
+  --hub-kitchen-fg: var(--on-pastel-surface-fg);
+  --hub-crm-fg: var(--on-pastel-surface-fg);
+  --hub-finance-fg: var(--on-vivid-surface-fg);
+  --hub-assets-fg: var(--foreground);
+  --hub-pos-fg: var(--on-brand-solid-fg);
+  --hub-settings-fg: var(--foreground);
+  --hub-organization-fg: var(--on-vivid-surface-fg);
+  --on-metric-emerald-fg: var(--on-vivid-surface-fg);
+  --on-metric-indigo-fg: var(--on-pastel-surface-fg);
+  --on-metric-amber-fg: var(--on-pastel-surface-fg);
   --on-metric-red-fg: var(--destructive-foreground);
   --on-danger-solid-fg: var(--destructive-foreground);
-  --on-kds-header-fg: var(--accent-foreground);
-  --on-kds-start-fg: var(--on-metric-amber-fg);
-  --on-kds-done-fg: var(--brand-foreground);
+  --on-kds-header-fg: var(--on-vivid-surface-fg);
+  --on-kds-start-fg: var(--on-pastel-surface-fg);
+  --on-kds-done-fg: var(--on-vivid-surface-fg);
 
   /* Derived tones — sidebar, widgets, POS build on brand + metrics */
   --tone-brand-subtle: color-mix(in oklch, var(--brand) 10%, var(--card));
@@ -70,7 +79,19 @@
   --tone-brand-border: color-mix(in oklch, var(--brand) 32%, transparent);
   --tone-brand-shadow: color-mix(in oklch, var(--brand) 28%, transparent);
   --tone-brand-fg: color-mix(in oklch, var(--brand) 72%, var(--foreground));
-  --tone-brand-fg-strong: color-mix(in oklch, var(--brand) 85%, black);
+  --tone-brand-fg-strong: var(--brand-text);
+
+  /* Auth hero — warm glass on elevated panel (light) */
+  --auth-hero-card-bg: var(--tone-brand-subtle);
+  --auth-hero-card-border: var(--tone-brand-border);
+  --auth-hero-stat-bg: var(--tone-brand-soft);
+  --auth-hero-stat-border: var(--tone-brand-border);
+
+  --tone-success-subtle: color-mix(in oklch, var(--semantic-success) 10%, var(--card));
+  --tone-success-soft: color-mix(in oklch, var(--semantic-success) 18%, var(--card));
+  --tone-success-border: color-mix(in oklch, var(--semantic-success) 32%, transparent);
+  --tone-success-fg: color-mix(in oklch, var(--semantic-success) 78%, var(--foreground));
+  --tone-success-fg-strong: color-mix(in oklch, var(--semantic-success) 85%, black);
 
   --tone-blue-subtle: color-mix(in oklch, var(--metric-blue) 10%, var(--card));
   --tone-blue-soft: color-mix(in oklch, var(--metric-blue) 18%, var(--card));
@@ -95,12 +116,16 @@
   --tone-crm-border: color-mix(in oklch, var(--hub-crm) 30%, transparent);
   --tone-crm-fg: color-mix(in oklch, var(--hub-crm) 82%, black);
 
+  --tone-products-subtle: color-mix(in oklch, var(--chart-5) 12%, var(--card));
+  --tone-products-border: color-mix(in oklch, var(--chart-5) 35%, transparent);
+  --tone-products-fg: color-mix(in oklch, var(--chart-5) 82%, black);
+
   --tone-neutral-border: color-mix(in oklch, var(--border) 80%, transparent);
   --tone-neutral-icon: color-mix(in oklch, var(--muted-foreground) 85%, transparent);
 
   /* Hub chrome */
   --hub-tab-track: var(--muted);
-  --hub-tab-active: var(--card);
+  --hub-tab-active: var(--surface-elevated);
   --hub-tab-active-fg: var(--foreground);
   --hub-tab-inactive-fg: var(--muted-foreground);
   --hub-tab-inactive-hover: var(--text-secondary);
@@ -111,8 +136,8 @@
   --status-neutral-fg: var(--text-secondary);
   --status-info-bg: var(--tone-blue-soft);
   --status-info-fg: var(--tone-blue-fg-strong);
-  --status-success-bg: var(--tone-brand-soft);
-  --status-success-fg: var(--tone-brand-fg-strong);
+  --status-success-bg: var(--tone-success-soft);
+  --status-success-fg: var(--tone-success-fg-strong);
   --status-warning-bg: var(--tone-amber-subtle);
   --status-warning-fg: var(--tone-amber-fg);
   --status-danger-bg: var(--tone-danger-soft);
@@ -135,11 +160,11 @@
   --space-2xl: 3rem;
   --space-3xl: 4rem;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px rgb(0 0 0 / 0.15);
+  /* Shadows — warm espresso tint (light) */
+  --shadow-sm: 0 1px 2px color-mix(in oklch, var(--foreground) 7%, transparent);
+  --shadow-md: 0 4px 6px color-mix(in oklch, var(--foreground) 9%, transparent);
+  --shadow-lg: 0 10px 15px color-mix(in oklch, var(--foreground) 11%, transparent);
+  --shadow-xl: 0 20px 25px color-mix(in oklch, var(--foreground) 13%, transparent);
 
   /* Glass surfaces */
   --glass-panel-bg: color-mix(in oklch, var(--card) 70%, transparent);
@@ -154,8 +179,9 @@
   --sidebar-border: color-mix(in oklch, var(--border) 50%, transparent);
   --sidebar-divider: color-mix(in oklch, var(--border) 30%, transparent);
   --sidebar-user-panel-bg: color-mix(in oklch, var(--card) 20%, transparent);
-  --sidebar-brand-mark-bg: var(--brand);
-  --sidebar-brand-mark-fg: var(--brand-foreground);
+  --sidebar-panel-bg: var(--card);
+  --sidebar-brand-mark-bg: var(--brand-solid);
+  --sidebar-brand-mark-fg: var(--on-brand-solid-fg);
   --sidebar-brand-gradient-from: var(--foreground);
   --sidebar-brand-gradient-to: var(--metric-slate);
   --sidebar-group-label: var(--tone-neutral-icon);
@@ -164,6 +190,11 @@
   --sidebar-nav-active-fg: var(--tone-brand-fg-strong);
   --sidebar-nav-active-border: var(--tone-brand-border);
   --sidebar-nav-active-icon: var(--brand);
+  --sidebar-nav-active-indicator: var(--brand-solid);
+  --sidebar-tree-border: color-mix(in oklch, var(--border) 40%, transparent);
+
+  --mobile-nav-bg: var(--card);
+  --mobile-nav-border: var(--border);
   --sidebar-nav-inactive-fg: var(--muted-foreground);
   --sidebar-nav-inactive-hover-bg: color-mix(in oklch, var(--card) 60%, transparent);
   --sidebar-nav-inactive-hover-fg: var(--foreground);
@@ -187,8 +218,8 @@
   --profile-avatar-border: color-mix(in oklch, var(--brand), transparent 70%);
   --profile-avatar-fg: var(--brand);
 
-  --skip-link-bg: var(--brand);
-  --skip-link-fg: var(--brand-foreground);
+  --skip-link-bg: var(--brand-solid);
+  --skip-link-fg: var(--on-brand-solid-fg);
 
   /* Dashboard widgets */
   --widget-sales-bg-to: var(--tone-brand-subtle);
@@ -217,8 +248,8 @@
   --widget-alerts-empty-icon: var(--brand);
   --widget-alerts-empty-text: var(--status-success-fg);
 
-  --widget-products-border: var(--tone-amber-border);
-  --widget-products-title: var(--tone-amber-fg);
+  --widget-products-border: var(--tone-products-border);
+  --widget-products-title: var(--tone-products-fg);
 
   --widget-chart-border: var(--tone-purple-border);
   --widget-chart-title: var(--tone-purple-fg);
@@ -243,17 +274,20 @@
   --chart-tooltip-bg: var(--card);
   --chart-tooltip-border: var(--border);
   --chart-tooltip-fg: var(--foreground);
+  --chart-tooltip-shadow: var(--shadow-md);
   --chart-revenue: var(--chart-1);
+  --chart-series-products: var(--chart-5);
   --chart-cursor: var(--surface-muted);
 
-  /* Data tables (antd + native HTML) */
-  --table-container-bg: var(--card);
-  --table-container-border: var(--border);
-  --table-head-bg: var(--surface-inset);
-  --table-head-fg: var(--text-subtle);
-  --table-row-border: var(--border);
-  --table-row-hover: color-mix(in oklch, var(--muted) 50%, transparent);
+  /* Data tables — elevated panels on cream canvas (light) */
+  --table-container-bg: color-mix(in oklch, var(--background) 6%, var(--card));
+  --table-container-border: color-mix(in oklch, var(--border) 75%, var(--foreground) 8%);
+  --table-head-bg: color-mix(in oklch, var(--muted) 85%, var(--border));
+  --table-head-fg: var(--text-secondary);
+  --table-row-border: color-mix(in oklch, var(--border) 70%, var(--foreground) 10%);
+  --table-row-hover: color-mix(in oklch, var(--muted) 55%, var(--table-container-bg));
   --table-cell-fg: var(--foreground);
+  --table-cell-muted-fg: color-mix(in oklch, var(--foreground) 52%, var(--muted-foreground));
   --table-empty-icon: var(--text-subtle);
   --table-summary-bg: var(--surface-inset);
 
@@ -279,23 +313,23 @@
   --form-line-bg: var(--surface-inset);
   --form-line-border: var(--border);
 
-  /* POS immersive (terminal, settlement) */
-  --pos-accent: var(--hub-pos);
+  /* POS / KDS — high-contrast operational surfaces */
+  --pos-accent: var(--brand);
   --pos-accent-soft-bg: var(--tone-brand-soft);
   --pos-accent-soft-fg: var(--tone-brand-fg-strong);
-  --pos-accent-hover-border: color-mix(in oklch, var(--brand) 55%, white);
+  --pos-accent-hover-border: color-mix(in oklch, var(--brand) 45%, var(--foreground));
   --pos-price-fg: var(--tone-amber-fg);
-  --pos-panel-bg: var(--card);
+  --pos-panel-bg: var(--surface-elevated);
   --pos-panel-border: var(--border);
   --pos-panel-header-bg: var(--surface-inset);
   --pos-panel-muted-bg: var(--surface-inset);
-  --pos-summary-bg: var(--secondary);
-  --pos-summary-fg: var(--secondary-foreground);
-  --pos-summary-muted: var(--tone-neutral-icon);
-  --pos-summary-divider: color-mix(in oklch, var(--secondary-foreground) 35%, transparent);
-  --pos-summary-total: var(--metric-amber);
-  --pos-summary-discount: color-mix(in oklch, var(--hub-crm) 55%, white);
-  --pos-summary-reward: color-mix(in oklch, var(--metric-blue) 65%, white);
+  --pos-summary-bg: var(--primary);
+  --pos-summary-fg: var(--primary-foreground);
+  --pos-summary-muted: color-mix(in oklch, var(--primary-foreground) 65%, transparent);
+  --pos-summary-divider: color-mix(in oklch, var(--primary-foreground) 25%, transparent);
+  --pos-summary-total: var(--chart-4);
+  --pos-summary-discount: color-mix(in oklch, var(--hub-crm) 55%, var(--primary-foreground));
+  --pos-summary-reward: color-mix(in oklch, var(--metric-blue) 65%, var(--primary-foreground));
   --pos-crm-bg: var(--tone-blue-subtle);
   --pos-crm-border: var(--tone-blue-border);
   --pos-crm-fg: var(--tone-blue-fg-strong);
@@ -306,16 +340,16 @@
   --pos-settlement-icon: var(--brand);
   --pos-settlement-highlight: var(--metric-blue);
   --pos-expense-icon: var(--tone-amber-fg);
-  --pos-input-bg: var(--card);
+  --pos-input-bg: var(--surface-elevated);
   --pos-input-border: var(--border);
   --pos-numpad-bg: var(--surface-inset);
-  --pos-numpad-display-bg: var(--background);
-  --pos-numpad-key-bg: var(--card);
-  --pos-numpad-key-hover: color-mix(in oklch, var(--metric-amber) 8%, transparent);
+  --pos-numpad-display-bg: var(--surface-elevated);
+  --pos-numpad-key-bg: var(--surface-elevated);
+  --pos-numpad-key-hover: color-mix(in oklch, var(--brand) 10%, var(--surface-elevated));
   --pos-numpad-delete: var(--status-danger-fg);
 
   /* KDS immersive */
-  --kds-ticket-bg: var(--card);
+  --kds-ticket-bg: var(--surface-elevated);
   --kds-ticket-footer-bg: var(--surface-inset);
   --kds-ticket-divider: var(--border);
   --kds-on-time-border: var(--brand);
@@ -326,7 +360,7 @@
   --kds-late-header: var(--metric-red);
   --kds-connected-bg: var(--status-success-bg);
   --kds-connected-fg: var(--status-success-fg);
-  --kds-connected-dot: var(--brand);
+  --kds-connected-dot: var(--semantic-success);
   --kds-disconnected-bg: var(--status-danger-bg);
   --kds-disconnected-fg: var(--status-danger-fg);
   --kds-empty-icon: var(--brand);
@@ -339,29 +373,82 @@
 }
 
 .dark {
-  /* Derived tones auto-adapt via var(--card) / var(--foreground); only override essentials */
+  --surface-elevated: #3a3830;
   --surface-overlay: color-mix(in oklch, var(--card) 90%, transparent);
 
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.35);
+  --shadow-md: 0 4px 8px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 10px 18px rgb(0 0 0 / 0.45);
+  --shadow-xl: 0 20px 28px rgb(0 0 0 / 0.5);
+
+  --glass-panel-bg: var(--card);
+  --glass-panel-border: var(--border);
+  --glass-panel-shadow: var(--shadow-sm);
+  --glass-card-bg: var(--card);
+  --glass-card-border: var(--border);
+  --glass-card-shadow: var(--shadow-sm);
+
+  --brand-text: color-mix(in oklch, var(--brand) 55%, var(--foreground));
+  --brand-solid: color-mix(in oklch, var(--brand) 62%, black);
+  --on-brand-solid-fg: var(--foreground);
+  --on-vivid-surface-fg: var(--foreground);
+  --focus-ring: var(--brand-text);
+
+  /* Hub CTAs — muted fills + cream text (not light-mode pastels) */
+  --hub-procurement: color-mix(in oklch, var(--chart-2) 42%, var(--card));
+  --hub-hr: color-mix(in oklch, var(--chart-3) 42%, var(--card));
+  --hub-kitchen: color-mix(in oklch, var(--chart-4) 42%, var(--card));
+  --hub-products: color-mix(in oklch, var(--chart-5) 48%, var(--card));
+  --hub-crm: color-mix(in oklch, var(--chart-3) 32%, var(--card));
+
+  --on-pastel-surface-fg: var(--foreground);
+  --hub-procurement-fg: var(--foreground);
+  --hub-hr-fg: var(--foreground);
+  --hub-kitchen-fg: var(--foreground);
+  --hub-products-fg: var(--foreground);
+  --hub-crm-fg: var(--foreground);
+  --on-metric-indigo-fg: var(--foreground);
+  --on-metric-amber-fg: var(--foreground);
+
+  /* KDS — operational contrast on espresso canvas */
+  --kds-on-time-border: var(--brand-solid);
+  --kds-on-time-header: var(--brand-solid);
+  --kds-warning-border: color-mix(in oklch, var(--metric-amber) 55%, var(--card));
+  --kds-warning-header: color-mix(in oklch, var(--metric-amber) 55%, var(--card));
+  --kds-late-border: color-mix(in oklch, var(--metric-red) 65%, var(--card));
+  --kds-late-header: color-mix(in oklch, var(--metric-red) 65%, var(--card));
+  --kds-start-btn: color-mix(in oklch, var(--metric-amber) 55%, var(--card));
+  --kds-done-btn: var(--brand-solid);
+  --on-kds-header-fg: var(--foreground);
+  --on-kds-start-fg: var(--foreground);
+  --on-kds-done-fg: var(--foreground);
+
+  --auth-hero-card-bg: color-mix(in oklch, var(--brand) 10%, var(--surface-elevated));
+  --auth-hero-card-border: color-mix(in oklch, var(--brand) 22%, transparent);
+  --auth-hero-stat-bg: color-mix(in oklch, var(--brand) 14%, var(--surface-elevated));
+  --auth-hero-stat-border: color-mix(in oklch, var(--brand) 22%, transparent);
+
   --tone-brand-fg: color-mix(in oklch, var(--brand) 65%, var(--foreground));
-  --tone-brand-fg-strong: color-mix(in oklch, var(--brand) 55%, var(--foreground));
+  --tone-brand-fg-strong: var(--brand-text);
+  --tone-success-fg: color-mix(in oklch, var(--semantic-success) 70%, var(--foreground));
+  --tone-success-fg-strong: color-mix(in oklch, var(--semantic-success) 55%, var(--foreground));
   --tone-blue-fg: color-mix(in oklch, var(--metric-blue) 70%, var(--foreground));
   --tone-blue-fg-strong: color-mix(in oklch, var(--metric-blue) 60%, var(--foreground));
   --tone-danger-fg: color-mix(in oklch, var(--metric-red) 70%, var(--foreground));
   --tone-amber-fg: color-mix(in oklch, var(--metric-amber) 70%, var(--foreground));
   --tone-purple-fg: color-mix(in oklch, var(--metric-purple) 70%, var(--foreground));
   --tone-crm-fg: color-mix(in oklch, var(--hub-crm) 65%, var(--foreground));
+  --tone-products-fg: color-mix(in oklch, var(--chart-5) 65%, var(--foreground));
 
   --hub-tab-track: color-mix(in oklch, var(--muted) 50%, transparent);
 
-  --glass-panel-shadow: transparent;
-  --glass-card-shadow: transparent;
-
   --shell-bg: var(--background);
+  --sidebar-panel-bg: var(--card);
 
   --sidebar-brand-gradient-from: var(--foreground);
   --sidebar-brand-gradient-to: var(--muted-foreground);
 
-  --widget-sales-shadow: transparent;
+  --widget-sales-shadow: var(--shadow-sm);
 
   --widget-alerts-low-value: color-mix(in oklch, var(--metric-red) 75%, var(--foreground));
   --widget-alerts-low-meta: color-mix(in oklch, var(--metric-red) 55%, var(--muted-foreground));
@@ -369,12 +456,18 @@
 
   --widget-error-border: color-mix(in oklch, var(--metric-red) 35%, transparent);
 
+  /* Data tables — elevated body, darker header band, stronger hover/dividers */
+  --table-head-bg: color-mix(in oklch, var(--background) 55%, var(--surface-elevated));
+  --table-row-border: color-mix(in oklch, var(--border) 80%, var(--foreground) 8%);
+  --table-row-hover: color-mix(in oklch, var(--foreground) 10%, var(--table-container-bg));
+  --table-cell-muted-fg: color-mix(in oklch, var(--foreground) 58%, var(--muted-foreground));
+
   --chart-grid: color-mix(in oklch, var(--border) 85%, var(--background));
 
   --expiry-notice-fg: color-mix(in oklch, var(--metric-amber) 25%, var(--foreground));
 
-  --pos-accent-hover-border: color-mix(in oklch, var(--brand) 45%, var(--foreground));
+  --pos-accent-hover-border: color-mix(in oklch, var(--brand) 50%, var(--foreground));
   --pos-price-fg: color-mix(in oklch, var(--metric-amber) 75%, var(--foreground));
-  --pos-summary-total: color-mix(in oklch, var(--metric-amber) 75%, var(--foreground));
-  --pos-numpad-key-hover: color-mix(in oklch, var(--metric-amber) 15%, transparent);
+  --pos-summary-total: var(--chart-4);
+  --pos-numpad-key-hover: color-mix(in oklch, var(--brand) 14%, var(--surface-elevated));
 }

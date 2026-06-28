@@ -11,25 +11,18 @@ import {
   Tooltip,
   Cell,
 } from "recharts";
-import { getChartPalette, getChartTheme } from "@/lib/theme";
+import { getChartPalette } from "@/lib/theme";
+import { useChartTheme } from "@/hooks/useChartTheme";
 
 type TopProduct = { name: string; totalQuantity: number };
 
 export function TopProductsChart({ data }: { data: TopProduct[] }) {
+  const chartTheme = useChartTheme();
   const [colors, setColors] = useState<string[]>(() => getChartPalette());
-  const [chartTheme, setChartTheme] = useState(getChartTheme);
 
   useEffect(() => {
-    const refresh = () => {
-      setColors(getChartPalette());
-      setChartTheme(getChartTheme());
-    };
-    refresh();
-
-    const observer = new MutationObserver(refresh);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
-  }, []);
+    setColors(getChartPalette());
+  }, [chartTheme]);
 
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -49,7 +42,7 @@ export function TopProductsChart({ data }: { data: TopProduct[] }) {
           contentStyle={{
             borderRadius: "12px",
             border: `1px solid ${chartTheme.tooltipBorder}`,
-            boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+            boxShadow: chartTheme.tooltipShadow,
             backgroundColor: chartTheme.tooltipBg,
             color: chartTheme.tooltipFg,
           }}

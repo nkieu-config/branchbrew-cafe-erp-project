@@ -2,25 +2,28 @@
 
 import { useState } from "react"
 import { HubPageHeader } from "@/components/shared/hub-card"
+import { QueryErrorBanner } from "@/components/shared/query-error-banner"
+import { BranchScopeIndicator } from "@/components/shared/branch-scope-indicator"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { StatusBadge, settlementStatusTone } from "@/components/shared/status-badge"
 import { exportSales } from "@/lib/api"
 import { Button } from "@/components/ui/button"
-import { CheckCircle2, DollarSign, Download, RefreshCw } from "lucide-react"
+import { CheckCircle2, DollarSign, Download } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useAuth } from "@/context/AuthContext"
 import { toast } from "sonner"
 import { useFinanceSettlements, useFinanceExpenses, useApproveSettlement } from '@/hooks/domains/useFinanceQueries';
+import { useBranches } from '@/hooks/domains/useGeneralQueries';
 import { getErrorMessage } from "@/lib/errors"
 import { formatDate, formatDateTime } from "@/lib/intl-date"
-import { Settlement, Expense } from "@/types"
+import { Settlement, Expense, Branch } from "@/types"
 import {
   financeApproveButtonClassName,
-  financeErrorBannerClassName,
   financeExpenseAmountClassName,
   financeHubIconClassName,
   financeMetricIconClassName,
   financePrimaryActionClassName,
+  financeSectionPanelClassName,
   financeSectionTitleClassName,
   nativeTableBodyClassName,
   nativeTableCellMutedClassName,
@@ -45,7 +48,11 @@ function FinanceTableSkeleton({ rows = 4 }: { rows?: number }) {
 
 export default function FinanceDashboardPage() {
   const { isAuthenticated, activeBranchId } = useAuth()
+  const { data: branches = [] } = useBranches()
   const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
+  const branchName = branchIdNum
+    ? (branches as Branch[]).find((b) => b.id === branchIdNum)?.name
+    : undefined;
   const [approveTarget, setApproveTarget] = useState<Settlement | null>(null)
   
   const {
@@ -107,25 +114,25 @@ export default function FinanceDashboardPage() {
             : "Showing all branches. Select a branch in the top bar to filter."
         }
         actions={
-          <Button onClick={handleExport} className={financePrimaryActionClassName()}>
-            <Download className="w-4 h-4 mr-2" />
-            Export Sales (CSV)
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <BranchScopeIndicator
+              branchName={branchName}
+              allBranches={!branchIdNum}
+            />
+            <Button onClick={handleExport} className={financePrimaryActionClassName()}>
+              <Download className="w-4 h-4 mr-2" />
+              Export Sales (CSV)
+            </Button>
+          </div>
         }
       />
 
       {hasError && (
-        <div className={financeErrorBannerClassName()}>
-          <p className={`text-sm font-medium ${text.primary}`}>{errorMessage}</p>
-          <Button variant="outline" size="sm" onClick={handleRetry} className="shrink-0">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Retry
-          </Button>
-        </div>
+        <QueryErrorBanner message={errorMessage} onRetry={handleRetry} />
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-panel p-6 rounded-2xl flex flex-col">
+        <div className={financeSectionPanelClassName("flex flex-col")}>
           <h2 className={financeSectionTitleClassName()}>
             <CheckCircle2 className={financeHubIconClassName()} />
             Shift Settlements
@@ -179,7 +186,7 @@ export default function FinanceDashboardPage() {
           </div>
         </div>
 
-        <div className="glass-panel p-6 rounded-2xl flex flex-col">
+        <div className={financeSectionPanelClassName("flex flex-col")}>
           <h2 className={financeSectionTitleClassName()}>
             <DollarSign className={financeMetricIconClassName("amber")} />
             Petty Cash Expenses

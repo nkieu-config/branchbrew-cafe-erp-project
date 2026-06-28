@@ -41,6 +41,7 @@ import { formatBaht } from "@/lib/money";
 import { toNumber } from "@/lib/money";
 import { StatusBadge } from "@/components/shared/status-badge";
 import {
+  formRemoveButtonClassName,
   hubCtaClassName,
   modifierGroupPanelClassName,
   text,
@@ -294,7 +295,7 @@ export default function ModifiersPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-red-600"
+                  className={formRemoveButtonClassName()}
                   onClick={() => setPendingDelete({ type: "group", item: group })}
                 >
                   <Trash2 className="w-4 h-4" />
@@ -344,7 +345,7 @@ export default function ModifiersPage() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-red-600"
+                        className={formRemoveButtonClassName()}
                         onClick={() => setPendingDelete({ type: "option", item: record })}
                       >
                         <Trash2 className="w-4 h-4" />

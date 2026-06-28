@@ -7,10 +7,15 @@ import { Button } from "@/components/ui/button";
 import { Clock, CheckCircle2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errors";
-import { shell, text } from "@/lib/theme";
+import { topbarClockWidgetClassName } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
-export function ClockInOutWidget() {
+type ClockInOutWidgetProps = {
+  /** Reserved for future compact/menu variants. */
+  variant?: "topbar";
+};
+
+export function ClockInOutWidget(_props: ClockInOutWidgetProps = {}) {
   const { user, activeBranchId } = useAuth();
   const [elapsed, setElapsed] = useState("");
 
@@ -67,68 +72,93 @@ export function ClockInOutWidget() {
     }
   };
 
-  const widgetShell = cn(
-    "p-4 border-t bg-[var(--sidebar-user-panel-bg)]",
-    shell.sidebarDivider,
-  );
+  if (!user) return null;
 
   if (isLoading) {
     return (
-      <div className={widgetShell}>
-        <div className="h-10 rounded-xl bg-[var(--sidebar-user-panel-bg)] animate-pulse" />
+      <div className={topbarClockWidgetClassName()} aria-hidden>
+        <div className="h-9 w-24 rounded-lg bg-[var(--surface-inset)] animate-pulse" />
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className={widgetShell}>
-        <p className={cn("text-xs text-center mb-2 text-[var(--status-danger-fg)]")}>
-          {getErrorMessage(error, "Failed to load clock-in status")}
-        </p>
-        <Button variant="outline" size="sm" className="w-full text-xs" onClick={() => void refetch()}>
-          <RefreshCw className="w-3 h-3 mr-1.5" />
-          Retry
+      <div className={topbarClockWidgetClassName()}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="min-h-[44px]"
+          onClick={() => void refetch()}
+          aria-label="Retry loading clock-in status"
+        >
+          <RefreshCw className="w-4 h-4" aria-hidden />
         </Button>
       </div>
     );
   }
 
-  const needsBranch = user?.role === "SUPER_ADMIN" && !activeBranchId;
+  const needsBranch = user.role === "SUPER_ADMIN" && !activeBranchId;
+
+  if (activeRecord) {
+    return (
+      <div className={topbarClockWidgetClassName()}>
+        <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--sidebar-nav-active-fg)]">
+          <CheckCircle2 className="w-3.5 h-3.5 animate-pulse motion-reduce:animate-none" aria-hidden />
+          <span className="sr-only">Active shift</span>
+          <span className="font-mono tabular-nums" aria-live="polite">
+            {elapsed}
+          </span>
+        </span>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => void handleClockOut()}
+          disabled={clockOutMutation.isPending}
+          className="min-h-[44px] shrink-0"
+        >
+          <span className="sm:hidden" aria-hidden>
+            <Clock className="w-4 h-4" />
+          </span>
+          <span className="hidden sm:inline">Clock Out</span>
+          <span className="sr-only sm:hidden">Clock Out</span>
+        </Button>
+      </div>
+    );
+  }
+
+  if (needsBranch) {
+    return (
+      <div className={topbarClockWidgetClassName()} title="Select a branch to clock in">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled
+          className="min-h-[44px] opacity-60"
+        >
+          <Clock className="w-4 h-4 sm:mr-1.5" aria-hidden />
+          <span className="hidden sm:inline">Clock In</span>
+        </Button>
+      </div>
+    );
+  }
 
   return (
-    <div className={cn(widgetShell, "flex flex-col items-center")}>
-      {activeRecord ? (
-        <div className="w-full space-y-3 p-3 rounded-xl border shadow-sm backdrop-blur-sm bg-[var(--surface-overlay)] border-[var(--sidebar-divider)]">
-          <div className="flex items-center justify-between font-bold text-sm text-[var(--sidebar-nav-active-fg)]">
-            <span className="flex items-center gap-1.5">
-              <CheckCircle2 size={16} className="animate-pulse motion-reduce:animate-none" /> Active Shift
-            </span>
-            <span className="font-mono px-2 py-0.5 rounded bg-[var(--sidebar-user-panel-bg)] text-[var(--sidebar-nav-active-fg)]">
-              {elapsed}
-            </span>
-          </div>
-          <Button
-            onClick={() => void handleClockOut()}
-            disabled={clockOutMutation.isPending}
-            className="w-full rounded-lg interactive-item shadow-md bg-primary text-primary-foreground hover:bg-primary/90"
-            size="sm"
-          >
-            Clock Out
-          </Button>
-        </div>
-      ) : needsBranch ? (
-        <p className={cn("text-xs text-center px-2", text.muted)}>Select a branch in the top bar to clock in.</p>
-      ) : (
-        <Button
-          onClick={() => void handleClockIn()}
-          disabled={clockInMutation.isPending}
-          className="w-full rounded-xl interactive-item shadow-md bg-[var(--brand)] text-[var(--brand-foreground)] hover:opacity-90 border border-[var(--sidebar-nav-active-border)]"
-          size="default"
-        >
-          <Clock size={16} className="mr-2" /> Clock In
-        </Button>
-      )}
+    <div className={topbarClockWidgetClassName()}>
+      <Button
+        type="button"
+        size="sm"
+        onClick={() => void handleClockIn()}
+        disabled={clockInMutation.isPending}
+        className="min-h-[44px] bg-[var(--brand-solid)] text-[var(--on-brand-solid-fg)] hover:opacity-90 border-none shadow-sm"
+      >
+        <Clock className="w-4 h-4 sm:mr-1.5" aria-hidden />
+        <span className="hidden sm:inline">Clock In</span>
+        <span className="sr-only sm:hidden">Clock In</span>
+      </Button>
     </div>
   );
 }
