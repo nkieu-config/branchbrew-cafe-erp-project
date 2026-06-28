@@ -142,12 +142,14 @@ export function settlementStatusTone(status: string): StatusTone {
 
 export function equipmentStatusTone(status: string): StatusTone {
   switch (status) {
-    case "OPERATIONAL":
+    case "ACTIVE":
       return "success";
-    case "NEEDS_MAINTENANCE":
+    case "MAINTENANCE":
       return "warning";
-    case "OUT_OF_ORDER":
+    case "BROKEN":
       return "danger";
+    case "RETIRED":
+      return "neutral";
     default:
       return "neutral";
   }

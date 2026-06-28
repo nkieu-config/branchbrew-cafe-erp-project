@@ -43,16 +43,18 @@ export const EquipmentSchema = z.object({
   name: z.string(),
   type: z.string(),
   branchId: z.number(),
-  status: z.enum(['OPERATIONAL', 'MAINTENANCE', 'BROKEN']),
-  lastMaintenance: z.string().optional(),
-  nextMaintenance: z.string().optional(),
+  status: z.enum(['ACTIVE', 'MAINTENANCE', 'BROKEN', 'RETIRED']),
+  serialNumber: z.string().optional(),
+  nextMaintenanceDate: z.string().optional(),
 });
 
 export const LogMaintenanceSchema = z.object({
   description: z.string(),
   cost: z.number().min(0),
-  performedBy: z.string(),
-  date: z.string(),
+  performedBy: z.string().optional(),
+  date: z.string().optional(),
+  nextMaintenanceDate: z.string().optional(),
+  newStatus: z.enum(['ACTIVE', 'MAINTENANCE', 'BROKEN', 'RETIRED']).optional(),
 });
 
 export type LoginDTO = z.infer<typeof LoginSchema>;
