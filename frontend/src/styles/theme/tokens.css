@@ -49,7 +49,7 @@
   --hub-finance: color-mix(in oklch, var(--foreground) 88%, var(--brand) 12%);
   --hub-assets: color-mix(in oklch, var(--metric-slate) 45%, var(--brand) 55%);
   --hub-pos: var(--brand-solid);
-  --hub-settings: var(--muted);
+  --hub-settings: color-mix(in oklch, var(--metric-slate) 60%, var(--foreground) 40%);
   --hub-organization: color-mix(in oklch, var(--foreground) 88%, var(--brand) 12%);
 
   /* Foregrounds on hub CTA surfaces */
@@ -62,7 +62,7 @@
   --hub-finance-fg: var(--on-vivid-surface-fg);
   --hub-assets-fg: var(--on-pastel-surface-fg);
   --hub-pos-fg: var(--on-brand-solid-fg);
-  --hub-settings-fg: var(--foreground);
+  --hub-settings-fg: var(--on-vivid-surface-fg);
   --hub-organization-fg: var(--on-vivid-surface-fg);
   --on-metric-emerald-fg: var(--on-vivid-surface-fg);
   --on-metric-indigo-fg: var(--on-pastel-surface-fg);
@@ -143,6 +143,10 @@
   --tone-organization-subtle: color-mix(in oklch, var(--hub-organization) 10%, var(--card));
   --tone-organization-border: color-mix(in oklch, var(--hub-organization) 30%, transparent);
   --tone-organization-fg: color-mix(in oklch, var(--hub-organization) 82%, black);
+
+  --tone-settings-subtle: color-mix(in oklch, var(--hub-settings) 10%, var(--card));
+  --tone-settings-border: color-mix(in oklch, var(--hub-settings) 30%, transparent);
+  --tone-settings-fg: color-mix(in oklch, var(--hub-settings) 82%, black);
 
   --tone-neutral-border: color-mix(in oklch, var(--border) 80%, transparent);
   --tone-neutral-icon: color-mix(in oklch, var(--muted-foreground) 85%, transparent);
@@ -504,6 +508,7 @@
   --tone-finance-fg: color-mix(in oklch, var(--hub-finance) 65%, var(--foreground));
   --tone-assets-fg: color-mix(in oklch, var(--hub-assets) 65%, var(--foreground));
   --tone-organization-fg: color-mix(in oklch, var(--hub-organization) 65%, var(--foreground));
+  --tone-settings-fg: color-mix(in oklch, var(--hub-settings) 65%, var(--foreground));
 
   --hub-tab-track: color-mix(in oklch, var(--muted) 50%, transparent);
 

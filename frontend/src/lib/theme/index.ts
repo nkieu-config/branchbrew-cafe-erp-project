@@ -276,6 +276,13 @@ export {
   organizationDialogWideClassName,
 } from "./organization";
 export {
+  settingsSectionPanelClassName,
+  settingsHubIconClassName,
+  settingsSummaryChipClassName,
+  auditLegendSwatchClassName,
+  settingsSheetContentClassName,
+} from "./settings-hub";
+export {
   authPageShellClassName,
   authLoadingClassName,
   authBrandMarkClassName,
