@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { CheckCircle2, Clock, PackageOpen, PlayCircle } from "lucide-react";
+import { CheckCircle2, Clock, Lock, PackageOpen, PlayCircle } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
@@ -17,6 +17,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import type { ProductionOrder, Ingredient } from "@/types/api";
 import { formatDate } from "@/lib/intl-date";
+import { formatBaht } from "@/lib/money";
 import {
   hubAccentIconClass,
   kanbanCardClassName,
@@ -38,15 +39,19 @@ function KanbanColumn({
   title,
   icon,
   tone,
+  emptyHint,
   children,
 }: {
   id: string;
   title: string;
   icon: ReactNode;
   tone: StatusTone;
+  emptyHint: string;
   children: ReactNode;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id });
+  const isEmpty = !children || (Array.isArray(children) && children.length === 0);
+
   return (
     <div ref={setNodeRef} className={kanbanColumnClassName(isOver)}>
       <div className={kanbanColumnHeaderClassName(tone)}>
@@ -55,15 +60,23 @@ function KanbanColumn({
           <span>{title}</span>
         </div>
       </div>
-      <div className="p-3 flex-1 overflow-y-auto space-y-3 min-h-[500px]">{children}</div>
+      <div className="p-3 flex-1 overflow-y-auto space-y-3 min-h-[280px] sm:min-h-[400px] lg:min-h-[500px]">
+        {isEmpty ? (
+          <p className={cn("text-sm text-center py-8 px-2", text.muted)}>{emptyHint}</p>
+        ) : (
+          children
+        )}
+      </div>
     </div>
   );
 }
 
 function KanbanCard({ order, isOverlay = false }: { order: ProductionOrderWithTarget; isOverlay?: boolean }) {
+  const isCompleted = order.status === "COMPLETED";
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: order.id,
     data: { order },
+    disabled: isCompleted,
   });
 
   const style = {
@@ -77,13 +90,19 @@ function KanbanCard({ order, isOverlay = false }: { order: ProductionOrderWithTa
       style={style}
       {...listeners}
       {...attributes}
-      className={kanbanCardClassName(isOverlay)}
+      className={cn(
+        kanbanCardClassName(isOverlay),
+        isCompleted && "opacity-80 ring-1 ring-dashed ring-[var(--border)] cursor-not-allowed",
+      )}
     >
       <div className="flex justify-between items-start mb-2">
         <span className={kanbanOrderBadgeClassName()}>{order.orderNumber}</span>
-        {order.status === "COMPLETED" && (
-          <CheckCircle2 className={cn("w-4 h-4", metricValueClassName("emerald"))} />
-        )}
+        {isCompleted ? (
+          <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold uppercase", text.muted)}>
+            <Lock className="w-3 h-3" aria-hidden />
+            Locked
+          </span>
+        ) : null}
       </div>
       <div className={cn("font-bold flex items-center gap-2 mb-1", text.primary)}>
         <PackageOpen className={hubAccentIconClass("kitchen", "w-4 h-4 shrink-0")} />
@@ -97,6 +116,11 @@ function KanbanCard({ order, isOverlay = false }: { order: ProductionOrderWithTa
         <div className={kanbanMetaChipClassName()}>
           <Clock className="w-3 h-3" />
           {formatDate(order.plannedStartDate)}
+        </div>
+      )}
+      {isCompleted && order.actualCost != null && (
+        <div className={cn("mt-2 text-xs font-bold tabular-nums", metricValueClassName("emerald"))}>
+          Actual cost {formatBaht(order.actualCost)}
         </div>
       )}
     </div>
@@ -134,6 +158,7 @@ export function KitchenKanbanBoard({
           title="Planned"
           icon={<Clock className="w-5 h-5" />}
           tone={productionColumnTone("PLANNED")}
+          emptyHint="No planned orders — create one to start production."
         >
           {plannedOrders.map((o) => (
             <KanbanCard key={o.id} order={o} />
@@ -145,6 +170,7 @@ export function KitchenKanbanBoard({
           title="In Progress"
           icon={<PlayCircle className="w-5 h-5" />}
           tone={productionColumnTone("IN_PROGRESS")}
+          emptyHint="Drag a planned order here when production starts."
         >
           {inProgressOrders.map((o) => (
             <KanbanCard key={o.id} order={o} />
@@ -156,6 +182,7 @@ export function KitchenKanbanBoard({
           title="Completed"
           icon={<CheckCircle2 className="w-5 h-5" />}
           tone={productionColumnTone("COMPLETED")}
+          emptyHint="Completed batches appear here with actual cost."
         >
           {completedOrders.map((o) => (
             <KanbanCard key={o.id} order={o} />

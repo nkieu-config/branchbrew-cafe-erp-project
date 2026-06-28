@@ -96,25 +96,30 @@ export function infoBannerTextClassName(className?: string) {
 export function warningBannerClassName(className?: string) {
   return cn(
     "rounded-xl border p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3",
-    "bg-[var(--status-warning-bg)]/50 border-[var(--status-warning-fg)]/20",
+    "bg-[var(--status-warning-bg)] border-[var(--status-warning-fg)]/20",
     className,
   );
 }
 
 export function warningBannerPanelClassName(className?: string) {
-  return cn(warningBannerClassName(), "p-10 text-center max-w-lg mx-auto", className);
+  return cn(
+    "rounded-xl border p-10 text-center max-w-lg mx-auto w-full",
+    "flex flex-col items-center",
+    "bg-[var(--status-warning-bg)] border-[var(--status-warning-fg)]/20",
+    className,
+  );
 }
 
-export function warningBannerIconClassName(hubId: HubId = "kitchen", className?: string) {
-  return cn(hubAccentIconClass(hubId), "shrink-0", className);
+export function warningBannerIconClassName(className?: string) {
+  return cn("w-5 h-5 shrink-0 text-[var(--status-warning-fg)]", className);
 }
 
 export function warningBannerTitleClassName(className?: string) {
-  return cn("font-semibold", text.primary, className);
+  return cn("font-semibold text-[var(--status-warning-fg)]", className);
 }
 
 export function warningBannerTextClassName(className?: string) {
-  return cn("text-sm", text.secondary, className);
+  return cn("text-sm opacity-80 text-[var(--status-warning-fg)]", className);
 }
 
 export function productionColumnTone(status: string): StatusTone {
@@ -401,6 +406,74 @@ export function productsCategoryBadgeClassName(className?: string) {
 }
 
 export function productsDialogContentClassName(className?: string) {
+  return cn(
+    "sm:max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto",
+    "bg-[var(--table-container-bg)] border-[var(--table-container-border)] text-foreground",
+    className,
+  );
+}
+
+export function procurementSectionPanelClassName(className?: string) {
+  return cn(
+    "rounded-xl shadow-sm border p-4 sm:p-6 space-y-4",
+    "bg-[var(--table-container-bg)] border-[var(--table-container-border)]",
+    className,
+  );
+}
+
+export function procurementSummaryChipClassName(active = false, className?: string) {
+  return cn(
+    "rounded-md px-2 py-0.5 font-medium tabular-nums transition-colors",
+    active
+      ? "bg-[var(--tone-procurement-subtle)] ring-1 ring-[var(--tone-procurement-border)]"
+      : "hover:bg-[var(--tone-procurement-subtle)] cursor-pointer",
+    className,
+  );
+}
+
+export function procurementMetaBadgeClassName(className?: string) {
+  return cn(
+    "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium uppercase tracking-wide",
+    "bg-[var(--tone-procurement-subtle)] text-[var(--tone-procurement-fg)] border-[var(--tone-procurement-border)]",
+    className,
+  );
+}
+
+export function procurementDialogContentClassName(className?: string) {
+  return cn(
+    "sm:max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto",
+    "bg-[var(--table-container-bg)] border-[var(--table-container-border)] text-foreground",
+    className,
+  );
+}
+
+export function kitchenSectionPanelClassName(className?: string) {
+  return cn(
+    "rounded-xl shadow-sm border p-4 sm:p-6 space-y-4",
+    "bg-[var(--table-container-bg)] border-[var(--table-container-border)]",
+    className,
+  );
+}
+
+export function kitchenSummaryChipClassName(active = false, className?: string) {
+  return cn(
+    "rounded-md px-2 py-0.5 font-medium tabular-nums transition-colors",
+    active
+      ? "bg-[var(--tone-kitchen-subtle)] ring-1 ring-[var(--tone-kitchen-border)]"
+      : "hover:bg-[var(--tone-kitchen-subtle)] cursor-pointer",
+    className,
+  );
+}
+
+export function kitchenMetaBadgeClassName(className?: string) {
+  return cn(
+    "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium uppercase tracking-wide",
+    "bg-[var(--tone-kitchen-subtle)] text-[var(--tone-kitchen-fg)] border-[var(--tone-kitchen-border)]",
+    className,
+  );
+}
+
+export function kitchenDialogContentClassName(className?: string) {
   return cn(
     "sm:max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto",
     "bg-[var(--table-container-bg)] border-[var(--table-container-border)] text-foreground",

@@ -1,73 +1,128 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import type { ColumnsType } from "antd/es/table";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { usePurchaseOrders, useSuppliers, useCreatePurchaseOrder, useSubmitPurchaseOrder, useApprovePurchaseOrder, useRejectPurchaseOrder, useReceivePurchaseOrder } from '@/hooks/domains/useProcurementQueries';
-import { useIngredients } from '@/hooks/domains/useProductionQueries';
+import {
+  usePurchaseOrders,
+  useSuppliers,
+  useCreatePurchaseOrder,
+  useSubmitPurchaseOrder,
+  useApprovePurchaseOrder,
+  useRejectPurchaseOrder,
+  useReceivePurchaseOrder,
+} from "@/hooks/domains/useProcurementQueries";
+import { useIngredients } from "@/hooks/domains/useProductQueries";
 import { useAuth } from "@/context/AuthContext";
-import { Table, Form, Select, InputNumber, Space, Steps } from "antd";
-import { FormModal } from "@/components/shared/form-modal";
+import { Steps } from "antd";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { StatusBadge, poStatusTone } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
-import { Plus, CheckCircle2, XCircle, CheckSquare, Trash2, Truck, Send, AlertTriangle } from "lucide-react";
-import { toast } from "sonner";
-import { HubCard } from "@/components/shared/hub-card";
-import { BranchEmptyState } from "@/components/shared/branch-empty-state";
-import { DataTable } from "@/components/shared/data-table";
-import { PurchaseOrder, Supplier, Ingredient, PurchaseOrderItem, Branch } from "@/types/api";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Plus,
+  CheckCircle2,
+  XCircle,
+  CheckSquare,
+  Truck,
+  Send,
+  AlertTriangle,
+  Loader2,
+} from "lucide-react";
+import { toast } from "sonner";
+import { HubPageHeader } from "@/components/shared/hub-card";
+import { BranchEmptyState } from "@/components/shared/branch-empty-state";
+import { DataTable } from "@/components/shared/data-table";
+import { ProcurementHubLinks } from "@/components/procurement/ProcurementHubLinks";
+import { CreatePOModal } from "@/components/procurement/CreatePOModal";
 import { formatDateTime } from "@/lib/intl-date";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { ListToolbar } from "@/components/shared/list-toolbar";
 import { getErrorMessage } from "@/lib/errors";
-import { readOperationalStatusParam } from "@/lib/operational-links";
-import { cn } from "@/lib/utils";
+import { formatBaht } from "@/lib/money";
+import {
+  buildProcurementOrdersUrl,
+  parseProcurementOrdersSearchParams,
+} from "@/lib/procurement-hub-url";
+import {
+  computePurchaseOrderTotal,
+  matchesPOHighlightFilter,
+  matchesPOSupplierFilter,
+  matchesPOStatusFilter,
+  summarizePurchaseOrders,
+  type POHighlightFilter,
+  type POStatusFilter,
+} from "@/lib/purchase-order-filters";
+import type { Branch, PurchaseOrder, PurchaseOrderItem, Supplier } from "@/types/api";
 import {
   expandedRowPanelClassName,
-  formSectionClassName,
+  formFieldInsetClassName,
+  formLineDateFieldClassName,
+  formSelectContentClassName,
   hubCtaClassName,
-  hubPrimaryActionClassName,
   infoBannerClassName,
   infoBannerIconClassName,
   infoBannerTextClassName,
   infoBannerTitleClassName,
+  inlineLinkClassName,
+  inventorySummaryStripClassName,
+  listToolbarFieldClassName,
+  metricValueClassName,
+  procurementMetaBadgeClassName,
+  procurementSectionPanelClassName,
+  procurementDialogContentClassName,
+  procurementSummaryChipClassName,
   receiveLineClassName,
   tableActionAccentClassName,
+  tableCellMutedClassName,
   text,
 } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
-interface CreatePOFormValues {
-  supplierId: number;
-  items: { ingredientId: number; quantity: number; unitPrice?: number }[];
-}
-
-export default function ProcurementPage() {
+export default function ProcurementOrdersPage() {
   const { user, activeBranchId } = useAuth();
+  const searchParams = useSearchParams();
   const { data: branches = [] } = useBranches();
   const branchId = activeBranchId ? Number(activeBranchId) : undefined;
   const branchName = (branches as Branch[]).find((b) => b.id === branchId)?.name;
+
   const {
-    data: posData,
+    data: posData = [],
     isLoading: loadingPos,
     isError: posError,
     error: posErr,
     refetch: refetchPos,
     isFetching: posFetching,
   } = usePurchaseOrders();
-  const { data: suppliersData, isLoading: loadingSup } = useSuppliers();
-  const { data: ingredientsData, isLoading: loadingIng } = useIngredients();
+  const { data: suppliersData = [], isLoading: loadingSup } = useSuppliers();
+  const { data: ingredientsData = [], isLoading: loadingIng } = useIngredients();
 
-  const suppliers = suppliersData || [];
-  const ingredients = ingredientsData || [];
-  
-  let pos = posData || [];
-  if (activeBranchId) {
-    pos = pos.filter((po: PurchaseOrder) => po.branchId === activeBranchId);
-  }
+  const suppliers = suppliersData;
+  const ingredients = ingredientsData;
+
+  const branchOrders = useMemo(() => {
+    if (!activeBranchId) return [];
+    return posData.filter((po: PurchaseOrder) => po.branchId === activeBranchId);
+  }, [posData, activeBranchId]);
 
   const loading = loadingPos || loadingSup || loadingIng;
 
@@ -77,52 +132,94 @@ export default function ProcurementPage() {
   const createMutation = useCreatePurchaseOrder();
   const submitMutation = useSubmitPurchaseOrder();
 
-  // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [receivePo, setReceivePo] = useState<PurchaseOrder | null>(null);
   const [expiryByIngredient, setExpiryByIngredient] = useState<Record<number, string>>({});
-  const [submitting, setSubmitting] = useState(false);
-  const [form] = Form.useForm();
   const [confirmAction, setConfirmAction] = useState<
     { type: "approve" | "reject"; po: PurchaseOrder } | null
   >(null);
-  const searchParams = useSearchParams();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
-  const pendingFromUrl = readOperationalStatusParam(searchParams.get("status"), [
-    "PENDING",
-    "DRAFT",
-    "APPROVED",
-    "REJECTED",
-    "RECEIVED",
-  ]);
-  const [statusFilter, setStatusFilter] = useState<string>(pendingFromUrl ?? "ALL");
+  const [statusFilter, setStatusFilter] = useState<POStatusFilter>("ALL");
+  const [highlightFilter, setHighlightFilter] = useState<POHighlightFilter>("ALL");
+  const [supplierFilter, setSupplierFilter] = useState<number | null>(null);
+  const [submittingPoId, setSubmittingPoId] = useState<number | null>(null);
 
   useEffect(() => {
-    if (pendingFromUrl) setStatusFilter(pendingFromUrl);
-  }, [pendingFromUrl]);
+    const parsed = parseProcurementOrdersSearchParams(searchParams);
+    if (parsed.status !== "ALL") setStatusFilter(parsed.status);
+    if (parsed.highlightFilter !== "ALL") setHighlightFilter(parsed.highlightFilter);
+    if (parsed.supplierId != null) setSupplierFilter(parsed.supplierId);
+  }, [searchParams]);
 
-  // Removed manual loadData with useEffect
+  const sortedPos = useMemo(() => {
+    return [...branchOrders].sort((a, b) => {
+      const aDraftAuto = a.status === "DRAFT" && a.isAutoGenerated ? 1 : 0;
+      const bDraftAuto = b.status === "DRAFT" && b.isAutoGenerated ? 1 : 0;
+      if (aDraftAuto !== bDraftAuto) return bDraftAuto - aDraftAuto;
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [branchOrders]);
+
+  const summary = useMemo(() => summarizePurchaseOrders(branchOrders), [branchOrders]);
+
+  const filteredPos = useMemo(() => {
+    return sortedPos.filter((po) => {
+      const matchesStatus = matchesPOStatusFilter(po, statusFilter);
+      const matchesHighlight = matchesPOHighlightFilter(po, highlightFilter);
+      const matchesSupplier = matchesPOSupplierFilter(po, supplierFilter);
+      if (!debouncedSearch) {
+        return matchesStatus && matchesHighlight && matchesSupplier;
+      }
+      const haystack = [String(po.id), po.poNumber, po.status, po.supplier?.name ?? ""]
+        .join(" ")
+        .toLowerCase();
+      return (
+        matchesStatus &&
+        matchesHighlight &&
+        matchesSupplier &&
+        haystack.includes(debouncedSearch)
+      );
+    });
+  }, [sortedPos, debouncedSearch, statusFilter, highlightFilter, supplierFilter]);
+
+  const hasActiveFilters =
+    search.trim().length > 0 ||
+    statusFilter !== "ALL" ||
+    highlightFilter !== "ALL" ||
+    supplierFilter != null;
+
+  const canApprove = user?.role === "SUPER_ADMIN" || user?.role === "MANAGER";
+
+  const toggleStatusFilter = (next: POStatusFilter) => {
+    setStatusFilter((current) => (current === next ? "ALL" : next));
+  };
+
+  const toggleHighlightFilter = () => {
+    setHighlightFilter((current) => (current === "auto-draft" ? "ALL" : "auto-draft"));
+  };
 
   const handleApprove = async (poId: number) => {
     try {
       await approveMutation.mutateAsync(poId);
       toast.success("Purchase Order approved successfully!");
+      setConfirmAction(null);
     } catch (error: unknown) {
-      if (error instanceof Error) toast.error(error.message || "Failed to approve PO");
+      toast.error(getErrorMessage(error, "Failed to approve PO"));
     }
   };
 
   const handleReject = async (poId: number) => {
     try {
       await rejectMutation.mutateAsync(poId);
-      toast.success("Purchase Order rejected.");
+      toast.success("Purchase Order returned to draft.");
+      setConfirmAction(null);
     } catch (error: unknown) {
-      if (error instanceof Error) toast.error(error.message || "Failed to reject PO");
+      toast.error(getErrorMessage(error, "Failed to reject PO"));
     }
   };
 
-  const openReceive = (po: PurchaseOrder) => {
+  const openReceive = useCallback((po: PurchaseOrder) => {
     setReceivePo(po);
     const defaults: Record<number, string> = {};
     const defaultDate = new Date();
@@ -132,7 +229,7 @@ export default function ProcurementPage() {
       defaults[item.ingredientId] = iso;
     }
     setExpiryByIngredient(defaults);
-  };
+  }, []);
 
   const handleReceive = async () => {
     if (!receivePo) return;
@@ -145,468 +242,539 @@ export default function ProcurementPage() {
       toast.success("Purchase Order received! Inventory updated.");
       setReceivePo(null);
     } catch (error: unknown) {
-      if (error instanceof Error) toast.error(error.message || "Failed to receive PO");
+      toast.error(getErrorMessage(error, "Failed to receive PO"));
     }
   };
 
-  const handleCreateSubmit = async (values: CreatePOFormValues) => {
+  const handleCreateSubmit = async (payload: {
+    supplierId: number;
+    items: { ingredientId: number; quantity: number; unitPrice: number }[];
+  }) => {
     if (!activeBranchId) {
       toast.error("Please select a branch first");
       return;
     }
-    if (!values.items || values.items.length === 0) {
-      toast.error("Please add at least one item");
-      return;
-    }
-
-    setSubmitting(true);
     try {
       await createMutation.mutateAsync({
         branchId: activeBranchId,
-        supplierId: values.supplierId,
-        items: values.items.map((i) => ({
-          ingredientId: i.ingredientId,
-          quantity: i.quantity,
-          unitPrice: i.unitPrice ?? 0,
-        })),
+        supplierId: payload.supplierId,
+        items: payload.items,
       });
       toast.success("Purchase Order created successfully");
       setIsModalOpen(false);
-      form.resetFields();
     } catch (err: unknown) {
-      if (err instanceof Error) toast.error(err.message || "Failed to create PO");
+      toast.error(getErrorMessage(err, "Failed to create PO"));
+    }
+  };
+
+  const handleSubmit = async (poId: number) => {
+    setSubmittingPoId(poId);
+    try {
+      await submitMutation.mutateAsync(poId);
+      toast.success("Purchase order submitted for approval");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to submit PO"));
     } finally {
-      setSubmitting(false);
+      setSubmittingPoId(null);
     }
   };
 
   const getStepCurrent = (status: string) => {
     switch (status) {
-      case "DRAFT": return 0;
-      case "PENDING": return 1;
-      case "APPROVED": return 2;
-      case "RECEIVED": return 3;
-      default: return 0;
+      case "DRAFT":
+        return 0;
+      case "PENDING":
+        return 1;
+      case "APPROVED":
+        return 2;
+      case "RECEIVED":
+        return 3;
+      default:
+        return 0;
     }
   };
 
-  const canApprove = user?.role === "SUPER_ADMIN" || user?.role === "MANAGER";
-
-  const sortedPos = useMemo(() => {
-    return [...pos].sort((a, b) => {
-      const aDraftAuto = a.status === 'DRAFT' && a.isAutoGenerated ? 1 : 0;
-      const bDraftAuto = b.status === 'DRAFT' && b.isAutoGenerated ? 1 : 0;
-      if (aDraftAuto !== bDraftAuto) return bDraftAuto - aDraftAuto;
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    });
-  }, [pos]);
-
-  const draftAutoPos = useMemo(
-    () => sortedPos.filter((po) => po.status === 'DRAFT' && po.isAutoGenerated),
-    [sortedPos],
+  const columns = useMemo(
+    () =>
+      [
+        {
+          title: "PO Number",
+          key: "poNumber",
+          render: (_: unknown, record: PurchaseOrder) => (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={cn("font-semibold", text.primary)}>{record.poNumber}</span>
+              {record.isAutoGenerated && (
+                <StatusBadge tone="info" className={procurementMetaBadgeClassName()}>
+                  AUTO
+                </StatusBadge>
+              )}
+            </div>
+          ),
+        },
+        {
+          title: "Supplier",
+          key: "supplier",
+          render: (_: unknown, record: PurchaseOrder) =>
+            record.supplier?.name ? (
+              <Link
+                href={buildProcurementOrdersUrl({ supplier: record.supplierId })}
+                className={inlineLinkClassName()}
+              >
+                {record.supplier.name}
+              </Link>
+            ) : (
+              <span className={text.muted}>—</span>
+            ),
+        },
+        {
+          title: "Total",
+          key: "total",
+          align: "right" as const,
+          responsive: ["md"],
+          render: (_: unknown, record: PurchaseOrder) => (
+            <span className={cn("font-bold tabular-nums", metricValueClassName("emerald"))}>
+              {formatBaht(computePurchaseOrderTotal(record))}
+            </span>
+          ),
+        },
+        {
+          title: "Created",
+          dataIndex: "createdAt",
+          key: "createdAt",
+          responsive: ["lg"],
+          render: (date: string) => (
+            <span className={cn("text-sm", text.muted)}>{formatDateTime(date)}</span>
+          ),
+        },
+        {
+          title: "Status",
+          key: "status",
+          render: (_: unknown, record: PurchaseOrder) => (
+            <StatusBadge tone={poStatusTone(record.status)} className="tracking-wide">
+              {record.status}
+            </StatusBadge>
+          ),
+        },
+        {
+          title: "",
+          key: "action",
+          align: "right" as const,
+          width: 160,
+          render: (_: unknown, po: PurchaseOrder) => (
+            <div className="flex justify-end gap-1">
+              {po.status === "DRAFT" && (po.items?.length ?? 0) > 0 && (
+                <TableActionButton
+                  icon={submittingPoId === po.id ? Loader2 : Send}
+                  label={`Submit ${po.poNumber}`}
+                  onClick={() => {
+                    if (submittingPoId === po.id) return;
+                    void handleSubmit(po.id);
+                  }}
+                  className={cn(
+                    tableActionAccentClassName("indigo"),
+                    submittingPoId === po.id && "[&_svg]:animate-spin",
+                  )}
+                />
+              )}
+              {po.status === "PENDING" && canApprove && (
+                <>
+                  <TableActionButton
+                    icon={CheckSquare}
+                    label={`Approve ${po.poNumber}`}
+                    iconOnly
+                    onClick={() => setConfirmAction({ type: "approve", po })}
+                    className={tableActionAccentClassName("blue")}
+                  />
+                  <TableActionButton
+                    icon={XCircle}
+                    label={`Reject ${po.poNumber}`}
+                    iconOnly
+                    destructive
+                    onClick={() => setConfirmAction({ type: "reject", po })}
+                  />
+                </>
+              )}
+              {po.status === "APPROVED" && (
+                <TableActionButton
+                  icon={CheckCircle2}
+                  label={`Receive ${po.poNumber}`}
+                  onClick={() => openReceive(po)}
+                  className={tableActionAccentClassName("emerald")}
+                />
+              )}
+            </div>
+          ),
+        },
+      ] as ColumnsType<PurchaseOrder>,
+    [canApprove, openReceive, submittingPoId],
   );
 
-  const filteredPos = useMemo(() => {
-    return sortedPos.filter((po) => {
-      const matchesStatus = statusFilter === "ALL" || po.status === statusFilter;
-      if (!debouncedSearch) return matchesStatus;
-      const haystack = [
-        String(po.id),
-        po.status,
-        po.supplier?.name ?? "",
-      ].join(" ").toLowerCase();
-      return matchesStatus && haystack.includes(debouncedSearch);
-    });
-  }, [sortedPos, debouncedSearch, statusFilter]);
-
-  const hasActiveFilters = search.trim().length > 0 || statusFilter !== "ALL";
-
-  const handleSubmit = async (poId: number) => {
-    try {
-      await submitMutation.mutateAsync(poId);
-      toast.success("Purchase order submitted for approval");
-    } catch (error: unknown) {
-      if (error instanceof Error) toast.error(error.message || "Failed to submit PO");
-    }
-  };
-
-  const columns = [
-    {
-      title: 'PO Number',
-      key: 'poNumber',
-      render: (_: unknown, record: PurchaseOrder) => (
-        <div className="flex items-center gap-2">
-          <span className={`font-semibold ${text.primary}`}>{record.poNumber}</span>
-          {record.isAutoGenerated && (
-            <StatusBadge tone="info" className="text-[10px]">AUTO</StatusBadge>
-          )}
-        </div>
-      ),
-    },
-    {
-      title: 'Branch',
-      dataIndex: ['branch', 'name'],
-      key: 'branch',
-    },
-    {
-      title: 'Supplier',
-      dataIndex: ['supplier', 'name'],
-      key: 'supplier',
-    },
-    {
-      title: 'Created At',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (date: string) => formatDateTime(date),
-    },
-    {
-      title: 'Status',
-      key: 'status',
-      render: (_: unknown, record: PurchaseOrder) => (
-        <StatusBadge tone={poStatusTone(record.status)} className="tracking-wide">
-          {record.status}
-        </StatusBadge>
-      ),
-    },
-    {
-      title: 'Action',
-      key: 'action',
-      align: 'right' as const,
-      render: (_: unknown, po: PurchaseOrder) => (
-        <div className="flex justify-end gap-1">
-          {po.status === "DRAFT" && (po.items?.length ?? 0) > 0 && (
-            <TableActionButton
-              icon={Send}
-              label="Submit"
-              onClick={() => void handleSubmit(po.id)}
-              className={tableActionAccentClassName("indigo")}
-            />
-          )}
-          {po.status === "PENDING" && canApprove && (
-            <>
-              <TableActionButton
-                icon={CheckSquare}
-                label="Approve"
-                onClick={() => setConfirmAction({ type: "approve", po })}
-                className={tableActionAccentClassName("blue")}
-              />
-              <TableActionButton
-                icon={XCircle}
-                label="Reject"
-                onClick={() => setConfirmAction({ type: "reject", po })}
-                destructive
-              />
-            </>
-          )}
-
-          {po.status === "APPROVED" && (
-            <TableActionButton
-              icon={CheckCircle2}
-              label="Receive"
-              onClick={() => openReceive(po)}
-              className={tableActionAccentClassName("emerald")}
-            />
-          )}
-        </div>
-      ),
-    },
-  ];
-
   const expandedRowRender = (record: PurchaseOrder) => {
-    const itemColumns = [
-      { title: 'Ingredient', dataIndex: ['ingredient', 'name'], key: 'name' },
-      { title: 'Quantity Req.', dataIndex: 'quantityRequested', key: 'qty', render: (val: number, rec: PurchaseOrderItem) => `${val} ${rec.ingredient?.unit ?? ''}` },
-      { title: 'Unit Price', dataIndex: 'unitPrice', key: 'price', render: (val: number) => `฿${Number(val).toFixed(2)}` },
-      { title: 'Total', key: 'total', render: (_: unknown, rec: PurchaseOrderItem) => `฿${(rec.quantityRequested * rec.unitPrice).toFixed(2)}` },
+    const itemColumns: ColumnsType<PurchaseOrderItem> = [
+      {
+        title: "Ingredient",
+        key: "name",
+        render: (_: unknown, item: PurchaseOrderItem) => item.ingredient?.name ?? "—",
+      },
+      {
+        title: "Quantity",
+        dataIndex: "quantityRequested",
+        key: "qty",
+        responsive: ["md"],
+        render: (val: number, item: PurchaseOrderItem) =>
+          `${val} ${item.ingredient?.unit ?? ""}`,
+      },
+      {
+        title: "Unit Price",
+        dataIndex: "unitPrice",
+        key: "price",
+        align: "right" as const,
+        responsive: ["md"],
+        render: (val: number) => (
+          <span className="tabular-nums">{formatBaht(val)}</span>
+        ),
+      },
+      {
+        title: "Line Total",
+        key: "total",
+        align: "right" as const,
+        render: (_: unknown, item: PurchaseOrderItem) => (
+          <span className={cn("font-bold tabular-nums", text.primary)}>
+            {formatBaht(item.quantityRequested * item.unitPrice)}
+          </span>
+        ),
+      },
     ];
 
     const stepItems = [
       { title: "Draft", description: "Prepared" },
       { title: "Pending", description: "Approval" },
-      { title: "Approved", description: "Waiting Delivery" },
-      { title: "Received", description: "In Stock" }
+      { title: "Approved", description: "Waiting delivery" },
+      { title: "Received", description: "In stock" },
     ];
 
     return (
       <div className={expandedRowPanelClassName()}>
-        <div className="mb-6 px-10">
-          <Steps 
-            current={getStepCurrent(record.status)} 
+        <div className="mb-6 px-2 sm:px-6">
+          <Steps
+            current={getStepCurrent(record.status)}
             size="small"
             status={
-              record.status === 'DRAFT' &&
+              record.status === "DRAFT" &&
               !record.isAutoGenerated &&
               (record.items?.length ?? 0) === 0
-                ? 'error'
-                : 'process'
+                ? "error"
+                : "process"
             }
             items={stepItems}
           />
         </div>
-        <DataTable 
-          columns={itemColumns} 
-          dataSource={record.items ?? []} 
-          rowKey="id" 
-          pagination={false} 
-          size="small" 
+        <DataTable
+          columns={itemColumns}
+          dataSource={record.items ?? []}
+          rowKey="id"
+          pagination={false}
+          size="small"
           hideBorders
         />
       </div>
     );
   };
 
+  if (!activeBranchId) {
+    return (
+      <BranchEmptyState description="Select a branch in the top bar to view and manage purchase orders." />
+    );
+  }
+
   return (
     <>
-      {!activeBranchId ? (
-        <BranchEmptyState description="Select a branch in the top bar to view and manage purchase orders." />
-      ) : (
-      <HubCard
-        title="Purchase Orders"
+      <HubPageHeader
+        hideTitle
         icon={Truck}
-        description="Create and track supplier orders. Use Receive to add approved PO lines into inventory — for ad-hoc receipts without a PO, use Inventory → Receive Stock (GRN)."
+        accentHub="procurement"
+        description="Create and track supplier orders. Use Receive to add approved PO lines into inventory — for ad-hoc receipts without a PO, use Receive Stock (GRN)."
         actions={
-          <Button className={hubCtaClassName("procurement")} onClick={() => setIsModalOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Create PO
-          </Button>
-        }
-      >
-
-      {draftAutoPos.length > 0 && (
-        <div className={infoBannerClassName()}>
-          <div className="flex items-start gap-3">
-            <AlertTriangle className={infoBannerIconClassName()} />
-            <div>
-              <p className={infoBannerTitleClassName()}>
-                {draftAutoPos.length} auto-reorder draft{draftAutoPos.length > 1 ? 's' : ''} ready
-              </p>
-              <p className={infoBannerTextClassName()}>
-                Created when stock fell below minimum. Review and submit for manager approval.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <ListToolbar
-        search={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Search PO #, supplier, status…"
-        branchName={branchName}
-        showReset={hasActiveFilters}
-        onReset={() => {
-          setSearch("");
-          setStatusFilter("ALL");
-        }}
-        filters={
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className={cn(
-              "min-h-[44px] rounded-md border px-3 text-sm",
-              "border-[var(--border)] bg-[var(--table-container-bg)] text-[var(--foreground)]",
-            )}
-            aria-label="Filter by PO status"
-          >
-            <option value="ALL">All statuses</option>
-            <option value="DRAFT">Draft</option>
-            <option value="PENDING">Pending</option>
-            <option value="APPROVED">Approved</option>
-            <option value="RECEIVED">Received</option>
-          </select>
-        }
-      />
-
-      <DataTable 
-        columns={columns} 
-        dataSource={filteredPos} 
-        rowKey="id"
-        loading={loading}
-        isError={posError}
-        errorMessage={getErrorMessage(posErr, "Failed to load purchase orders")}
-        onRetry={() => void refetchPos()}
-        retryLoading={posFetching}
-        emptyDescription={hasActiveFilters ? "No purchase orders match your filters." : "No purchase orders yet."}
-        expandable={{ expandedRowRender }}
-        pagination={{ pageSize: 10 }}
-      />
-      </HubCard>
-      )}
-
-      {/* Create PO Modal */}
-      <FormModal
-        title="Create Purchase Order"
-        icon={Truck}
-        isOpen={isModalOpen}
-        onClose={() => { setIsModalOpen(false); form.resetFields(); }}
-        width={800}
-      >
-        <Form
-          form={form}
-          layout="vertical"
-          onFinish={handleCreateSubmit}
-          className="mt-6"
-        >
-          <Form.Item 
-            label="Select Supplier" 
-            name="supplierId" 
-            rules={[{ required: true, message: 'Supplier is required' }]}
-          >
-            <Select 
-              showSearch
-              placeholder="Search and select supplier"
-              optionFilterProp="children"
-              className="h-10"
-              options={suppliers.map((s: Supplier) => ({ value: s.id, label: s.name }))}
-            />
-          </Form.Item>
-
-          <div className={formSectionClassName()}>
-            <h3 className={`text-sm font-semibold mb-4 ${text.secondary}`}>Order Items</h3>
-            <Form.List name="items">
-              {(fields, { add, remove }) => (
-                <>
-                  {fields.map(({ key, name, ...restField }) => (
-                    <div key={key} className="flex gap-4 items-start mb-4">
-                      <Form.Item
-                        {...restField}
-                        name={[name, 'ingredientId']}
-                        rules={[{ required: true, message: 'Missing ingredient' }]}
-                        className="mb-0 flex-1"
-                      >
-                        <Select 
-                          showSearch
-                          placeholder="Ingredient"
-                          options={ingredients.map((i: Ingredient) => ({ value: i.id, label: `${i.name} (${i.unit})` }))}
-                          onChange={(val) => {
-                            // Auto-fill price if available
-                            const ing = ingredients.find((i: Ingredient) => i.id === val);
-                            if (ing && ing.costPerUnit != null) {
-                              const currentItems = form.getFieldValue('items');
-                              currentItems[name].unitPrice = Number(ing.costPerUnit);
-                              form.setFieldsValue({ items: currentItems });
-                            }
-                          }}
-                        />
-                      </Form.Item>
-
-                      <Form.Item
-                        {...restField}
-                        name={[name, 'quantity']}
-                        rules={[{ required: true, message: 'Missing Qty' }]}
-                        className="mb-0 w-32"
-                      >
-                        <InputNumber placeholder="Qty" min={0.1} step={0.1} className="w-full" />
-                      </Form.Item>
-
-                      <Form.Item
-                        {...restField}
-                        name={[name, 'unitPrice']}
-                        rules={[{ required: true, message: 'Missing Price' }]}
-                        className="mb-0 w-32"
-                      >
-                        <InputNumber placeholder="Price/Unit" min={0} step={0.01} className="w-full" />
-                      </Form.Item>
-
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon-sm"
-                        className="text-destructive hover:text-destructive shrink-0"
-                        onClick={() => remove(name)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                  <Form.Item className="mb-0 mt-4">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full border-dashed"
-                      onClick={() => add()}
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Item
-                    </Button>
-                  </Form.Item>
-                </>
-              )}
-            </Form.List>
-          </div>
-
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
-              Cancel
-            </Button>
+          <ProcurementHubLinks current="orders">
             <Button
-              type="button"
-              className={hubCtaClassName("procurement")}
-              disabled={submitting}
-              onClick={() => form.submit()}
+              className={hubCtaClassName("procurement", "font-bold")}
+              onClick={() => setIsModalOpen(true)}
             >
-              {submitting ? "Submitting…" : "Submit PO"}
+              <Plus className="w-4 h-4 mr-2" aria-hidden />
+              Create PO
             </Button>
-          </div>
-        </Form>
-      </FormModal>
+          </ProcurementHubLinks>
+        }
+      />
 
-      <FormModal
-        title={`Receive ${receivePo?.poNumber ?? 'PO'}`}
-        icon={CheckCircle2}
-        isOpen={!!receivePo}
-        onClose={() => setReceivePo(null)}
-        width={560}
-      >
-        <div className="space-y-4 mt-4">
-          <p className={`text-sm ${text.muted}`}>
-            Receiving a PO updates inventory batches for this order. For deliveries not linked to a PO, use Inventory → Receive Stock (GRN) instead.
-          </p>
-          <p className={`text-sm ${text.muted}`}>Set expiry dates for incoming batches (optional per line).</p>
-          {(receivePo?.items ?? []).map((item) => (
-            <div key={item.id} className={receiveLineClassName()}>
+      <div className={procurementSectionPanelClassName()}>
+        {summary.autoDraft > 0 && (
+          <div className={infoBannerClassName()}>
+            <div className="flex items-start gap-3">
+              <AlertTriangle className={infoBannerIconClassName()} aria-hidden />
               <div>
-                <div className={`font-medium ${text.primary}`}>{item.ingredient?.name}</div>
-                <div className={`text-xs ${text.muted}`}>{item.quantityRequested} {item.ingredient?.unit}</div>
-              </div>
-              <div className="w-44">
-                <Label className="text-xs">Expiry date</Label>
-                <Input
-                  type="date"
-                  value={expiryByIngredient[item.ingredientId] ?? ''}
-                  onChange={(e) =>
-                    setExpiryByIngredient((prev) => ({
-                      ...prev,
-                      [item.ingredientId]: e.target.value,
-                    }))
-                  }
-                />
+                <p className={infoBannerTitleClassName()}>
+                  {summary.autoDraft} auto-reorder draft{summary.autoDraft > 1 ? "s" : ""} ready
+                </p>
+                <p className={infoBannerTextClassName()}>
+                  Created when stock fell below minimum. Review and submit for manager approval.
+                </p>
               </div>
             </div>
-          ))}
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setReceivePo(null)}>
+          </div>
+        )}
+
+        {!loading && !posError && (
+          <div
+            className={inventorySummaryStripClassName()}
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <span className={cn("font-semibold tabular-nums", text.primary)}>
+              {summary.total} purchase order{summary.total === 1 ? "" : "s"}
+            </span>
+            {summary.pending > 0 && (
+              <button
+                type="button"
+                className={procurementSummaryChipClassName(
+                  statusFilter === "PENDING",
+                  metricValueClassName("amber"),
+                )}
+                onClick={() => toggleStatusFilter("PENDING")}
+              >
+                {summary.pending} pending
+              </button>
+            )}
+            {summary.autoDraft > 0 && (
+              <button
+                type="button"
+                className={procurementSummaryChipClassName(
+                  highlightFilter === "auto-draft",
+                  metricValueClassName("blue"),
+                )}
+                onClick={toggleHighlightFilter}
+              >
+                {summary.autoDraft} auto drafts
+              </button>
+            )}
+            {summary.approved > 0 && (
+              <button
+                type="button"
+                className={procurementSummaryChipClassName(
+                  statusFilter === "APPROVED",
+                  metricValueClassName("emerald"),
+                )}
+                onClick={() => toggleStatusFilter("APPROVED")}
+              >
+                {summary.approved} awaiting receive
+              </button>
+            )}
+            {summary.received > 0 && (
+              <button
+                type="button"
+                className={procurementSummaryChipClassName(
+                  statusFilter === "RECEIVED",
+                  text.muted,
+                )}
+                onClick={() => toggleStatusFilter("RECEIVED")}
+              >
+                {summary.received} received
+              </button>
+            )}
+            {summary.total === 0 && (
+              <span className={text.muted}>
+                No purchase orders yet —{" "}
+                <Link href="/procurement/suppliers" className={inlineLinkClassName()}>
+                  add suppliers
+                </Link>{" "}
+                or create a PO
+              </span>
+            )}
+            {posFetching && !loading && (
+              <span className={cn("inline-flex items-center gap-1.5", text.muted)}>
+                <Loader2
+                  className="w-3.5 h-3.5 animate-spin motion-reduce:animate-none"
+                  aria-hidden
+                />
+                Updating…
+              </span>
+            )}
+          </div>
+        )}
+
+        <ListToolbar
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Search PO #, supplier, status…"
+          branchName={branchName}
+          showReset={hasActiveFilters}
+          onReset={() => {
+            setSearch("");
+            setStatusFilter("ALL");
+            setHighlightFilter("ALL");
+            setSupplierFilter(null);
+          }}
+          filters={
+            <>
+              <Select
+                value={statusFilter}
+                onValueChange={(value) => {
+                  if (value != null) setStatusFilter(value as POStatusFilter);
+                }}
+              >
+                <SelectTrigger
+                  className={listToolbarFieldClassName("min-h-[44px] w-full sm:w-[180px]")}
+                  aria-label="Filter by PO status"
+                >
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent className={formSelectContentClassName()}>
+                  <SelectItem value="ALL">All statuses</SelectItem>
+                  <SelectItem value="DRAFT">Draft</SelectItem>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="APPROVED">Approved</SelectItem>
+                  <SelectItem value="RECEIVED">Received</SelectItem>
+                </SelectContent>
+              </Select>
+              {suppliers.length > 0 && (
+                <Select
+                  value={supplierFilter != null ? String(supplierFilter) : "ALL"}
+                  onValueChange={(value) => {
+                    if (value == null) return;
+                    setSupplierFilter(value === "ALL" ? null : Number(value));
+                  }}
+                >
+                  <SelectTrigger
+                    className={listToolbarFieldClassName("min-h-[44px] w-full sm:w-[200px]")}
+                    aria-label="Filter by supplier"
+                  >
+                    <SelectValue placeholder="All suppliers" />
+                  </SelectTrigger>
+                  <SelectContent className={formSelectContentClassName()}>
+                    <SelectItem value="ALL">All suppliers</SelectItem>
+                    {suppliers.map((supplier: Supplier) => (
+                      <SelectItem key={supplier.id} value={String(supplier.id)}>
+                        {supplier.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </>
+          }
+        />
+
+        <DataTable
+          columns={columns}
+          dataSource={filteredPos}
+          rowKey="id"
+          loading={loading}
+          isError={posError}
+          errorMessage={getErrorMessage(posErr, "Failed to load purchase orders")}
+          onRetry={() => void refetchPos()}
+          retryLoading={posFetching}
+          emptyDescription={
+            hasActiveFilters
+              ? "No purchase orders match your filters."
+              : suppliers.length === 0
+                ? "No suppliers yet — add vendors before creating purchase orders."
+                : "No purchase orders yet."
+          }
+          expandable={{ expandedRowRender }}
+          pagination={{
+            pageSize: 15,
+            showSizeChanger: true,
+            pageSizeOptions: ["10", "15", "25", "50"],
+          }}
+          hideBorders
+        />
+      </div>
+
+      <CreatePOModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        suppliers={suppliers}
+        ingredients={ingredients}
+        onSubmit={handleCreateSubmit}
+        isSubmitting={createMutation.isPending}
+      />
+
+      <Dialog open={receivePo != null} onOpenChange={(open) => !open && setReceivePo(null)}>
+        <DialogContent className={procurementDialogContentClassName("sm:max-w-lg")}>
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold">
+              Receive {receivePo?.poNumber ?? "PO"}
+            </DialogTitle>
+            <DialogDescription>
+              Receiving updates inventory batches for this order. For deliveries not linked to a
+              PO, use{" "}
+              <Link href="/inventory/stock-in" className={inlineLinkClassName()}>
+                Receive Stock (GRN)
+              </Link>
+              .
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className={cn("text-sm", text.muted)}>
+              Set expiry dates for incoming batches (optional per line).
+            </p>
+            {(receivePo?.items ?? []).map((item) => (
+              <div key={item.id} className={receiveLineClassName()}>
+                <div>
+                  <div className={cn("font-medium", text.primary)}>{item.ingredient?.name}</div>
+                  <div className={cn("text-xs", text.muted)}>
+                    {item.quantityRequested} {item.ingredient?.unit}
+                  </div>
+                </div>
+                <div className="w-full sm:w-44">
+                  <Label className={cn("text-xs", text.secondary)}>Expiry date</Label>
+                  <Input
+                    type="date"
+                    value={expiryByIngredient[item.ingredientId] ?? ""}
+                    onChange={(e) =>
+                      setExpiryByIngredient((prev) => ({
+                        ...prev,
+                        [item.ingredientId]: e.target.value,
+                      }))
+                    }
+                    className={formLineDateFieldClassName()}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setReceivePo(null)}
+              className="min-h-[44px]"
+            >
               Cancel
             </Button>
             <Button
               type="button"
-              className={hubPrimaryActionClassName()}
               disabled={receiveMutation.isPending}
+              className={cn("min-h-[44px]", hubCtaClassName("procurement", "font-bold"))}
               onClick={() => void handleReceive()}
             >
-              {receiveMutation.isPending ? "Receiving…" : "Confirm Receive"}
+              {receiveMutation.isPending && (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />
+              )}
+              Confirm Receive
             </Button>
-          </div>
-        </div>
-      </FormModal>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         open={confirmAction !== null}
         onOpenChange={(open) => !open && setConfirmAction(null)}
-        title={
-          confirmAction?.type === "approve"
-            ? "Approve this PO?"
-            : "Reject this PO?"
+        title={confirmAction?.type === "approve" ? "Approve this PO?" : "Reject this PO?"}
+        description={
+          confirmAction?.type === "reject"
+            ? "The purchase order will return to draft so it can be edited and resubmitted."
+            : "This will allow the branch to receive the order into inventory."
         }
         confirmLabel={confirmAction?.type === "approve" ? "Approve" : "Reject"}
         destructive={confirmAction?.type === "reject"}

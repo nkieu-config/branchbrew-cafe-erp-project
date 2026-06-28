@@ -1,33 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import {
   useKitchenOrders,
-  useIngredients,
   useCompleteKitchenOrder,
   useUpdateOrderStatus,
   useCreateProductionOrder,
 } from "@/hooks/domains/useProductionQueries";
-import { useBranches } from "@/hooks/domains/useGeneralQueries";
-import { Button, Form, Select, InputNumber, DatePicker, Spin } from "antd";
-import { Ingredient } from "@/types/api";
-import { FormModal } from "@/components/shared/form-modal";
-import { ChefHat, Plus } from "lucide-react";
+import { useProductionBOMs } from "@/hooks/domains/useAccountingQueries";
+import { useIngredients } from "@/hooks/domains/useProductQueries";
+import { ChefHat, Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { HubPageHeader } from "@/components/shared/hub-card";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
+import { QueryErrorBanner } from "@/components/shared/query-error-banner";
+import { KitchenHubLinks } from "@/components/kitchen/KitchenHubLinks";
+import { CreateProductionOrderModal } from "@/components/kitchen/CreateProductionOrderModal";
+import { CentralKitchenBranchNotice } from "@/components/kitchen/central-kitchen-banner";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import type { Branch } from "@/types/api";
+import { useBranches } from "@/hooks/domains/useGeneralQueries";
+import type { Branch, ProductionBOM } from "@/types/api";
 import type { ProductionOrderWithTarget } from "@/components/kitchen/KitchenKanbanBoard";
+import { getErrorMessage } from "@/lib/errors";
+import { getBomTargetIds } from "@/lib/bom-filters";
+import { summarizeProductionOrders } from "@/lib/production-order-filters";
 import {
   hubCtaClassName,
-  warningBannerIconClassName,
-  warningBannerPanelClassName,
-  warningBannerTextClassName,
-  warningBannerTitleClassName,
+  hubLoadingSpinnerClassName,
+  inventorySummaryStripClassName,
+  kitchenSectionPanelClassName,
+  kitchenSummaryChipClassName,
+  metricValueClassName,
+  text,
 } from "@/lib/theme";
+import { cn } from "@/lib/utils";
 
 const KitchenKanbanBoard = dynamic(
   () => import("@/components/kitchen/KitchenKanbanBoard").then((m) => m.KitchenKanbanBoard),
@@ -35,56 +44,74 @@ const KitchenKanbanBoard = dynamic(
     ssr: false,
     loading: () => (
       <div className="py-20 flex justify-center">
-        <Spin size="large" />
+        <Loader2 className={hubLoadingSpinnerClassName()} aria-hidden />
+        <span className="sr-only">Loading production board…</span>
       </div>
     ),
   },
 );
 
 export default function CentralKitchenPage() {
-  const { activeBranchId, setActiveBranchId } = useAuth();
+  const { activeBranchId } = useAuth();
   const { data: branchesData = [] } = useBranches();
   const branches = branchesData as Branch[];
-  const { data: ingredients = [] } = useIngredients();
-  const { data: ordersData = [], isLoading } = useKitchenOrders();
-
   const activeBranch = branches.find((b) => b.id === activeBranchId);
-  const centralKitchen = branches.find((b) => b.isCentralKitchen);
   const isCentralKitchen = activeBranch?.isCentralKitchen === true;
 
+  const { data: ingredients = [] } = useIngredients();
+  const {
+    data: ordersData = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useKitchenOrders();
+  const { data: bomsData = [] } = useProductionBOMs();
+
   const orders = ordersData
-    .filter((o: ProductionOrderWithTarget) => ["PLANNED", "IN_PROGRESS", "COMPLETED"].includes(o.status))
+    .filter((o: ProductionOrderWithTarget) =>
+      ["PLANNED", "IN_PROGRESS", "COMPLETED"].includes(o.status),
+    )
     .filter((o: ProductionOrderWithTarget) => !activeBranchId || o.branchId === activeBranchId);
 
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [form] = Form.useForm();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeOrder, setActiveOrder] = useState<ProductionOrderWithTarget | null>(null);
 
   const completeMutation = useCompleteKitchenOrder();
   const updateStatusMutation = useUpdateOrderStatus();
   const createOrderMutation = useCreateProductionOrder();
 
-  const handleCreate = async (values: { targetIngredientId: number; quantityToProduce: number; plannedStartDate?: Date }) => {
-    if (!activeBranchId) return toast.error("Please select a branch");
-    if (!isCentralKitchen) return toast.error("Switch to a central kitchen branch to create production orders");
+  const bomTargetIds = useMemo(
+    () => getBomTargetIds(bomsData as ProductionBOM[]),
+    [bomsData],
+  );
+
+  const summary = useMemo(() => summarizeProductionOrders(orders), [orders]);
+
+  const handleCreate = async (payload: {
+    targetIngredientId: number;
+    quantityToProduce: number;
+    plannedStartDate: string;
+  }) => {
+    if (!activeBranchId) {
+      toast.error("Please select a branch");
+      return;
+    }
     try {
       await createOrderMutation.mutateAsync({
         branchId: activeBranchId,
-        targetIngredientId: values.targetIngredientId,
-        quantityToProduce: values.quantityToProduce,
-        plannedStartDate: values.plannedStartDate ? values.plannedStartDate.toISOString() : undefined,
+        ...payload,
       });
       toast.success("Production order created");
-      setIsModalVisible(false);
-      form.resetFields();
-    } catch (error: unknown) {
-      if (error instanceof Error) toast.error(error.message || "Failed to create order");
+      setIsModalOpen(false);
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to create order"));
     }
   };
 
   const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    const order = orders.find((o: ProductionOrderWithTarget) => o.id === active.id);
+    const order = orders.find((o: ProductionOrderWithTarget) => o.id === event.active.id);
     setActiveOrder(order ?? null);
   };
 
@@ -109,13 +136,13 @@ export default function CentralKitchenPage() {
         toast.promise(completeMutation.mutateAsync(orderId), {
           loading: "Deducting raw materials…",
           success: "Production completed & inventory updated!",
-          error: (err: unknown) => (err instanceof Error ? err.message : "Failed to complete order"),
+          error: (err: unknown) => getErrorMessage(err, "Failed to complete order"),
         });
       } else {
         await updateStatusMutation.mutateAsync({ id: orderId, status: newStatus });
       }
-    } catch (error: unknown) {
-      if (error instanceof Error) toast.error(error.message || "Failed to update status");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to update status"));
     }
   };
 
@@ -123,106 +150,113 @@ export default function CentralKitchenPage() {
   const inProgressOrders = orders.filter((o: ProductionOrderWithTarget) => o.status === "IN_PROGRESS");
   const completedOrders = orders.filter((o: ProductionOrderWithTarget) => o.status === "COMPLETED");
 
-  const branchGuard = !activeBranchId ? (
-    <BranchEmptyState description="Use the branch selector in the top bar to manage production." />
-  ) : !isCentralKitchen ? (
-    <div className={warningBannerPanelClassName()}>
-      <ChefHat className={warningBannerIconClassName("kitchen", "w-10 h-10 mx-auto mb-4")} />
-      <p className={warningBannerTitleClassName()}>{activeBranch?.name} is not a central kitchen</p>
-      <p className={warningBannerTextClassName("mt-2")}>
-        Production orders are managed at a central kitchen branch. Switch branches to continue.
-      </p>
-      {centralKitchen && (
-        <Button
-          type="primary"
-          className={hubCtaClassName("kitchen", "mt-6 border-none font-bold")}
-          onClick={() => setActiveBranchId(centralKitchen.id)}
-        >
-          Switch to {centralKitchen.name}
-        </Button>
-      )}
-    </div>
-  ) : null;
+  if (!activeBranchId) {
+    return (
+      <BranchEmptyState description="Use the branch selector in the top bar to manage production." />
+    );
+  }
 
   return (
     <div className="space-y-6 w-full">
       <HubPageHeader
-        title="Production Board"
+        hideTitle
         icon={ChefHat}
-        description="Drag and drop orders to update status."
+        accentHub="kitchen"
+        description="Drag and drop orders to update status. Orders refresh every 10 seconds."
         actions={
-          isCentralKitchen ? (
-            <Button
-              type="primary"
-              className={hubCtaClassName("kitchen", "shadow-sm font-bold flex items-center border-none")}
-              onClick={() => setIsModalVisible(true)}
-              icon={<Plus className="w-4 h-4" />}
-            >
-              New Order
-            </Button>
-          ) : undefined
+          <KitchenHubLinks current="production">
+            {isCentralKitchen ? (
+              <Button
+                className={hubCtaClassName("kitchen", "font-bold")}
+                onClick={() => setIsModalOpen(true)}
+              >
+                <Plus className="w-4 h-4 mr-2" aria-hidden />
+                New order
+              </Button>
+            ) : null}
+          </KitchenHubLinks>
         }
       />
 
-      {branchGuard ? (
-        branchGuard
-      ) : isLoading && orders.length === 0 ? (
-        <div className="py-20 flex justify-center">
-          <Spin size="large" />
-        </div>
+      {!isCentralKitchen ? (
+        <CentralKitchenBranchNotice mode="blocking" />
       ) : (
-        <KitchenKanbanBoard
-          plannedOrders={plannedOrders}
-          inProgressOrders={inProgressOrders}
-          completedOrders={completedOrders}
-          activeOrder={activeOrder}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        />
+        <div className={kitchenSectionPanelClassName()}>
+        {!isLoading && !isError && (
+          <div
+            className={inventorySummaryStripClassName()}
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <span className={cn("font-semibold tabular-nums", text.primary)}>
+              {summary.total} production order{summary.total === 1 ? "" : "s"}
+            </span>
+            {summary.planned > 0 && (
+              <span className={kitchenSummaryChipClassName(false, metricValueClassName("blue"))}>
+                {summary.planned} planned
+              </span>
+            )}
+            {summary.inProgress > 0 && (
+              <span className={kitchenSummaryChipClassName(false, metricValueClassName("amber"))}>
+                {summary.inProgress} in progress
+              </span>
+            )}
+            {summary.completed > 0 && (
+              <span className={kitchenSummaryChipClassName(false, metricValueClassName("emerald"))}>
+                {summary.completed} completed
+              </span>
+            )}
+            {summary.total === 0 && (
+              <span className={text.muted}>No orders yet — create one to start production</span>
+            )}
+            {isFetching && !isLoading && (
+              <span className={cn("inline-flex items-center gap-1.5", text.muted)}>
+                <Loader2
+                  className="w-3.5 h-3.5 animate-spin motion-reduce:animate-none"
+                  aria-hidden
+                />
+                Updating…
+              </span>
+            )}
+          </div>
+        )}
+
+        {isError && (
+          <QueryErrorBanner
+            message={getErrorMessage(error, "Failed to load production orders")}
+            onRetry={() => void refetch()}
+            loading={isFetching}
+          />
+        )}
+
+        {isLoading && orders.length === 0 ? (
+          <div className="py-20 flex justify-center">
+            <Loader2 className={hubLoadingSpinnerClassName()} aria-hidden />
+            <span className="sr-only">Loading production board…</span>
+          </div>
+        ) : !isError ? (
+          <KitchenKanbanBoard
+            plannedOrders={plannedOrders}
+            inProgressOrders={inProgressOrders}
+            completedOrders={completedOrders}
+            activeOrder={activeOrder}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          />
+        ) : null}
+        </div>
       )}
 
-      <FormModal title="Create Production Order" isOpen={isModalVisible} onClose={() => setIsModalVisible(false)} width={500}>
-        <Form form={form} layout="vertical" onFinish={handleCreate} className="mt-4">
-          <Form.Item
-            name="targetIngredientId"
-            label={<span className="font-bold">Target Product</span>}
-            rules={[{ required: true, message: "Please select a target product" }]}
-          >
-            <Select
-              showSearch
-              placeholder="Select Target Product"
-              optionFilterProp="children"
-              options={ingredients.map((i: Ingredient) => ({ label: i.name, value: i.id }))}
-              className="h-11"
-            />
-          </Form.Item>
-
-          <Form.Item
-            name="quantityToProduce"
-            label={<span className="font-bold">Quantity</span>}
-            rules={[{ required: true, message: "Please enter quantity" }]}
-          >
-            <InputNumber className="w-full h-11 flex items-center" min={1} />
-          </Form.Item>
-
-          <Form.Item
-            name="plannedStartDate"
-            label={<span className="font-bold">Planned Date</span>}
-            rules={[{ required: true, message: "Please select date" }]}
-          >
-            <DatePicker className="w-full h-11" />
-          </Form.Item>
-
-          <div className="flex justify-end gap-2 mt-6">
-            <Button onClick={() => setIsModalVisible(false)} className="font-bold">
-              Cancel
-            </Button>
-            <Button type="primary" htmlType="submit" className={hubCtaClassName("kitchen", "border-none font-bold px-6")}>
-              Create Order
-            </Button>
-          </div>
-        </Form>
-      </FormModal>
+      {isCentralKitchen && (
+        <CreateProductionOrderModal
+          open={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          ingredients={ingredients}
+          bomTargetIds={bomTargetIds}
+          onSubmit={handleCreate}
+          isSubmitting={createOrderMutation.isPending}
+        />
+      )}
     </div>
   );
 }

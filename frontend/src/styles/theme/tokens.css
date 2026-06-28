@@ -120,6 +120,14 @@
   --tone-products-border: color-mix(in oklch, var(--chart-5) 35%, transparent);
   --tone-products-fg: color-mix(in oklch, var(--chart-5) 82%, black);
 
+  --tone-procurement-subtle: color-mix(in oklch, var(--hub-procurement) 10%, var(--card));
+  --tone-procurement-border: color-mix(in oklch, var(--hub-procurement) 30%, transparent);
+  --tone-procurement-fg: color-mix(in oklch, var(--hub-procurement) 82%, black);
+
+  --tone-kitchen-subtle: color-mix(in oklch, var(--hub-kitchen) 10%, var(--card));
+  --tone-kitchen-border: color-mix(in oklch, var(--hub-kitchen) 30%, transparent);
+  --tone-kitchen-fg: color-mix(in oklch, var(--hub-kitchen) 82%, black);
+
   --tone-neutral-border: color-mix(in oklch, var(--border) 80%, transparent);
   --tone-neutral-icon: color-mix(in oklch, var(--muted-foreground) 85%, transparent);
 
@@ -468,10 +476,14 @@
   --tone-blue-fg: color-mix(in oklch, var(--metric-blue) 70%, var(--foreground));
   --tone-blue-fg-strong: color-mix(in oklch, var(--metric-blue) 60%, var(--foreground));
   --tone-danger-fg: color-mix(in oklch, var(--metric-red) 70%, var(--foreground));
+  --tone-amber-subtle: color-mix(in oklch, var(--metric-amber) 20%, var(--card));
+  --tone-amber-border: color-mix(in oklch, var(--metric-amber) 45%, transparent);
   --tone-amber-fg: color-mix(in oklch, var(--metric-amber) 70%, var(--foreground));
   --tone-purple-fg: color-mix(in oklch, var(--metric-purple) 70%, var(--foreground));
   --tone-crm-fg: color-mix(in oklch, var(--hub-crm) 65%, var(--foreground));
   --tone-products-fg: color-mix(in oklch, var(--chart-5) 65%, var(--foreground));
+  --tone-procurement-fg: color-mix(in oklch, var(--hub-procurement) 65%, var(--foreground));
+  --tone-kitchen-fg: color-mix(in oklch, var(--hub-kitchen) 65%, var(--foreground));
 
   --hub-tab-track: color-mix(in oklch, var(--muted) 50%, transparent);
 
