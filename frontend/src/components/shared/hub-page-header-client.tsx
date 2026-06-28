@@ -15,6 +15,7 @@ export function HubPageHeaderClient({
   accentHub,
   titleLevel = "h2",
   hideTitle = false,
+  branchScope,
 }: HubPageHeaderClientProps) {
   const pageChrome = usePageChromeContext();
 
@@ -24,6 +25,7 @@ export function HubPageHeaderClient({
     hideTitle,
     description,
     actions,
+    branchScope,
   });
 
   if (pageChrome) return null;

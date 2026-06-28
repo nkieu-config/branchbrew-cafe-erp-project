@@ -8,7 +8,11 @@ export default function WasteLogsLayout({ children }: { children: React.ReactNod
     <RoleGuard
       allowedRoles={["SUPER_ADMIN", "MANAGER"]}
       fallback={
-        <AccessDeniedState description="Manager or Super Admin access is required to record and view waste logs." />
+        <AccessDeniedState
+          description="Manager or Super Admin access is required to record and view waste logs."
+          backHref="/inventory"
+          backLabel="Back to Inventory"
+        />
       }
     >
       {children}

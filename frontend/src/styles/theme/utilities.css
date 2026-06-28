@@ -71,6 +71,49 @@
 
 @layer components {
   /*
+   * Inset form controls inside form-line rows — elevated field surface on row bg.
+   * Overrides shadcn Input/Select defaults (incl. dark:bg-input/30) for theme sync.
+   */
+  .form-field-inset[data-slot="input"],
+  .form-field-inset[data-slot="select-trigger"] {
+    background-color: var(--form-field-bg) !important;
+    border-color: var(--form-field-border) !important;
+    color: var(--foreground) !important;
+    box-shadow: inset 0 1px 0 0 color-mix(in oklch, var(--foreground) 5%, transparent);
+  }
+
+  .form-field-inset[data-slot="input"]::placeholder {
+    color: var(--text-subtle);
+  }
+
+  .form-field-inset[data-slot="select-trigger"][data-placeholder] {
+    color: var(--text-subtle);
+  }
+
+  .form-field-inset[data-slot="input"]:hover:not(:disabled),
+  .form-field-inset[data-slot="select-trigger"]:hover:not(:disabled) {
+    background-color: var(--form-field-bg-hover) !important;
+  }
+
+  .form-field-inset[data-slot="input"]:disabled,
+  .form-field-inset[data-slot="select-trigger"]:disabled {
+    background-color: var(--form-field-bg-disabled) !important;
+    color: var(--text-subtle) !important;
+    opacity: 1 !important;
+    cursor: not-allowed;
+  }
+
+  .form-select-content [data-slot="select-item"]:focus,
+  .form-select-content [data-slot="select-item"][data-highlighted] {
+    background: var(--table-row-hover) !important;
+    color: var(--foreground) !important;
+  }
+
+  .form-select-content [data-slot="select-item"]:focus * {
+    color: inherit;
+  }
+
+  /*
    * Table shells use CSS variables (not antd ConfigProvider colors) so light/dark
    * toggles update row/header backgrounds synchronously with text tokens.
    */
@@ -164,40 +207,265 @@
 
   .data-table-shell .ant-pagination .ant-pagination-item,
   .data-table-shell .ant-pagination .ant-pagination-prev .ant-pagination-item-link,
-  .data-table-shell .ant-pagination .ant-pagination-next .ant-pagination-item-link {
-    background: var(--table-container-bg);
-    border-color: var(--table-container-border);
+  .data-table-shell .ant-pagination .ant-pagination-next .ant-pagination-item-link,
+  .data-table-shell .ant-pagination .ant-pagination-jump-prev,
+  .data-table-shell .ant-pagination .ant-pagination-jump-next {
+    background: var(--table-container-bg) !important;
+    border-color: var(--table-container-border) !important;
   }
 
   .data-table-shell .ant-pagination .ant-pagination-item a,
-  .data-table-shell .ant-pagination .ant-pagination-item-link {
-    color: var(--table-cell-fg);
+  .data-table-shell .ant-pagination .ant-pagination-item-link,
+  .data-table-shell .ant-pagination .ant-pagination-jump-prev .ant-pagination-item-container,
+  .data-table-shell .ant-pagination .ant-pagination-jump-next .ant-pagination-item-container {
+    color: var(--table-cell-fg) !important;
+  }
+
+  .data-table-shell .ant-pagination .ant-pagination-item:hover,
+  .data-table-shell .ant-pagination .ant-pagination-prev:hover .ant-pagination-item-link,
+  .data-table-shell .ant-pagination .ant-pagination-next:hover .ant-pagination-item-link {
+    background: var(--table-row-hover) !important;
+    border-color: var(--table-container-border) !important;
   }
 
   .data-table-shell .ant-pagination .ant-pagination-item-active {
-    border-color: var(--brand-text);
+    background: color-mix(in oklch, var(--accent) 12%, var(--table-container-bg)) !important;
+    border-color: var(--brand-text) !important;
   }
 
   .data-table-shell .ant-pagination .ant-pagination-item-active a {
-    color: var(--brand-text);
+    color: var(--brand-text) !important;
   }
 
   .data-table-shell .ant-pagination .ant-pagination-disabled .ant-pagination-item-link {
-    color: var(--text-subtle);
-    background: var(--table-container-bg);
-    border-color: var(--table-container-border);
-  }
-
-  .data-table-shell .ant-pagination .ant-select-selector {
+    color: var(--text-subtle) !important;
     background: var(--table-container-bg) !important;
     border-color: var(--table-container-border) !important;
+  }
+
+  /*
+   * antd 6 Select — root is .ant-select with --ant-select-* vars (no .ant-select-selector).
+   * Bind to app tokens so html.dark toggles update 2026/June + 10/page instantly.
+   */
+  .data-table-shell .ant-pagination .ant-select,
+  .expiry-calendar-shell .ant-picker-calendar-header .ant-select {
+    --ant-select-background-color: var(--table-container-bg) !important;
+    --ant-select-color: var(--table-cell-fg) !important;
+    --ant-select-border-color: var(--table-container-border) !important;
+    --ant-select-affix-color: var(--text-subtle) !important;
+    background-color: var(--table-container-bg) !important;
     color: var(--table-cell-fg) !important;
+    border-color: var(--table-container-border) !important;
+  }
+
+  .data-table-shell .ant-pagination .ant-select:not(.ant-select-disabled):hover,
+  .expiry-calendar-shell .ant-picker-calendar-header .ant-select:not(.ant-select-disabled):hover {
+    --ant-select-background-color: var(--table-row-hover) !important;
+    background-color: var(--table-row-hover) !important;
+  }
+
+  .data-table-shell .ant-pagination .ant-select .ant-select-content-value,
+  .data-table-shell .ant-pagination .ant-select .ant-select-input,
+  .data-table-shell .ant-pagination .ant-select input[readonly],
+  .expiry-calendar-shell .ant-picker-calendar-header .ant-select .ant-select-content-value,
+  .expiry-calendar-shell .ant-picker-calendar-header .ant-select .ant-select-input,
+  .expiry-calendar-shell .ant-picker-calendar-header .ant-select input[readonly] {
+    color: var(--table-cell-fg) !important;
+  }
+
+  .data-table-shell .ant-pagination .ant-select .ant-select-suffix,
+  .expiry-calendar-shell .ant-picker-calendar-header .ant-select .ant-select-suffix {
+    color: var(--text-subtle) !important;
   }
 
   .data-table-shell .ant-pagination .ant-pagination-options-quick-jumper input {
     background: var(--table-container-bg);
     border-color: var(--table-container-border);
     color: var(--table-cell-fg);
+  }
+
+  .data-table-shell .ant-table-row-expand-icon {
+    background: var(--table-container-bg) !important;
+    border-color: var(--table-container-border) !important;
+    color: var(--table-cell-fg) !important;
+  }
+
+  .data-table-shell .ant-table-row-expand-icon:hover {
+    color: var(--brand-text) !important;
+    border-color: var(--brand-text) !important;
+    background: var(--table-row-hover) !important;
+  }
+
+  .data-table-shell .ant-table-row-expand-icon:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  /*
+   * Expiry heatmap calendar — CSS-variable bridge (same pattern as data-table-shell).
+   * Keeps nav buttons, cells, and panel in sync when toggling light/dark without remount lag.
+   */
+  .expiry-calendar-shell.ant-picker-calendar,
+  .expiry-calendar-shell .ant-picker-panel {
+    background: var(--table-container-bg) !important;
+    color: var(--table-cell-fg) !important;
+    border-color: var(--table-row-border) !important;
+  }
+
+  .expiry-calendar-shell .ant-picker-header {
+    border-bottom-color: var(--table-row-border) !important;
+    color: var(--table-cell-fg) !important;
+  }
+
+  .expiry-calendar-shell .ant-picker-header button {
+    color: var(--text-secondary) !important;
+    background: transparent !important;
+  }
+
+  .expiry-calendar-shell .ant-picker-header button:hover {
+    color: var(--foreground) !important;
+    background: var(--table-row-hover) !important;
+  }
+
+  .expiry-calendar-shell .ant-picker-header-view button {
+    color: var(--foreground) !important;
+    font-weight: 700;
+  }
+
+  .expiry-calendar-shell .ant-picker-content th {
+    color: var(--text-subtle) !important;
+  }
+
+  .expiry-calendar-shell .ant-picker-cell {
+    color: var(--text-subtle) !important;
+  }
+
+  .expiry-calendar-shell .ant-picker-cell-in-view {
+    color: var(--table-cell-fg) !important;
+  }
+
+  .expiry-calendar-shell .ant-picker-cell-inner {
+    background: transparent !important;
+  }
+
+  .expiry-calendar-shell
+    .ant-picker-cell-in-view.ant-picker-cell-selected
+    .ant-picker-cell-inner,
+  .expiry-calendar-shell
+    .ant-picker-cell-in-view.ant-picker-cell-selected:hover
+    .ant-picker-cell-inner {
+    background: color-mix(in oklch, var(--accent) 22%, transparent) !important;
+    color: var(--foreground) !important;
+  }
+
+  .expiry-calendar-shell
+    .ant-picker-cell-in-view.ant-picker-cell-today
+    .ant-picker-cell-inner::before {
+    border-color: var(--accent) !important;
+  }
+
+  .expiry-calendar-shell
+    .ant-picker-cell-in-view:not(.ant-picker-cell-selected):hover
+    .ant-picker-cell-inner {
+    background: var(--table-row-hover) !important;
+  }
+
+  .expiry-calendar-shell .ant-picker-calendar-date {
+    border-top-color: var(--table-row-border) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .expiry-calendar-shell .ant-picker-calendar-date-value {
+    color: var(--text-secondary) !important;
+  }
+
+  .expiry-calendar-shell .ant-picker-calendar-date-content {
+    height: auto !important;
+    min-height: 1.75rem;
+  }
+
+  /* Calendar header — year/month Select + month/year mode Radio (not .ant-picker-header nav) */
+  .expiry-calendar-shell .ant-picker-calendar-header {
+    border-bottom: 1px solid var(--table-row-border);
+    padding-block: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .expiry-calendar-shell .ant-picker-calendar-mode-switch .ant-radio-button-wrapper {
+    background: var(--table-container-bg) !important;
+    border-color: var(--table-container-border) !important;
+    color: var(--text-secondary) !important;
+  }
+
+  .expiry-calendar-shell .ant-picker-calendar-mode-switch .ant-radio-button-wrapper-checked {
+    background: color-mix(in oklch, var(--accent) 16%, var(--table-container-bg)) !important;
+    border-color: var(--accent) !important;
+    color: var(--foreground) !important;
+  }
+
+  .expiry-calendar-shell
+    .ant-picker-calendar-mode-switch
+    .ant-radio-button-wrapper-checked:not(.ant-radio-button-wrapper-disabled)::before {
+    background-color: var(--accent) !important;
+  }
+
+  .expiry-calendar-shell .ant-picker-calendar-mode-switch .ant-radio-button-wrapper:hover {
+    color: var(--foreground) !important;
+  }
+
+  .expiry-calendar-shell .ant-select-dropdown {
+    background: var(--popover) !important;
+    color: var(--popover-foreground) !important;
+    border: 1px solid var(--border);
+  }
+
+  .expiry-calendar-shell .ant-select-dropdown .ant-select-item {
+    color: var(--popover-foreground) !important;
+  }
+
+  .expiry-calendar-shell .ant-select-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+    background: var(--table-row-hover) !important;
+  }
+
+  .expiry-calendar-shell .ant-select-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+    background: color-mix(in oklch, var(--accent) 14%, var(--popover)) !important;
+    color: var(--foreground) !important;
+  }
+
+  /*
+   * Portaled ant Select menus (pagination size changer, etc.) — body-level popups
+   * must use app tokens so they track html.dark without remounting.
+   */
+  .ant-select-dropdown {
+    background: var(--popover) !important;
+    color: var(--popover-foreground) !important;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+  }
+
+  .ant-select-dropdown .ant-select-item {
+    color: var(--popover-foreground) !important;
+  }
+
+  .ant-select-dropdown .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+    background: var(--table-row-hover) !important;
+  }
+
+  .ant-select-dropdown .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+    background: color-mix(in oklch, var(--accent) 14%, var(--popover)) !important;
+    color: var(--foreground) !important;
+  }
+
+  .expiry-heatmap-popover .ant-popover-inner {
+    background: var(--popover) !important;
+    color: var(--popover-foreground) !important;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+  }
+
+  .expiry-heatmap-popover .ant-popover-arrow::before {
+    background: var(--popover) !important;
   }
 
   .native-table {

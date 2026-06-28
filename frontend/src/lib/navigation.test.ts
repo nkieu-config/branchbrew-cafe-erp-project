@@ -97,8 +97,8 @@ describe("hub completeness", () => {
 });
 
 describe("resolveHubShellTitle", () => {
-  it("uses hub label on root tab path", () => {
-    expect(resolveHubShellTitle("/inventory", HUBS.inventory)).toBe("Inventory");
+  it("uses tab label on root when it differs from hub label", () => {
+    expect(resolveHubShellTitle("/inventory", HUBS.inventory)).toBe("Overview");
   });
 
   it("uses tab label for single-tab hubs when it differs from hub label", () => {

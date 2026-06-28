@@ -303,14 +303,14 @@
   --ledger-credit-fg: var(--metric-red);
 
   /* Inventory expiry heatmap */
-  --expiry-expired-bg: var(--muted);
-  --expiry-expired-fg: var(--foreground);
+  --expiry-expired-bg: color-mix(in oklch, var(--muted) 70%, var(--metric-red) 12%);
+  --expiry-expired-fg: color-mix(in oklch, var(--metric-red) 65%, var(--foreground));
   --expiry-critical-bg: var(--metric-red);
   --expiry-critical-fg: var(--destructive-foreground);
-  --expiry-warning-bg: var(--hub-kitchen);
-  --expiry-warning-fg: var(--destructive-foreground);
-  --expiry-notice-bg: var(--metric-amber);
-  --expiry-notice-fg: color-mix(in oklch, var(--metric-amber) 90%, black);
+  --expiry-warning-bg: var(--metric-amber);
+  --expiry-warning-fg: color-mix(in oklch, var(--metric-amber) 90%, black);
+  --expiry-notice-bg: color-mix(in oklch, var(--metric-amber) 32%, var(--card));
+  --expiry-notice-fg: color-mix(in oklch, var(--metric-amber) 78%, var(--foreground));
   --expiry-safe-bg: var(--status-success-bg);
   --expiry-safe-fg: var(--status-success-fg);
   --expiry-panel-header-bg: var(--status-danger-bg);
@@ -319,6 +319,10 @@
   /* Form line rows (GRN, waste, etc.) */
   --form-line-bg: var(--surface-inset);
   --form-line-border: var(--border);
+  --form-field-bg: var(--card);
+  --form-field-border: color-mix(in oklch, var(--border) 70%, var(--foreground) 14%);
+  --form-field-bg-hover: color-mix(in oklch, var(--foreground) 4%, var(--form-field-bg));
+  --form-field-bg-disabled: color-mix(in oklch, var(--form-line-bg) 55%, var(--muted));
 
   /* POS / KDS — high-contrast operational surfaces */
   --pos-accent: var(--brand);
@@ -410,6 +414,8 @@
   --focus-ring: var(--brand-text);
 
   /* Hub CTAs — muted fills + cream text (not light-mode pastels) */
+  --hub-inventory: color-mix(in oklch, var(--semantic-success) 52%, var(--card));
+  --hub-inventory-fg: var(--foreground);
   --hub-procurement: color-mix(in oklch, var(--chart-2) 42%, var(--card));
   --hub-hr: color-mix(in oklch, var(--chart-3) 42%, var(--card));
   --hub-kitchen: color-mix(in oklch, var(--chart-4) 42%, var(--card));
@@ -501,7 +507,22 @@
 
   --chart-grid: color-mix(in oklch, var(--border) 85%, var(--background));
 
-  --expiry-notice-fg: color-mix(in oklch, var(--metric-amber) 25%, var(--foreground));
+  --expiry-notice-bg: color-mix(in oklch, var(--metric-amber) 26%, var(--card));
+  --expiry-notice-fg: color-mix(in oklch, var(--metric-amber) 65%, var(--foreground));
+  --expiry-expired-bg: color-mix(in oklch, var(--metric-red) 16%, var(--card));
+  --expiry-expired-fg: color-mix(in oklch, var(--metric-red) 70%, var(--foreground));
+  --expiry-critical-bg: color-mix(in oklch, var(--metric-red) 72%, var(--card));
+  --expiry-critical-fg: color-mix(in oklch, var(--metric-red) 85%, var(--foreground));
+  --expiry-warning-bg: color-mix(in oklch, var(--metric-amber) 55%, var(--card));
+  --expiry-warning-fg: color-mix(in oklch, var(--metric-amber) 80%, var(--foreground));
+  --expiry-panel-header-bg: color-mix(in oklch, var(--metric-red) 18%, var(--card));
+  --expiry-panel-header-fg: color-mix(in oklch, var(--metric-red) 75%, var(--foreground));
+  --form-line-bg: color-mix(in oklch, var(--background) 50%, var(--surface-elevated));
+  --form-line-border: color-mix(in oklch, var(--border) 85%, var(--foreground) 8%);
+  --form-field-bg: color-mix(in oklch, var(--background) 28%, var(--surface-elevated));
+  --form-field-border: color-mix(in oklch, var(--border) 75%, var(--foreground) 14%);
+  --form-field-bg-hover: color-mix(in oklch, var(--foreground) 7%, var(--form-field-bg));
+  --form-field-bg-disabled: color-mix(in oklch, var(--background) 60%, var(--form-line-bg));
 
   --pos-accent-hover-border: color-mix(in oklch, var(--brand) 50%, var(--foreground));
   --pos-price-fg: color-mix(in oklch, var(--metric-amber) 75%, var(--foreground));

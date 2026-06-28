@@ -803,6 +803,10 @@ export function resolveHubShellTitle(pathname: string, hub: HubConfig): string {
     if (hub.tabs.length === 1 && activeTab.label !== hub.label) {
       return activeTab.label;
     }
+    /** Multi-tab hubs on root (e.g. Inventory → Overview tab at /inventory). */
+    if (activeTab.label !== hub.label) {
+      return activeTab.label;
+    }
     return hub.label;
   }
 

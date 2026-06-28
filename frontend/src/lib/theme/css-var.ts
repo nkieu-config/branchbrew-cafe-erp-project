@@ -11,13 +11,21 @@ export function resolveThemeMode(resolvedTheme: string | undefined): ThemeMode {
   return resolvedTheme === "dark" ? "dark" : "light";
 }
 
+function domThemeMatchesMode(mode: ThemeMode): boolean {
+  if (typeof window === "undefined") return false;
+  return document.documentElement.classList.contains("dark") === (mode === "dark");
+}
+
 export function readThemeToken(
   name: `--${string}`,
   mode: ThemeMode,
   tokenKey: keyof (typeof themeDefaults)["light"],
 ): string {
-  const fromCss = readCssVar(name);
-  if (fromCss) return fromCss;
+  /** Avoid baking the previous theme when html.dark and resolvedTheme are briefly out of sync. */
+  if (domThemeMatchesMode(mode)) {
+    const fromCss = readCssVar(name);
+    if (fromCss) return fromCss;
+  }
   const value = themeDefaults[mode][tokenKey];
   return typeof value === "number" ? String(value) : value;
 }

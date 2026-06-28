@@ -1,6 +1,7 @@
 import React from "react";
 import { Table, Skeleton } from "antd";
 import type { TableProps } from "antd";
+import { useTheme } from "next-themes";
 import { Inbox } from "lucide-react";
 import { QueryErrorBanner } from "@/components/shared/query-error-banner";
 import {
@@ -41,6 +42,9 @@ export function DataTable<RecordType extends object = object>({
   locale,
   ...props
 }: DataTableProps<RecordType>) {
+  const { resolvedTheme } = useTheme();
+  const tableThemeKey = resolvedTheme ?? "light";
+
   if (props.loading && (!props.dataSource || (Array.isArray(props.dataSource) && props.dataSource.length === 0))) {
     return (
       <div className={dataTableSkeletonClassName({ hideBorders }, containerClassName)}>
@@ -60,6 +64,7 @@ export function DataTable<RecordType extends object = object>({
       )}
       <div className={dataTableContainerClassName({ hideBorders }, containerClassName)}>
         <Table
+          key={tableThemeKey}
           pagination={{
             placement: ["bottomEnd"],
             showSizeChanger: true,

@@ -29,6 +29,11 @@ export function listToolbarSearchClassName(className?: string) {
   return cn("w-full sm:max-w-xs min-h-[44px]", className);
 }
 
+/** Elevated field surface inside list toolbars — matches form-field-inset tokens. */
+export function listToolbarFieldClassName(className?: string) {
+  return cn("form-field-inset rounded-xl", className);
+}
+
 export function listToolbarFiltersClassName(className?: string) {
   return cn("flex flex-wrap items-center gap-2", className);
 }

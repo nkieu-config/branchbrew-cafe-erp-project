@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { BranchScopeIndicator } from "@/components/shared/branch-scope-indicator";
 import {
   listToolbarClassName,
+  listToolbarFieldClassName,
   listToolbarFiltersClassName,
   listToolbarSearchClassName,
 } from "@/lib/theme";
@@ -51,7 +52,7 @@ export function ListToolbar({
               value={search ?? ""}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder={searchPlaceholder}
-              className={cn(listToolbarSearchClassName(), "pl-9")}
+              className={cn(listToolbarFieldClassName(), listToolbarSearchClassName(), "pl-9")}
               aria-label={searchPlaceholder}
             />
           </div>

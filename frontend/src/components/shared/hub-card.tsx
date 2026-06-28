@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { LucideIcon } from "lucide-react";
 import type { HubId } from "@/lib/navigation";
+import type { PageChromeBranchScope } from "@/components/layout/PageChrome";
 import { hubCardIconClass, surfaceCardClassName, text } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { HubPageHeaderClient } from "@/components/shared/hub-page-header-client";
@@ -18,6 +19,8 @@ export interface HubCardProps {
   titleLevel?: "h1" | "h2" | "h3";
   /** Omit the title row (HubShell already provides the page h1). */
   hideTitle?: boolean;
+  /** Branch scope badge in PageChrome header row (non–SUPER_ADMIN). */
+  branchScope?: PageChromeBranchScope;
 }
 
 function HubHeading({

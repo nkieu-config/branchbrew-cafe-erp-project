@@ -206,7 +206,7 @@ function InventoryAlertsFooter({
         </Link>
       )}
       {expiryTotal > 0 && (
-        <Link href="/inventory/batches" className={dashboardAlertsFooterLinkClass()}>
+        <Link href="/inventory/batches?filter=expiring" className={dashboardAlertsFooterLinkClass()}>
           {expiryCapped
             ? "View expiring batches"
             : `View expiring batches (${expiryTotal})`}
@@ -255,7 +255,7 @@ function InventoryAlertsList({
               </AlertRow>
             ))}
             {expiryAlerts.map((alert) => (
-              <AlertRow key={`exp-${alert.id}`} href="/inventory/batches" type="expiry">
+              <AlertRow key={`exp-${alert.id}`} href="/inventory/batches?filter=expiring" type="expiry">
                 <div>
                   <div className={cn("font-bold text-lg", text.primary)}>{alert.ingredientName}</div>
                   <div className={cn("text-sm font-medium", text.muted)}>

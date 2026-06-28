@@ -7,12 +7,16 @@ type AccessDeniedStateProps = {
   title?: string;
   description?: string;
   showBackLink?: boolean;
+  backHref?: string;
+  backLabel?: string;
 };
 
 export function AccessDeniedState({
   title = "Access denied",
   description = "You don't have permission to view this page.",
   showBackLink = true,
+  backHref = "/",
+  backLabel = "Back to Dashboard",
 }: AccessDeniedStateProps) {
   return (
     <div className={cn(surface.empty)}>
@@ -21,13 +25,13 @@ export function AccessDeniedState({
       <p className={cn("text-sm mt-2", text.muted)}>{description}</p>
       {showBackLink && (
         <Link
-          href="/"
+          href={backHref}
           className={cn(
-            "inline-flex mt-6 h-9 items-center justify-center rounded-lg border px-4 text-sm font-medium transition-colors",
+            "inline-flex mt-6 min-h-[44px] items-center justify-center rounded-lg border px-4 text-sm font-medium transition-colors",
             "border-border bg-card text-foreground hover:bg-muted",
           )}
         >
-          Back to Dashboard
+          {backLabel}
         </Link>
       )}
     </div>

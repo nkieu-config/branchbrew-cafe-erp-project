@@ -73,6 +73,7 @@ export function useStockIn() {
       }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["inventory-balance", variables.branchId] });
+      queryClient.invalidateQueries({ queryKey: ["branch", variables.branchId] });
       queryClient.invalidateQueries({ queryKey: [NAV_COUNTS_QUERY_KEY] });
     },
   });

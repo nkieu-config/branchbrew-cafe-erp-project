@@ -8,7 +8,11 @@ export default function StockInLayout({ children }: { children: React.ReactNode 
     <RoleGuard
       allowedRoles={["SUPER_ADMIN", "MANAGER"]}
       fallback={
-        <AccessDeniedState description="Manager or Super Admin access is required to receive stock (GRN)." />
+        <AccessDeniedState
+          description="Manager or Super Admin access is required to receive stock (GRN)."
+          backHref="/inventory"
+          backLabel="Back to Inventory"
+        />
       }
     >
       {children}
