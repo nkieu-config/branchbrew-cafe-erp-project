@@ -182,7 +182,7 @@ export function mobileBottomNavClassName(className?: string) {
 
 export function mobileBottomNavItemClassName(isActive: boolean, className?: string) {
   return cn(
-    "flex flex-1 flex-col items-center justify-center gap-0.5 min-h-[56px] px-1 py-2 text-[10px] font-semibold transition-colors",
+    "flex flex-1 flex-col items-center justify-center gap-0.5 min-h-[56px] px-1 py-2 text-xs font-semibold transition-colors",
     focusRing,
     isActive
       ? "text-[var(--sidebar-nav-active-fg)]"
@@ -251,7 +251,7 @@ export function sidebarNavBadgeClassName(tone: "warning" | "danger" | "info" = "
 
   return cn(
     "ml-auto inline-flex min-w-[1.25rem] h-5 items-center justify-center rounded-full px-1.5",
-    "text-[10px] font-bold tabular-nums leading-none shrink-0",
+    "text-xs font-bold tabular-nums leading-none shrink-0",
     toneClass,
     className,
   );

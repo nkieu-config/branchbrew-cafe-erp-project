@@ -45,6 +45,7 @@ import {
   hubLoadingSpinnerClassName,
   inlineLinkClassName,
   text,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -146,9 +147,10 @@ function ShiftsPageContent() {
         hideTitle
         icon={CalendarDays}
         accentHub="hr"
+        branchScope={{ branchName }}
         actions={
           <Button
-            className={hubCtaClassName("hr", "font-bold")}
+            className={hubCtaClassName("hr")}
             onClick={() => setIsModalOpen(true)}
           >
             <Plus className="w-4 h-4 mr-2" aria-hidden />
@@ -165,7 +167,6 @@ function ShiftsPageContent() {
         />
 
         <HubListPage.Toolbar
-          branchName={branchName}
           showReset={hasActiveFilters}
           onReset={() => {
             setStatusFilter("ALL");
@@ -275,7 +276,7 @@ function ShiftsPageContent() {
           ) : !isError && ganttRows.length === 0 ? (
             <div className="py-16 text-center px-4">
               <CalendarDays className={hubCardIconFor("hr", "w-12 h-12 mx-auto mb-4")} />
-              <p className={cn("font-semibold", text.primary)}>
+              <p className={typeUiLabelClassName(text.primary)}>
                 {hasActiveFilters ? "No shifts match your filters" : "No shifts scheduled"}
               </p>
               <p className={cn("text-sm mt-2 max-w-md mx-auto", text.muted)}>
@@ -285,7 +286,7 @@ function ShiftsPageContent() {
               </p>
               {!hasActiveFilters && (
                 <Button
-                  className={cn("mt-6", hubCtaClassName("hr", "font-bold"))}
+                  className={cn("mt-6", hubCtaClassName("hr"))}
                   onClick={() => setIsModalOpen(true)}
                 >
                   <Plus className="w-4 h-4 mr-2" aria-hidden />

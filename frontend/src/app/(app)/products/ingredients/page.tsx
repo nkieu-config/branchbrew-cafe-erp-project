@@ -41,11 +41,14 @@ import {
 import { parseProductsIngredientsSearchParams } from "@/lib/products-hub-url";
 import {
   hubCtaClassName,
+  hubListDataTableProps,
   metricValueClassName,
   productsCategoryBadgeClassName,
   productsSectionPanelClassName,
   tableCellMutedClassName,
   text,
+  typeHeadingClassName,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -147,7 +150,7 @@ export default function IngredientsPage() {
           dataIndex: "name",
           key: "name",
           render: (name: string) => (
-            <span className={cn("font-bold", text.primary)}>{name}</span>
+            <span className={typeHeadingClassName()}>{name}</span>
           ),
         },
         {
@@ -167,9 +170,8 @@ export default function IngredientsPage() {
             const missing = costPerUnit == null || costPerUnit <= 0;
             return (
               <span
-                className={cn(
-                  "font-bold tabular-nums",
-                  missing ? metricValueClassName("amber") : text.primary,
+                className={typeUiLabelClassName(
+                  cn("tabular-nums", missing ? metricValueClassName("amber") : text.primary),
                 )}
               >
                 {!missing ? formatBaht(costPerUnit) : "—"}
@@ -258,7 +260,7 @@ export default function IngredientsPage() {
               <Building2 className="w-4 h-4 mr-2" aria-hidden />
               Suppliers
             </ButtonLink>
-            <Button onClick={handleAddNew} className={hubCtaClassName("products", "font-bold")}>
+            <Button onClick={handleAddNew} className={hubCtaClassName("products")}>
               <Plus className="w-4 h-4 mr-2" aria-hidden />
               Add Ingredient
             </Button>
@@ -322,11 +324,8 @@ export default function IngredientsPage() {
         />
 
         <DataTable
+          {...hubListDataTableProps()}
           loading={isLoading}
-          isError={isError}
-          errorMessage={getErrorMessage(error, "Failed to load ingredients")}
-          onRetry={() => void refetch()}
-          retryLoading={isFetching}
           emptyDescription={
             hasActiveFilters
               ? "No ingredients match your filters."
@@ -335,12 +334,6 @@ export default function IngredientsPage() {
           columns={columns}
           dataSource={filteredIngredients}
           rowKey="id"
-          pagination={{
-            pageSize: 15,
-            showSizeChanger: true,
-            pageSizeOptions: ["10", "15", "25", "50"],
-          }}
-          hideBorders
         />
       </HubListPage>
 

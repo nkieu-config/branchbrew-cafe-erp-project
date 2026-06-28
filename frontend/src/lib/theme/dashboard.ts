@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { typeMetricClassName, typeUiLabelClassName } from "./typography";
 
 export type DashboardWidgetVariant = "sales" | "branch" | "alerts" | "products" | "chart";
 
@@ -48,15 +49,15 @@ export function dashboardWidgetCardClass(
 }
 
 export function dashboardWidgetLabelClass(variant: DashboardWidgetVariant) {
-  return cn("text-sm font-bold uppercase tracking-wider", widgetLabel[variant]);
+  return cn(typeUiLabelClassName("text-sm uppercase tracking-wider"), widgetLabel[variant]);
 }
 
 export function dashboardWidgetTitleClass(variant: DashboardWidgetVariant, className?: string) {
-  return cn("font-black", widgetLabel[variant], className);
+  return cn(typeUiLabelClassName(), widgetLabel[variant], className);
 }
 
 export function dashboardWidgetValueClass(variant: DashboardWidgetVariant, className?: string) {
-  return cn("font-black", widgetValue[variant], className);
+  return cn(typeMetricClassName(), widgetValue[variant], className);
 }
 
 export function dashboardWidgetIconSolidClass() {

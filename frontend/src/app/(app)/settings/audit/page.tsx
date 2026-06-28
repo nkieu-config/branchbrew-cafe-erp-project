@@ -35,15 +35,19 @@ import { formatDateTime } from "@/lib/intl-date";
 import { getErrorMessage } from "@/lib/errors";
 import {
   dataTableContainerClassName,
+  horizontalScrollHintClassName,
   hubLoadingSpinnerClassName,
   infoBannerClassName,
   infoBannerIconClassName,
   infoBannerTextClassName,
   infoBannerTitleClassName,
+  listMobileCardClassName,
   nativeTableEmptyCellClassName,
   semanticTableClassName,
   settingsSectionPanelClassName,
   text,
+  typeMicroClassName,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -227,7 +231,59 @@ export default function AuditLogsPage() {
         )}
 
         <div className={dataTableContainerClassName()}>
-          <div className={semanticTableClassName()}>
+          {/* Mobile card list */}
+          <div className="md:hidden space-y-3">
+            {loading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-28 w-full rounded-xl" />
+              ))
+            ) : pageLogs.length === 0 ? (
+              <p className={cn("text-center py-8 text-sm", text.muted)}>
+                {hasActiveFilters
+                  ? "No audit entries match your filters."
+                  : "No audit entries recorded yet."}
+              </p>
+            ) : (
+              pageLogs.map((log) => {
+                const details = formatAuditDetails(log.details);
+                return (
+                  <button
+                    key={log.id}
+                    type="button"
+                    className={listMobileCardClassName()}
+                    onClick={() => setSelectedLog(log)}
+                  >
+                    <div className="flex items-start justify-between gap-3 mb-2">
+                      <time
+                        className={cn(typeMicroClassName("tabular-nums"), text.subtle)}
+                        dateTime={log.createdAt}
+                      >
+                        {formatDateTime(log.createdAt)}
+                      </time>
+                      <StatusBadge tone={auditActionTone(log.action)}>
+                        {auditActionLabel(log.action)}
+                      </StatusBadge>
+                    </div>
+                    <div className="flex items-center gap-2 min-w-0 mb-2">
+                      <User className={cn("w-4 h-4 shrink-0", text.muted)} aria-hidden />
+                      <span className={cn("font-medium truncate", text.primary)}>
+                        {log.user?.name || log.user?.email}
+                      </span>
+                    </div>
+                    <div className={cn("flex items-center gap-1.5 text-sm min-w-0 mb-1", text.secondary)}>
+                      <Activity className={cn("w-4 h-4 shrink-0", text.muted)} aria-hidden />
+                      <span className="truncate">{auditTargetTypeLabel(log.targetType)}</span>
+                    </div>
+                    <p className={cn("text-sm line-clamp-2", text.muted)}>{details.preview}</p>
+                    <p className={cn(typeUiLabelClassName("text-xs mt-2"), text.muted)}>Tap to view details</p>
+                  </button>
+                );
+              })
+            )}
+          </div>
+
+          {/* Desktop table */}
+          <div className={cn(semanticTableClassName(), "hidden md:block")}>
             <Table>
               <TableHeader>
                 <TableRow>

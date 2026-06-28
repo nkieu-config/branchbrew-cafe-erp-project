@@ -10,6 +10,7 @@ import {
   topbarActionButtonClassName,
   topbarClockWidgetClassName,
   topbarPrimaryActionClassName,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -112,7 +113,8 @@ export function ClockInOutWidget({ variant = "toolbar" }: ClockInOutWidgetProps)
         type="button"
         className={cn(
           topbarActionButtonClassName({ active: true }),
-          "gap-1.5 px-2.5 w-auto min-w-[4.5rem] font-mono text-xs font-semibold tabular-nums",
+          "gap-1.5 px-2.5 w-auto min-w-[4.5rem] font-mono text-xs tabular-nums",
+          typeUiLabelClassName(),
         )}
         onClick={() => void handleClockOut()}
         disabled={clockOutMutation.isPending}

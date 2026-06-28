@@ -16,7 +16,7 @@ import type { LucideIcon } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import { BranchScopeIndicator } from "@/components/shared/branch-scope-indicator";
 import { isTabActive } from "@/lib/navigation";
-import { hubTabClassName, hubTabTrackClassName, shellPageTitleClassName, text } from "@/lib/theme";
+import { hubTabClassName, hubTabTrackClassName, shellPageTitleClassName, text, typeHeadingClassName } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 export type PageChromeBranchScope = {
@@ -151,7 +151,7 @@ export function PageChrome({
           <p className={cn("text-sm", text.muted)}>{mergedDescription}</p>
         )}
         {sectionTitle && (
-          <h2 className={cn("text-lg font-bold flex items-center gap-2 pt-2", text.primary)}>
+          <h2 className={typeHeadingClassName("text-lg flex items-center gap-2 pt-2")}>
             {SectionIcon && <SectionIcon className="w-5 h-5 shrink-0" aria-hidden />}
             {sectionTitle}
           </h2>

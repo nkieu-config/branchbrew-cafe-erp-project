@@ -58,6 +58,7 @@ import {
   hubCtaClassName,
   inventoryHubIconClassName,
   text,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import type { Branch, Ingredient, StockTransfer } from "@/types/api";
@@ -518,7 +519,7 @@ export const StockTransfersPanel = forwardRef<
       {variant === "compact" && (
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <h2 className={`font-semibold text-lg flex items-center gap-2 ${text.primary}`}>
+            <h2 className={typeUiLabelClassName(cn("text-lg flex items-center gap-2", text.primary))}>
               <ArrowRightLeft className={inventoryHubIconClassName()} aria-hidden />
               Pending Transfers
             </h2>

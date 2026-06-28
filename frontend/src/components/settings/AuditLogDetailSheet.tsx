@@ -16,6 +16,7 @@ import {
   expandedRowPanelClassName,
   settingsSheetContentClassName,
   text,
+  typeHeadingClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -54,7 +55,7 @@ export function AuditLogDetailSheet({ log, open, onClose }: AuditLogDetailSheetP
         className={settingsSheetContentClassName("w-full sm:max-w-lg overflow-y-auto")}
       >
         <SheetHeader className="mb-6 text-left">
-          <SheetTitle className="text-xl font-bold flex items-center gap-2">
+          <SheetTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
             <History className="w-5 h-5 text-[var(--hub-settings)]" aria-hidden />
             Audit entry
           </SheetTitle>
@@ -99,7 +100,7 @@ export function AuditLogDetailSheet({ log, open, onClose }: AuditLogDetailSheetP
             <div className={expandedRowPanelClassName("space-y-3")}>
               <div className="flex items-center gap-2">
                 <FileText className="w-4 h-4 text-[var(--text-subtle)]" aria-hidden />
-                <h3 className={cn("font-semibold", text.primary)}>Details</h3>
+                <h3 className={typeHeadingClassName()}>Details</h3>
               </div>
               {details.isStructured ? (
                 <pre

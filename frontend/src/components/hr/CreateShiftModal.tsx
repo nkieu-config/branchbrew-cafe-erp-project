@@ -31,6 +31,7 @@ import {
   hubCtaClassName,
   inlineLinkClassName,
   text,
+  typeHeadingClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -115,7 +116,7 @@ export function CreateShiftModal({
     >
       <DialogContent className={hrDialogContentClassName()}>
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold flex items-center gap-2">
+          <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
             <CalendarDays className="w-5 h-5 text-[var(--hub-hr)]" aria-hidden />
             Schedule shift
           </DialogTitle>
@@ -201,7 +202,7 @@ export function CreateShiftModal({
           <Button
             type="button"
             disabled={isSubmitting || staffOptions.length === 0}
-            className={cn("min-h-[44px]", hubCtaClassName("hr", "font-bold"))}
+            className={cn("min-h-[44px]", hubCtaClassName("hr"))}
             onClick={() => void handleSubmit()}
           >
             {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}

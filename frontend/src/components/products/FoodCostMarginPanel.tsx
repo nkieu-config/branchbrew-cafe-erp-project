@@ -10,6 +10,8 @@ import {
   inlineLinkClassName,
   metricValueClassName,
   text,
+  typeHeadingClassName,
+  typeSectionLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import type { Order } from "@/types/api";
@@ -39,7 +41,7 @@ export function FoodCostMarginPanel({
     <section className={formSectionClassName()} aria-label="Actual vs theoretical food cost">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className={cn("text-sm font-bold uppercase tracking-wide", text.secondary)}>
+          <h3 className={typeSectionLabelClassName(cn("text-sm", text.secondary))}>
             Actual vs recipe food cost
           </h3>
           <p className={cn("text-sm mt-1", text.muted)}>
@@ -55,13 +57,13 @@ export function FoodCostMarginPanel({
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
           <p className={cn("text-xs font-medium", text.muted)}>Recipe average (theoretical)</p>
-          <p className={cn("text-2xl font-bold tabular-nums mt-1", foodCostStatusClassName(theoreticalStatus))}>
+          <p className={typeHeadingClassName(cn("text-2xl tabular-nums mt-1", foodCostStatusClassName(theoreticalStatus)))}>
             {theoreticalAvgPercent.toFixed(1)}%
           </p>
         </div>
         <div>
           <p className={cn("text-xs font-medium", text.muted)}>Actual from orders</p>
-          <p className={cn("text-2xl font-bold tabular-nums mt-1", foodCostStatusClassName(actualStatus))}>
+          <p className={typeHeadingClassName(cn("text-2xl tabular-nums mt-1", foodCostStatusClassName(actualStatus)))}>
             {margin.actualFoodCostPercent.toFixed(1)}%
           </p>
           <p className={cn("text-xs mt-1 tabular-nums", text.muted)}>
@@ -71,9 +73,11 @@ export function FoodCostMarginPanel({
         <div>
           <p className={cn("text-xs font-medium", text.muted)}>Variance</p>
           <p
-            className={cn(
-              "text-2xl font-bold tabular-nums mt-1 inline-flex items-center gap-1.5",
-              varianceUp ? metricValueClassName("red") : metricValueClassName("emerald"),
+            className={typeHeadingClassName(
+              cn(
+                "text-2xl tabular-nums mt-1 inline-flex items-center gap-1.5",
+                varianceUp ? metricValueClassName("red") : metricValueClassName("emerald"),
+              ),
             )}
           >
             {varianceUp ? (

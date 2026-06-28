@@ -28,6 +28,7 @@ import {
   hubCtaClassName,
   organizationDialogWideClassName,
   text,
+  typeHeadingClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -127,7 +128,7 @@ export function UserFormModal({
     >
       <DialogContent className={organizationDialogWideClassName()}>
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold flex items-center gap-2">
+          <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
             <ShieldCheck className="w-5 h-5 text-[var(--hub-organization)]" aria-hidden />
             {user ? "Edit user account" : "Create user account"}
           </DialogTitle>
@@ -277,7 +278,7 @@ export function UserFormModal({
           <Button
             type="button"
             disabled={isSubmitting}
-            className={cn("min-h-[44px]", hubCtaClassName("organization", "font-bold"))}
+            className={cn("min-h-[44px]", hubCtaClassName("organization"))}
             onClick={() => void handleSubmit()}
           >
             {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}

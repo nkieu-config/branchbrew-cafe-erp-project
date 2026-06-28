@@ -32,6 +32,10 @@ import {
   posAddButtonClassName,
   posCartPanelClassName,
   posCartHeaderClassName,
+  posCartTitleClassName,
+  posCartItemNameClassName,
+  posCartQtyClassName,
+  posCartLineTotalClassName,
   posCartSectionClassName,
   posCartBadgeClassName,
   posAccentIconClassName,
@@ -39,10 +43,12 @@ import {
   posSummaryPanelClassName,
   posSummaryMutedClassName,
   posSummaryTotalClassName,
+  posSummaryTotalRowClassName,
   posPayActionClassName,
   posCrmPanelClassName,
   posCrmTitleClassName,
   posCrmMutedClassName,
+  posCrmTierBadgeClassName,
   posPromoPanelClassName,
   posPromoTitleClassName,
   posDashedButtonClassName,
@@ -52,8 +58,10 @@ import {
   posSuccessDialogClassName,
   posSuccessTitleClassName,
   posReceiptPreviewClassName,
+  posReceiptCaptionClassName,
   posQueueNumberClassName,
   posModifierSelectedClassName,
+  posModifierGroupLabelClassName,
   posPrimaryActionClassName,
   posLoadingSpinnerClassName,
   posDialogContentClassName,
@@ -447,7 +455,7 @@ export default function POSPage() {
       {/* Cart Sidebar */}
       <div className={posCartPanelClassName("w-full lg:w-[min(420px,100%)] lg:shrink-0 flex flex-col")}>
         <div className={posCartHeaderClassName()}>
-          <h2 className={`text-xl font-bold flex items-center gap-2 ${text.primary}`}>
+          <h2 className={posCartTitleClassName()}>
             <ShoppingBag size={20} className={posAccentIconClassName()} /> Current Order
           </h2>
           <span className={posCartBadgeClassName()}>
@@ -459,7 +467,7 @@ export default function POSPage() {
           {cart.map((item) => (
             <div key={item.id} className="flex justify-between items-center gap-3 border-b border-[var(--pos-panel-border)]/50 pb-3">
               <div className="min-w-0 flex-1">
-                <div className={`font-semibold ${text.primary}`}>{item.product.name}</div>
+                <div className={posCartItemNameClassName()}>{item.product.name}</div>
                 {item.notes && <div className={`text-xs font-medium mb-1 line-clamp-2 ${posAccentTextClassName()}`}>{item.notes}</div>}
                 <div className={`text-sm tabular-nums ${text.muted}`}>{formatBaht(item.unitPrice)} each</div>
               </div>
@@ -475,7 +483,7 @@ export default function POSPage() {
                   >
                     <Minus className="w-4 h-4" aria-hidden />
                   </Button>
-                  <span className="min-w-[2rem] text-center text-sm font-bold tabular-nums px-1">
+                  <span className={posCartQtyClassName()}>
                     {item.quantity}
                   </span>
                   <Button
@@ -489,7 +497,7 @@ export default function POSPage() {
                     <Plus className="w-4 h-4" aria-hidden />
                   </Button>
                 </div>
-                <span className={`font-bold tabular-nums min-w-[4.5rem] text-right ${text.secondary}`}>
+                <span className={posCartLineTotalClassName()}>
                   {formatBaht(item.unitPrice * item.quantity)}
                 </span>
                 <Button
@@ -531,7 +539,10 @@ export default function POSPage() {
                   <X className="w-4 h-4" />
                 </Button>
                 <div className={`${posCrmTitleClassName()} mb-1`}>
-                  <User className="w-4 h-4" /> {customer.name} <Badge variant="outline" className={`bg-[var(--pos-input-bg)] text-[10px] uppercase font-bold tracking-wider py-0 px-2`}>{customer.tier}</Badge>
+                  <User className="w-4 h-4" /> {customer.name}{" "}
+                  <Badge variant="outline" className={posCrmTierBadgeClassName()}>
+                    {customer.tier}
+                  </Badge>
                 </div>
                 <div className={`${posCrmMutedClassName()} mb-2`}>Available: {customer.points} pts (฿{pointsToDiscountBaht(customer.points)})</div>
                 {customer.points > 0 && (
@@ -597,7 +608,7 @@ export default function POSPage() {
               <span className="tabular-nums">- ฿{totalDiscount.toLocaleString()}</span>
             </div>
           )}
-          <div className={`flex justify-between text-2xl font-bold pt-2 border-t border-[var(--pos-summary-divider)]`}>
+          <div className={posSummaryTotalRowClassName()}>
             <span>Total</span>
             <span className={posSummaryTotalClassName()}>฿{netTotal.toLocaleString()}</span>
           </div>
@@ -607,7 +618,7 @@ export default function POSPage() {
             </div>
           )}
           <Button 
-            className={posPayActionClassName("w-full h-12 text-lg font-bold mt-4")} 
+            className={posPayActionClassName("w-full h-12 text-lg mt-4")} 
             disabled={cart.length === 0}
             onClick={() => setShowCheckout(true)}
           >
@@ -734,7 +745,7 @@ export default function POSPage() {
                   #{formatQueueNumber(completedOrder.queueNumber)}
                 </p>
               )}
-              <p className="font-bold border-b border-[var(--pos-panel-border)] pb-2 mb-2">
+              <p className={posReceiptCaptionClassName()}>
                 {completedOrder?.queueNumber ? 'Your Queue Number' : 'Receipt Preview'}
               </p>
               <p>Total: ฿{completedOrder?.netTotal?.toFixed(2)}</p>
@@ -766,7 +777,7 @@ export default function POSPage() {
           <div className="py-4 space-y-6">
             {modifierGroups.map((group) => (
               <div key={group.id} className="space-y-3">
-                <label className={`text-sm font-bold ${text.secondary}`}>{group.name}</label>
+                <label className={posModifierGroupLabelClassName()}>{group.name}</label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {group.options.map((opt) => (
                     <Button
@@ -788,7 +799,7 @@ export default function POSPage() {
           </div>
           <DialogFooter>
             <Button
-              className={posPrimaryActionClassName("w-full h-12 text-lg font-bold")}
+              className={posPrimaryActionClassName("w-full h-12 text-lg")}
               onClick={() => {
                 if (!selectedProduct) return;
                 const summary = getModifierSummary(modifierGroups, selectedModifiers);

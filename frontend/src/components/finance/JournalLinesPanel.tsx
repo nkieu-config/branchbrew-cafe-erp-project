@@ -11,6 +11,7 @@ import {
   ledgerDebitClassName,
   payrollExpandedPanelClassName,
   text,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +28,7 @@ export function JournalLinesPanel({ entry }: JournalLinesPanelProps) {
       dataIndex: ["account", "code"],
       key: "code",
       render: (code: string) => (
-        <span className={cn("font-mono font-bold", text.muted)}>{code ?? "—"}</span>
+        <span className={typeUiLabelClassName(cn("font-mono", text.muted))}>{code ?? "—"}</span>
       ),
     },
     {
@@ -35,7 +36,7 @@ export function JournalLinesPanel({ entry }: JournalLinesPanelProps) {
       dataIndex: ["account", "name"],
       key: "name",
       render: (name: string) => (
-        <span className={cn("font-semibold", text.secondary)}>{name ?? "—"}</span>
+        <span className={typeUiLabelClassName(text.secondary)}>{name ?? "—"}</span>
       ),
     },
     {
@@ -105,7 +106,7 @@ export function JournalLinesPanel({ entry }: JournalLinesPanelProps) {
           return (
             <Table.Summary.Row className={antTableSummaryRowClassName()}>
               <Table.Summary.Cell index={0} colSpan={3}>
-                <span className={cn("font-bold", text.primary)}>Total</span>
+                <span className={typeUiLabelClassName(text.primary)}>Total</span>
               </Table.Summary.Cell>
               <Table.Summary.Cell index={1} align="right">
                 <span className={cn("font-mono tabular-nums", ledgerDebitClassName())}>

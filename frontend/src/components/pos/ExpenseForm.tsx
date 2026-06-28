@@ -4,7 +4,7 @@ import { Wallet } from "lucide-react"
 import { toast } from "sonner"
 import { getErrorMessage } from '@/lib/errors'
 import { useCreateExpense } from '@/hooks/domains/useFinanceQueries'
-import { posExpenseIconClassName, posFormPanelClassName, posNativeInputClassName, text } from '@/lib/theme'
+import { posExpenseIconClassName, posFormPanelClassName, posNativeInputClassName, text, typeHeadingClassName } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 
 export function ExpenseForm({ branchIdNum }: { branchIdNum: number | undefined }) {
@@ -34,7 +34,7 @@ export function ExpenseForm({ branchIdNum }: { branchIdNum: number | undefined }
     <div className={posFormPanelClassName()}>
       <div className="flex items-center gap-3">
         <Wallet className={`w-5 h-5 ${posExpenseIconClassName()}`} />
-        <h2 className={`font-semibold text-lg ${text.primary}`}>Record Petty Cash Expense</h2>
+        <h2 className={typeHeadingClassName("text-lg")}>Record Petty Cash Expense</h2>
       </div>
       <form onSubmit={handleExpense} className="flex flex-col gap-4">
         <div>

@@ -11,7 +11,13 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formFieldInsetClassName, hubDangerActionClassName, text } from "@/lib/theme";
+import {
+  formFieldInsetClassName,
+  hubDangerActionClassName,
+  text,
+  typeHeadingClassName,
+  typeUiLabelClassName,
+} from "@/lib/theme";
 
 type BatchWasteDialogProps = {
   open: boolean;
@@ -42,7 +48,7 @@ export function BatchWasteDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="rounded-2xl sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-black text-xl">Report Batch Waste</DialogTitle>
+          <DialogTitle className={typeHeadingClassName("text-xl")}>Report Batch Waste</DialogTitle>
           <DialogDescription>
             {ingredientName && maxQty != null
               ? `Discard from ${ingredientName} (max ${maxQty}). This deducts a specific batch — for aggregate waste by ingredient, use the Waste Logs tab.`
@@ -51,7 +57,7 @@ export function BatchWasteDialog({
         </DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
-            <Label className={`font-bold ${text.secondary}`}>Quantity</Label>
+            <Label className={typeUiLabelClassName(text.secondary)}>Quantity</Label>
             <Input
               className={formFieldInsetClassName("h-11")}
               type="number"
@@ -63,7 +69,7 @@ export function BatchWasteDialog({
             />
           </div>
           <div className="space-y-2">
-            <Label className={`font-bold ${text.secondary}`}>Reason</Label>
+            <Label className={typeUiLabelClassName(text.secondary)}>Reason</Label>
             <Input
               className={formFieldInsetClassName("h-11")}
               value={reason}

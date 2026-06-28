@@ -45,11 +45,13 @@ import type { Supplier } from "@/types/api";
 import {
   formFieldInsetClassName,
   hubCtaClassName,
+  hubListDataTableProps,
   inlineLinkClassName,
   procurementDialogContentClassName,
   procurementSectionPanelClassName,
   tableCellMutedClassName,
   text,
+  typeHeadingClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -179,7 +181,7 @@ function SuppliersPageContent() {
           dataIndex: "name",
           key: "name",
           render: (value: string) => (
-            <span className={cn("font-bold", text.primary)}>{value}</span>
+            <span className={typeHeadingClassName()}>{value}</span>
           ),
         },
         {
@@ -272,7 +274,7 @@ function SuppliersPageContent() {
         actions={
           <Button
             onClick={openCreate}
-            className={hubCtaClassName("procurement", "font-bold")}
+            className={hubCtaClassName("procurement")}
           >
             <Plus className="w-4 h-4 mr-2" aria-hidden />
             Add Supplier
@@ -322,11 +324,8 @@ function SuppliersPageContent() {
         />
 
         <DataTable
+          {...hubListDataTableProps()}
           loading={isLoading}
-          isError={isError}
-          errorMessage={getErrorMessage(error, "Failed to load suppliers")}
-          onRetry={() => void refetch()}
-          retryLoading={isFetching}
           emptyDescription={
             hasActiveFilters
               ? "No suppliers match your filters."
@@ -335,12 +334,6 @@ function SuppliersPageContent() {
           rowKey="id"
           dataSource={filteredSuppliers}
           columns={columns}
-          pagination={{
-            pageSize: 15,
-            showSizeChanger: true,
-            pageSizeOptions: ["10", "15", "25", "50"],
-          }}
-          hideBorders
         />
       </HubListPage>
 
@@ -353,7 +346,7 @@ function SuppliersPageContent() {
       >
         <DialogContent className={procurementDialogContentClassName()}>
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
+            <DialogTitle className={typeHeadingClassName("text-xl")}>
               {editing ? "Edit Supplier" : "Add Supplier"}
             </DialogTitle>
             <DialogDescription>
@@ -406,7 +399,7 @@ function SuppliersPageContent() {
             <Button
               type="button"
               disabled={saving}
-              className={cn("min-h-[44px]", hubCtaClassName("procurement", "font-bold"))}
+              className={cn("min-h-[44px]", hubCtaClassName("procurement"))}
               onClick={() => void handleSubmit()}
             >
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}

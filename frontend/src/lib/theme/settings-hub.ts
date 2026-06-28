@@ -1,13 +1,12 @@
 import { cn } from "@/lib/utils";
-import { elevatedPanelClassName } from "./surface";
-import { hubCardIconClass } from "./hub-accent";
+import { hubIconClassName, hubSectionPanelClassName } from "./hub-panel";
 
 export function settingsSectionPanelClassName(className?: string) {
-  return elevatedPanelClassName(cn("p-4 sm:p-6 space-y-4", className));
+  return hubSectionPanelClassName("settings", className);
 }
 
 export function settingsHubIconClassName(className?: string) {
-  return cn(hubCardIconClass("settings"), className);
+  return hubIconClassName("settings", className);
 }
 
 export function settingsSheetContentClassName(className?: string) {

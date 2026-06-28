@@ -22,15 +22,21 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Trash2, Plus, History, Loader2, LayoutGrid, ClipboardCheck } from "lucide-react";
-import { filterActive, updateLineItem } from "@/lib/form";
+import { filterActive } from "@/lib/form";
 import type { Ingredient, WasteLineItem, Branch, WasteLog } from "@/types/api";
 import { getErrorMessage } from "@/lib/errors";
 import { DataTable } from "@/components/shared/data-table";
+import {
+  FormEmptyIngredientsBanner,
+  FormPanel,
+  FormPanelFooter,
+} from "@/components/shared/form-panel";
 import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterDate, ListFilterRow, ListFilterSelect } from "@/components/shared/list-filters";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { useLineItemRows } from "@/hooks/use-line-item-rows";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { formatDateTime } from "@/lib/intl-date";
@@ -42,14 +48,15 @@ import {
   formLineQtyFieldClassName,
   formLineReasonFieldClassName,
   formLineRowClassName,
-  formPanelClassName,
   formPanelHeaderClassName,
   formRemoveButtonClassName,
   hubDangerActionClassName,
+  hubListDataTableProps,
   inventorySectionPanelClassName,
   metricValueClassName,
   tableCellMutedClassName,
   text,
+  typeHeadingClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import type { ColumnsType } from "antd/es/table";
@@ -63,18 +70,6 @@ function emptyLine(): WasteLineRow {
     quantity: 0,
     reason: "",
   };
-}
-
-function duplicateIngredientIds(items: WasteLineRow[]): Set<number> {
-  const counts = new Map<number, number>();
-  for (const item of items) {
-    if (item.ingredientId > 0) {
-      counts.set(item.ingredientId, (counts.get(item.ingredientId) ?? 0) + 1);
-    }
-  }
-  return new Set(
-    [...counts.entries()].filter(([, count]) => count > 1).map(([id]) => id),
-  );
 }
 
 function isLineDirty(item: WasteLineRow) {
@@ -133,7 +128,20 @@ export default function WasteLogPage() {
   } = useWasteLogs(branchId);
   const recordWasteMutation = useRecordWaste();
 
-  const [items, setItems] = useState<WasteLineRow[]>([emptyLine()]);
+  const {
+    items,
+    addRow: handleAddItem,
+    removeRow: handleRemoveItem,
+    updateRow: handleChange,
+    resetRows,
+    duplicateKeys: duplicateIds,
+    isDirty,
+  } = useLineItemRows({
+    createEmpty: emptyLine,
+    isDirty: isLineDirty,
+    duplicateKey: (item) => item.ingredientId,
+  });
+
   const [historySearch, setHistorySearch] = useState("");
   const [ingredientFilter, setIngredientFilter] = useState("ALL");
   const [dateFrom, setDateFrom] = useState("");
@@ -142,7 +150,6 @@ export default function WasteLogPage() {
 
   const formDisabled =
     ingredientsLoading || ingredientsError || ingredients.length === 0;
-  const duplicateIds = useMemo(() => duplicateIngredientIds(items), [items]);
   const validLineCount = useMemo(
     () =>
       items.filter(
@@ -150,7 +157,6 @@ export default function WasteLogPage() {
       ).length,
     [items],
   );
-  const isDirty = useMemo(() => items.some(isLineDirty), [items]);
   const submitDisabled =
     recordWasteMutation.isPending ||
     formDisabled ||
@@ -205,26 +211,6 @@ export default function WasteLogPage() {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [wasteLogs]);
 
-  const handleAddItem = () => {
-    setItems((prev) => [...prev, emptyLine()]);
-  };
-
-  const handleRemoveItem = (index: number) => {
-    setItems((prev) => {
-      const next = [...prev];
-      next.splice(index, 1);
-      return next.length ? next : [emptyLine()];
-    });
-  };
-
-  const handleChange = <K extends keyof WasteLineItem>(
-    index: number,
-    field: K,
-    value: WasteLineItem[K],
-  ) => {
-    setItems((prev) => updateLineItem(prev, index, field, value) as WasteLineRow[]);
-  };
-
   const handleCancel = useCallback(() => {
     if (isDirty && !window.confirm("Discard unsaved waste lines?")) return;
     router.push("/inventory");
@@ -261,7 +247,7 @@ export default function WasteLogPage() {
         })),
       });
       toast.success("Waste recorded successfully!");
-      setItems([emptyLine()]);
+      resetRows();
       void refetchLogs();
     } catch (err: unknown) {
       toast.error(
@@ -344,11 +330,12 @@ export default function WasteLogPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <HubPageHeader
         hideTitle
         icon={Trash2}
         accentHub="inventory"
+        description="Record waste deductions and review branch history."
         branchScope={{ branchName }}
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -364,15 +351,14 @@ export default function WasteLogPage() {
         }
       />
 
-      <div className={formPanelClassName()}>
+      <FormPanel>
         <div className={formPanelHeaderClassName()}>
-          <h2 className={cn("text-lg font-bold flex items-center gap-2", text.primary)}>
+          <h2 className={typeHeadingClassName("text-lg flex items-center gap-2")}>
             <Trash2 className={cn("w-5 h-5", metricValueClassName("red"))} aria-hidden />
             Record Waste
           </h2>
           <p className={cn("text-sm mt-1", text.muted)}>
-            Record spoiled items, spillages, or staff consumption. Stock will be deducted
-            immediately from branch totals.
+            One row per item — stock is deducted immediately from branch totals.
           </p>
           {ingredientsFetching && !ingredientsLoading && (
             <span className={cn("inline-flex items-center gap-1.5 text-xs mt-2", text.muted)}>
@@ -397,21 +383,7 @@ export default function WasteLogPage() {
         />
 
         {!ingredientsLoading && !ingredientsError && ingredients.length === 0 && (
-          <div
-            className={cn(
-              "mb-4 rounded-lg border p-4 text-sm",
-              "bg-[var(--form-line-bg)] border-[var(--form-line-border)]",
-              text.muted,
-            )}
-          >
-            <p className={cn("font-medium", text.primary)}>No ingredients available</p>
-            <p className="mt-1">
-              Add raw ingredients in Products before recording waste.{" "}
-              <ButtonLink href="/products/ingredients" variant="link" className="h-auto p-0">
-                Go to Raw Ingredients
-              </ButtonLink>
-            </p>
-          </div>
+          <FormEmptyIngredientsBanner className="mb-4" />
         )}
 
         <div className="space-y-4">
@@ -534,50 +506,51 @@ export default function WasteLogPage() {
           </Button>
         </div>
 
-        <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className={cn("text-sm sm:mr-auto space-y-1", text.muted)}>
-            <p aria-live="polite">
-              {validLineCount} line{validLineCount === 1 ? "" : "s"} ready to record
-            </p>
-            {ingredientsError ? (
-              <p className="text-[var(--status-warning-fg)]">
-                Fix the ingredient load error above before confirming.
+        <FormPanelFooter
+          status={
+            <>
+              <p aria-live="polite">
+                {validLineCount} line{validLineCount === 1 ? "" : "s"} ready to record
               </p>
-            ) : null}
-            {duplicateIds.size > 0 ? (
-              <p className="text-[var(--status-warning-fg)]">
-                Remove duplicate ingredients before confirming.
-              </p>
-            ) : null}
-          </div>
-          <div className="flex justify-end gap-3 shrink-0">
-            <Button type="button" variant="outline" className="min-h-[44px]" onClick={handleCancel}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => void handleSubmit()}
-              className={hubDangerActionClassName("min-h-[44px]")}
-              disabled={submitDisabled}
-            >
-              {recordWasteMutation.isPending ? (
-                <>
-                  <Loader2
-                    className="w-4 h-4 mr-2 animate-spin motion-reduce:animate-none"
-                    aria-hidden
-                  />
-                  Recording…
-                </>
-              ) : (
-                "Confirm Waste Deduction"
-              )}
-            </Button>
-          </div>
-        </div>
-      </div>
+              {ingredientsError ? (
+                <p className="text-[var(--status-warning-fg)]">
+                  Fix the ingredient load error above before confirming.
+                </p>
+              ) : null}
+              {duplicateIds.size > 0 ? (
+                <p className="text-[var(--status-warning-fg)]">
+                  Remove duplicate ingredients before confirming.
+                </p>
+              ) : null}
+            </>
+          }
+        >
+          <Button type="button" variant="outline" className="min-h-[44px]" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => void handleSubmit()}
+            className={hubDangerActionClassName("min-h-[44px]")}
+            disabled={submitDisabled}
+          >
+            {recordWasteMutation.isPending ? (
+              <>
+                <Loader2
+                  className="w-4 h-4 mr-2 animate-spin motion-reduce:animate-none"
+                  aria-hidden
+                />
+                Recording…
+              </>
+            ) : (
+              "Confirm Waste Deduction"
+            )}
+          </Button>
+        </FormPanelFooter>
+      </FormPanel>
 
       <div className={inventorySectionPanelClassName()}>
         <div className={formPanelHeaderClassName("mb-4")}>
-          <h2 className={cn("text-lg font-bold flex items-center gap-2", text.primary)}>
+          <h2 className={typeHeadingClassName("text-lg flex items-center gap-2")}>
             <History className={cn("w-5 h-5", metricValueClassName("slate"))} aria-hidden />
             Waste History
           </h2>
@@ -649,26 +622,17 @@ export default function WasteLogPage() {
         />
 
         <DataTable
+          {...hubListDataTableProps()}
           loading={logsLoading}
-          isError={logsError}
-          errorMessage={getErrorMessage(logsErr, "Failed to load waste logs")}
-          onRetry={() => void refetchLogs()}
-          retryLoading={logsFetching}
           rowKey="id"
           dataSource={filteredLogs}
           columns={historyColumns}
-          hideBorders
           scroll={{ x: undefined }}
           emptyDescription={
             hasHistoryFilters
               ? "No waste logs match your filters."
               : "No waste entries recorded for this branch yet."
           }
-          pagination={{
-            pageSize: 15,
-            showSizeChanger: true,
-            pageSizeOptions: ["10", "15", "25", "50"],
-          }}
         />
         </HubListPage>
       </div>

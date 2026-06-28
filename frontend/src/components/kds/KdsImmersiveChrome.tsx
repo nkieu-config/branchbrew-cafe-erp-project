@@ -24,6 +24,7 @@ import {
   mobileBottomNavItemClassName,
   shellPageTitleClassName,
   text,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import type { Branch, Role } from "@/types/api";
@@ -93,7 +94,7 @@ export function KdsImmersiveHeader({
           aria-live="polite"
           aria-atomic="true"
         >
-          <span className={cn("font-semibold tabular-nums", text.primary)}>
+          <span className={typeUiLabelClassName(cn("tabular-nums", text.primary))}>
             {queueStats.total} order{queueStats.total === 1 ? "" : "s"} in queue
           </span>
           {queueStats.preparing > 0 && (

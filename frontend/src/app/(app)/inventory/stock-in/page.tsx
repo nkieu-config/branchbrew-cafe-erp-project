@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { useStockIn } from "@/hooks/domains/useInventoryQueries";
 import { useIngredients } from "@/hooks/domains/useProductQueries";
 import { useAuth } from "@/context/AuthContext";
@@ -27,13 +27,19 @@ import {
   PackageOpen,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { filterActive, updateLineItem } from "@/lib/form";
+import { filterActive } from "@/lib/form";
 import type { Ingredient, StockLineItem, Branch } from "@/types/api";
 import { getErrorMessage } from "@/lib/errors";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
+import {
+  FormEmptyIngredientsBanner,
+  FormPanel,
+  FormPanelFooter,
+} from "@/components/shared/form-panel";
 import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { useLineItemRows } from "@/hooks/use-line-item-rows";
 import {
   formFieldInsetClassName,
   formSelectContentClassName,
@@ -41,11 +47,8 @@ import {
   formLineFieldClassName,
   formLineQtyFieldClassName,
   formLineRowClassName,
-  formPanelClassName,
-  formPanelHeaderClassName,
   formRemoveButtonClassName,
   hubCtaClassName,
-  metricValueClassName,
   text,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -59,18 +62,6 @@ function emptyLine(): StockLineRow {
     quantity: 0,
     expiryDate: "",
   };
-}
-
-function duplicateIngredientIds(items: StockLineRow[]): Set<number> {
-  const counts = new Map<number, number>();
-  for (const item of items) {
-    if (item.ingredientId > 0) {
-      counts.set(item.ingredientId, (counts.get(item.ingredientId) ?? 0) + 1);
-    }
-  }
-  return new Set(
-    [...counts.entries()].filter(([, count]) => count > 1).map(([id]) => id),
-  );
 }
 
 function isLineDirty(item: StockLineRow) {
@@ -95,16 +86,25 @@ export default function StockInPage() {
 
   const stockInMutation = useStockIn();
 
-  const [items, setItems] = useState<StockLineRow[]>([emptyLine()]);
+  const {
+    items,
+    addRow: handleAddItem,
+    removeRow: handleRemoveItem,
+    updateRow: handleChange,
+    duplicateKeys: duplicateIds,
+    isDirty,
+  } = useLineItemRows({
+    createEmpty: emptyLine,
+    isDirty: isLineDirty,
+    duplicateKey: (item) => item.ingredientId,
+  });
 
   const formDisabled =
     ingredientsLoading || ingredientsError || ingredients.length === 0;
-  const duplicateIds = useMemo(() => duplicateIngredientIds(items), [items]);
   const validLineCount = useMemo(
     () => items.filter((i) => i.ingredientId > 0 && i.quantity > 0).length,
     [items],
   );
-  const isDirty = useMemo(() => items.some(isLineDirty), [items]);
   const submitDisabled =
     stockInMutation.isPending ||
     formDisabled ||
@@ -120,26 +120,6 @@ export default function StockInPage() {
     window.addEventListener("beforeunload", onBeforeUnload);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [isDirty, stockInMutation.isPending]);
-
-  const handleAddItem = () => {
-    setItems((prev) => [...prev, emptyLine()]);
-  };
-
-  const handleRemoveItem = (index: number) => {
-    setItems((prev) => {
-      const next = [...prev];
-      next.splice(index, 1);
-      return next.length ? next : [emptyLine()];
-    });
-  };
-
-  const handleChange = <K extends keyof StockLineItem>(
-    index: number,
-    field: K,
-    value: StockLineItem[K],
-  ) => {
-    setItems((prev) => updateLineItem(prev, index, field, value) as StockLineRow[]);
-  };
 
   const handleCancel = useCallback(() => {
     if (isDirty && !window.confirm("Discard unsaved receipt lines?")) return;
@@ -186,12 +166,12 @@ export default function StockInPage() {
   }
 
   return (
-    <>
+    <div className="space-y-6">
       <HubPageHeader
         hideTitle
         icon={ArrowDownToLine}
         accentHub="inventory"
-        description="Record ad-hoc receipts not tied to a purchase order — e.g. direct delivery, central kitchen drop-off, or stock corrections. To receive against an approved PO, use Procurement → Purchase Orders → Receive."
+        description="Record ad-hoc receipts not tied to a purchase order."
         branchScope={{ branchName }}
         actions={
           <div className="flex flex-wrap items-center gap-2">
@@ -207,29 +187,27 @@ export default function StockInPage() {
         }
       />
 
-      <div className={formPanelClassName()}>
-        <div className={formPanelHeaderClassName()}>
-          <h2 className={cn("text-lg font-bold flex items-center gap-2", text.primary)}>
-            <ArrowDownToLine
-              className={cn("w-5 h-5", metricValueClassName("emerald"))}
+      <FormPanel>
+        <p className={cn("text-sm mb-4", text.muted)}>
+          Add one row per ingredient. Optional expiry dates create batches in{" "}
+          <ButtonLink href="/inventory/batches" variant="link" className="h-auto p-0">
+            Batches &amp; Expiry
+          </ButtonLink>
+          . Receiving against a PO?{" "}
+          <ButtonLink href="/procurement/orders" variant="link" className="h-auto p-0">
+            Purchase Orders
+          </ButtonLink>
+          .
+        </p>
+        {ingredientsFetching && !ingredientsLoading && (
+          <span className={cn("inline-flex items-center gap-1.5 text-xs mb-4", text.muted)}>
+            <Loader2
+              className="w-3.5 h-3.5 animate-spin motion-reduce:animate-none"
               aria-hidden
             />
-            Receive Stock
-          </h2>
-          <p className={cn("text-sm mt-1", text.muted)}>
-            Add one row per ingredient received. Expiry dates create trackable batches in
-            Batches &amp; Expiry — recommended for perishable items.
-          </p>
-          {ingredientsFetching && !ingredientsLoading && (
-            <span className={cn("inline-flex items-center gap-1.5 text-xs mt-2", text.muted)}>
-              <Loader2
-                className="w-3.5 h-3.5 animate-spin motion-reduce:animate-none"
-                aria-hidden
-              />
-              Updating ingredients…
-            </span>
-          )}
-        </div>
+            Updating ingredients…
+          </span>
+        )}
 
         <HubListPage.Error
           message={
@@ -243,21 +221,7 @@ export default function StockInPage() {
         />
 
         {!ingredientsLoading && !ingredientsError && ingredients.length === 0 && (
-          <div
-            className={cn(
-              "mb-4 rounded-lg border p-4 text-sm",
-              "bg-[var(--form-line-bg)] border-[var(--form-line-border)]",
-              text.muted,
-            )}
-          >
-            <p className={cn("font-medium", text.primary)}>No ingredients available</p>
-            <p className="mt-1">
-              Add raw ingredients in Products before receiving stock.{" "}
-              <ButtonLink href="/products/ingredients" variant="link" className="h-auto p-0">
-                Go to Raw Ingredients
-              </ButtonLink>
-            </p>
-          </div>
+          <FormEmptyIngredientsBanner className="mb-4" />
         )}
 
         <div className="space-y-4">
@@ -361,49 +325,50 @@ export default function StockInPage() {
           </Button>
         </div>
 
-        <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className={cn("text-sm sm:mr-auto space-y-1", text.muted)}>
-            <p aria-live="polite">
-              {validLineCount} line{validLineCount === 1 ? "" : "s"} ready to receive
-            </p>
-            {ingredientsError ? (
-              <p className="text-[var(--status-warning-fg)]">
-                Fix the ingredient load error above before confirming.
+        <FormPanelFooter
+          status={
+            <>
+              <p aria-live="polite">
+                {validLineCount} line{validLineCount === 1 ? "" : "s"} ready to receive
               </p>
-            ) : null}
-            {duplicateIds.size > 0 ? (
-              <p className="text-[var(--status-warning-fg)]">
-                Remove duplicate ingredients before confirming.
-              </p>
-            ) : null}
-          </div>
-          <div className="flex justify-end gap-3 shrink-0">
-            <Button type="button" variant="outline" className="min-h-[44px]" onClick={handleCancel}>
-              Cancel
-            </Button>
-            <Button
-              onClick={() => void handleSubmit()}
-              className={hubCtaClassName("inventory", "min-h-[44px]")}
-              disabled={submitDisabled}
-            >
-              {stockInMutation.isPending ? (
-                <>
-                  <Loader2
-                    className="w-4 h-4 mr-2 animate-spin motion-reduce:animate-none"
-                    aria-hidden
-                  />
-                  Saving…
-                </>
-              ) : (
-                <>
-                  <PackageOpen className="w-4 h-4 mr-2" aria-hidden />
-                  Confirm &amp; Receive Stock
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      </div>
-    </>
+              {ingredientsError ? (
+                <p className="text-[var(--status-warning-fg)]">
+                  Fix the ingredient load error above before confirming.
+                </p>
+              ) : null}
+              {duplicateIds.size > 0 ? (
+                <p className="text-[var(--status-warning-fg)]">
+                  Remove duplicate ingredients before confirming.
+                </p>
+              ) : null}
+            </>
+          }
+        >
+          <Button type="button" variant="outline" className="min-h-[44px]" onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => void handleSubmit()}
+            className={hubCtaClassName("inventory", "min-h-[44px]")}
+            disabled={submitDisabled}
+          >
+            {stockInMutation.isPending ? (
+              <>
+                <Loader2
+                  className="w-4 h-4 mr-2 animate-spin motion-reduce:animate-none"
+                  aria-hidden
+                />
+                Saving…
+              </>
+            ) : (
+              <>
+                <PackageOpen className="w-4 h-4 mr-2" aria-hidden />
+                Confirm &amp; Receive Stock
+              </>
+            )}
+          </Button>
+        </FormPanelFooter>
+      </FormPanel>
+    </div>
   );
 }

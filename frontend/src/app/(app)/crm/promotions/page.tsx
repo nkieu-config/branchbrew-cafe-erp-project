@@ -56,8 +56,12 @@ import {
   formFieldInsetClassName,
   formSelectContentClassName,
   hubCtaClassName,
+  hubListDataTableProps,
   metricValueClassName,
   text,
+  typeHeadingClassName,
+  typeSectionLabelClassName,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -266,7 +270,7 @@ export default function PromotionsPage() {
 
             return (
               <div className="flex items-center gap-2">
-                <StatusBadge tone={promoValidityTone(validity)} className="uppercase text-[10px] font-bold tracking-wider">
+                <StatusBadge tone={promoValidityTone(validity)} className={typeSectionLabelClassName("tracking-wider")}>
                   {promoValidityLabel(validity)}
                 </StatusBadge>
                 <Switch
@@ -284,7 +288,7 @@ export default function PromotionsPage() {
           dataIndex: "code",
           key: "code",
           render: (code: string) => (
-            <span className={cn("font-mono font-bold", text.primary)}>{code}</span>
+            <span className={typeUiLabelClassName(cn("font-mono", text.primary))}>{code}</span>
           ),
         },
         {
@@ -298,7 +302,7 @@ export default function PromotionsPage() {
           title: "Discount",
           key: "discount",
           render: (_: unknown, record: Promotion) => (
-            <span className={cn("font-semibold", metricValueClassName("emerald"))}>
+            <span className={typeUiLabelClassName(metricValueClassName("emerald"))}>
               {record.discountType === "PERCENTAGE"
                 ? `${record.discountValue}%`
                 : `฿${Number(record.discountValue).toLocaleString()}`}
@@ -392,7 +396,7 @@ export default function PromotionsPage() {
       ) : (
         <div className="space-y-2">
           <Label className={text.secondary}>Code</Label>
-          <p className={cn("font-mono font-bold text-sm px-3 py-2.5 rounded-xl bg-[var(--form-line-bg)] border border-[var(--form-line-border)]", text.primary)}>
+          <p className={typeUiLabelClassName(cn("font-mono text-sm px-3 py-2.5 rounded-xl bg-[var(--form-line-bg)] border border-[var(--form-line-border)]", text.primary))}>
             {code}
           </p>
         </div>
@@ -493,7 +497,7 @@ export default function PromotionsPage() {
       </div>
       <Button
         type="submit"
-        className={hubCtaClassName("crm", "w-full text-md font-bold")}
+        className={hubCtaClassName("crm", "w-full text-md")}
         disabled={isSaving}
       >
         {isSaving ? "Saving…" : editing ? "Save Changes" : "Create Promotion"}
@@ -513,7 +517,7 @@ export default function PromotionsPage() {
               <Users className="w-4 h-4 mr-2" aria-hidden />
               View customers
             </ButtonLink>
-            <Button className={hubCtaClassName("crm", "font-bold")} onClick={openCreate}>
+            <Button className={hubCtaClassName("crm")} onClick={openCreate}>
               <Plus className="w-4 h-4 mr-2" aria-hidden />
               New Promo Code
             </Button>
@@ -523,7 +527,7 @@ export default function PromotionsPage() {
             >
               <DialogContent className={crmDialogContentClassName("sm:max-w-lg")}>
                 <DialogHeader>
-                  <DialogTitle className="text-xl font-bold">
+                  <DialogTitle className={typeHeadingClassName("text-xl")}>
                     {editing ? "Edit Promotion" : "Create Promotion Code"}
                   </DialogTitle>
                 </DialogHeader>
@@ -594,16 +598,11 @@ export default function PromotionsPage() {
         />
 
         <DataTable
+          {...hubListDataTableProps()}
           columns={columns}
           dataSource={filteredPromotions}
           rowKey="id"
           loading={loading && !isError}
-          hideBorders
-          pagination={{
-            pageSize: 15,
-            showSizeChanger: true,
-            pageSizeOptions: ["10", "15", "25", "50"],
-          }}
           emptyDescription={
             hasActiveFilters
               ? "No promotions match your filters."

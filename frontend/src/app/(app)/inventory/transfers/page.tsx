@@ -6,6 +6,7 @@ import {
   type StockTransfersPanelHandle,
 } from "@/components/inventory/StockTransfersPanel";
 import { HubPageHeader } from "@/components/shared/hub-card";
+import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { ButtonLink } from "@/components/ui/button-link";
 import { useAuth } from "@/context/AuthContext";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
@@ -20,8 +21,14 @@ export default function TransfersPage() {
   const { data: branches = [] } = useBranches();
   const branchName = (branches as Branch[]).find((b) => b.id === activeBranchId)?.name;
 
+  if (!activeBranchId) {
+    return (
+      <BranchEmptyState description="Select a branch in the top bar to request and manage stock transfers." />
+    );
+  }
+
   return (
-    <>
+    <div className="space-y-6">
       <HubPageHeader
         hideTitle
         icon={ArrowRightLeft}
@@ -35,7 +42,7 @@ export default function TransfersPage() {
               Stock overview
             </ButtonLink>
             <Button
-              className={hubCtaClassName("inventory", "font-bold")}
+              className={hubCtaClassName("inventory")}
               onClick={() => panelRef.current?.openCreate()}
             >
               <Plus className="w-4 h-4 mr-2" aria-hidden />
@@ -47,6 +54,6 @@ export default function TransfersPage() {
       <div className={inventorySectionPanelClassName()}>
         <StockTransfersPanel ref={panelRef} variant="page" />
       </div>
-    </>
+    </div>
   );
 }

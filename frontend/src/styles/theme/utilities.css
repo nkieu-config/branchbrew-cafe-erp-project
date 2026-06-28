@@ -136,9 +136,20 @@
   .data-table-shell .ant-table-wrapper,
   .data-table-shell .ant-table,
   .data-table-shell .ant-table-container,
-  .data-table-shell .ant-table-content,
-  .data-table-shell .ant-table-body {
+  .data-table-shell .ant-table-content {
     background: transparent !important;
+  }
+
+  .data-table-shell .ant-table-header {
+    background: var(--table-head-bg) !important;
+  }
+
+  .data-table-shell .ant-table-body {
+    background: var(--table-container-bg) !important;
+  }
+
+  .data-table-shell .ant-table-tbody > tr.ant-table-placeholder > td {
+    background: var(--table-container-bg) !important;
   }
 
   .data-table-shell .ant-table-thead > tr > th,
@@ -498,6 +509,11 @@
   }
 
   /* shadcn/ui Table — same semantic tokens as antd shell */
+  .semantic-table [data-slot="table-container"] {
+    background: var(--table-container-bg);
+    border-radius: inherit;
+  }
+
   .semantic-table [data-slot="table-header"] {
     @apply sticky top-0 z-10;
     background: var(--table-head-bg);
@@ -511,6 +527,10 @@
   .semantic-table [data-slot="table-body"] [data-slot="table-row"] {
     background: var(--table-container-bg);
     border-bottom-color: var(--table-row-border);
+  }
+
+  .semantic-table [data-slot="table-body"] [data-slot="table-row"]:last-child {
+    border-bottom: none;
   }
 
   .semantic-table [data-slot="table-body"] [data-slot="table-row"]:hover,
@@ -530,5 +550,26 @@
     background: var(--table-summary-bg);
     border-top-color: var(--table-row-border);
     color: var(--table-cell-fg);
+  }
+
+  /* Horizontal scroll affordance — thin scrollbar only (no overlay; overlay clashed with table header/body tones in dark mode) */
+  .scroll-hint-x {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--border) 85%, transparent) transparent;
+  }
+
+  .scroll-hint-x::-webkit-scrollbar {
+    height: 5px;
+  }
+
+  .scroll-hint-x::-webkit-scrollbar-thumb {
+    background: color-mix(in oklch, var(--border) 90%, var(--foreground) 10%);
+    border-radius: 999px;
+  }
+
+  .scroll-hint-x::-webkit-scrollbar-track {
+    background: transparent;
   }
 }

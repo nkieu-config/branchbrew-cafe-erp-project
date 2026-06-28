@@ -31,6 +31,7 @@ import {
   financeSectionPanelClassName,
   financeSectionTitleClassName,
   hubCtaClassName,
+  hubListDataTableProps,
   infoBannerClassName,
   infoBannerIconClassName,
   infoBannerTextClassName,
@@ -38,6 +39,8 @@ import {
   inlineLinkClassName,
   tableCellMutedClassName,
   text,
+  typeHeadingClassName,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -103,7 +106,7 @@ export default function ChartOfAccountsPage() {
           width: 150,
           render: (code: string, record: AccountTableRow) =>
             "isGroup" in record && record.isGroup ? (
-              <span className={cn("font-semibold uppercase tracking-wide", text.primary)}>
+              <span className={cn(typeUiLabelClassName("uppercase tracking-wide"), text.primary)}>
                 {accountTypeLabel(record.type)}
               </span>
             ) : (
@@ -116,7 +119,7 @@ export default function ChartOfAccountsPage() {
           key: "name",
           render: (name: string, record: AccountTableRow) =>
             "isGroup" in record && record.isGroup ? (
-              <span className={cn("font-bold", text.primary)}>{name}</span>
+              <span className={typeHeadingClassName()}>{name}</span>
             ) : (
               <span className={text.secondary}>{name}</span>
             ),
@@ -182,7 +185,7 @@ export default function ChartOfAccountsPage() {
           actions={
             showSeedAction ? (
               <Button
-                className={hubCtaClassName("finance", "font-bold")}
+                className={hubCtaClassName("finance")}
                 disabled={isSeeding}
                 onClick={() => setShowSeedConfirm(true)}
               >
@@ -289,12 +292,13 @@ export default function ChartOfAccountsPage() {
             }
           />
 
-          <div className={financeSectionPanelClassName("border border-[var(--table-container-border)] bg-[var(--table-container-bg)]")}>
+          <div className={financeSectionPanelClassName()}>
             <h2 className={financeSectionTitleClassName()}>
               <Landmark className={financeHubIconClassName()} aria-hidden />
               Account hierarchy
             </h2>
             <DataTable
+              {...hubListDataTableProps()}
               columns={columns}
               dataSource={filteredTree}
               rowKey="id"

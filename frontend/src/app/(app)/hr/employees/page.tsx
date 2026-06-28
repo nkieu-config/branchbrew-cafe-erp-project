@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { useHrUsers, useUpdateHourlyRate } from "@/hooks/domains/useHrQueries";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
-import { Avatar } from "antd";
+import { Avatar } from "@/components/ui/avatar";
 import { Plus, Users, Edit3 } from "lucide-react";
 import { getErrorMessage } from "@/lib/errors";
 import { toast } from "sonner";
@@ -35,11 +35,13 @@ import {
   hrAvatarClassName,
   hrSectionPanelClassName,
   hubCtaClassName,
+  hubListDataTableProps,
   inlineLinkClassName,
   metricValueClassName,
   tableActionAccentClassName,
   tableCellMutedClassName,
   text,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -130,7 +132,7 @@ export default function EmployeeDirectoryPage() {
             <div className="flex items-center gap-3">
               <Avatar className={hrAvatarClassName()}>{record.name?.charAt(0) || "U"}</Avatar>
               <div className="min-w-0">
-                <div className={cn("font-bold truncate", text.primary)}>
+                <div className={typeUiLabelClassName(cn("truncate", text.primary))}>
                   {canLinkPayroll ? (
                     <Link href={buildHrPayrollUrl({ employee: record.id })} className={inlineLinkClassName()}>
                       {record.name || "Unknown User"}
@@ -149,7 +151,7 @@ export default function EmployeeDirectoryPage() {
           dataIndex: "role",
           key: "role",
           render: (roleText: string) => (
-            <StatusBadge tone={employeeRoleTone(roleText)} className="font-bold">
+            <StatusBadge tone={employeeRoleTone(roleText)} className={typeUiLabelClassName()}>
               {roleText}
             </StatusBadge>
           ),
@@ -185,11 +187,11 @@ export default function EmployeeDirectoryPage() {
           responsive: ["md"],
           render: (_: unknown, record: User) =>
             employeeHasMissingRate(record) ? (
-              <StatusBadge tone="warning" className="tabular-nums font-bold">
+              <StatusBadge tone="warning" className={typeUiLabelClassName("tabular-nums")}>
                 Not set
               </StatusBadge>
             ) : (
-              <span className={cn("font-bold tabular-nums", metricValueClassName("emerald"))}>
+              <span className={typeUiLabelClassName(cn("tabular-nums", metricValueClassName("emerald")))}>
                 {formatBaht(record.hourlyRate)} / hr
               </span>
             ),
@@ -233,7 +235,7 @@ export default function EmployeeDirectoryPage() {
           <dt className={cn("text-xs font-medium uppercase tracking-wide", text.muted)}>
             Base salary
           </dt>
-          <dd className={cn("mt-1 tabular-nums font-bold", metricValueClassName("blue"))}>
+          <dd className={typeUiLabelClassName(cn("mt-1 tabular-nums", metricValueClassName("blue")))}>
             {record.baseSalary != null && record.baseSalary > 0
               ? formatBaht(record.baseSalary)
               : "—"}
@@ -262,9 +264,10 @@ export default function EmployeeDirectoryPage() {
         hideTitle
         icon={Users}
         accentHub="hr"
+        branchScope={{ branchName }}
         actions={
           role === "SUPER_ADMIN" ? (
-            <ButtonLink href="/organization/users" className={hubCtaClassName("hr", "font-bold")}>
+            <ButtonLink href="/organization/users" className={hubCtaClassName("hr")}>
               <Plus className="w-4 h-4 mr-2" aria-hidden />
               Add user
             </ButtonLink>
@@ -283,7 +286,6 @@ export default function EmployeeDirectoryPage() {
           search={search}
           onSearchChange={setSearch}
           searchPlaceholder="Search name, email, role…"
-          branchName={branchName}
           showReset={hasActiveFilters}
           onReset={() => {
             setSearch("");
@@ -342,20 +344,16 @@ export default function EmployeeDirectoryPage() {
         />
 
         <DataTable
+          {...hubListDataTableProps()}
           columns={columns}
           dataSource={filteredEmployees}
           rowKey="id"
           loading={isLoading}
-          isError={isError}
-          errorMessage={getErrorMessage(error, "Failed to load employees")}
-          onRetry={() => void refetch()}
-          retryLoading={isFetching}
           emptyDescription={
             hasActiveFilters
               ? "No employees match your filters."
               : "No employees found for this branch."
           }
-          pagination={{ pageSize: 15 }}
           expandable={{
             expandedRowRender,
             rowExpandable: () => true,

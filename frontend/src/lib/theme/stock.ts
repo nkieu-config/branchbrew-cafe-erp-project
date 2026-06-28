@@ -1,10 +1,11 @@
 import { differenceInDays } from "date-fns";
 import { cn } from "@/lib/utils";
+import { hubSectionPanelClassName } from "./hub-panel";
 import type { MetricTone } from "./metric";
 import { metricValueClassName } from "./metric";
 import type { StatusTone } from "./status";
 import { hubCardIconClass } from "./hub-accent";
-import { summaryChipClassName } from "./hub-ui";
+import { summaryChipClassName } from "./hub-primitives";
 import { text } from "./surface";
 
 export type StockLevel = "out" | "low" | "ok";
@@ -193,11 +194,7 @@ export function inventorySummaryChipClassName(active = false, className?: string
 }
 
 export function inventorySectionPanelClassName(className?: string) {
-  return cn(
-    "rounded-xl shadow-sm border p-4 sm:p-6 space-y-4",
-    "bg-[var(--table-container-bg)] border-[var(--table-container-border)]",
-    className,
-  );
+  return hubSectionPanelClassName("inventory", className);
 }
 
 export function formRemoveButtonClassName(className?: string) {
@@ -249,7 +246,7 @@ export function expiryHeatmapPanelClassName(className?: string) {
 
 export function expiryHeatmapHeaderClassName(className?: string) {
   return cn(
-    "p-4 rounded-t-xl font-black flex items-center gap-2",
+    "p-4 rounded-t-xl font-bold flex items-center gap-2",
     "bg-[var(--expiry-panel-header-bg)] text-[var(--expiry-panel-header-fg)]",
     className,
   );

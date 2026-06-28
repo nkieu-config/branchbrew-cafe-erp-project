@@ -19,6 +19,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { getErrorMessage } from "@/lib/errors";
 import {
   hubCtaClassName,
+  hubListDataTableProps,
   inventorySectionPanelClassName,
   stockLevel,
   stockLevelLabel,
@@ -115,7 +116,7 @@ export default function InventoryBalancePage() {
   }
 
   return (
-    <>
+    <div className="space-y-6">
       <HubPageHeader
         hideTitle
         icon={PackageOpen}
@@ -128,7 +129,7 @@ export default function InventoryBalancePage() {
               View batches
             </ButtonLink>
             {showGrnAction && (
-              <ButtonLink href="/inventory/stock-in" className={hubCtaClassName("inventory", "font-bold")}>
+              <ButtonLink href="/inventory/stock-in" className={hubCtaClassName("inventory")}>
                 <ArrowDownToLine className="w-4 h-4 mr-2" aria-hidden />
                 Receive stock
               </ButtonLink>
@@ -137,8 +138,7 @@ export default function InventoryBalancePage() {
         }
       />
 
-      <div className="space-y-6">
-        <HubListPage className={inventorySectionPanelClassName()}>
+      <HubListPage className={inventorySectionPanelClassName()}>
         <HubListPage.Error
           message={isError ? getErrorMessage(error, "Failed to load inventory") : undefined}
           onRetry={() => void refetch()}
@@ -183,17 +183,13 @@ export default function InventoryBalancePage() {
         />
 
         <DataTable
+          {...hubListDataTableProps()}
           loading={isLoading}
-          isError={isError}
-          errorMessage={getErrorMessage(error, "Failed to load inventory")}
-          onRetry={() => void refetch()}
-          retryLoading={isFetching}
           emptyDescription={
             hasActiveFilters
               ? "No ingredients match your filters."
               : "No inventory records for this branch yet."
           }
-          hideBorders
           scroll={{ x: undefined }}
           columns={[
             {
@@ -286,21 +282,15 @@ export default function InventoryBalancePage() {
           ]}
           dataSource={filteredInventory}
           rowKey="id"
-          pagination={{
-            pageSize: 15,
-            showSizeChanger: true,
-            pageSizeOptions: ["10", "15", "25", "50"],
-          }}
         />
         </HubListPage>
 
-        <div className={inventorySectionPanelClassName()}>
-          <StockTransfersPanel
-            variant="compact"
-            sourceInventories={transferSourceInventories}
-          />
-        </div>
+      <div className={inventorySectionPanelClassName()}>
+        <StockTransfersPanel
+          variant="compact"
+          sourceInventories={transferSourceInventories}
+        />
       </div>
-    </>
+    </div>
   );
 }

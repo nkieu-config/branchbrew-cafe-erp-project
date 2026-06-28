@@ -35,6 +35,7 @@ import {
   inlineLinkClassName,
   kitchenDialogContentClassName,
   text,
+  typeHeadingClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -104,7 +105,7 @@ export function CreateProductionOrderModal({
     >
       <DialogContent className={kitchenDialogContentClassName()}>
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold flex items-center gap-2">
+          <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
             <ChefHat className="w-5 h-5 text-[var(--hub-kitchen)]" aria-hidden />
             Create Production Order
           </DialogTitle>
@@ -197,7 +198,7 @@ export function CreateProductionOrderModal({
           <Button
             type="button"
             disabled={isSubmitting || ingredients.length === 0}
-            className={cn("min-h-[44px]", hubCtaClassName("kitchen", "font-bold"))}
+            className={cn("min-h-[44px]", hubCtaClassName("kitchen"))}
             onClick={() => void handleSubmit()}
           >
             {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}

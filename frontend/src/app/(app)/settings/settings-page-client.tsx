@@ -94,7 +94,7 @@ export default function SettingsPage() {
         accentHub="settings"
         actions={
           <Button
-            className={hubCtaClassName("settings", "font-bold min-h-[44px]")}
+            className={hubCtaClassName("settings", "min-h-[44px]")}
             onClick={handleSave}
             disabled={isLoading || isError || updateSettingsMutation.isPending || !isDirty}
           >

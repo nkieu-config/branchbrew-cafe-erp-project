@@ -39,7 +39,7 @@ export function CentralKitchenBranchNotice({
 
   const switchButton = (
     <Button
-      className={cn(hubCtaClassName("kitchen", "font-bold min-h-[44px]"), mode === "banner" && "shrink-0")}
+      className={cn(hubCtaClassName("kitchen", "min-h-[44px]"), mode === "banner" && "shrink-0")}
       onClick={() => setActiveBranchId(centralKitchen.id)}
     >
       Switch to {centralKitchen.name}

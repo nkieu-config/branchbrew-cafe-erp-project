@@ -1,23 +1,18 @@
 import { cn } from "@/lib/utils";
-import { elevatedPanelClassName } from "./surface";
-import { hubCardIconClass } from "./hub-accent";
+import { hubIconClassName, hubMetaBadgeClassName, hubSectionPanelClassName } from "./hub-panel";
 import { metricValueClassName } from "./metric";
 import { text } from "./surface";
 
 export function assetsSectionPanelClassName(className?: string) {
-  return elevatedPanelClassName(cn("p-4 sm:p-6 space-y-4", className));
+  return hubSectionPanelClassName("assets", className);
 }
 
 export function assetsHubIconClassName(className?: string) {
-  return cn(hubCardIconClass("assets"), className);
+  return hubIconClassName("assets", className);
 }
 
 export function assetsMetaBadgeClassName(className?: string) {
-  return cn(
-    "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium uppercase tracking-wide",
-    "bg-[var(--tone-assets-subtle)] text-[var(--tone-assets-fg)] border-[var(--tone-assets-border)]",
-    className,
-  );
+  return hubMetaBadgeClassName("assets", className);
 }
 
 export function assetsDialogContentClassName(className?: string) {

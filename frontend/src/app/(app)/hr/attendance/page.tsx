@@ -45,6 +45,7 @@ import {
   attendanceLateTimeClassName,
   attendanceOnTimeClassName,
   hubCtaClassName,
+  hubListDataTableProps,
   hrSectionPanelClassName,
   infoBannerClassName,
   infoBannerIconClassName,
@@ -52,6 +53,7 @@ import {
   infoBannerTitleClassName,
   inlineLinkClassName,
   text,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -238,7 +240,7 @@ export default function AttendancePage() {
           align: "right" as const,
           render: (val: number | null, record: AttendanceRecordRow) =>
             val != null && val > 0 ? (
-              <span className={cn("font-bold tabular-nums", text.primary)}>
+              <span className={typeUiLabelClassName(cn("tabular-nums", text.primary))}>
                 {val.toFixed(2)} hrs
               </span>
             ) : isActiveRecord(record) ? (
@@ -263,11 +265,12 @@ export default function AttendancePage() {
         hideTitle
         icon={Clock}
         accentHub="hr"
+        branchScope={{ branchName }}
         actions={
           isClockedIn ? (
             <Button
               variant="destructive"
-              className={cn(hubCtaClassName("hr", "font-bold"), "shadow-sm")}
+              className={cn(hubCtaClassName("hr"), "shadow-sm")}
               disabled={clockActionPending || loadingActive}
               onClick={() => void handleClockOut()}
             >
@@ -280,7 +283,7 @@ export default function AttendancePage() {
             </Button>
           ) : (
             <Button
-              className={hubCtaClassName("hr", "font-bold")}
+              className={hubCtaClassName("hr")}
               disabled={needsBranchForClockIn || clockActionPending || loadingActive}
               onClick={() => void handleClockIn()}
             >
@@ -311,7 +314,7 @@ export default function AttendancePage() {
                         <>
                           {" "}
                           ·{" "}
-                          <span className="font-mono tabular-nums font-semibold text-[var(--status-info-fg)]">
+                          <span className={typeUiLabelClassName("font-mono tabular-nums text-[var(--status-info-fg)]")}>
                             {elapsed}
                           </span>{" "}
                           elapsed
@@ -323,7 +326,7 @@ export default function AttendancePage() {
                 <Button
                   variant="destructive"
                   size="sm"
-                  className="shrink-0 min-h-[44px] font-semibold"
+                  className={typeUiLabelClassName("shrink-0 min-h-[44px]")}
                   disabled={clockActionPending}
                   onClick={() => void handleClockOut()}
                 >
@@ -342,7 +345,6 @@ export default function AttendancePage() {
         />
 
         <HubListPage.Toolbar
-          branchName={branchName}
           showReset={hasActiveFilters}
           onReset={() => {
             setStatusFilter("ALL");
@@ -411,11 +413,11 @@ export default function AttendancePage() {
         </HubListPage.Count>
 
         <DataTable
+          {...hubListDataTableProps({ pageSize: 10 })}
           columns={columns}
           dataSource={filteredAttendance}
           rowKey="id"
           loading={isLoading}
-          pagination={{ pageSize: 10 }}
           emptyDescription={
             hasActiveFilters
               ? "No records match the current filters."

@@ -53,9 +53,13 @@ import {
   formFieldInsetClassName,
   hubCardIconFor,
   hubCtaClassName,
+  hubListDataTableProps,
   hubLoadingSpinnerClassName,
   metricValueClassName,
   statusToneClassName,
+  typeHeadingClassName,
+  typeSectionLabelClassName,
+  typeUiLabelClassName,
   text,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -158,7 +162,7 @@ export default function CustomersPage() {
           dataIndex: "name",
           key: "name",
           render: (name: string) => (
-            <span className={cn("font-bold text-md", text.primary)}>{name}</span>
+            <span className={typeUiLabelClassName(cn("text-md", text.primary))}>{name}</span>
           ),
         },
         {
@@ -176,7 +180,9 @@ export default function CustomersPage() {
           render: (_: unknown, record: Customer) => (
             <StatusBadge
               tone={customerTierTone(record.tier)}
-              className="flex w-fit items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded-lg"
+              className={typeHeadingClassName(
+                "flex w-fit items-center gap-1.5 px-2.5 py-1 text-xs uppercase tracking-wider rounded-lg",
+              )}
             >
               <TierIcon tier={record.tier} />
               {record.tier}
@@ -227,7 +233,7 @@ export default function CustomersPage() {
             />
             <DialogContent className={crmDialogContentClassName()}>
               <DialogHeader>
-                <DialogTitle className="text-xl font-bold">Register Customer</DialogTitle>
+                <DialogTitle className={typeHeadingClassName("text-xl")}>Register Customer</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleCreate} className="space-y-4 pt-4">
                 <div className="space-y-2">
@@ -258,7 +264,7 @@ export default function CustomersPage() {
                 </div>
                 <Button
                   type="submit"
-                  className={hubCtaClassName("crm", "w-full text-md font-bold")}
+                  className={hubCtaClassName("crm", "w-full text-md")}
                   disabled={createMutation.isPending}
                 >
                   {createMutation.isPending ? "Registering…" : "Register"}
@@ -314,16 +320,11 @@ export default function CustomersPage() {
         />
 
         <DataTable
+          {...hubListDataTableProps()}
           loading={loading && !isError}
           columns={columns}
           dataSource={filteredCustomers}
           rowKey="id"
-          pagination={{
-            pageSize: 15,
-            showSizeChanger: true,
-            pageSizeOptions: ["10", "15", "25", "50"],
-          }}
-          hideBorders
           emptyDescription={
             hasActiveFilters
               ? "No members match your filters."
@@ -350,8 +351,8 @@ export default function CustomersPage() {
         <SheetContent
           className={crmSheetContentClassName("w-full sm:max-w-xl overflow-y-auto")}
         >
-          <SheetHeader className="mb-6">
-            <SheetTitle className="font-black text-xl">Customer 360° Profile</SheetTitle>
+          <SheetHeader className="mb-4">
+            <SheetTitle className={typeHeadingClassName("text-xl")}>Customer 360° Profile</SheetTitle>
           </SheetHeader>
 
           {loading360 || !customer360 ? (
@@ -362,82 +363,84 @@ export default function CustomersPage() {
               </p>
             </div>
           ) : (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className={cn("text-2xl font-black", text.primary)}>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <h3 className={typeHeadingClassName("text-xl sm:text-2xl truncate")}>
                     {customer360.customer.name}
                   </h3>
-                  <p className={cn("font-mono font-medium", text.muted)}>
+                  <p className={cn("font-mono font-medium text-sm", text.muted)}>
                     {customer360.customer.phone}
                   </p>
                 </div>
                 <StatusBadge
                   tone={customerTierTone(customer360.customer.tier)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-black uppercase rounded-xl"
+                  className={typeUiLabelClassName(
+                    "flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-sm uppercase rounded-xl",
+                  )}
                 >
                   <TierIcon tier={customer360.customer.tier} />
                   {customer360.customer.tier}
                 </StatusBadge>
               </div>
 
-              <div className="h-px bg-border my-4" />
-
-              <div
-                className={cn(
-                  "p-4 rounded-2xl border flex items-start gap-3",
-                  statusToneClassName(churnRiskTone(customer360.churnRisk)),
-                )}
-              >
-                {customer360.churnRisk === "LOW" ? (
-                  <CheckCircle2 className="w-6 h-6 shrink-0" aria-hidden />
-                ) : (
-                  <AlertTriangle className="w-6 h-6 shrink-0" aria-hidden />
-                )}
-                <div>
-                  <h4 className="font-bold text-sm uppercase tracking-wider opacity-80 mb-1">
-                    Retention Status
-                  </h4>
-                  <p className="font-black text-lg">
-                    {customer360.churnRisk === "LOW"
-                      ? "Active Customer"
-                      : customer360.churnRisk === "MEDIUM"
-                        ? "At Risk (Slipping Away)"
-                        : "High Churn Risk"}
-                  </p>
-                  <p className="text-sm font-medium opacity-80 mt-1">
-                    Last ordered {customer360.daysSinceLastOrder} days ago
-                  </p>
-                </div>
-              </div>
-
-              <div className={crmInsightPanelClassName()}>
-                <div className="flex justify-between items-end mb-2">
-                  <div>
-                    <p className={crmSectionLabelClassName("mb-0")}>Lifetime Spend</p>
-                    <p className={cn("text-2xl font-black mt-1", text.primary)}>
-                      {formatCurrency(customer360.lifetimeSpend)}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div
+                  className={cn(
+                    "p-3 sm:p-4 rounded-2xl border flex items-start gap-3",
+                    statusToneClassName(churnRiskTone(customer360.churnRisk)),
+                  )}
+                >
+                  {customer360.churnRisk === "LOW" ? (
+                    <CheckCircle2 className="w-5 h-5 shrink-0" aria-hidden />
+                  ) : (
+                    <AlertTriangle className="w-5 h-5 shrink-0" aria-hidden />
+                  )}
+                  <div className="min-w-0">
+                    <h4 className={typeUiLabelClassName("text-xs uppercase tracking-wider opacity-80 mb-1")}>
+                      Retention Status
+                    </h4>
+                    <p className={typeHeadingClassName("text-base")}>
+                      {customer360.churnRisk === "LOW"
+                        ? "Active Customer"
+                        : customer360.churnRisk === "MEDIUM"
+                          ? "At Risk (Slipping Away)"
+                          : "High Churn Risk"}
+                    </p>
+                    <p className={cn("text-xs font-medium opacity-80 mt-1", text.muted)}>
+                      Last ordered {customer360.daysSinceLastOrder} days ago
                     </p>
                   </div>
-                  {customer360.nextTier !== "MAX" && (
-                    <div className="text-right">
-                      <p className={cn("text-xs font-bold uppercase tracking-wider", text.muted)}>
-                        Next Tier: {customer360.nextTier}
-                      </p>
-                      <p className={cn("text-sm font-bold", metricValueClassName("emerald"))}>
-                        {formatCurrency(customer360.amountToNextTier)} to go
+                </div>
+
+                <div className={crmInsightPanelClassName("p-3 sm:p-4")}>
+                  <div className="flex flex-col gap-2 sm:gap-0 sm:flex-row sm:justify-between sm:items-end mb-2">
+                    <div>
+                      <p className={crmSectionLabelClassName("mb-0")}>Lifetime Spend</p>
+                      <p className={typeHeadingClassName("text-xl sm:text-2xl mt-1")}>
+                        {formatCurrency(customer360.lifetimeSpend)}
                       </p>
                     </div>
+                    {customer360.nextTier !== "MAX" && (
+                      <div className="sm:text-right">
+                        <p className={typeSectionLabelClassName()}>
+                          Next Tier: {customer360.nextTier}
+                        </p>
+                        <p className={typeUiLabelClassName(cn("text-sm", metricValueClassName("emerald")))}>
+                          {formatCurrency(customer360.amountToNextTier)} to go
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                  {customer360.nextTier !== "MAX" ? (
+                    <Progress
+                      value={parseFloat(customer360.progressPercentage.toFixed(1))}
+                      className={crmProgressClassName()}
+                    />
+                  ) : (
+                    <div className={crmMaxTierBadgeClassName()}>Maximum Tier Reached</div>
                   )}
                 </div>
-                {customer360.nextTier !== "MAX" ? (
-                  <Progress
-                    value={parseFloat(customer360.progressPercentage.toFixed(1))}
-                    className={crmProgressClassName()}
-                  />
-                ) : (
-                  <div className={crmMaxTierBadgeClassName()}>Maximum Tier Reached</div>
-                )}
               </div>
 
               <div>
@@ -449,7 +452,7 @@ export default function CustomersPage() {
                     {customer360.favoriteDrinks.map(
                       (fav: { product: { name: string }; count: number }, i: number) => (
                         <div key={i} className={crmFavoriteChipClassName()}>
-                          <span className={cn("font-bold", text.secondary)}>
+                          <span className={typeUiLabelClassName(text.secondary)}>
                             {fav.product.name}
                           </span>
                           <span className={crmFavoriteCountClassName()}>{fav.count}x</span>
@@ -476,7 +479,7 @@ export default function CustomersPage() {
                             <ShoppingBag className="w-4 h-4" aria-hidden />
                           </div>
                           <div>
-                            <p className={cn("font-bold", text.secondary)}>
+                            <p className={typeUiLabelClassName(text.secondary)}>
                               {formatDate(order.createdAt)}
                             </p>
                             <p className={cn("text-xs font-medium", text.muted)}>
@@ -484,7 +487,7 @@ export default function CustomersPage() {
                             </p>
                           </div>
                         </div>
-                        <div className={cn("font-black", text.primary)}>
+                        <div className={typeUiLabelClassName(text.primary)}>
                           {formatCurrency(order.netAmount)}
                         </div>
                       </div>

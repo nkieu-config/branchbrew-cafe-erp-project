@@ -31,12 +31,15 @@ import {
 import { buildProductsCostingUrl } from "@/lib/products-hub-url";
 import {
   foodCostStatusClassName,
+  hubListDataTableProps,
   hubCtaClassName,
   inlineLinkClassName,
   productsCategoryBadgeClassName,
   productsSectionPanelClassName,
   tableCellMutedClassName,
   text,
+  typeHeadingClassName,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -129,7 +132,7 @@ export default function ProductsPage() {
           dataIndex: "name",
           key: "name",
           render: (name: string) => (
-            <span className={cn("font-bold", text.primary)}>{name}</span>
+            <span className={typeHeadingClassName()}>{name}</span>
           ),
         },
         {
@@ -146,7 +149,7 @@ export default function ProductsPage() {
           dataIndex: "price",
           key: "price",
           render: (price: number) => (
-            <span className={cn("font-bold tabular-nums", text.primary)}>
+            <span className={typeUiLabelClassName(cn("tabular-nums", text.primary))}>
               {formatBaht(price)}
             </span>
           ),
@@ -259,7 +262,7 @@ export default function ProductsPage() {
         icon={Coffee}
         accentHub="products"
         actions={
-          <Button onClick={handleAddNew} className={hubCtaClassName("products", "font-bold")}>
+          <Button onClick={handleAddNew} className={hubCtaClassName("products")}>
             <Plus className="w-4 h-4 mr-2" aria-hidden />
             Add Menu Item
           </Button>
@@ -330,11 +333,8 @@ export default function ProductsPage() {
         />
 
         <DataTable
+          {...hubListDataTableProps()}
           loading={isLoading}
-          isError={isError}
-          errorMessage={getErrorMessage(error, "Failed to load menu items")}
-          onRetry={() => void refetch()}
-          retryLoading={isFetching}
           emptyDescription={
             hasActiveFilters
               ? "No menu items match your filters."
@@ -343,12 +343,6 @@ export default function ProductsPage() {
           columns={columns}
           dataSource={filteredProducts}
           rowKey="id"
-          pagination={{
-            pageSize: 15,
-            showSizeChanger: true,
-            pageSizeOptions: ["10", "15", "25", "50"],
-          }}
-          hideBorders
         />
       </HubListPage>
 

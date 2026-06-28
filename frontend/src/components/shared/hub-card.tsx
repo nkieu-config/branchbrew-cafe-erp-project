@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { LucideIcon } from "lucide-react";
 import type { HubId } from "@/lib/navigation";
 import type { PageChromeBranchScope } from "@/components/layout/PageChrome";
-import { hubCardIconClass, surfaceCardClassName, text } from "@/lib/theme";
+import { hubCardIconClass, surfaceCardClassName, text, typeHeadingClassName } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { HubPageHeaderClient } from "@/components/shared/hub-page-header-client";
 
@@ -49,7 +49,7 @@ function HubHeading({
       {hasHeadingBlock && (
         <div className="min-w-0">
           {showTitle && (
-            <TitleTag className={cn("text-lg font-bold flex items-center gap-2", text.primary)}>
+            <TitleTag className={typeHeadingClassName("text-lg flex items-center gap-2")}>
               {Icon && <Icon className={hubCardIconClass(accentHub)} aria-hidden />}
               {title}
             </TitleTag>

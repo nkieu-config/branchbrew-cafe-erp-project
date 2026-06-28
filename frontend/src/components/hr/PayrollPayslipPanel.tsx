@@ -14,6 +14,7 @@ import {
   payrollExpandedPanelClassName,
   tableCellMutedClassName,
   text,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -101,7 +102,7 @@ export function PayrollPayslipPanel({
           width: 120,
           align: "right" as const,
           render: (val: number) => (
-            <span className={cn("font-mono tabular-nums font-semibold", text.primary)}>
+            <span className={typeUiLabelClassName(cn("font-mono tabular-nums", text.primary))}>
               {formatBaht(val)}
             </span>
           ),
@@ -138,7 +139,7 @@ export function PayrollPayslipPanel({
           width: 140,
           align: "right" as const,
           render: (val: number) => (
-            <span className={cn("font-mono tabular-nums font-bold", metricValueClassName("emerald"))}>
+            <span className={typeUiLabelClassName(cn("font-mono tabular-nums", metricValueClassName("emerald")))}>
               {formatBaht(val)}
             </span>
           ),
@@ -186,10 +187,10 @@ export function PayrollPayslipPanel({
           return (
             <Table.Summary.Row className={antTableSummaryRowClassName()}>
               <Table.Summary.Cell index={0} colSpan={5}>
-                <span className={cn("font-bold", text.primary)}>Total</span>
+                <span className={typeUiLabelClassName(text.primary)}>Total</span>
               </Table.Summary.Cell>
               <Table.Summary.Cell index={1} align="right">
-                <span className={cn("font-mono tabular-nums font-semibold", text.primary)}>
+                <span className={typeUiLabelClassName(cn("font-mono tabular-nums", text.primary))}>
                   {formatBaht(totalGross)}
                 </span>
               </Table.Summary.Cell>
@@ -204,7 +205,7 @@ export function PayrollPayslipPanel({
                 </span>
               </Table.Summary.Cell>
               <Table.Summary.Cell index={4} align="right">
-                <span className={cn("font-mono tabular-nums font-bold", metricValueClassName("emerald"))}>
+                <span className={typeUiLabelClassName(cn("font-mono tabular-nums", metricValueClassName("emerald")))}>
                   {formatBaht(totalNet)}
                 </span>
               </Table.Summary.Cell>

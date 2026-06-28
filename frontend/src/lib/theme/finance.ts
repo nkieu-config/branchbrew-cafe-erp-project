@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { dashboardErrorPanelClass } from "./dashboard";
 import { metricValueClassName } from "./metric";
-import { hubCardIconClass } from "./hub-accent";
+import { hubIconClassName, hubSectionPanelClassName } from "./hub-panel";
 import { elevatedPanelClassName, text } from "./surface";
 
 export function ledgerDebitClassName(className?: string) {
@@ -18,7 +18,7 @@ export function ledgerPanelClassName(className?: string) {
 
 /** Solid elevated panel for finance sections (replaces glass on light). */
 export function financeSectionPanelClassName(className?: string) {
-  return ledgerPanelClassName(className);
+  return hubSectionPanelClassName("finance", cn("p-4 sm:p-6", className));
 }
 
 export function financeSectionTitleClassName(className?: string) {
@@ -26,7 +26,7 @@ export function financeSectionTitleClassName(className?: string) {
 }
 
 export function financeHubIconClassName(className?: string) {
-  return cn(hubCardIconClass("finance"), className);
+  return hubIconClassName("finance", className);
 }
 
 export function financeMetricIconClassName(tone: "emerald" | "amber" | "indigo", className?: string) {

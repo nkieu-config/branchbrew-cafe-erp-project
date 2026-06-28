@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { metricValueClassName, type MetricTone } from "@/lib/theme";
+import { metricValueClassName, touchTargetClassName, type MetricTone } from "@/lib/theme";
 import type { LucideIcon } from "lucide-react";
 
 type TableActionButtonProps = {
@@ -37,7 +37,8 @@ export function TableActionButton({
       onClick={onClick}
       aria-label={iconOnly ? label : undefined}
       className={cn(
-        "min-h-[44px] min-w-[44px] px-2 font-medium",
+        touchTargetClassName(),
+        "px-2 font-medium",
         destructive && "text-destructive hover:text-destructive hover:bg-destructive/10",
         !destructive && variant === "ghost" && cn(
           metricValueClassName(tone),

@@ -43,6 +43,7 @@ import {
   equipmentMaintenanceDueRowClassName,
   equipmentMaintenanceOverdueRowClassName,
   hubCtaClassName,
+  hubListDataTableProps,
   hubLoadingSpinnerClassName,
   infoBannerClassName,
   infoBannerIconClassName,
@@ -237,9 +238,10 @@ export default function AssetsPage() {
       <HubPageHeader
         hideTitle
         accentHub="assets"
+        branchScope={{ branchName }}
         actions={
           <Button
-            className={hubCtaClassName("assets", "font-bold min-h-[44px]")}
+            className={hubCtaClassName("assets", "min-h-[44px]")}
             onClick={() => setRegisterOpen(true)}
           >
             <Plus className="w-4 h-4 mr-2" aria-hidden />
@@ -276,7 +278,6 @@ export default function AssetsPage() {
           search={search}
           onSearchChange={setSearch}
           searchPlaceholder="Search name, serial, type…"
-          branchName={branchName}
           showReset={hasActiveFilters}
           onReset={resetFilters}
           filters={
@@ -340,6 +341,7 @@ export default function AssetsPage() {
           </div>
         ) : (
           <DataTable
+            {...hubListDataTableProps()}
             columns={columns}
             dataSource={filteredEquipment}
             rowKey="id"

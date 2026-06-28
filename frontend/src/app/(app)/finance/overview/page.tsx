@@ -190,11 +190,14 @@ export default function FinanceDashboardPage() {
         hideTitle
         icon={Wallet}
         accentHub="finance"
+        branchScope={
+          showAllBranches ? { allBranches: true } : { branchName }
+        }
         actions={
           <Button
             onClick={() => void handleExport()}
             disabled={isExporting}
-            className={hubCtaClassName("finance", "font-bold")}
+            className={hubCtaClassName("finance")}
           >
             {isExporting ? (
               <>
@@ -237,8 +240,6 @@ export default function FinanceDashboardPage() {
         />
 
         <HubListPage.Toolbar
-          branchName={branchName}
-          allBranches={showAllBranches}
           search={expenseSearch}
           onSearchChange={setExpenseSearch}
           searchPlaceholder="Search expenses…"
@@ -296,7 +297,7 @@ export default function FinanceDashboardPage() {
         </HubListPage.Count>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className={financeSectionPanelClassName("flex flex-col border border-[var(--table-container-border)] bg-[var(--table-container-bg)]")}>
+          <div className={financeSectionPanelClassName("flex flex-col")}>
             <h2 className={financeSectionTitleClassName("mb-4")}>
               <CheckCircle2 className={financeHubIconClassName()} aria-hidden />
               Shift settlements
@@ -370,7 +371,7 @@ export default function FinanceDashboardPage() {
             </div>
           </div>
 
-          <div className={financeSectionPanelClassName("flex flex-col border border-[var(--table-container-border)] bg-[var(--table-container-bg)]")}>
+          <div className={financeSectionPanelClassName("flex flex-col")}>
             <h2 className={financeSectionTitleClassName()}>
               <DollarSign className={financeMetricIconClassName("amber")} aria-hidden />
               Petty cash expenses

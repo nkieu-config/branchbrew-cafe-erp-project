@@ -12,7 +12,7 @@ import {
   Legend,
 } from "recharts";
 import { LineChart as LineChartIcon } from "lucide-react";
-import { readCssVar, themeDefaults, dashboardChartEmptyClass, text } from "@/lib/theme";
+import { readCssVar, themeDefaults, dashboardChartEmptyClass, text, typeUiLabelClassName } from "@/lib/theme";
 import { useChartTheme } from "@/hooks/useChartTheme";
 import type { LedgerChartPoint } from "@/lib/ledger-filters";
 import { cn } from "@/lib/utils";
@@ -45,7 +45,7 @@ export function LedgerTrendChart({ data, loading = false }: LedgerTrendChartProp
     return (
       <div className={dashboardChartEmptyClass("h-[350px]")}>
         <LineChartIcon className="w-10 h-10 text-[var(--text-subtle)]" aria-hidden />
-        <p className={cn("text-sm font-semibold", text.primary)}>No P&amp;L trend data yet</p>
+        <p className={typeUiLabelClassName(cn("text-sm", text.primary))}>No P&amp;L trend data yet</p>
         <p className={cn("text-sm", text.muted)}>
           Revenue and expense trends appear once journal activity is posted.
         </p>

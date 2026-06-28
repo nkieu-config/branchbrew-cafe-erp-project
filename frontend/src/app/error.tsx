@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { AlertCircle } from "lucide-react"
-import { hubPrimaryActionClassName, statusToneClassName, text } from "@/lib/theme"
+import { hubPrimaryActionClassName, statusToneClassName, text, typeHeadingClassName } from "@/lib/theme"
 import { cn } from "@/lib/utils"
 
 export default function Error({
@@ -22,7 +22,7 @@ export default function Error({
       <div className={cn("p-4 rounded-full", statusToneClassName("danger"))}>
         <AlertCircle className="w-12 h-12" />
       </div>
-      <h2 className={cn("text-2xl font-bold tracking-tight", text.primary)}>Something went wrong!</h2>
+      <h2 className={typeHeadingClassName("text-2xl tracking-tight")}>Something went wrong!</h2>
       <p className={cn("max-w-md", text.muted)}>
         We apologize for the inconvenience. An unexpected error occurred while rendering this page.
       </p>

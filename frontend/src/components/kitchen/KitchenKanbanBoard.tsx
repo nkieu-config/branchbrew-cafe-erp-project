@@ -27,6 +27,9 @@ import {
   kanbanOrderBadgeClassName,
   metricValueClassName,
   productionColumnTone,
+  typeHeadingClassName,
+  typeMicroClassName,
+  typeUiLabelClassName,
   text,
 } from "@/lib/theme";
 import type { StatusTone } from "@/lib/theme";
@@ -98,19 +101,19 @@ function KanbanCard({ order, isOverlay = false }: { order: ProductionOrderWithTa
       <div className="flex justify-between items-start mb-2">
         <span className={kanbanOrderBadgeClassName()}>{order.orderNumber}</span>
         {isCompleted ? (
-          <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold uppercase", text.muted)}>
+          <span className={typeUiLabelClassName(cn(typeMicroClassName("uppercase"), text.muted))}>
             <Lock className="w-3 h-3" aria-hidden />
             Locked
           </span>
         ) : null}
       </div>
-      <div className={cn("font-bold flex items-center gap-2 mb-1", text.primary)}>
+      <div className={typeHeadingClassName("flex items-center gap-2 mb-1")}>
         <PackageOpen className={hubAccentIconClass("kitchen", "w-4 h-4 shrink-0")} />
         <span className="truncate">{order.targetIngredient?.name}</span>
       </div>
-      <div className={cn("text-sm font-black", text.secondary)}>
+      <div className={typeHeadingClassName(cn("text-sm", text.secondary))}>
         {order.quantityToProduce}{" "}
-        <span className={cn("text-xs font-bold", text.muted)}>{order.targetIngredient?.unit}</span>
+        <span className={typeHeadingClassName(cn("text-xs", text.muted))}>{order.targetIngredient?.unit}</span>
       </div>
       {order.plannedStartDate && (
         <div className={kanbanMetaChipClassName()}>
@@ -119,7 +122,7 @@ function KanbanCard({ order, isOverlay = false }: { order: ProductionOrderWithTa
         </div>
       )}
       {isCompleted && order.actualCost != null && (
-        <div className={cn("mt-2 text-xs font-bold tabular-nums", metricValueClassName("emerald"))}>
+        <div className={typeUiLabelClassName(cn("mt-2 text-xs tabular-nums", metricValueClassName("emerald")))}>
           Actual cost {formatBaht(order.actualCost)}
         </div>
       )}

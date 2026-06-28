@@ -53,6 +53,7 @@ import {
 import {
   hrSectionPanelClassName,
   hubCtaClassName,
+  hubListDataTableProps,
   hubLoadingSpinnerClassName,
   infoBannerClassName,
   infoBannerIconClassName,
@@ -62,6 +63,7 @@ import {
   metricValueClassName,
   tableActionAccentClassName,
   text,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -187,7 +189,7 @@ function PayrollPageContent() {
           key: "period",
           render: (_: unknown, record: PayrollRunWithPayslips) => (
             <div className="min-w-0">
-              <div className={cn("font-semibold", text.primary)}>
+              <div className={typeUiLabelClassName(text.primary)}>
                 {formatPayrollPeriod(record.month, record.year)}
               </div>
               <div className={cn("text-xs tabular-nums", text.muted)}>
@@ -214,7 +216,7 @@ function PayrollPageContent() {
           key: "totalAmount",
           align: "right" as const,
           render: (_: unknown, record: PayrollRunWithPayslips) => (
-            <span className={cn("font-mono tabular-nums font-bold", metricValueClassName("emerald"))}>
+            <span className={typeUiLabelClassName(cn("font-mono tabular-nums", metricValueClassName("emerald")))}>
               {formatBaht(payrollRunTotalNet(record))}
             </span>
           ),
@@ -262,9 +264,10 @@ function PayrollPageContent() {
           hideTitle
           icon={Receipt}
           accentHub="hr"
+          branchScope={{ branchName }}
           actions={
             <Button
-              className={hubCtaClassName("hr", "font-bold")}
+              className={hubCtaClassName("hr")}
               disabled={hasCurrentMonthRun || generatePayrollMutation.isPending}
               onClick={() => setShowGenerateConfirm(true)}
             >
@@ -341,7 +344,6 @@ function PayrollPageContent() {
           />
 
           <HubListPage.Toolbar
-            branchName={branchName}
             showReset={hasActiveFilters}
             onReset={() => {
               setStatusFilter("ALL");
@@ -394,6 +396,7 @@ function PayrollPageContent() {
           </HubListPage.Count>
 
           <DataTable
+            {...hubListDataTableProps({ pageSize: 10 })}
             loading={isLoading}
             columns={columns}
             dataSource={filteredPayrollRuns}
@@ -411,7 +414,6 @@ function PayrollPageContent() {
                 employeeId == null ||
                 filterPayslipsForEmployee(record.payslips, employeeId).length > 0,
             }}
-            pagination={{ pageSize: 10 }}
             emptyDescription={
               hasActiveFilters
                 ? "No payroll runs match the current filters."

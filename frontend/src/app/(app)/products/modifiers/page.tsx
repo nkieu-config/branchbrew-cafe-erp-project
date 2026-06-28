@@ -68,6 +68,7 @@ import {
   formFieldInsetClassName,
   formSelectContentClassName,
   hubCtaClassName,
+  hubListDataTableProps,
   hubLoadingSpinnerClassName,
   metricValueClassName,
   modifierGroupPanelClassName,
@@ -76,6 +77,7 @@ import {
   productsSectionPanelClassName,
   tableCellMutedClassName,
   text,
+  typeHeadingClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -380,9 +382,8 @@ export default function ModifiersPage() {
         key: "price",
         render: (_: unknown, record: ModifierOption) => (
           <span
-            className={cn(
-              "font-bold tabular-nums",
-              metricValueClassName("emerald"),
+            className={typeHeadingClassName(
+              cn("tabular-nums", metricValueClassName("emerald")),
             )}
           >
             {formatBaht(toNumber(record.priceDelta))}
@@ -466,7 +467,7 @@ export default function ModifiersPage() {
             </ButtonLink>
             <Button
               onClick={openCreateGroup}
-              className={hubCtaClassName("products", "font-bold")}
+              className={hubCtaClassName("products")}
             >
               <Plus className="w-4 h-4 mr-2" aria-hidden />
               New Group
@@ -562,7 +563,7 @@ export default function ModifiersPage() {
             <div key={group.id} className={modifierGroupPanelClassName()}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h3 className={cn("text-lg font-bold", text.primary)}>
+                  <h3 className={typeHeadingClassName("text-lg")}>
                     {group.name}
                   </h3>
                   <div className="flex flex-wrap gap-2 mt-1">
@@ -616,10 +617,10 @@ export default function ModifiersPage() {
               </div>
 
               <DataTable
+                {...hubListDataTableProps()}
                 rowKey="id"
                 dataSource={group.options}
                 pagination={false}
-                hideBorders
                 emptyDescription="No options in this group yet."
                 columns={makeOptionColumns(group)}
               />
@@ -637,7 +638,7 @@ export default function ModifiersPage() {
       >
         <DialogContent className={productsDialogContentClassName()}>
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
+            <DialogTitle className={typeHeadingClassName("text-xl")}>
               {editingGroup ? "Edit Modifier Group" : "New Modifier Group"}
             </DialogTitle>
             <DialogDescription>
@@ -712,7 +713,7 @@ export default function ModifiersPage() {
             <Button
               onClick={() => void handleSaveGroup()}
               disabled={isSavingGroup}
-              className={cn("w-full", hubCtaClassName("products", "font-bold"))}
+              className={cn("w-full", hubCtaClassName("products"))}
             >
               {isSavingGroup && (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />
@@ -732,7 +733,7 @@ export default function ModifiersPage() {
       >
         <DialogContent className={productsDialogContentClassName()}>
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
+            <DialogTitle className={typeHeadingClassName("text-xl")}>
               {editingOption ? "Edit Option" : "New Option"}
             </DialogTitle>
             <DialogDescription>
@@ -812,7 +813,7 @@ export default function ModifiersPage() {
             <Button
               onClick={() => void handleSaveOption()}
               disabled={isSavingOption}
-              className={cn("w-full", hubCtaClassName("products", "font-bold"))}
+              className={cn("w-full", hubCtaClassName("products"))}
             >
               {isSavingOption && (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />

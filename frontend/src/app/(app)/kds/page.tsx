@@ -35,6 +35,8 @@ import {
   kdsTimerChipClassName,
   type KdsTicketUrgency,
   text,
+  typeHeadingClassName,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -98,7 +100,7 @@ export default function KdsPage() {
     return (
       <AnimatedPage className="h-full flex flex-col space-y-4">
         <header className="space-y-1 pb-3 border-b border-[var(--kds-ticket-divider)]">
-          <h1 className="text-2xl font-bold">Kitchen Display</h1>
+          <h1 className={typeHeadingClassName("text-2xl")}>Kitchen Display</h1>
           <p className={cn("text-sm", text.muted)}>Real-time order queue for this branch.</p>
         </header>
         <BranchEmptyState description="Select a branch in the top bar to view the kitchen display." />
@@ -143,7 +145,7 @@ export default function KdsPage() {
         ) : orders.length === 0 ? (
           <div className={kdsEmptyStateClassName()}>
             <ChefHat className="w-12 h-12 mx-auto mb-4 text-[var(--kds-empty-icon)]" aria-hidden />
-            <p className={`font-semibold ${text.primary}`}>No pending orders</p>
+            <p className={typeUiLabelClassName(text.primary)}>No pending orders</p>
             <p className={`text-sm mt-2 ${text.muted}`}>
               Kitchen is clear — new orders will appear here automatically.
             </p>

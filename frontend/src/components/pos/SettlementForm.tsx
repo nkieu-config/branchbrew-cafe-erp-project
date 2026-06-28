@@ -14,6 +14,8 @@ import {
   posSettlementIconClassName,
   posSettlementSummaryClassName,
   text,
+  typeHeadingClassName,
+  typeUiLabelClassName,
 } from '@/lib/theme'
 import { cn } from '@/lib/utils'
 
@@ -84,7 +86,7 @@ export function SettlementForm({
     <div className={posFormPanelClassName()}>
       <div className="flex items-center gap-3">
         <Calculator className={`w-5 h-5 ${posSettlementIconClassName()}`} />
-        <h2 className={`font-semibold text-lg ${text.primary}`}>Submit Shift Settlement</h2>
+        <h2 className={typeHeadingClassName("text-lg")}>Submit Shift Settlement</h2>
       </div>
       
       {expectedLoading ? (
@@ -103,7 +105,7 @@ export function SettlementForm({
             <span>Petty Cash Expenses:</span>
             <span className="font-medium tabular-nums text-[var(--status-danger-fg)]">-฿{expected?.expenses?.toLocaleString() || 0}</span>
           </div>
-          <div className={`pt-2 mt-2 border-t border-[var(--pos-panel-border)] flex justify-between font-semibold`}>
+          <div className={cn("pt-2 mt-2 border-t border-[var(--pos-panel-border)] flex justify-between", typeUiLabelClassName())}>
             <span className={text.primary}>Expected Cash in Drawer:</span>
             <span className={posSettlementHighlightClassName()}>฿{expected?.expectedCash?.toLocaleString() || 0}</span>
           </div>

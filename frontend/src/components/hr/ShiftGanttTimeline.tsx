@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Avatar } from "antd";
+import { Avatar } from "@/components/ui/avatar";
 import { formatTime } from "@/lib/intl-date";
 import {
   calculateGanttLeftPercent,
@@ -19,10 +19,13 @@ import {
   ganttTimeAxisClassName,
   ganttTrackClassName,
   ganttUserColumnClassName,
+  horizontalScrollHintClassName,
   hrAvatarClassName,
   inlineLinkClassName,
   shiftBarClassName,
   text,
+  typeMicroClassName,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -34,9 +37,9 @@ export function ShiftGanttTimeline({ rows }: ShiftGanttTimelineProps) {
   const hoursRange = ganttHourRange();
 
   return (
-    <div className="p-4 overflow-x-auto">
-      <p className={cn("text-xs mb-3 sm:hidden", text.muted)}>Scroll timeline →</p>
-      <div className="min-w-[800px]">
+    <div className={horizontalScrollHintClassName("p-4")}>
+      <p className={cn(typeMicroClassName("mb-3 lg:hidden"), text.muted)}>Scroll timeline →</p>
+      <div className="min-w-[640px] sm:min-w-[720px] md:min-w-[800px]">
         <div className={ganttTimeAxisClassName()} role="presentation">
           {hoursRange.map((hour) => (
             <div key={hour} className={ganttHourLabelClassName()}>
@@ -48,7 +51,7 @@ export function ShiftGanttTimeline({ rows }: ShiftGanttTimelineProps) {
         </div>
 
         <div className="relative mt-4 space-y-4">
-          <div className="absolute top-0 bottom-0 left-40 right-0 flex pointer-events-none">
+          <div className="absolute top-0 bottom-0 left-28 sm:left-32 md:left-40 right-0 flex pointer-events-none">
             {hoursRange.slice(0, -1).map((hour) => (
               <div key={hour} className={ganttGridLineClassName()} />
             ))}
@@ -60,7 +63,7 @@ export function ShiftGanttTimeline({ rows }: ShiftGanttTimelineProps) {
                 <Avatar className={hrAvatarClassName()}>{row.userName.charAt(0)}</Avatar>
                 <Link
                   href={buildHrEmployeesUrl()}
-                  className={cn("font-bold text-sm truncate", inlineLinkClassName())}
+                  className={cn(typeUiLabelClassName("text-sm truncate"), inlineLinkClassName())}
                 >
                   {row.userName}
                 </Link>

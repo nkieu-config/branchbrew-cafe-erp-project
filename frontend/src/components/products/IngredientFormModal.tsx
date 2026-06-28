@@ -34,6 +34,7 @@ import {
   hubCtaClassName,
   productsDialogContentClassName,
   text,
+  typeHeadingClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -124,7 +125,7 @@ export function IngredientFormModal({
     >
       <DialogContent className={productsDialogContentClassName()}>
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">
+          <DialogTitle className={typeHeadingClassName("text-xl")}>
             {ingredient ? "Edit Ingredient" : "New Raw Ingredient"}
           </DialogTitle>
           <DialogDescription className={text.muted}>
@@ -223,7 +224,7 @@ export function IngredientFormModal({
           <Button
             type="button"
             onClick={() => void handleSubmit()}
-            className={hubCtaClassName("products", "font-bold")}
+            className={hubCtaClassName("products")}
             disabled={isSaving}
           >
             {isSaving ? "Saving…" : "Save Ingredient"}

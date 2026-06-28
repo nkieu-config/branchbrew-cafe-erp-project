@@ -4,6 +4,7 @@ import {
   metricIconWrapClassName,
   metricTrendClassName,
   metricValueClassName,
+  typeMetricClassName,
   surfaceCardClassName,
   text,
   type MetricTone,
@@ -34,7 +35,7 @@ export function StatCard({
       <div className="flex justify-between items-start mb-4">
         <div>
           <p className={cn("text-sm font-medium", text.muted)}>{title}</p>
-          <h3 className={cn("text-3xl font-bold mt-1 tabular-nums", metricValueClassName(color))}>
+          <h3 className={cn(typeMetricClassName("text-3xl mt-1"), metricValueClassName(color))}>
             {value}
           </h3>
         </div>

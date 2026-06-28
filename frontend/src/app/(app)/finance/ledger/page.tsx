@@ -38,6 +38,7 @@ import {
   financeSectionPanelClassName,
   financeSectionTitleClassName,
   hubCtaClassName,
+  hubListDataTableProps,
   infoBannerClassName,
   infoBannerIconClassName,
   infoBannerTextClassName,
@@ -179,10 +180,13 @@ export default function GeneralLedgerPage() {
         hideTitle
         icon={BookOpen}
         accentHub="finance"
+        branchScope={
+          showAllBranches ? { allBranches: true } : { branchName }
+        }
         actions={
           showSeedAction ? (
             <Button
-              className={hubCtaClassName("finance", "font-bold")}
+              className={hubCtaClassName("finance")}
               disabled={isSeeding}
               onClick={() => setShowSeedConfirm(true)}
             >
@@ -233,8 +237,6 @@ export default function GeneralLedgerPage() {
         />
 
         <HubListPage.Toolbar
-          branchName={branchName}
-          allBranches={showAllBranches}
           search={search}
           onSearchChange={setSearch}
           searchPlaceholder="Search reference, description, account…"
@@ -288,7 +290,7 @@ export default function GeneralLedgerPage() {
           )}
         </HubListPage.Count>
 
-        <div className={financeSectionPanelClassName("border border-[var(--table-container-border)] bg-[var(--table-container-bg)]")}>
+        <div className={financeSectionPanelClassName()}>
           <h2 className={financeSectionTitleClassName("mb-4")}>
             <BookOpen className={financeHubIconClassName()} aria-hidden />
             Profit &amp; loss trend
@@ -296,12 +298,13 @@ export default function GeneralLedgerPage() {
           <LedgerTrendChart data={chartData as LedgerChartPoint[]} loading={isChartLoading} />
         </div>
 
-        <div className={financeSectionPanelClassName("border border-[var(--table-container-border)] bg-[var(--table-container-bg)]")}>
+        <div className={financeSectionPanelClassName()}>
           <h2 className={financeSectionTitleClassName()}>
             <FileText className={financeMetricIconClassName("indigo")} aria-hidden />
             Journal entries
           </h2>
           <DataTable
+            {...hubListDataTableProps({ pageSize: 20 })}
             columns={columns}
             dataSource={filteredEntries}
             rowKey="id"
@@ -310,7 +313,6 @@ export default function GeneralLedgerPage() {
               expandedRowRender: (record: JournalEntry) => <JournalLinesPanel entry={record} />,
               rowExpandable: (record) => (record.lines?.length ?? 0) > 0,
             }}
-            pagination={{ pageSize: 20 }}
             emptyDescription={
               hasActiveFilters
                 ? "No journal entries match the current filters."

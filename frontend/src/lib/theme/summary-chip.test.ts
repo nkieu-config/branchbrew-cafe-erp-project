@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { summaryChipClassName } from "./hub-ui";
+import { summaryChipClassName } from "./hub-primitives";
 
 describe("summaryChipClassName", () => {
   it("returns hub tone classes for kitchen", () => {

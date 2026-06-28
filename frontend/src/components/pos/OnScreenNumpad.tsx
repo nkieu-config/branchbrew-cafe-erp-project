@@ -8,7 +8,9 @@ import {
   posNumpadShellClassName,
   posNumpadSubmitClassName,
   text,
+  typeHeadingClassName,
 } from '@/lib/theme';
+import { cn } from '@/lib/utils';
 
 interface OnScreenNumpadProps {
   value: string;
@@ -31,7 +33,7 @@ export function OnScreenNumpad({ value, onChange, onSubmit, onClose }: OnScreenN
   return (
     <div className={posNumpadShellClassName()}>
       <div className="flex justify-between items-center mb-4">
-        <h3 className={`text-lg font-bold ${text.secondary}`}>Member Phone</h3>
+        <h3 className={typeHeadingClassName(cn("text-lg", text.secondary))}>Member Phone</h3>
         <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
           <X className={`w-5 h-5 ${text.muted}`} />
         </Button>

@@ -47,6 +47,7 @@ import type {
 import {
   avatarPlaceholderClassName,
   hubCtaClassName,
+  hubListDataTableProps,
   inlineLinkClassName,
   organizationSectionPanelClassName,
   text,
@@ -268,7 +269,7 @@ export default function UsersPageClient({ embedded = false }: { embedded?: boole
         accentHub="organization"
         actions={
           <Button
-            className={hubCtaClassName("organization", "font-bold min-h-[44px]")}
+            className={hubCtaClassName("organization", "min-h-[44px]")}
             onClick={handleAddNew}
           >
             <Plus className="w-4 h-4 mr-2" aria-hidden />
@@ -377,11 +378,11 @@ export default function UsersPageClient({ embedded = false }: { embedded?: boole
         />
 
         <DataTable
+          {...hubListDataTableProps({ pageSize: 10 })}
           loading={isLoading}
           columns={columns}
           dataSource={filteredUsers}
           rowKey="id"
-          pagination={{ pageSize: 10 }}
           emptyDescription={
             hasActiveFilters
               ? "No users match your filters."

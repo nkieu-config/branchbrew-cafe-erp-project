@@ -45,6 +45,10 @@ import {
   dashboardWidgetLabelClass,
   dashboardWidgetTitleClass,
   dashboardWidgetValueClass,
+  typeHeadingClassName,
+  typeMetricClassName,
+  typeSectionLabelClassName,
+  typeUiLabelClassName,
   text,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -90,7 +94,7 @@ export function SalesWidget({ branchId }: { branchId: string }) {
                 <>
                   <span
                     className={cn(
-                      "flex items-center text-sm font-bold px-2 py-1 rounded tabular-nums",
+                      typeUiLabelClassName("flex items-center text-sm px-2 py-1 rounded tabular-nums"),
                       dashboardTrendBadgeClass(summary.salesGrowth >= 0),
                     )}
                   >
@@ -142,7 +146,7 @@ export function TopBranchWidget({
             </p>
             <p
               className={cn(
-                "text-xl font-bold mt-2 tabular-nums",
+                typeMetricClassName("text-xl mt-2"),
                 dashboardWidgetValueClass("branch"),
               )}
             >
@@ -239,16 +243,21 @@ function InventoryAlertsList({
             {lowStockAlerts.map((alert) => (
               <AlertRow key={`low-${alert.id}`} href="/inventory?filter=low" type="low">
                 <div>
-                  <div className={cn("font-bold text-lg", text.primary)}>{alert.ingredientName}</div>
+                  <div className={typeHeadingClassName("text-lg")}>{alert.ingredientName}</div>
                   <div className={cn("text-sm font-medium", text.muted)}>
                     {alert.branchName} · Low stock
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-black text-xl tabular-nums text-[var(--widget-alerts-low-value)]">
+                  <div
+                    className={cn(
+                      typeMetricClassName("text-xl"),
+                      "text-[var(--widget-alerts-low-value)]",
+                    )}
+                  >
                     {alert.stock}
                   </div>
-                  <div className="text-xs font-bold uppercase tracking-wider text-[var(--widget-alerts-low-meta)]">
+                  <div className={typeSectionLabelClassName("tracking-wider text-[var(--widget-alerts-low-meta)]")}>
                     Min: {alert.minStock}
                   </div>
                 </div>
@@ -257,17 +266,22 @@ function InventoryAlertsList({
             {expiryAlerts.map((alert) => (
               <AlertRow key={`exp-${alert.id}`} href="/inventory/batches?filter=expiring" type="expiry">
                 <div>
-                  <div className={cn("font-bold text-lg", text.primary)}>{alert.ingredientName}</div>
+                  <div className={typeHeadingClassName("text-lg")}>{alert.ingredientName}</div>
                   <div className={cn("text-sm font-medium", text.muted)}>
                     {alert.branchName} ·{" "}
                     {alert.status === "EXPIRED" ? "Expired batch" : "Expiring soon"}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-black text-xl tabular-nums text-[var(--widget-alerts-expiry-value)]">
+                  <div
+                    className={cn(
+                      typeMetricClassName("text-xl"),
+                      "text-[var(--widget-alerts-expiry-value)]",
+                    )}
+                  >
                     {alert.quantity}
                   </div>
-                  <div className="text-xs font-bold uppercase tracking-wider text-[var(--widget-alerts-expiry-meta)]">
+                  <div className={typeSectionLabelClassName("tracking-wider text-[var(--widget-alerts-expiry-meta)]")}>
                     {formatDate(alert.expiryDate)}
                   </div>
                 </div>
@@ -280,7 +294,7 @@ function InventoryAlertsList({
               className="w-12 h-12 mb-3 text-[var(--widget-alerts-empty-icon)]"
               aria-hidden
             />
-            <span className="font-bold text-lg text-[var(--widget-alerts-empty-text)]">
+            <span className={typeHeadingClassName("text-lg text-[var(--widget-alerts-empty-text)]")}>
               Stock and expiry levels look healthy.
             </span>
           </div>

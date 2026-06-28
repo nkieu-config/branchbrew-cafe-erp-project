@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useBranchOrders, useVoidOrder, useRefundOrder } from "@/hooks/domains/usePosQueries";
-import { HubCard } from "@/components/shared/hub-card";
+import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { DataTable } from "@/components/shared/data-table";
@@ -31,7 +31,14 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
-import { posQueueHighlightClassName, tableCellMutedClassName, text } from "@/lib/theme";
+import {
+  posQueueHighlightClassName,
+  posSectionPanelClassName,
+  hubListDataTableProps,
+  tableCellMutedClassName,
+  text,
+  typeHeadingClassName,
+} from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 function isToday(iso: string) {
@@ -148,12 +155,16 @@ export default function PosOrdersPage() {
 
   return (
     <>
-      <HubCard
-        title="Orders & Refunds"
-        hideTitle
-        description="Void same-day orders or refund completed sales from previous days."
-      >
-        <HubListPage>
+      <div className="space-y-6">
+        <HubPageHeader
+          hideTitle
+          icon={Receipt}
+          accentHub="pos"
+          description="Void same-day orders or refund completed sales from previous days."
+          branchScope={{ branchName }}
+        />
+
+        <HubListPage className={posSectionPanelClassName()}>
         <HubListPage.Error
           message={isError ? getErrorMessage(error, "Failed to load orders") : undefined}
           onRetry={() => void refetch()}
@@ -164,7 +175,6 @@ export default function PosOrdersPage() {
           search={search}
           onSearchChange={setSearch}
           searchPlaceholder="Search by order #, queue, status…"
-          branchName={branchName}
           showReset={hasActiveFilters}
           onReset={handleResetFilters}
           filters={
@@ -179,12 +189,21 @@ export default function PosOrdersPage() {
             />
           }
         />
-        <DataTable
-          loading={isLoading}
+
+        <HubListPage.Count
+          isLoading={isLoading}
           isError={isError}
-          errorMessage={getErrorMessage(error, "Failed to load orders")}
-          onRetry={() => void refetch()}
-          retryLoading={isFetching}
+          isFetching={isFetching}
+          hasActiveFilters={hasActiveFilters}
+          filteredCount={filteredOrders.length}
+          totalCount={recentOrders.length}
+          itemLabel="order"
+          emptyLabel="No orders in the last 14 days"
+        />
+
+        <DataTable
+          {...hubListDataTableProps()}
+          loading={isLoading}
           rowKey="id"
           dataSource={filteredOrders}
           emptyDescription={
@@ -270,7 +289,7 @@ export default function PosOrdersPage() {
               key: "net",
               align: "right" as const,
               render: (v: number | string) => (
-                <span className="font-mono font-bold tabular-nums">{formatBaht(v)}</span>
+                <span className={typeHeadingClassName("font-mono tabular-nums")}>{formatBaht(v)}</span>
               ),
             },
             {
@@ -316,7 +335,7 @@ export default function PosOrdersPage() {
           ]}
         />
         </HubListPage>
-      </HubCard>
+      </div>
 
       <ConfirmDialog
         open={voidTarget !== null}

@@ -13,7 +13,7 @@ import {
 import type { SalesTrendPoint } from "@/types/api";
 import { format, parseISO } from "date-fns";
 import { BarChart3 } from "lucide-react";
-import { dashboardChartEmptyClass, dashboardSkeletonClass, text } from "@/lib/theme";
+import { dashboardChartEmptyClass, dashboardSkeletonClass, text, typeUiLabelClassName } from "@/lib/theme";
 import { useChartTheme } from "@/hooks/useChartTheme";
 import { cn } from "@/lib/utils";
 
@@ -51,7 +51,7 @@ export function SalesChart({ data = [], loading }: SalesChartProps) {
     return (
       <div className={dashboardChartEmptyClass("h-[350px]")}>
         <BarChart3 className="w-10 h-10 text-[var(--text-subtle)]" aria-hidden />
-        <p className={cn("text-sm font-semibold", text.primary)}>No revenue data yet</p>
+        <p className={typeUiLabelClassName(cn("text-sm", text.primary))}>No revenue data yet</p>
         <p className={cn("text-sm", text.muted)}>Sales trends will appear once orders are recorded.</p>
       </div>
     );

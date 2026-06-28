@@ -35,6 +35,8 @@ import {
   metricValueClassName,
   organizationSectionPanelClassName,
   text,
+  typeHeadingClassName,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -113,7 +115,7 @@ export default function BranchesPageClient({ embedded = false }: { embedded?: bo
         accentHub="organization"
         actions={
           <Button
-            className={hubCtaClassName("organization", "font-bold min-h-[44px]")}
+            className={hubCtaClassName("organization", "min-h-[44px]")}
             onClick={handleAddNew}
           >
             <Plus className="w-4 h-4 mr-2" aria-hidden />
@@ -189,7 +191,7 @@ export default function BranchesPageClient({ embedded = false }: { embedded?: bo
               className={cn("w-12 h-12 mx-auto mb-4", metricValueClassName("slate"))}
               aria-hidden
             />
-            <p className={cn("font-semibold", text.primary)}>
+            <p className={typeUiLabelClassName(text.primary)}>
               {hasActiveFilters ? "No branches match your filters" : "No branches yet"}
             </p>
             <p className={cn("text-sm mt-2 max-w-md mx-auto", text.muted)}>
@@ -199,7 +201,7 @@ export default function BranchesPageClient({ embedded = false }: { embedded?: bo
             </p>
             {!hasActiveFilters && (
               <Button
-                className={hubCtaClassName("organization", "mt-6 min-h-[44px] font-bold")}
+                className={hubCtaClassName("organization", "mt-6 min-h-[44px]")}
                 onClick={handleAddNew}
               >
                 <Plus className="w-4 h-4 mr-2" aria-hidden />
@@ -219,7 +221,7 @@ export default function BranchesPageClient({ embedded = false }: { embedded?: bo
               >
                 <div className="flex justify-between items-start gap-3 mb-4">
                   <div className="min-w-0">
-                    <h3 className={cn("font-bold text-lg truncate", text.primary)}>
+                    <h3 className={typeHeadingClassName("text-lg truncate")}>
                       {branch.name}
                     </h3>
                     <p className={cn("text-sm flex items-center gap-1 mt-1", text.muted)}>

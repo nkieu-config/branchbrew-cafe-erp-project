@@ -44,7 +44,7 @@ export function antTableShellClassName(className?: string) {
 }
 
 export function antTableSummaryRowClassName(className?: string) {
-  return cn("bg-[var(--table-summary-bg)] font-black", className);
+  return cn("bg-[var(--table-summary-bg)] font-bold", className);
 }
 
 /** Native HTML tables (finance overview). */
@@ -79,4 +79,57 @@ export function nativeTableEmptyCellClassName(className?: string) {
 /** shadcn/ui Table wrapper — audit log and similar native table components. */
 export function semanticTableClassName(className?: string) {
   return cn("semantic-table", className);
+}
+
+/**
+ * Horizontal scroll region with thin scrollbar.
+ * Do not combine with `.data-table-shell` on the same node — antd manages its own scroll body.
+ */
+export function horizontalScrollHintClassName(className?: string) {
+  return cn("scroll-hint-x", className);
+}
+
+/** Tap-friendly card row for list pages on narrow viewports (audit, etc.). */
+export function listMobileCardClassName(className?: string) {
+  return cn(
+    "w-full text-left rounded-xl border p-4 transition-colors",
+    "bg-[var(--table-container-bg)] border-[var(--table-container-border)]",
+    "hover:bg-[var(--table-row-hover)]",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]/50",
+    className,
+  );
+}
+
+/** Default page-size options for hub list DataTables (Tier A). */
+export const HUB_LIST_PAGE_SIZE_OPTIONS = ["10", "15", "25", "50"] as const;
+
+export type HubListPaginationConfig = {
+  pageSize?: number;
+  showSizeChanger?: boolean;
+  pageSizeOptions?: readonly string[];
+  hideOnSinglePage?: boolean;
+};
+
+/** Standard antd pagination for hub tab list pages. */
+export function hubListTablePagination(config: HubListPaginationConfig = {}) {
+  const {
+    pageSize = 15,
+    showSizeChanger = true,
+    pageSizeOptions = HUB_LIST_PAGE_SIZE_OPTIONS,
+    hideOnSinglePage,
+  } = config;
+  return {
+    pageSize,
+    showSizeChanger,
+    pageSizeOptions: [...pageSizeOptions],
+    ...(hideOnSinglePage != null ? { hideOnSinglePage } : {}),
+  };
+}
+
+/** Spread onto DataTable inside HubListPage section panels. */
+export function hubListDataTableProps(config: HubListPaginationConfig = {}) {
+  return {
+    hideBorders: true as const,
+    pagination: hubListTablePagination(config),
+  };
 }

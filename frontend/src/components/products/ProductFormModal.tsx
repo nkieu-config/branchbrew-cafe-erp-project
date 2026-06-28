@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -28,8 +27,10 @@ import {
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import type { Product, Ingredient } from "@/types/api";
-import { updateLineItem } from "@/lib/form";
 import { getErrorMessage } from "@/lib/errors";
+import { FormModalFooter } from "@/components/shared/form-modal";
+import { StatusBadge } from "@/components/shared/status-badge";
+import { useLineItemRows } from "@/hooks/use-line-item-rows";
 import {
   formFieldInsetClassName,
   formRemoveButtonClassName,
@@ -38,6 +39,7 @@ import {
   hubCtaClassName,
   productsDialogContentClassName,
   text,
+  typeHeadingClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -49,6 +51,16 @@ type RecipeRow = {
 
 function newRecipeRow(): RecipeRow {
   return { rowId: crypto.randomUUID(), ingredientId: 0, quantity: 1 };
+}
+
+function mapProductRecipe(product: Product): RecipeRow[] {
+  return (
+    product.recipeItems?.map((ri) => ({
+      rowId: crypto.randomUUID(),
+      ingredientId: ri.ingredientId,
+      quantity: ri.quantity,
+    })) ?? []
+  );
 }
 
 export function ProductFormModal({
@@ -64,7 +76,20 @@ export function ProductFormModal({
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState<number | "">("");
   const [isActive, setIsActive] = useState(true);
-  const [recipeItems, setRecipeItems] = useState<RecipeRow[]>([]);
+
+  const {
+    items: recipeItems,
+    setItems: setRecipeItems,
+    addRow: handleAddRecipeItem,
+    removeRow: handleRemoveRecipeItem,
+    updateRow: handleRecipeItemChange,
+    resetRows: resetRecipeRows,
+    duplicateKeys: duplicateIngredientIds,
+  } = useLineItemRows({
+    createEmpty: newRecipeRow,
+    duplicateKey: (item) => item.ingredientId,
+    minRows: 0,
+  });
 
   const { data: ingredientsData } = useIngredients();
   const ingredients = ingredientsData || [];
@@ -78,8 +103,8 @@ export function ProductFormModal({
     setCategory("");
     setPrice("");
     setIsActive(true);
-    setRecipeItems([]);
-  }, []);
+    resetRecipeRows();
+  }, [resetRecipeRows]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -88,50 +113,15 @@ export function ProductFormModal({
       setCategory(product.category);
       setPrice(product.price);
       setIsActive(product.isActive ?? true);
-      setRecipeItems(
-        product.recipeItems?.map((ri) => ({
-          rowId: crypto.randomUUID(),
-          ingredientId: ri.ingredientId,
-          quantity: ri.quantity,
-        })) ?? [],
-      );
+      setRecipeItems(mapProductRecipe(product));
     } else {
       resetForm();
     }
-  }, [product, isOpen, resetForm]);
-
-  const duplicateIngredientIds = useMemo(() => {
-    const seen = new Set<number>();
-    const duplicates = new Set<number>();
-    for (const item of recipeItems) {
-      if (item.ingredientId <= 0) continue;
-      if (seen.has(item.ingredientId)) duplicates.add(item.ingredientId);
-      seen.add(item.ingredientId);
-    }
-    return duplicates;
-  }, [recipeItems]);
+  }, [product, isOpen, resetForm, setRecipeItems]);
 
   const handleClose = () => {
     resetForm();
     onClose();
-  };
-
-  const handleAddRecipeItem = () => {
-    setRecipeItems([...recipeItems, newRecipeRow()]);
-  };
-
-  const handleRemoveRecipeItem = (rowId: string) => {
-    setRecipeItems(recipeItems.filter((item) => item.rowId !== rowId));
-  };
-
-  const handleRecipeItemChange = (
-    rowId: string,
-    field: "ingredientId" | "quantity",
-    value: number,
-  ) => {
-    const index = recipeItems.findIndex((item) => item.rowId === rowId);
-    if (index === -1) return;
-    setRecipeItems(updateLineItem(recipeItems, index, field, value));
   };
 
   const handleSubmit = async () => {
@@ -183,7 +173,7 @@ export function ProductFormModal({
     >
       <DialogContent className={productsDialogContentClassName("max-w-[600px]")}>
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">
+          <DialogTitle className={typeHeadingClassName("text-xl")}>
             {product ? "Edit Menu Item" : "New Menu Item"}
           </DialogTitle>
           <DialogDescription className={text.muted}>
@@ -193,7 +183,7 @@ export function ProductFormModal({
 
         <div className="space-y-6 py-2">
           <div className={formSectionClassName("mb-0 space-y-4")}>
-            <h3 className={cn("font-bold", text.primary)}>1. Basic Info</h3>
+            <h3 className={typeHeadingClassName()}>1. Basic Info</h3>
             <div className="space-y-2">
               <Label htmlFor="product-name" className={text.secondary}>
                 Product Name
@@ -252,7 +242,7 @@ export function ProductFormModal({
 
           <div className={formSectionClassName("mb-0 space-y-4")}>
             <div className="flex justify-between items-center">
-              <h3 className={cn("font-bold", text.primary)}>2. Menu Recipe</h3>
+              <h3 className={typeHeadingClassName()}>2. Menu Recipe</h3>
               <Button
                 type="button"
                 variant="outline"
@@ -271,7 +261,7 @@ export function ProductFormModal({
               </p>
             ) : (
               <div className="space-y-3">
-                {recipeItems.map((item) => {
+                {recipeItems.map((item, idx) => {
                   const isDuplicate =
                     item.ingredientId > 0 && duplicateIngredientIds.has(item.ingredientId);
                   return (
@@ -287,7 +277,7 @@ export function ProductFormModal({
                           value={item.ingredientId === 0 ? "" : String(item.ingredientId)}
                           onValueChange={(value) => {
                             if (value != null) {
-                              handleRecipeItemChange(item.rowId, "ingredientId", Number(value));
+                              handleRecipeItemChange(idx, "ingredientId", Number(value));
                             }
                           }}
                         >
@@ -308,9 +298,11 @@ export function ProductFormModal({
                             ))}
                           </SelectContent>
                         </Select>
-                        {isDuplicate && (
-                          <p className="text-xs text-destructive">Duplicate ingredient</p>
-                        )}
+                        {isDuplicate ? (
+                          <StatusBadge tone="warning" className="mt-1 w-fit">
+                            Duplicate ingredient — combine into one row
+                          </StatusBadge>
+                        ) : null}
                       </div>
                       <div className="w-28 space-y-1">
                         <Label
@@ -326,11 +318,7 @@ export function ProductFormModal({
                           step="0.01"
                           value={item.quantity}
                           onChange={(e) =>
-                            handleRecipeItemChange(
-                              item.rowId,
-                              "quantity",
-                              Number(e.target.value),
-                            )
+                            handleRecipeItemChange(idx, "quantity", Number(e.target.value))
                           }
                           className={formFieldInsetClassName()}
                         />
@@ -340,7 +328,7 @@ export function ProductFormModal({
                         variant="ghost"
                         size="icon"
                         className={cn(formRemoveButtonClassName(), "h-11 w-11 shrink-0")}
-                        onClick={() => handleRemoveRecipeItem(item.rowId)}
+                        onClick={() => handleRemoveRecipeItem(idx)}
                         aria-label="Remove recipe line"
                       >
                         <Trash2 className="w-4 h-4" aria-hidden />
@@ -353,19 +341,19 @@ export function ProductFormModal({
           </div>
         </div>
 
-        <DialogFooter className="gap-2">
+        <FormModalFooter>
           <Button type="button" variant="outline" onClick={handleClose} disabled={isSaving}>
             Cancel
           </Button>
           <Button
             type="button"
             onClick={() => void handleSubmit()}
-            className={hubCtaClassName("products", "font-bold")}
-            disabled={isSaving}
+            className={hubCtaClassName("products")}
+            disabled={isSaving || duplicateIngredientIds.size > 0}
           >
             {isSaving ? "Saving…" : "Save Menu Item"}
           </Button>
-        </DialogFooter>
+        </FormModalFooter>
       </DialogContent>
     </Dialog>
   );

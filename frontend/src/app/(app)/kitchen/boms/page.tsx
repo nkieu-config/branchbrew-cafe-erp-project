@@ -22,12 +22,15 @@ import type { BomGroupRow, BomTableRow, ProductionBOM } from "@/types/api";
 import {
   hubCardIconFor,
   hubCtaClassName,
+  hubListDataTableProps,
   inlineLinkClassName,
   kitchenMetaBadgeClassName,
   kitchenSectionPanelClassName,
   summaryChipClassName,
   metricValueClassName,
   text,
+  typeHeadingClassName,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -69,7 +72,7 @@ export default function BOMPage() {
         render: (_: unknown, record) => {
           if ("isGroup" in record && record.isGroup) {
             return (
-              <span className={cn("font-bold text-base", text.primary)}>
+              <span className={typeHeadingClassName("text-base")}>
                 {record.targetName}
               </span>
             );
@@ -106,7 +109,7 @@ export default function BOMPage() {
             const hasMissingCost = record.children.some((c) => c.costPerUnit <= 0);
             return (
               <div className="flex flex-col items-end gap-1">
-                <span className={cn("font-bold tabular-nums", metricValueClassName("red"))}>
+                <span className={typeHeadingClassName(cn("tabular-nums", metricValueClassName("red")))}>
                   {formatBaht(total)}
                 </span>
                 {hasMissingCost && (
@@ -154,7 +157,7 @@ export default function BOMPage() {
         accentHub="kitchen"
         actions={
           <Button
-            className={hubCtaClassName("kitchen", "font-bold")}
+            className={hubCtaClassName("kitchen")}
             onClick={() => setIsModalOpen(true)}
           >
             <Plus className="w-4 h-4 mr-2" aria-hidden />
@@ -182,7 +185,7 @@ export default function BOMPage() {
 
         <HubListPage.Count isLoading={loading} isError={bomsError} isFetching={bomsFetching}>
           <span className="inline-flex flex-wrap items-center gap-2">
-            <span className={cn("font-semibold tabular-nums", text.primary)}>
+            <span className={typeUiLabelClassName(cn("tabular-nums", text.primary))}>
               {summary.targets} BOM target{summary.targets === 1 ? "" : "s"}
             </span>
             {summary.rawLines > 0 && (
@@ -222,7 +225,7 @@ export default function BOMPage() {
         {!loading && !bomsError && filteredGroups.length === 0 ? (
           <div className="py-16 text-center">
             <ListTree className={hubCardIconFor("kitchen", "w-12 h-12 mx-auto mb-4")} />
-            <p className={cn("font-semibold", text.primary)}>
+            <p className={typeUiLabelClassName(text.primary)}>
               {search.trim() ? "No BOMs match your search" : "No production BOMs yet"}
             </p>
             <p className={cn("text-sm mt-2 max-w-md mx-auto", text.muted)}>
@@ -233,7 +236,7 @@ export default function BOMPage() {
             {!search.trim() && (
               <div className="mt-6 flex flex-wrap justify-center gap-3">
                 <Button
-                  className={hubCtaClassName("kitchen", "font-bold")}
+                  className={hubCtaClassName("kitchen")}
                   onClick={() => setIsModalOpen(true)}
                 >
                   <Plus className="w-4 h-4 mr-2" aria-hidden />
@@ -247,16 +250,13 @@ export default function BOMPage() {
           </div>
         ) : (
           <DataTable
+            {...hubListDataTableProps()}
             columns={columns}
             dataSource={filteredGroups as BomGroupRow[]}
             rowKey="id"
             loading={loading}
             pagination={false}
             defaultExpandAllRows
-            hideBorders
-            isError={bomsError}
-            onRetry={() => void refetchBoms()}
-            errorMessage={getErrorMessage(bomsErr, "Failed to load production BOMs")}
           />
         )}
       </HubListPage>

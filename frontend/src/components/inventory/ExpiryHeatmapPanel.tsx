@@ -16,6 +16,10 @@ import {
   expiryLegendDotClassName,
   expiryUrgency,
   metricValueClassName,
+  typeHeadingClassName,
+  typeMicroClassName,
+  typeSectionLabelClassName,
+  typeUiLabelClassName,
   text,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -69,10 +73,12 @@ export function ExpiryHeatmapPanel({ batches }: ExpiryHeatmapPanelProps) {
 
     const popoverContent = (
       <div className="max-w-xs space-y-2">
-        <div className={`font-black border-b pb-1 mb-2 ${text.primary}`}>Expiring Items</div>
+        <div className={cn(typeUiLabelClassName(), "border-b pb-1 mb-2", text.primary)}>
+          Expiring Items
+        </div>
         {expiringBatches.map((b) => (
           <div key={b.id} className="flex justify-between items-center text-sm gap-4">
-            <span className={`font-semibold ${text.secondary}`}>{batchIngredientLabel(b)}</span>
+            <span className={typeUiLabelClassName(text.secondary)}>{batchIngredientLabel(b)}</span>
             <span className="font-mono bg-[var(--form-line-bg)] px-1 rounded">
               {b.quantity} {b.ingredient?.unit ?? ""}
             </span>
@@ -98,7 +104,9 @@ export function ExpiryHeatmapPanel({ batches }: ExpiryHeatmapPanelProps) {
           aria-label={label}
         >
           <AlertCircle className="w-4 h-4 mb-1" aria-hidden />
-          <span className="text-[10px] font-black leading-none">{expiringBatches.length} Items</span>
+          <span className={typeUiLabelClassName(typeMicroClassName("leading-none"))}>
+            {expiringBatches.length} Items
+          </span>
         </button>
       </Popover>
     );
@@ -131,7 +139,7 @@ export function ExpiryHeatmapPanel({ batches }: ExpiryHeatmapPanelProps) {
           quantity are shown.
         </p>
         <div className="mt-6 space-y-2">
-          <div className={`text-xs font-bold uppercase tracking-wider mb-3 ${text.muted}`}>
+          <div className={typeSectionLabelClassName("mb-3")}>
             Legend
           </div>
           <div className={`flex items-center gap-2 text-sm font-medium ${text.secondary}`}>

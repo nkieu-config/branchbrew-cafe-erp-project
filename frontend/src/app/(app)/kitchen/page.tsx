@@ -159,7 +159,7 @@ export default function CentralKitchenPage() {
         actions={
           isCentralKitchen ? (
             <Button
-              className={hubCtaClassName("kitchen", "font-bold")}
+              className={hubCtaClassName("kitchen")}
               onClick={() => setIsModalOpen(true)}
             >
               <Plus className="w-4 h-4 mr-2" aria-hidden />

@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Avatar } from "antd";
+import { Avatar } from "@/components/ui/avatar";
 import type { User } from "@/types/api";
 import { formatBaht } from "@/lib/money";
 import {
@@ -25,6 +25,8 @@ import {
   inlineLinkClassName,
   metricValueClassName,
   text,
+  typeHeadingClassName,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { buildHrPayrollUrl } from "@/lib/hr-hub-url";
@@ -59,7 +61,7 @@ export function EditCompensationModal({
     >
       <DialogContent className={hrDialogContentClassName()}>
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold flex items-center gap-2">
+          <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
             <UserCog className="w-5 h-5 text-[var(--hub-hr)]" aria-hidden />
             Edit compensation
           </DialogTitle>
@@ -72,11 +74,11 @@ export function EditCompensationModal({
         {user && (
           <>
             <div className={cn("mb-2 flex items-center gap-3", formLineRowClassName("items-center"))}>
-              <Avatar size="large" className={hrAvatarClassName()}>
+              <Avatar size="lg" className={hrAvatarClassName()}>
                 {user.name?.charAt(0) ?? "U"}
               </Avatar>
               <div>
-                <div className={cn("font-bold", text.primary)}>{user.name ?? "Unknown user"}</div>
+                <div className={typeHeadingClassName()}>{user.name ?? "Unknown user"}</div>
                 <div className={cn("text-sm", text.muted)}>{user.role}</div>
               </div>
             </div>
@@ -95,7 +97,7 @@ export function EditCompensationModal({
                   <p className={cn("text-xs font-medium uppercase tracking-wide", text.muted)}>
                     Base salary
                   </p>
-                  <p className={cn("text-sm font-bold tabular-nums", metricValueClassName("blue"))}>
+                  <p className={typeUiLabelClassName(cn("text-sm tabular-nums", metricValueClassName("blue")))}>
                     {formatBaht(user.baseSalary)}
                   </p>
                 </div>
@@ -137,7 +139,7 @@ export function EditCompensationModal({
           <Button
             type="button"
             disabled={isSubmitting}
-            className={cn("min-h-[44px]", hubCtaClassName("hr", "font-bold"))}
+            className={cn("min-h-[44px]", hubCtaClassName("hr"))}
             onClick={onSubmit}
           >
             {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}

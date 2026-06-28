@@ -27,6 +27,7 @@ import {
   hrDialogContentClassName,
   hubCtaClassName,
   text,
+  typeHeadingClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -90,7 +91,7 @@ export function RequestLeaveModal({
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
       <DialogContent className={hrDialogContentClassName()}>
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold flex items-center gap-2">
+          <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
             <Briefcase className="w-5 h-5 text-[var(--hub-hr)]" aria-hidden />
             Request leave
           </DialogTitle>

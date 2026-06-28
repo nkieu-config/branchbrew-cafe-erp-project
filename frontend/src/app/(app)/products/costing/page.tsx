@@ -43,12 +43,15 @@ import { parseProductsCostingSearchParams } from "@/lib/products-hub-url";
 import {
   foodCostProgressIndicatorClassName,
   foodCostStatusClassName,
+  hubListDataTableProps,
   inlineLinkClassName,
   metricValueClassName,
   productsCategoryBadgeClassName,
   productsSectionPanelClassName,
   tableCellMutedClassName,
   text,
+  typeHeadingClassName,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/types/api";
@@ -161,7 +164,7 @@ export default function FoodCostPage() {
           key: "name",
           render: (name: string, record: Product) => (
             <div>
-              <span className={cn("font-bold", text.primary)}>{name}</span>
+              <span className={typeHeadingClassName()}>{name}</span>
               {productHasMissingIngredientCost(record) && (
                 <div
                   className={cn(
@@ -194,7 +197,7 @@ export default function FoodCostPage() {
           key: "price",
           align: "right" as const,
           render: (price: number) => (
-            <span className={cn("font-bold tabular-nums", text.primary)}>
+            <span className={typeHeadingClassName("tabular-nums")}>
               {formatBaht(price)}
             </span>
           ),
@@ -210,7 +213,7 @@ export default function FoodCostPage() {
             }
             const { cost } = calcProductFoodCost(record);
             return (
-              <span className={cn("font-bold tabular-nums", metricValueClassName("red"))}>
+              <span className={typeHeadingClassName(cn("tabular-nums", metricValueClassName("red")))}>
                 {formatBaht(cost)}
               </span>
             );
@@ -246,14 +249,13 @@ export default function FoodCostPage() {
                     />
                   </ProgressTrack>
                   <ProgressValue
-                    className={cn(
-                      "text-xs font-bold tabular-nums",
-                      foodCostStatusClassName(status),
+                    className={typeHeadingClassName(
+                      cn("text-xs tabular-nums", foodCostStatusClassName(status)),
                     )}
                   />
                 </Progress>
                 {status === "bad" && (
-                  <StatusBadge tone="danger" className="gap-1 font-bold">
+                  <StatusBadge tone="danger" className={typeUiLabelClassName("gap-1")}>
                     <AlertTriangle className="w-3 h-3" aria-hidden />
                     High
                   </StatusBadge>
@@ -407,20 +409,11 @@ export default function FoodCostPage() {
         </HubListPage.Count>
 
         <DataTable
+          {...hubListDataTableProps()}
           loading={isLoading}
-          isError={isError}
-          errorMessage={getErrorMessage(error, "Failed to load menu items")}
-          onRetry={() => void refetch()}
-          retryLoading={isFetching}
           columns={columns}
           dataSource={filteredProducts}
           rowKey="id"
-          pagination={{
-            pageSize: 15,
-            showSizeChanger: true,
-            pageSizeOptions: ["10", "15", "25", "50"],
-          }}
-          hideBorders
           emptyDescription={
             hasActiveFilters
               ? "No menu items match your food cost filters."

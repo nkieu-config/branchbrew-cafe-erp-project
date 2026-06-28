@@ -90,6 +90,20 @@ export function getAntdThemeConfig(resolvedTheme: string | undefined): ThemeConf
         bodySortBg: colorFillSecondary,
         rowExpandedBg: readThemeToken("--table-summary-bg", mode, "muted"),
       },
+      Steps: {
+        colorPrimary,
+        colorText,
+        colorTextDescription: colorTextSecondary,
+        colorSplit: readThemeToken("--table-row-border", mode, "border"),
+        colorFillContent: colorFillSecondary,
+        controlHeight: 24,
+        fontSize: 12,
+        titleLineHeight: 1.4,
+      },
+      Avatar: {
+        colorTextLightSolid: readThemeToken("--hub-hr-fg", mode, "accent"),
+        colorTextPlaceholder: colorTextSubtle,
+      },
     },
   };
 }

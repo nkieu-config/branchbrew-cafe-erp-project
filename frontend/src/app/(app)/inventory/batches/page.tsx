@@ -16,12 +16,14 @@ import {
   formSelectContentClassName,
   hubCtaClassName,
   inventorySectionPanelClassName,
+  hubListDataTableProps,
   listToolbarFieldClassName,
   stockLevel,
   stockLevelLabel,
   stockLevelStatusTone,
   tableCellMutedClassName,
   text,
+  typeHeadingClassName,
 } from "@/lib/theme";
 import {
   countExpiredBatches,
@@ -204,7 +206,7 @@ export default function InventoryBatchesPage() {
       sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) =>
         ingredientDisplayName(a).localeCompare(ingredientDisplayName(b)),
       render: (_: unknown, record: InventoryWithIngredient) => (
-        <div className={`font-bold ${text.primary}`}>{ingredientDisplayName(record)}</div>
+        <div className={typeHeadingClassName()}>{ingredientDisplayName(record)}</div>
       ),
     },
     {
@@ -372,7 +374,7 @@ export default function InventoryBatchesPage() {
               Stock overview
             </ButtonLink>
             {showGrnAction && (
-              <ButtonLink href="/inventory/stock-in" className={hubCtaClassName("inventory", "font-bold")}>
+              <ButtonLink href="/inventory/stock-in" className={hubCtaClassName("inventory")}>
                 <ArrowDownToLine className="w-4 h-4 mr-2" aria-hidden />
                 Receive stock
               </ButtonLink>
@@ -453,27 +455,18 @@ export default function InventoryBatchesPage() {
           </HubListPage.Count>
 
           <DataTable
+            {...hubListDataTableProps({ pageSize: 10 })}
             loading={loadingBranch}
-            isError={branchError}
-            errorMessage={getErrorMessage(branchErr, "Failed to load inventory")}
-            onRetry={() => void refetchBranch()}
-            retryLoading={branchFetching}
             emptyDescription={
               hasActiveFilters
                 ? "No ingredients match your filters."
                 : "No inventory records for this branch yet."
             }
-            hideBorders
             scroll={{ x: undefined }}
             columns={inventoryColumns}
             dataSource={filteredInventories}
             rowKey="id"
             expandable={{ expandedRowRender }}
-            pagination={{
-              pageSize: 10,
-              showSizeChanger: true,
-              pageSizeOptions: ["5", "10", "15", "25"],
-            }}
           />
         </HubListPage>
       </div>

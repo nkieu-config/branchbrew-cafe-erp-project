@@ -49,6 +49,7 @@ import {
   hrMetaBadgeClassName,
   hrSectionPanelClassName,
   hubCtaClassName,
+  hubListDataTableProps,
   infoBannerClassName,
   infoBannerIconClassName,
   infoBannerTextClassName,
@@ -57,6 +58,7 @@ import {
   tableActionAccentClassName,
   tableCellMutedClassName,
   text,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -171,7 +173,7 @@ export default function LeaveRequestsPage() {
                 key: "staff",
                 render: (_: unknown, req: LeaveRequest) => (
                   <div className="min-w-0">
-                    <div className={cn("font-bold truncate", text.primary)}>
+                    <div className={typeUiLabelClassName(cn("truncate", text.primary))}>
                       {req.user?.name ?? `Employee #${req.userId}`}
                     </div>
                     {req.user?.email && (
@@ -321,9 +323,10 @@ export default function LeaveRequestsPage() {
           hideTitle
           icon={CalendarOff}
           accentHub="hr"
+          branchScope={{ branchName }}
           actions={
             <Button
-              className={hubCtaClassName("hr", "font-bold")}
+              className={hubCtaClassName("hr")}
               onClick={() => setIsModalOpen(true)}
             >
               <Plus className="w-4 h-4 mr-2" aria-hidden />
@@ -360,7 +363,6 @@ export default function LeaveRequestsPage() {
             search={isManagerOrAdmin ? search : undefined}
             onSearchChange={isManagerOrAdmin ? setSearch : undefined}
             searchPlaceholder="Search staff or reason…"
-            branchName={branchName}
             showReset={hasActiveFilters}
             onReset={() => {
               setStatusFilterAndUrl("ALL");
@@ -418,11 +420,11 @@ export default function LeaveRequestsPage() {
           />
 
           <DataTable
+            {...hubListDataTableProps({ pageSize: 10 })}
             columns={columns}
             dataSource={filteredLeaveRequests}
             rowKey="id"
             loading={isLoading}
-            pagination={{ pageSize: 10 }}
             emptyDescription={
               hasActiveFilters
                 ? "No leave requests match the current filters."

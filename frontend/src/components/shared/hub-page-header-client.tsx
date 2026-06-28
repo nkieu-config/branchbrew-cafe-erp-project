@@ -2,7 +2,7 @@
 
 import type { HubCardProps } from "@/components/shared/hub-card";
 import { usePageChromeContext, usePageChromeExtension } from "@/components/layout/PageChrome";
-import { hubCardIconClass, text } from "@/lib/theme";
+import { hubCardIconClass, text, typeHeadingClassName } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 type HubPageHeaderClientProps = Omit<HubCardProps, "children">;
@@ -41,7 +41,7 @@ export function HubPageHeaderClient({
       {hasHeadingBlock && (
         <div className="min-w-0">
           {showTitle && title && (
-            <TitleTag className={cn("text-lg font-bold flex items-center gap-2", text.primary)}>
+            <TitleTag className={typeHeadingClassName("text-lg flex items-center gap-2")}>
               {Icon && <Icon className={hubCardIconClass(accentHub)} aria-hidden />}
               {title}
             </TitleTag>

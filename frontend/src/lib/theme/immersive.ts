@@ -1,6 +1,11 @@
 import { cn } from "@/lib/utils";
 import { dashboardErrorPanelClass } from "./dashboard";
 import { statusToneClassName, text } from "./index";
+import {
+  typeHeadingClassName,
+  typeSectionLabelClassName,
+  typeUiLabelClassName,
+} from "./typography";
 
 export type KdsTicketUrgency = "on-time" | "warning" | "late";
 
@@ -61,6 +66,22 @@ export function posCartHeaderClassName(className?: string) {
   );
 }
 
+export function posCartTitleClassName(className?: string) {
+  return typeHeadingClassName(cn("text-xl flex items-center gap-2", className));
+}
+
+export function posCartItemNameClassName(className?: string) {
+  return typeUiLabelClassName(cn(text.primary, className));
+}
+
+export function posCartQtyClassName(className?: string) {
+  return cn("min-w-[2rem] text-center text-sm font-bold tabular-nums px-1", className);
+}
+
+export function posCartLineTotalClassName(className?: string) {
+  return cn("font-bold tabular-nums min-w-[4.5rem] text-right", text.secondary, className);
+}
+
 export function posCartSectionClassName(className?: string) {
   return cn(
     "border-t p-4 space-y-4 bg-[var(--pos-panel-muted-bg)] border-[var(--pos-panel-border)]",
@@ -100,16 +121,23 @@ export function posSummaryTotalClassName(className?: string) {
   return cn("text-[var(--pos-summary-total)] tabular-nums", className);
 }
 
+export function posSummaryTotalRowClassName(className?: string) {
+  return cn(
+    "flex justify-between text-2xl font-bold pt-2 border-t border-[var(--pos-summary-divider)]",
+    className,
+  );
+}
+
 export function posPrimaryActionClassName(className?: string) {
   return cn(
-    "bg-[var(--brand-solid)] text-[var(--on-brand-solid-fg)] hover:opacity-90 shadow-lg",
+    "font-bold bg-[var(--brand-solid)] text-[var(--on-brand-solid-fg)] hover:opacity-90 shadow-lg",
     className,
   );
 }
 
 export function posPayActionClassName(className?: string) {
   return cn(
-    "bg-[var(--brand-solid)] text-[var(--on-brand-solid-fg)] hover:opacity-90 shadow-lg transition-colors",
+    "font-bold bg-[var(--brand-solid)] text-[var(--on-brand-solid-fg)] hover:opacity-90 shadow-lg transition-colors",
     className,
   );
 }
@@ -128,6 +156,13 @@ export function posCrmTitleClassName(className?: string) {
 
 export function posCrmMutedClassName(className?: string) {
   return cn("text-sm text-[var(--pos-crm-muted)]", className);
+}
+
+export function posCrmTierBadgeClassName(className?: string) {
+  return cn(
+    typeSectionLabelClassName("bg-[var(--pos-input-bg)] py-0 px-2 tracking-wider"),
+    className,
+  );
 }
 
 export function posPromoPanelClassName(className?: string) {
@@ -192,12 +227,20 @@ export function posReceiptPreviewClassName(className?: string) {
   );
 }
 
+export function posReceiptCaptionClassName(className?: string) {
+  return cn("font-bold border-b border-[var(--pos-panel-border)] pb-2 mb-2", className);
+}
+
 export function posQueueNumberClassName(className?: string) {
   return cn("text-4xl font-black tabular-nums mb-2 text-[var(--brand-text)]", className);
 }
 
 export function posModifierSelectedClassName(className?: string) {
   return cn("bg-[var(--brand-solid)] hover:opacity-90 font-bold text-[var(--on-brand-solid-fg)]", className);
+}
+
+export function posModifierGroupLabelClassName(className?: string) {
+  return cn("text-sm font-bold", text.secondary, className);
 }
 
 export function posSettlementIconClassName(className?: string) {

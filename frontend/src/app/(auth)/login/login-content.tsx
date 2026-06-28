@@ -30,6 +30,8 @@ import {
   authPageShellClassName,
   authPrimaryButtonClassName,
   text,
+  typeHeadingClassName,
+  typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -91,11 +93,11 @@ export default function LoginContent() {
             <div className={authBrandMarkClassName()}>
               <Coffee className="w-5 h-5" />
             </div>
-            <span className={cn("text-xl font-bold tracking-tight", text.primary)}>QafaCafe</span>
+            <span className={typeHeadingClassName("text-xl tracking-tight")}>QafaCafe</span>
           </div>
 
           <div className="mb-10">
-            <h1 className={cn("text-4xl font-extrabold tracking-tight mb-3 text-balance", text.primary)}>
+            <h1 className={typeHeadingClassName("text-4xl tracking-tight mb-3 text-balance")}>
               Welcome back
             </h1>
             <p className={text.muted}>Sign in to your enterprise POS and management portal.</p>
@@ -141,7 +143,7 @@ export default function LoginContent() {
           </form>
 
           <div className={authDemoPanelClassName()}>
-            <p className={cn("font-semibold mb-3", text.secondary)}>Demo Access</p>
+            <p className={cn(typeUiLabelClassName("mb-3"), text.secondary)}>Demo Access</p>
             <div className="space-y-2">
               {demoAccounts.map((account) => (
                 <button

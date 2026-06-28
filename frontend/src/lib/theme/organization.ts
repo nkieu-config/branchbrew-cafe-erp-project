@@ -1,14 +1,13 @@
 import { cn } from "@/lib/utils";
-import { elevatedPanelClassName } from "./surface";
-import { hubCardIconClass } from "./hub-accent";
+import { hubIconClassName, hubSectionPanelClassName } from "./hub-panel";
 import { text } from "./surface";
 
 export function organizationSectionPanelClassName(className?: string) {
-  return elevatedPanelClassName(cn("p-4 sm:p-6 space-y-4", className));
+  return hubSectionPanelClassName("organization", className);
 }
 
 export function organizationHubIconClassName(className?: string) {
-  return cn(hubCardIconClass("organization"), className);
+  return hubIconClassName("organization", className);
 }
 
 export function organizationDialogContentClassName(className?: string) {

@@ -20,7 +20,9 @@ type ListToolbarProps = {
   filters?: ReactNode;
   onReset?: () => void;
   showReset?: boolean;
+  /** @deprecated Use branchScope on HubPageHeader / PageChrome instead of toolbar scope. */
   branchName?: string | null;
+  /** @deprecated Use branchScope on HubPageHeader / PageChrome instead of toolbar scope. */
   allBranches?: boolean;
   className?: string;
 };
