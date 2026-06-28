@@ -130,7 +130,14 @@ export function journalStatusTone(status: string): StatusTone {
 }
 
 export function settlementStatusTone(status: string): StatusTone {
-  return status === "APPROVED" ? "success" : "warning";
+  switch (status) {
+    case "APPROVED":
+      return "success";
+    case "REJECTED":
+      return "danger";
+    default:
+      return "warning";
+  }
 }
 
 export function equipmentStatusTone(status: string): StatusTone {

@@ -11,72 +11,106 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { readCssVar, themeDefaults } from "@/lib/theme";
+import { LineChart as LineChartIcon } from "lucide-react";
+import { readCssVar, themeDefaults, dashboardChartEmptyClass, text } from "@/lib/theme";
 import { useChartTheme } from "@/hooks/useChartTheme";
+import type { LedgerChartPoint } from "@/lib/ledger-filters";
+import { cn } from "@/lib/utils";
 
-type LedgerChartPoint = {
-  month: string;
-  revenue: number;
-  expense: number;
+type LedgerTrendChartProps = {
+  data: LedgerChartPoint[];
+  loading?: boolean;
 };
 
-export function LedgerTrendChart({ data }: { data: LedgerChartPoint[] }) {
+export function LedgerTrendChart({ data, loading = false }: LedgerTrendChartProps) {
   const chartTheme = useChartTheme();
+  const [isMounted, setIsMounted] = useState(false);
   const [expenseColor, setExpenseColor] = useState(() =>
     readCssVar("--metric-red", themeDefaults.light.destructive),
   );
 
   useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
     setExpenseColor(readCssVar("--metric-red", themeDefaults.light.destructive));
   }, [chartTheme]);
 
+  if (!isMounted || loading) {
+    return <div className="h-[350px] w-full animate-pulse rounded-xl bg-[var(--surface-inset)] motion-reduce:animate-none" />;
+  }
+
+  if (data.length === 0) {
+    return (
+      <div className={dashboardChartEmptyClass("h-[350px]")}>
+        <LineChartIcon className="w-10 h-10 text-[var(--text-subtle)]" aria-hidden />
+        <p className={cn("text-sm font-semibold", text.primary)}>No P&amp;L trend data yet</p>
+        <p className={cn("text-sm", text.muted)}>
+          Revenue and expense trends appear once journal activity is posted.
+        </p>
+      </div>
+    );
+  }
+
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <LineChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.grid} />
-        <XAxis
-          dataKey="month"
-          tick={{ fill: chartTheme.axis, fontWeight: "bold" }}
-          axisLine={false}
-          tickLine={false}
-        />
-        <YAxis
-          tick={{ fill: chartTheme.axis, fontWeight: "bold" }}
-          axisLine={false}
-          tickLine={false}
-          tickFormatter={(val) => `฿${val.toLocaleString()}`}
-        />
-        <Tooltip
-          contentStyle={{
-            backgroundColor: chartTheme.tooltipBg,
-            borderColor: chartTheme.tooltipBorder,
-            borderRadius: "12px",
-            boxShadow: chartTheme.tooltipShadow,
-            color: chartTheme.tooltipFg,
-            fontWeight: "bold",
-          }}
-          formatter={(value, name) => [`฿${Number(value ?? 0).toLocaleString()}`, String(name ?? "")]}
-        />
-        <Legend wrapperStyle={{ fontWeight: "bold", paddingTop: "20px", color: chartTheme.tooltipFg }} />
-        <Line
-          type="monotone"
-          name="Revenue"
-          dataKey="revenue"
-          stroke={chartTheme.revenue}
-          strokeWidth={4}
-          dot={{ r: 4, strokeWidth: 2 }}
-          activeDot={{ r: 8, strokeWidth: 0 }}
-        />
-        <Line
-          type="monotone"
-          name="Expenses (COGS + Petty Cash)"
-          dataKey="expense"
-          stroke={expenseColor}
-          strokeWidth={4}
-          dot={{ r: 4, strokeWidth: 2 }}
-          activeDot={{ r: 8, strokeWidth: 0 }}
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    <div className="h-[350px] w-full min-h-[350px] min-w-0">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={350}>
+        <LineChart data={data} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.grid} />
+          <XAxis
+            dataKey="month"
+            tick={{ fill: chartTheme.axis, fontWeight: "bold" }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <YAxis
+            tick={{ fill: chartTheme.axis, fontWeight: "bold" }}
+            axisLine={false}
+            tickLine={false}
+            tickFormatter={(val) => `฿${Number(val).toLocaleString()}`}
+          />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: chartTheme.tooltipBg,
+              borderColor: chartTheme.tooltipBorder,
+              borderRadius: "12px",
+              boxShadow: chartTheme.tooltipShadow,
+              color: chartTheme.tooltipFg,
+              fontWeight: "bold",
+            }}
+            formatter={(value, name) => [
+              `฿${Number(value ?? 0).toLocaleString()}`,
+              String(name ?? ""),
+            ]}
+          />
+          <Legend
+            wrapperStyle={{
+              fontWeight: "bold",
+              paddingTop: "20px",
+              color: chartTheme.tooltipFg,
+            }}
+          />
+          <Line
+            type="monotone"
+            name="Revenue"
+            dataKey="revenue"
+            stroke={chartTheme.revenue}
+            strokeWidth={4}
+            dot={{ r: 4, strokeWidth: 2 }}
+            activeDot={{ r: 8, strokeWidth: 0 }}
+          />
+          <Line
+            type="monotone"
+            name="Expenses (COGS + petty cash)"
+            dataKey="expense"
+            stroke={expenseColor}
+            strokeWidth={4}
+            dot={{ r: 4, strokeWidth: 2 }}
+            activeDot={{ r: 8, strokeWidth: 0 }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

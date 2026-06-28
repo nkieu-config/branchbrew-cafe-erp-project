@@ -248,6 +248,10 @@ export {
   settlementDifferenceClassName,
   financeApproveButtonClassName,
   financeExpenseAmountClassName,
+  financeSummaryChipClassName,
+  settlementLegendSwatchClassName,
+  journalLegendSwatchClassName,
+  accountLegendSwatchClassName,
 } from "./finance";
 export {
   authPageShellClassName,
