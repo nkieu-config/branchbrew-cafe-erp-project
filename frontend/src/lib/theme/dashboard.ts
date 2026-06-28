@@ -145,3 +145,8 @@ export function dashboardBranchBadgeClass(className?: string) {
 export function dashboardBranchBadgeAccentClass() {
   return "text-[var(--dashboard-badge-accent)]";
 }
+
+/** Dashboard shell h1 icon — matches hub page header scale. */
+export function dashboardShellIconClassName(className?: string) {
+  return cn("text-[var(--dashboard-badge-accent)]", className);
+}

@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { HubPageHeader } from "@/components/shared/hub-card"
 import { QueryErrorBanner } from "@/components/shared/query-error-banner"
-import { BranchScopeIndicator } from "@/components/shared/branch-scope-indicator"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { StatusBadge, settlementStatusTone } from "@/components/shared/status-badge"
 import { exportSales } from "@/lib/api"
@@ -13,10 +12,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { useAuth } from "@/context/AuthContext"
 import { toast } from "sonner"
 import { useFinanceSettlements, useFinanceExpenses, useApproveSettlement } from '@/hooks/domains/useFinanceQueries';
-import { useBranches } from '@/hooks/domains/useGeneralQueries';
 import { getErrorMessage } from "@/lib/errors"
 import { formatDate, formatDateTime } from "@/lib/intl-date"
-import { Settlement, Expense, Branch } from "@/types"
+import { Settlement, Expense } from "@/types"
 import {
   financeApproveButtonClassName,
   financeExpenseAmountClassName,
@@ -48,11 +46,7 @@ function FinanceTableSkeleton({ rows = 4 }: { rows?: number }) {
 
 export default function FinanceDashboardPage() {
   const { isAuthenticated, activeBranchId } = useAuth()
-  const { data: branches = [] } = useBranches()
   const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
-  const branchName = branchIdNum
-    ? (branches as Branch[]).find((b) => b.id === branchIdNum)?.name
-    : undefined;
   const [approveTarget, setApproveTarget] = useState<Settlement | null>(null)
   
   const {
@@ -107,23 +101,13 @@ export default function FinanceDashboardPage() {
   return (
     <div className="space-y-6">
       <HubPageHeader
-        title="Finance & Settlement"
-        description={
-          branchIdNum
-            ? "Review end-of-day settlements and petty cash expenses for the selected branch."
-            : "Showing all branches. Select a branch in the top bar to filter."
-        }
+        hideTitle
+        description="Review end-of-day settlements and petty cash expenses."
         actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <BranchScopeIndicator
-              branchName={branchName}
-              allBranches={!branchIdNum}
-            />
-            <Button onClick={handleExport} className={financePrimaryActionClassName()}>
-              <Download className="w-4 h-4 mr-2" />
-              Export Sales (CSV)
-            </Button>
-          </div>
+          <Button onClick={handleExport} className={financePrimaryActionClassName()}>
+            <Download className="w-4 h-4 mr-2" />
+            Export Sales (CSV)
+          </Button>
         }
       />
 

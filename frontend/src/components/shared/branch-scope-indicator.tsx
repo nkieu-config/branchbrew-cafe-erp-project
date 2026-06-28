@@ -1,6 +1,7 @@
 "use client";
 
 import { MapPin, Globe } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 import { branchScopeAllClassName, branchScopeIndicatorClassName } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +17,11 @@ export function BranchScopeIndicator({
   allBranches = false,
   className,
 }: BranchScopeIndicatorProps) {
+  const { user } = useAuth();
+
+  /** SUPER_ADMIN uses the shell branch picker — avoid duplicate scope chrome. */
+  if (user?.role === "SUPER_ADMIN") return null;
+
   if (allBranches) {
     return (
       <span className={cn(branchScopeAllClassName(), className)}>

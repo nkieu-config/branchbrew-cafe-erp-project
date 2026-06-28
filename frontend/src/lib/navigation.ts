@@ -645,6 +645,24 @@ export function isMobileBottomNavActive(item: MobileBottomNavItem, pathname: str
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
+/** True when a mobile bottom-nav item already represents the current route. */
+export function isMobileBottomNavPathCovered(pathname: string, role: string): boolean {
+  return getMobileBottomNavItems(role).some(
+    (item) => item.action !== "menu" && isMobileBottomNavActive(item, pathname),
+  );
+}
+
+/** Whether the topbar should show the mobile breadcrumb trail. */
+export function shouldShowMobileBreadcrumb(
+  pathname: string,
+  role: string,
+  options: { hubTabsVisible?: boolean } = {},
+): boolean {
+  if (options.hubTabsVisible) return false;
+  if (isMobileBottomNavPathCovered(pathname, role)) return false;
+  return true;
+}
+
 /** Maps mobile bottom-nav item ids to sidebar badge keys. */
 export function getMobileBottomNavBadgeId(navItemId: string): string | null {
   if (navItemId === "inventory") return "inventory";
@@ -766,6 +784,37 @@ function findActiveTabForPathname(pathname: string, hub: HubConfig): HubTab | un
   return [...hub.tabs]
     .sort((a, b) => b.path.length - a.path.length)
     .find((tab) => isTabActive(pathname, tab.path, hub.basePath));
+}
+
+/** Active hub tab for the current pathname (exported for HubShell / page chrome). */
+export function resolveActiveHubTab(pathname: string, hub: HubConfig): HubTab | undefined {
+  return findActiveTabForPathname(pathname, hub);
+}
+
+/** Contextual h1 for hub pages — tab label, or hub label on root tab. */
+export function resolveHubShellTitle(pathname: string, hub: HubConfig): string {
+  const activeTab = findActiveTabForPathname(pathname, hub);
+  if (!activeTab) return hub.label;
+
+  const onHubRoot = pathname === hub.basePath && activeTab.path === hub.basePath;
+  if (onHubRoot) {
+    /** Single-tab hubs (e.g. Assets): prefer the tab label when it differs from hub label. */
+    if (hub.tabs.length === 1 && activeTab.label !== hub.label) {
+      return activeTab.label;
+    }
+    return hub.label;
+  }
+
+  return activeTab.label;
+}
+
+/** True when a page-level title duplicates the HubShell h1. */
+export function isRedundantPageTitle(
+  pageTitle: string,
+  pathname: string,
+  hub: HubConfig,
+): boolean {
+  return pageTitle === resolveHubShellTitle(pathname, hub);
 }
 
 function resolveHubBreadcrumbTrail(pathname: string, hub: HubConfig): BreadcrumbItem[] {

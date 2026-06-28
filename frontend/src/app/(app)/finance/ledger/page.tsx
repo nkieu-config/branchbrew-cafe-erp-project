@@ -4,18 +4,17 @@ import { useState } from "react"
 import dynamic from "next/dynamic"
 import { seedAccounts } from "@/lib/api"
 import { Table, Spin } from "antd"
-import { FileText, TrendingUp, Play } from "lucide-react"
+import { FileText, Play } from "lucide-react"
 import { toast } from "sonner"
 import { HubPageHeader } from "@/components/shared/hub-card"
 import { QueryErrorBanner } from "@/components/shared/query-error-banner"
-import { BranchScopeIndicator } from "@/components/shared/branch-scope-indicator"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
 import { dataTableEmptyTextClassName } from "@/lib/theme"
 import { getErrorMessage } from "@/lib/errors"
 import { StatusBadge, journalStatusTone } from "@/components/shared/status-badge"
 import { Button } from "@/components/ui/button"
 import { formatDate } from "@/lib/intl-date"
-import type { JournalEntry, Branch } from "@/types/api"
+import type { JournalEntry } from "@/types/api"
 import {
   antTableShellClassName,
   antTableSummaryRowClassName,
@@ -29,7 +28,6 @@ import {
 } from "@/lib/theme"
 
 import { useAuth } from "@/context/AuthContext"
-import { useBranches } from '@/hooks/domains/useGeneralQueries';
 import { useLedger, useJournalEntries } from '@/hooks/domains/useAccountingQueries';
 
 const LedgerTrendChart = dynamic(
@@ -50,16 +48,11 @@ export default function GeneralLedgerPage() {
   const [isSeeding, setIsSeeding] = useState(false)
   const [showSeedConfirm, setShowSeedConfirm] = useState(false)
 
-  const { data: branches = [] } = useBranches()
   const { data: chartData = [], isLoading: isChartLoading, isError: chartError, error: chartErr, refetch: refetchChart } = useLedger(selectedBranch)
   const { data: entries = [], isLoading: isEntriesLoading, isError: entriesError, error: entriesErr, refetch: refetchEntries } = useJournalEntries(selectedBranch)
   const loading = isChartLoading || isEntriesLoading;
   const hasError = chartError || entriesError;
   const errorMessage = getErrorMessage(chartErr ?? entriesErr, "Failed to load ledger data");
-
-  const branchLabel = activeBranchId
-    ? (branches as Branch[]).find((b) => b.id === activeBranchId)?.name ?? `Branch #${activeBranchId}`
-    : "All Branches (HQ)"
 
   const handleSeed = async () => {
     try {
@@ -162,23 +155,19 @@ export default function GeneralLedgerPage() {
   return (
     <div className="space-y-6">
       <HubPageHeader
-        title="Financial Dashboard & Ledger"
-        icon={TrendingUp}
-        description={`Profit & loss trends and journal entries for ${branchLabel}. Use the top bar branch selector to change scope.`}
+        hideTitle
+        description="Profit & loss trends and journal entries."
         actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <BranchScopeIndicator branchName={activeBranchId ? branchLabel : undefined} allBranches={!activeBranchId} />
-            {entries.length === 0 && !loading ? (
-              <Button
-                className={hubInfoActionClassName()}
-                disabled={isSeeding}
-                onClick={() => setShowSeedConfirm(true)}
-              >
-                <Play className="w-4 h-4 mr-2" />
-                Seed Accounts
-              </Button>
-            ) : null}
-          </div>
+          entries.length === 0 && !loading ? (
+            <Button
+              className={hubInfoActionClassName()}
+              disabled={isSeeding}
+              onClick={() => setShowSeedConfirm(true)}
+            >
+              <Play className="w-4 h-4 mr-2" />
+              Seed Accounts
+            </Button>
+          ) : null
         }
       />
 

@@ -13,6 +13,7 @@ import {
   sidebarRailLinkClassName,
   sidebarRootClassName,
   shell,
+  shellHeaderInsetClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types/api";
@@ -41,7 +42,7 @@ export function SidebarRail({ onExpand, onNavigate, className }: SidebarRailProp
 
   return (
     <div className={sidebarRootClassName(className, true)}>
-      <div className={cn("h-16 flex items-center justify-center border-b shrink-0", shell.sidebarDivider)}>
+      <div className={cn("h-14 md:h-16 flex items-center justify-center border-b shrink-0", shell.sidebarDivider, shellHeaderInsetClassName())}>
         <Link
           href="/"
           onClick={onNavigate}

@@ -3,9 +3,10 @@ import { LucideIcon } from "lucide-react";
 import type { HubId } from "@/lib/navigation";
 import { hubCardIconClass, surfaceCardClassName, text } from "@/lib/theme";
 import { cn } from "@/lib/utils";
+import { HubPageHeaderClient } from "@/components/shared/hub-page-header-client";
 
 export interface HubCardProps {
-  title: string;
+  title?: string;
   icon?: LucideIcon;
   description?: string;
   actions?: ReactNode;
@@ -13,8 +14,10 @@ export interface HubCardProps {
   className?: string;
   /** Optional hub id for module accent on the icon */
   accentHub?: HubId;
-  /** Page title level — use h1 on standalone pages without HubShell. */
+  /** Page title level — defaults to h2 under HubShell. Use h1 on standalone pages only. */
   titleLevel?: "h1" | "h2" | "h3";
+  /** Omit the title row (HubShell already provides the page h1). */
+  hideTitle?: boolean;
 }
 
 function HubHeading({
@@ -25,8 +28,13 @@ function HubHeading({
   className,
   accentHub,
   titleLevel = "h2",
+  hideTitle = false,
 }: HubCardProps) {
   const TitleTag = titleLevel;
+  const showTitle = !hideTitle && Boolean(title);
+  const hasHeadingBlock = showTitle || Boolean(description);
+
+  if (!hasHeadingBlock && !actions) return null;
 
   return (
     <div
@@ -35,17 +43,21 @@ function HubHeading({
         className,
       )}
     >
-      <div>
-        <TitleTag className={cn("text-lg font-bold flex items-center gap-2", text.primary)}>
-          {Icon && <Icon className={hubCardIconClass(accentHub)} aria-hidden />}
-          {title}
-        </TitleTag>
-        {description && (
-          <p className={cn("text-sm", text.muted)}>{description}</p>
-        )}
-      </div>
+      {hasHeadingBlock && (
+        <div className="min-w-0">
+          {showTitle && (
+            <TitleTag className={cn("text-lg font-bold flex items-center gap-2", text.primary)}>
+              {Icon && <Icon className={hubCardIconClass(accentHub)} aria-hidden />}
+              {title}
+            </TitleTag>
+          )}
+          {description && (
+            <p className={cn("text-sm", showTitle && "mt-1", text.muted)}>{description}</p>
+          )}
+        </div>
+      )}
       {actions && (
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 shrink-0 sm:ml-auto">
           {actions}
         </div>
       )}
@@ -63,24 +75,30 @@ export function HubCard({
   className,
   accentHub,
   titleLevel,
+  hideTitle,
 }: HubCardProps) {
+  const heading = (
+    <HubHeading
+      title={title}
+      icon={icon}
+      description={description}
+      actions={actions}
+      accentHub={accentHub}
+      titleLevel={titleLevel}
+      hideTitle={hideTitle}
+      className="mb-6"
+    />
+  );
+
   return (
     <div className={surfaceCardClassName(className)}>
-      <HubHeading
-        title={title}
-        icon={icon}
-        description={description}
-        actions={actions}
-        accentHub={accentHub}
-        titleLevel={titleLevel}
-        className="mb-6"
-      />
+      {heading}
       {children}
     </div>
   );
 }
 
-/** Heading only — for multi-section hub pages with existing card layouts. */
+/** Heading only — registers with PageChrome inside HubShell, or renders standalone. */
 export function HubPageHeader(props: Omit<HubCardProps, "children">) {
-  return <HubHeading {...props} />;
+  return <HubPageHeaderClient {...props} titleLevel={props.titleLevel ?? "h2"} />;
 }

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useEquipment, useCreateEquipment, useLogMaintenance } from '@/hooks/domains/useProcurementQueries';
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Plus, Wrench, Coffee } from "lucide-react";
+import { Plus, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { HubPageHeader } from "@/components/shared/hub-card";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
@@ -98,8 +98,7 @@ export default function AssetsPage() {
   return (
     <div className="space-y-6">
       <HubPageHeader
-        title="Equipment Maintenance"
-        icon={Coffee}
+        hideTitle
         description="Track machines, appliances, and schedule preventative maintenance."
         actions={
           <Dialog>

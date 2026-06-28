@@ -6,10 +6,14 @@ import {
   getMobileBottomNavItems,
   getVisibleHubTabs,
   isMobileBottomNavActive,
+  isMobileBottomNavPathCovered,
   isTabActive,
   shouldShowHubSubNav,
+  shouldShowMobileBreadcrumb,
   resolveBreadcrumbTrail,
+  resolveHubShellTitle,
   resolveSidebarHubId,
+  isRedundantPageTitle,
 } from "./navigation";
 
 describe("resolveBreadcrumbTrail", () => {
@@ -90,6 +94,26 @@ describe("hub completeness", () => {
   });
 });
 
+describe("resolveHubShellTitle", () => {
+  it("uses hub label on root tab path", () => {
+    expect(resolveHubShellTitle("/inventory", HUBS.inventory)).toBe("Inventory");
+  });
+
+  it("uses tab label for single-tab hubs when it differs from hub label", () => {
+    expect(resolveHubShellTitle("/assets", HUBS.assets)).toBe("Equipment");
+  });
+
+  it("uses active tab label on sub-routes", () => {
+    expect(resolveHubShellTitle("/finance/overview", HUBS.finance)).toBe("Overview");
+    expect(resolveHubShellTitle("/inventory/batches", HUBS.inventory)).toBe("Batches & Expiry");
+  });
+
+  it("detects redundant page titles", () => {
+    expect(isRedundantPageTitle("Overview", "/finance/overview", HUBS.finance)).toBe(true);
+    expect(isRedundantPageTitle("Finance & Settlement", "/finance/overview", HUBS.finance)).toBe(false);
+  });
+});
+
 describe("getVisibleHubTabs", () => {
   it("orders purchase orders first for staff in procurement", () => {
     const tabs = getVisibleHubTabs("procurement", "STAFF");
@@ -140,6 +164,30 @@ describe("resolveSidebarHubId", () => {
   it("returns null for non-hub items", () => {
     expect(resolveSidebarHubId("dashboard")).toBeNull();
     expect(resolveSidebarHubId("kds")).toBeNull();
+  });
+});
+
+describe("mobile breadcrumb visibility", () => {
+  it("detects paths covered by bottom nav", () => {
+    expect(isMobileBottomNavPathCovered("/pos/terminal", "MANAGER")).toBe(true);
+    expect(isMobileBottomNavPathCovered("/inventory", "STAFF")).toBe(true);
+    expect(isMobileBottomNavPathCovered("/inventory/batches", "STAFF")).toBe(true);
+    expect(isMobileBottomNavPathCovered("/finance/overview", "MANAGER")).toBe(false);
+  });
+
+  it("hides mobile breadcrumb when bottom nav covers route", () => {
+    expect(shouldShowMobileBreadcrumb("/pos/terminal", "MANAGER")).toBe(false);
+    expect(shouldShowMobileBreadcrumb("/inventory/batches", "STAFF")).toBe(false);
+    expect(shouldShowMobileBreadcrumb("/finance/overview", "MANAGER")).toBe(true);
+  });
+
+  it("hides mobile breadcrumb when hub tabs are visible", () => {
+    expect(
+      shouldShowMobileBreadcrumb("/finance/overview", "MANAGER", { hubTabsVisible: true }),
+    ).toBe(false);
+    expect(
+      shouldShowMobileBreadcrumb("/finance/overview", "MANAGER", { hubTabsVisible: false }),
+    ).toBe(true);
   });
 });
 

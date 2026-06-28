@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { Package, AlertTriangle } from "lucide-react";
 import { DataTable } from "@/components/shared/data-table";
-import { HubCard } from "@/components/shared/hub-card";
+import { HubCard, HubPageHeader } from "@/components/shared/hub-card";
 import { ListToolbar } from "@/components/shared/list-toolbar";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -63,11 +63,13 @@ export default function InventoryBalancePage() {
   }
 
   return (
-    <HubCard
-      title="Branch Stock Balance"
-      icon={Package}
-      description="Current aggregate stock for all raw ingredients."
-    >
+    <>
+      <HubPageHeader
+        title="Branch Stock Balance"
+        icon={Package}
+        description="Current aggregate stock for all raw ingredients."
+      />
+      <HubCard hideTitle>
       <ListToolbar
         search={search}
         onSearchChange={setSearch}
@@ -164,6 +166,7 @@ export default function InventoryBalancePage() {
         rowKey="id"
         pagination={{ pageSize: 15 }}
       />
-    </HubCard>
+      </HubCard>
+    </>
   );
 }

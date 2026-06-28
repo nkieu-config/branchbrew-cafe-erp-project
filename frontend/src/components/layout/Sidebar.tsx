@@ -17,6 +17,7 @@ import {
   sidebarPinnedLabelClassName,
   sidebarRootClassName,
   shell,
+  shellHeaderInsetClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types/api";
@@ -46,8 +47,8 @@ export function Sidebar({ onNavigate, onCollapse, className }: SidebarProps) {
 
   return (
     <div className={sidebarRootClassName(className)}>
-      <div className={cn("shrink-0 border-b", shell.sidebarDivider)}>
-        <div className="h-16 flex items-center px-4">
+      <div className={cn("shrink-0 border-b", shell.sidebarDivider, shellHeaderInsetClassName())}>
+        <div className="h-14 md:h-16 flex items-center px-4">
           <div
             className="w-8 h-8 rounded-lg flex items-center justify-center mr-3 shadow-sm bg-[var(--sidebar-brand-mark-bg)]"
             aria-hidden

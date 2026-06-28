@@ -205,6 +205,11 @@
   --topbar-picker-bg: var(--card);
   --topbar-picker-border: var(--border);
   --topbar-picker-icon: var(--brand);
+  --topbar-bg: color-mix(in oklch, var(--card) 85%, transparent);
+  --topbar-action-hover: var(--sidebar-nav-inactive-hover-bg);
+  --topbar-action-fg: var(--sidebar-nav-inactive-fg);
+  --topbar-action-active-bg: var(--sidebar-nav-active-bg);
+  --topbar-action-active-fg: var(--sidebar-nav-active-fg);
 
   --breadcrumb-fg: var(--text-subtle);
   --breadcrumb-separator: var(--tone-neutral-border);

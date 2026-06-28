@@ -13,7 +13,7 @@ import { SidebarPreferencesProvider } from "@/context/SidebarPreferencesContext"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { isImmersiveRoute } from "@/lib/shell-routes";
 import { cn } from "@/lib/utils";
-import { mainContentWithMobileNavClassName, shell, skipLinkClassName } from "@/lib/theme";
+import { mainContentWithMobileNavClassName, shell, shellContentFrameClassName, shellContentPaddingYClassName, skipLinkClassName } from "@/lib/theme";
 
 function AppShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -41,7 +41,14 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
         Skip to main content
       </a>
 
-      <aside className="hidden lg:block shrink-0" aria-label="Application sidebar">
+      <aside
+        className={cn(
+          "hidden lg:block shrink-0 overflow-hidden",
+          "transition-[width] duration-200 motion-reduce:transition-none",
+          useRail ? "w-16" : "w-64",
+        )}
+        aria-label="Application sidebar"
+      >
         {useRail ? (
           <SidebarRail onExpand={() => setSidebarExpanded(true)} />
         ) : (
@@ -75,11 +82,16 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
         <div
           className={cn(
             "flex-1 overflow-y-auto overflow-x-hidden",
-            immersive ? "p-2 sm:p-4 lg:p-8" : "p-4 md:p-6 lg:p-8",
             showMobileBottomNav && mainContentWithMobileNavClassName(),
           )}
         >
-          {children}
+          {immersive ? (
+            <div className="p-2 sm:p-4 lg:p-8">{children}</div>
+          ) : (
+            <div className={cn(shellContentFrameClassName(), shellContentPaddingYClassName())}>
+              {children}
+            </div>
+          )}
         </div>
       </main>
 

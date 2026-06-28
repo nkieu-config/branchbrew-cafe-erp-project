@@ -3,18 +3,13 @@
 import { Suspense, useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { LayoutDashboard } from "lucide-react";
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { useAuth } from "@/context/AuthContext";
 import { AnimatedPage } from "@/components/animated-page";
-import {
-  dashboardBranchBadgeAccentClass,
-  dashboardBranchBadgeClass,
-  dashboardHeaderClass,
-  dashboardSkeletonClass,
-  text,
-} from "@/lib/theme";
-import { cn } from "@/lib/utils";
+import { PageChrome } from "@/components/layout/PageChrome";
+import { dashboardShellIconClassName, dashboardSkeletonClass } from "@/lib/theme";
 import type { Branch } from "@/types/api";
 import {
   SalesWidget,
@@ -120,10 +115,10 @@ function AnalyticsDashboardContent() {
 
   const { data: branches = [] } = useBranches();
 
-  const branchLabel =
+  const branchName =
     activeBranchId != null
-      ? (branches as Branch[]).find((b) => b.id === activeBranchId)?.name ?? `Branch #${activeBranchId}`
-      : "All Branches (HQ)";
+      ? (branches as Branch[]).find((b) => b.id === activeBranchId)?.name
+      : undefined;
 
   const handleReorder = useCallback(
     (newOrder: string[]) => {
@@ -197,22 +192,18 @@ function AnalyticsDashboardContent() {
   );
 
   return (
-    <AnimatedPage className="space-y-6">
-      <div className={dashboardHeaderClass()}>
-        <div>
-          <h1 className={cn("text-2xl sm:text-3xl font-black tracking-tight", text.primary)}>
-            Executive Dashboard
-          </h1>
-          <p className={cn("font-medium mt-1", text.muted)}>
-            Drag widgets from the top right corner to customize layout.
-          </p>
-        </div>
-        <div className={dashboardBranchBadgeClass()}>
-          Viewing: <span className={dashboardBranchBadgeAccentClass()}>{branchLabel}</span>
-        </div>
-      </div>
-
-      {layoutReady ? (
+    <AnimatedPage className="w-full h-full flex flex-col">
+      <PageChrome
+        title="Dashboard"
+        icon={LayoutDashboard}
+        iconClassName={dashboardShellIconClassName()}
+        description="Drag widgets from the top right corner to customize layout."
+        branchScope={{
+          branchName,
+          allBranches: activeBranchId == null,
+        }}
+      >
+        {layoutReady ? (
         <QueryErrorResetBoundary>
           {({ reset }) => (
             <DashboardSortableGridLazy
@@ -230,6 +221,7 @@ function AnalyticsDashboardContent() {
           <AlertsWidgetSkeleton />
         </div>
       )}
+      </PageChrome>
     </AnimatedPage>
   );
 }

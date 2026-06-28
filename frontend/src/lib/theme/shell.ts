@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { text } from "./surface";
 
 const focusRing =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]/50 motion-reduce:transition-none";
@@ -7,7 +8,136 @@ export const shell = {
   bg: "bg-[var(--shell-bg)]",
   sidebarBorder: "border-[var(--sidebar-border)]",
   sidebarDivider: "border-[var(--sidebar-divider)]",
+  maxWidth: "max-w-[1600px]",
 } as const;
+
+/** Align topbar + page content to the same centered column. */
+export function shellContentFrameClassName(className?: string) {
+  return cn(shell.maxWidth, "mx-auto w-full px-4 md:px-6 lg:px-8", className);
+}
+
+export function shellContentPaddingYClassName(className?: string) {
+  return cn("py-4 md:py-6 lg:py-8", className);
+}
+
+export function shellPageTitleClassName(className?: string) {
+  return cn(
+    "text-xl sm:text-2xl font-bold text-balance flex items-center gap-2 min-w-0",
+    text.primary,
+    className,
+  );
+}
+
+/** Shared top inset for sidebar brand row + main topbar (safe area + breathing room). */
+export function shellHeaderInsetClassName(className?: string) {
+  return cn(
+    "pt-[calc(0.75rem+env(safe-area-inset-top,0px))] md:pt-[calc(1rem+env(safe-area-inset-top,0px))]",
+    className,
+  );
+}
+
+/** Full-width topbar region — inset from viewport top, subtle surface, bottom rule. */
+export function topbarRegionClassName(className?: string) {
+  return cn(
+    "shrink-0 w-full border-b",
+    "border-[var(--border)]/50 bg-[var(--topbar-bg)] backdrop-blur-md",
+    shellHeaderInsetClassName(),
+    className,
+  );
+}
+
+/** Inner topbar row — stable height across all routes (no compact/immersive jump). */
+export function topbarShellClassName(_options: { compactDesktop?: boolean } = {}, className?: string) {
+  return cn(
+    "flex w-full items-center gap-3 z-20 relative",
+    "min-h-14 pb-3 md:pb-4",
+    className,
+  );
+}
+
+/** Right-side topbar actions row — separated controls, no enclosing pill. */
+export function topbarActionsRowClassName(className?: string) {
+  return cn("flex items-center gap-2 shrink-0", className);
+}
+
+/** Subtle divider between work actions and account/shell controls. */
+export function topbarActionsDividerClassName(className?: string) {
+  return cn(
+    "hidden sm:block w-px h-6 shrink-0 bg-[var(--border)]/70 mx-0.5",
+    className,
+  );
+}
+
+/** Standalone topbar icon control (not nested in a group pill). */
+export function topbarActionButtonClassName(
+  options: { active?: boolean; className?: string } = {},
+) {
+  return cn(
+    topbarIconButtonClassName(options),
+    "border-[var(--topbar-picker-border)]/60 bg-[var(--topbar-picker-bg)] shadow-sm",
+    options.className,
+  );
+}
+
+/** @deprecated Prefer topbarActionsRowClassName — grouped pill obscures distinct control types. */
+export function topbarActionGroupClassName(className?: string) {
+  return topbarActionsRowClassName(className);
+}
+
+/** Fixed-width slot for clock control — prevents toolbar width jump between states. */
+export function topbarClockSlotClassName(className?: string) {
+  return cn("inline-flex items-center justify-center shrink-0 min-w-9", className);
+}
+
+/** 36×36 icon control — matches sidebar icon buttons, sized for dense toolbar. */
+export function topbarIconButtonClassName(
+  options: { active?: boolean; className?: string } = {},
+) {
+  return cn(
+    "inline-flex items-center justify-center",
+    "h-9 w-9 min-h-[36px] min-w-[36px] shrink-0 rounded-lg border border-transparent",
+    "text-[var(--topbar-action-fg)] transition-colors",
+    "hover:bg-[var(--topbar-action-hover)] hover:text-[var(--foreground)]",
+    focusRing,
+    options.active &&
+      "bg-[var(--topbar-action-active-bg)] text-[var(--topbar-action-active-fg)] border-[var(--sidebar-nav-active-border)]",
+    options.className,
+  );
+}
+
+/** Mobile menu trigger — same visual language as action group items. */
+export function topbarMenuButtonClassName(className?: string) {
+  return cn(
+    topbarIconButtonClassName(),
+    "border-[var(--topbar-picker-border)] bg-[var(--topbar-picker-bg)] shadow-sm lg:hidden",
+    className,
+  );
+}
+
+/** Primary action inside toolbar (e.g. Clock In). */
+export function topbarPrimaryActionClassName(className?: string) {
+  return cn(
+    "inline-flex items-center justify-center gap-1.5 shrink-0 rounded-lg border border-transparent",
+    "h-9 min-h-[36px] px-2.5 text-sm font-semibold shadow-sm transition-colors",
+    "bg-[var(--brand-solid)] text-[var(--on-brand-solid-fg)]",
+    "hover:opacity-90",
+    focusRing,
+    className,
+  );
+}
+
+/** Profile trigger — icon-only, same size/radius as clock/theme. */
+export function topbarProfileButtonClassName(className?: string) {
+  return cn(topbarActionButtonClassName(), className);
+}
+
+export function topbarDesktopBreadcrumbClassName(className?: string) {
+  return cn(
+    breadcrumbNavClassName(),
+    "hidden lg:flex min-w-0 text-xs font-medium",
+    className,
+  );
+}
 
 export function sidebarRootClassName(className?: string, collapsed?: boolean) {
   return cn(
@@ -193,11 +323,11 @@ export function sidebarBranchPillClassName(className?: string) {
   );
 }
 
-/** Compact clock-in/out control in the top bar. */
+/** Compact clock-in/out control in the top bar (standalone pill — prefer toolbar variant). */
 export function topbarClockWidgetClassName(className?: string) {
   return cn(
-    "flex items-center gap-2 rounded-lg border px-2 py-1 min-h-[44px]",
-    "bg-[var(--topbar-picker-bg)] border-[var(--topbar-picker-border)] shadow-sm",
+    "flex items-center gap-1.5 rounded-lg border px-1.5 py-0.5 min-h-[36px]",
+    "bg-[var(--topbar-picker-bg)] border-[var(--topbar-picker-border)]",
     className,
   );
 }
@@ -221,7 +351,7 @@ export function sidebarLogoutButtonClassName(className?: string) {
 
 export function topbarBranchPickerClassName(className?: string) {
   return cn(
-    "flex items-center gap-2 rounded-lg px-2 py-1 shadow-sm min-h-[44px] border",
+    "flex items-center gap-2 rounded-xl px-2 py-1 shadow-sm min-h-[36px] border",
     "bg-[var(--topbar-picker-bg)] border-[var(--topbar-picker-border)]",
     className,
   );
@@ -270,14 +400,17 @@ export function profileMenuPanelClassName(className?: string) {
 
 export function profileAvatarButtonClassName(className?: string) {
   return cn(
-    "h-11 min-h-[44px] rounded-full border-[var(--profile-avatar-border)]",
-    "md:rounded-xl md:pl-1.5 md:pr-3 md:gap-2",
+    topbarProfileButtonClassName(),
     className,
   );
 }
 
-export function profileAvatarInitialClassName() {
-  return "font-bold text-[var(--profile-avatar-fg)]";
+export function profileAvatarInitialClassName(className?: string) {
+  return cn(
+    "flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
+    "font-bold text-xs bg-[var(--surface-inset)] text-[var(--profile-avatar-fg)]",
+    className,
+  );
 }
 
 export function destructiveMenuItemClassName(className?: string) {

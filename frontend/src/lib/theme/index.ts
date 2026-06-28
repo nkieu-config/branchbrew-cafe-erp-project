@@ -22,6 +22,22 @@ export { hubAccentIconClass, hubCardIconClass } from "./hub-accent";
 export { getAntdThemeConfig } from "./antd-bridge";
 export {
   shell,
+  shellContentFrameClassName,
+  shellContentPaddingYClassName,
+  shellHeaderInsetClassName,
+  shellPageTitleClassName,
+  topbarRegionClassName,
+  topbarShellClassName,
+  topbarActionsRowClassName,
+  topbarActionsDividerClassName,
+  topbarActionButtonClassName,
+  topbarActionGroupClassName,
+  topbarClockSlotClassName,
+  topbarIconButtonClassName,
+  topbarMenuButtonClassName,
+  topbarPrimaryActionClassName,
+  topbarProfileButtonClassName,
+  topbarDesktopBreadcrumbClassName,
   sidebarRootClassName,
   sidebarRailLinkClassName,
   sidebarRailExpandButtonClassName,
@@ -75,6 +91,7 @@ export {
   dashboardHeaderClass,
   dashboardBranchBadgeClass,
   dashboardBranchBadgeAccentClass,
+  dashboardShellIconClassName,
   type DashboardWidgetVariant,
 } from "./dashboard";
 export {
