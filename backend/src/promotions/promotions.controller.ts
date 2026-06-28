@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Delete,
   UseGuards,
 } from '@nestjs/common';
 import { PromotionsService } from './promotions.service';
@@ -13,6 +14,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import {
   CreatePromotionDto,
   TogglePromotionDto,
+  UpdatePromotionDto,
   ValidatePromotionDto,
 } from './dto/promotion.dto';
 
@@ -29,6 +31,19 @@ export class PromotionsController {
   @Get()
   findAll() {
     return this.promotionsService.findAll();
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdatePromotionDto,
+  ) {
+    return this.promotionsService.update(id, dto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.promotionsService.remove(id);
   }
 
   @Patch(':id/toggle')

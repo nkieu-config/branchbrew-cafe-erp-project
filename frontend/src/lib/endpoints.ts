@@ -54,6 +54,8 @@ export const API_ENDPOINTS = {
     list: '/promotions',
     create: '/promotions',
     validate: '/promotions/validate',
+    update: (id: number) => `/promotions/${id}`,
+    delete: (id: number) => `/promotions/${id}`,
     toggle: (id: number) => `/promotions/${id}/toggle`,
   },
   accounting: {

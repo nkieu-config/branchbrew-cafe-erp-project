@@ -356,6 +356,25 @@ export function payrollSummaryRowClassName(className?: string) {
   return cn("font-bold bg-[var(--table-summary-bg)]", className);
 }
 
+export function crmSectionPanelClassName(className?: string) {
+  return cn(
+    "rounded-xl shadow-sm border p-4 sm:p-6 space-y-4",
+    "bg-[var(--table-container-bg)] border-[var(--table-container-border)]",
+    className,
+  );
+}
+
+export function crmSummaryChipClassName(active = false, className?: string) {
+  return cn(
+    "rounded-md px-2 py-0.5 font-medium tabular-nums transition-colors",
+    active
+      ? "bg-[var(--tone-crm-subtle)] ring-1 ring-[var(--tone-crm-border)]"
+      : "hover:bg-[var(--tone-crm-subtle)] cursor-pointer",
+    className,
+  );
+}
+
+/** @deprecated Use listToolbarFieldClassName from @/lib/theme instead. */
 export function crmSearchInputClassName(className?: string) {
   return cn(
     "pl-9 bg-[var(--table-container-bg)] border-[var(--table-container-border)]",
@@ -386,15 +405,15 @@ export function crmSectionLabelClassName(className?: string) {
 export function crmFavoriteChipClassName(className?: string) {
   return cn(
     "flex items-center gap-2 px-3 py-1.5 rounded-full border",
-    "bg-[var(--status-danger-bg)] border-[var(--status-danger-fg)]/20",
+    "bg-[var(--tone-crm-subtle)] border-[var(--tone-crm-border)]",
     className,
   );
 }
 
 export function crmFavoriteCountClassName(className?: string) {
   return cn(
-    "text-xs font-black px-2 py-0.5 rounded-full",
-    "bg-[var(--status-danger-fg)]/20 text-[var(--status-danger-fg)]",
+    "text-xs font-black px-2 py-0.5 rounded-full tabular-nums",
+    "bg-[var(--tone-crm-border)] text-[var(--tone-crm-fg)]",
     className,
   );
 }
@@ -415,6 +434,30 @@ export function crmMaxTierBadgeClassName(className?: string) {
   return cn(
     "mt-3 text-sm font-bold p-2 rounded-lg text-center uppercase tracking-wider",
     statusToneClassName("purple"),
+    className,
+  );
+}
+
+export function crmProgressClassName(className?: string) {
+  return cn(
+    "h-2 mt-3",
+    "[&_[data-slot=progress-track]]:bg-[var(--form-line-bg)]",
+    "[&_[data-slot=progress-indicator]]:bg-[var(--hub-crm)]",
+    className,
+  );
+}
+
+export function crmSheetContentClassName(className?: string) {
+  return cn(
+    "bg-[var(--table-container-bg)] text-foreground border-[var(--table-container-border)]",
+    className,
+  );
+}
+
+export function crmDialogContentClassName(className?: string) {
+  return cn(
+    "sm:max-w-md rounded-2xl",
+    "bg-[var(--table-container-bg)] border-[var(--table-container-border)] text-foreground",
     className,
   );
 }

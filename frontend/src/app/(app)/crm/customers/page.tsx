@@ -1,24 +1,48 @@
 "use client";
 
-import { useState } from "react";
-import { useCustomers, useCustomer360, useCreateCustomer } from '@/hooks/domains/useCrmQueries';
-import { useDebouncedValue } from '@/hooks/useDebouncedValue';
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { useMemo, useState } from "react";
+import type { ColumnsType } from "antd/es/table";
+import { useCustomers, useCustomer360, useCreateCustomer } from "@/hooks/domains/useCrmQueries";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { DataTable } from "@/components/shared/data-table";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { ListToolbar } from "@/components/shared/list-toolbar";
+import { QueryErrorBanner } from "@/components/shared/query-error-banner";
+import { HubPageHeader } from "@/components/shared/hub-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Search, UserPlus, Star, Award, Crown, Activity, AlertTriangle, CheckCircle2, History, Heart, ShoppingBag, Users, Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  UserPlus,
+  Star,
+  Award,
+  Crown,
+  AlertTriangle,
+  CheckCircle2,
+  History,
+  Heart,
+  ShoppingBag,
+  Users,
+  Loader2,
+  User,
+} from "lucide-react";
 import { formatDate } from "@/lib/intl-date";
+import { getErrorMessage } from "@/lib/errors";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Progress } from "@/components/ui/progress";
-import { HubPageHeader } from "@/components/shared/hub-card";
-import { Customer, Order } from "@/types/api";
+import { Customer, Order, Tier } from "@/types/api";
 import {
   churnRiskTone,
+  crmDialogContentClassName,
   crmFavoriteChipClassName,
   crmFavoriteCountClassName,
   crmInsightPanelClassName,
@@ -27,43 +51,94 @@ import {
   crmOrderIconWrapClassName,
   crmPointsClassName,
   crmPointsSuffixClassName,
-  crmSearchInputClassName,
+  crmProgressClassName,
   crmSectionLabelClassName,
+  crmSectionPanelClassName,
+  crmSheetContentClassName,
   customerTierIconClassName,
   customerTierTone,
-  elevatedPanelClassName,
+  formFieldInsetClassName,
+  formSelectContentClassName,
   hubCardIconFor,
   hubCtaClassName,
   hubLoadingSpinnerClassName,
+  inventorySummaryChipClassName,
+  inventorySummaryStripClassName,
+  listToolbarFieldClassName,
   metricValueClassName,
   statusToneClassName,
   text,
 } from "@/lib/theme";
+import { cn } from "@/lib/utils";
+
+type TierFilter = "ALL" | Tier;
 
 function TierIcon({ tier }: { tier: string }) {
   const className = customerTierIconClassName(tier, "w-4 h-4");
   switch (tier?.toUpperCase()) {
-    case 'PLATINUM': return <Crown className={className} />;
-    case 'GOLD': return <Award className={className} />;
-    case 'SILVER': return <Star className={className} />;
-    default: return null;
+    case "PLATINUM":
+      return <Crown className={className} aria-hidden />;
+    case "GOLD":
+      return <Award className={className} aria-hidden />;
+    case "SILVER":
+      return <Star className={className} aria-hidden />;
+    default:
+      return <User className={className} aria-hidden />;
   }
 }
 
 export default function CustomersPage() {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search.trim(), 300);
+  const [tierFilter, setTierFilter] = useState<TierFilter>("ALL");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [registerOpen, setRegisterOpen] = useState(false);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
-  
-  const { data: customersData, isLoading: loading } = useCustomers(debouncedSearch || undefined);
+
+  const {
+    data: customersData,
+    isLoading: loading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useCustomers(debouncedSearch || undefined);
   const customers = customersData || [];
-  
-  const { data: customer360, isLoading: loading360 } = useCustomer360(drawerOpen ? selectedCustomerId : null);
+
+  const { data: customer360, isLoading: loading360 } = useCustomer360(
+    drawerOpen ? selectedCustomerId : null,
+  );
   const createMutation = useCreateCustomer();
+
+  const tierSummary = useMemo(() => {
+    const counts = { platinum: 0, gold: 0, silver: 0, regular: 0 };
+    for (const c of customers) {
+      switch (c.tier?.toUpperCase()) {
+        case "PLATINUM":
+          counts.platinum += 1;
+          break;
+        case "GOLD":
+          counts.gold += 1;
+          break;
+        case "SILVER":
+          counts.silver += 1;
+          break;
+        default:
+          counts.regular += 1;
+      }
+    }
+    return { total: customers.length, ...counts };
+  }, [customers]);
+
+  const filteredCustomers = useMemo(() => {
+    if (tierFilter === "ALL") return customers;
+    return customers.filter((c: Customer) => c.tier === tierFilter);
+  }, [customers, tierFilter]);
+
+  const hasActiveFilters = search.trim().length > 0 || tierFilter !== "ALL";
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,140 +146,321 @@ export default function CustomersPage() {
     try {
       await createMutation.mutateAsync({ name, phone });
       toast.success("Customer created!");
-      setName(""); setPhone("");
-    } catch (error: unknown) {
-      if (error instanceof Error) toast.error(error.message || "Failed to create customer");
+      setName("");
+      setPhone("");
+      setRegisterOpen(false);
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to create customer"));
     }
+  };
+
+  const openDrawer = (id: number) => {
+    setSelectedCustomerId(id);
+    setDrawerOpen(true);
   };
 
   const formatCurrency = (val: number) => `฿${val.toLocaleString()}`;
 
+  const columns = useMemo(
+    () =>
+      [
+        {
+          title: "Customer",
+          dataIndex: "name",
+          key: "name",
+          render: (name: string) => (
+            <span className={cn("font-bold text-md", text.primary)}>{name}</span>
+          ),
+        },
+        {
+          title: "Phone",
+          dataIndex: "phone",
+          key: "phone",
+          responsive: ["md"],
+          render: (phone: string) => (
+            <span className={cn("font-mono font-medium", text.muted)}>{phone}</span>
+          ),
+        },
+        {
+          title: "Tier",
+          key: "tier",
+          render: (_: unknown, record: Customer) => (
+            <StatusBadge
+              tone={customerTierTone(record.tier)}
+              className="flex w-fit items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded-lg"
+            >
+              <TierIcon tier={record.tier} />
+              {record.tier}
+            </StatusBadge>
+          ),
+        },
+        {
+          title: "Points",
+          dataIndex: "points",
+          key: "points",
+          render: (points: number) => (
+            <span className={crmPointsClassName()}>
+              {points.toLocaleString()}{" "}
+              <span className={crmPointsSuffixClassName()}>pts</span>
+            </span>
+          ),
+        },
+        {
+          title: "Joined",
+          dataIndex: "createdAt",
+          key: "createdAt",
+          responsive: ["lg"],
+          render: (createdAt: string) => (
+            <span className={cn("font-medium text-sm", text.muted)}>
+              {formatDate(createdAt)}
+            </span>
+          ),
+        },
+      ] as ColumnsType<Customer>,
+    [],
+  );
+
   return (
-    <div className="space-y-6">
+    <>
       <HubPageHeader
-        title="Customer Directory"
+        hideTitle
         icon={Users}
+        accentHub="crm"
         description="Manage members, tiers, and loyalty points."
         actions={
-          <Dialog>
-            <DialogTrigger>
-              <div className={`flex items-center justify-center px-4 py-2 shadow-md rounded-xl cursor-pointer text-sm font-medium ${hubCtaClassName("crm")}`}>
-                <UserPlus className="w-4 h-4 mr-2" />
-                New Member
-              </div>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md rounded-2xl">
+          <Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
+            <DialogTrigger
+              render={
+                <Button className={hubCtaClassName("crm", "font-medium")}>
+                  <UserPlus className="w-4 h-4 mr-2" aria-hidden />
+                  New Member
+                </Button>
+              }
+            />
+            <DialogContent className={crmDialogContentClassName()}>
               <DialogHeader>
                 <DialogTitle className="text-xl font-bold">Register Customer</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleCreate} className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label className="font-bold">Full Name</Label>
-                  <Input value={name} onChange={e => setName(e.target.value)} required placeholder="e.g. John Doe" className="rounded-xl" />
+                  <Label htmlFor="customer-name" className={text.secondary}>
+                    Full Name
+                  </Label>
+                  <Input
+                    id="customer-name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    placeholder="e.g. John Doe"
+                    className={formFieldInsetClassName()}
+                  />
                 </div>
                 <div className="space-y-2">
-                  <Label className="font-bold">Phone Number</Label>
-                  <Input value={phone} onChange={e => setPhone(e.target.value)} required placeholder="e.g. 0812345678" className="rounded-xl" />
+                  <Label htmlFor="customer-phone" className={text.secondary}>
+                    Phone Number
+                  </Label>
+                  <Input
+                    id="customer-phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                    placeholder="e.g. 0812345678"
+                    className={formFieldInsetClassName()}
+                  />
                 </div>
-                <Button type="submit" className={hubCtaClassName("crm", "w-full text-md font-bold")}>Register</Button>
+                <Button
+                  type="submit"
+                  className={hubCtaClassName("crm", "w-full text-md font-bold")}
+                  disabled={createMutation.isPending}
+                >
+                  {createMutation.isPending ? "Registering…" : "Register"}
+                </Button>
               </form>
             </DialogContent>
           </Dialog>
         }
       />
 
-      <Card className={elevatedPanelClassName()}>
-        <CardHeader className="pb-4">
-          <div className="relative w-full max-w-sm">
-            <Search className={`w-4 h-4 absolute left-3 top-3 ${text.muted}`} />
-            <Input
-              placeholder="Search by phone…"
-              className={crmSearchInputClassName()}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              aria-label="Search customers by phone"
-            />
+      <div className={crmSectionPanelClassName()}>
+        {!loading && !isError && (
+          <div
+            className={inventorySummaryStripClassName()}
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <span className={cn("font-semibold tabular-nums", text.primary)}>
+              {tierSummary.total} member{tierSummary.total === 1 ? "" : "s"}
+            </span>
+            {tierSummary.platinum > 0 && (
+              <button
+                type="button"
+                className={inventorySummaryChipClassName(
+                  tierFilter === "PLATINUM",
+                  metricValueClassName("purple"),
+                )}
+                onClick={() =>
+                  setTierFilter(tierFilter === "PLATINUM" ? "ALL" : "PLATINUM")
+                }
+              >
+                {tierSummary.platinum} platinum
+              </button>
+            )}
+            {tierSummary.gold > 0 && (
+              <button
+                type="button"
+                className={inventorySummaryChipClassName(
+                  tierFilter === "GOLD",
+                  metricValueClassName("amber"),
+                )}
+                onClick={() => setTierFilter(tierFilter === "GOLD" ? "ALL" : "GOLD")}
+              >
+                {tierSummary.gold} gold
+              </button>
+            )}
+            {tierSummary.silver > 0 && (
+              <button
+                type="button"
+                className={inventorySummaryChipClassName(
+                  tierFilter === "SILVER",
+                  text.muted,
+                )}
+                onClick={() =>
+                  setTierFilter(tierFilter === "SILVER" ? "ALL" : "SILVER")
+                }
+              >
+                {tierSummary.silver} silver
+              </button>
+            )}
+            {tierSummary.regular > 0 && (
+              <button
+                type="button"
+                className={inventorySummaryChipClassName(
+                  tierFilter === "REGULAR",
+                  metricValueClassName("blue"),
+                )}
+                onClick={() =>
+                  setTierFilter(tierFilter === "REGULAR" ? "ALL" : "REGULAR")
+                }
+              >
+                {tierSummary.regular} regular
+              </button>
+            )}
+            {isFetching && !loading && (
+              <span className={cn("inline-flex items-center gap-1.5", text.muted)}>
+                <Loader2
+                  className="w-3.5 h-3.5 animate-spin motion-reduce:animate-none"
+                  aria-hidden
+                />
+                Updating…
+              </span>
+            )}
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="mt-2">
-            <DataTable 
-              loading={loading}
-                columns={[
-                  {
-                    title: "Customer",
-                    dataIndex: "name",
-                    key: "name",
-                    render: (name) => <span className={`font-bold text-md ${text.primary}`}>{name}</span>
-                  },
-                  {
-                    title: "Phone",
-                    dataIndex: "phone",
-                    key: "phone",
-                    render: (phone) => <span className={`font-mono font-medium ${text.muted}`}>{phone}</span>
-                  },
-                  {
-                    title: "Tier",
-                    key: "tier",
-                    render: (_, record: Customer) => (
-                      <StatusBadge tone={customerTierTone(record.tier)} className="flex w-fit items-center gap-1.5 px-2.5 py-1 text-xs font-bold uppercase tracking-wider rounded-lg">
-                        <TierIcon tier={record.tier} />
-                        {record.tier}
-                      </StatusBadge>
-                    )
-                  },
-                  {
-                    title: "Points",
-                    dataIndex: "points",
-                    key: "points",
-                    render: (points) => (
-                      <span className={crmPointsClassName()}>
-                        {points} <span className={crmPointsSuffixClassName()}>pts</span>
-                      </span>
-                    )
-                  },
-                  {
-                    title: "Joined",
-                    dataIndex: "createdAt",
-                    key: "createdAt",
-                    render: (createdAt) => <span className={`font-medium text-sm ${text.muted}`}>{formatDate(createdAt)}</span>
-                  }
-                ]}
-                dataSource={customers}
-                rowKey="id"
-                pagination={{ pageSize: 10 }}
-                onRow={(record) => ({
-                  onClick: () => {
-                    setSelectedCustomerId(record.id);
-                    setDrawerOpen(true);
-                  },
-                  className: "cursor-pointer"
-                })}
-                hideBorders
-            />
-          </div>
-        </CardContent>
-      </Card>
+        )}
+
+        {isError && (
+          <QueryErrorBanner
+            message={getErrorMessage(error, "Failed to load customers")}
+            onRetry={() => void refetch()}
+            loading={isFetching}
+          />
+        )}
+
+        <ListToolbar
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Search by name or phone…"
+          showReset={hasActiveFilters}
+          onReset={() => {
+            setSearch("");
+            setTierFilter("ALL");
+          }}
+          filters={
+            <Select
+              value={tierFilter}
+              onValueChange={(value) => {
+                if (value != null) setTierFilter(value as TierFilter);
+              }}
+            >
+              <SelectTrigger
+                className={listToolbarFieldClassName("min-h-[44px] w-full sm:w-[180px]")}
+                aria-label="Filter by tier"
+              >
+                <SelectValue placeholder="All tiers" />
+              </SelectTrigger>
+              <SelectContent className={formSelectContentClassName()}>
+                <SelectItem value="ALL">All tiers</SelectItem>
+                <SelectItem value="PLATINUM">Platinum</SelectItem>
+                <SelectItem value="GOLD">Gold</SelectItem>
+                <SelectItem value="SILVER">Silver</SelectItem>
+                <SelectItem value="REGULAR">Regular</SelectItem>
+              </SelectContent>
+            </Select>
+          }
+        />
+
+        <DataTable
+          loading={loading && !isError}
+          columns={columns}
+          dataSource={filteredCustomers}
+          rowKey="id"
+          pagination={{
+            pageSize: 15,
+            showSizeChanger: true,
+            pageSizeOptions: ["10", "15", "25", "50"],
+          }}
+          hideBorders
+          emptyDescription={
+            hasActiveFilters
+              ? "No members match your filters."
+              : "No members registered yet."
+          }
+          onRow={(record) => ({
+            onClick: () => openDrawer(record.id),
+            onKeyDown: (e: React.KeyboardEvent) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                openDrawer(record.id);
+              }
+            },
+            tabIndex: 0,
+            role: "button",
+            "aria-label": `View profile for ${record.name}`,
+            className:
+              "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          })}
+        />
+      </div>
 
       <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+        <SheetContent
+          className={crmSheetContentClassName("w-full sm:max-w-xl overflow-y-auto")}
+        >
           <SheetHeader className="mb-6">
             <SheetTitle className="font-black text-xl">Customer 360° Profile</SheetTitle>
           </SheetHeader>
-          
+
           {loading360 || !customer360 ? (
-            <div className={`flex flex-col items-center justify-center h-64 gap-4 ${text.muted}`}>
-              <Loader2 className={`w-8 h-8 ${hubLoadingSpinnerClassName()}`} />
-              <p className="font-medium animate-pulse motion-reduce:animate-none">Loading insights…</p>
+            <div className={cn("flex flex-col items-center justify-center h-64 gap-4", text.muted)}>
+              <Loader2 className={cn("w-8 h-8", hubLoadingSpinnerClassName())} />
+              <p className="font-medium animate-pulse motion-reduce:animate-none">
+                Loading insights…
+              </p>
             </div>
           ) : (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className={`text-2xl font-black ${text.primary}`}>{customer360.customer.name}</h3>
-                  <p className={`font-mono font-medium ${text.muted}`}>{customer360.customer.phone}</p>
+                  <h3 className={cn("text-2xl font-black", text.primary)}>
+                    {customer360.customer.name}
+                  </h3>
+                  <p className={cn("font-mono font-medium", text.muted)}>
+                    {customer360.customer.phone}
+                  </p>
                 </div>
-                <StatusBadge tone={customerTierTone(customer360.customer.tier)} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-black uppercase rounded-xl">
+                <StatusBadge
+                  tone={customerTierTone(customer360.customer.tier)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-black uppercase rounded-xl"
+                >
                   <TierIcon tier={customer360.customer.tier} />
                   {customer360.customer.tier}
                 </StatusBadge>
@@ -212,12 +468,27 @@ export default function CustomersPage() {
 
               <div className="h-px bg-border my-4" />
 
-              <div className={`p-4 rounded-2xl border flex items-start gap-3 ${statusToneClassName(churnRiskTone(customer360.churnRisk))}`}>
-                {customer360.churnRisk === 'LOW' ? <CheckCircle2 className="w-6 h-6 shrink-0" /> : <AlertTriangle className="w-6 h-6 shrink-0" />}
+              <div
+                className={cn(
+                  "p-4 rounded-2xl border flex items-start gap-3",
+                  statusToneClassName(churnRiskTone(customer360.churnRisk)),
+                )}
+              >
+                {customer360.churnRisk === "LOW" ? (
+                  <CheckCircle2 className="w-6 h-6 shrink-0" aria-hidden />
+                ) : (
+                  <AlertTriangle className="w-6 h-6 shrink-0" aria-hidden />
+                )}
                 <div>
-                  <h4 className="font-bold text-sm uppercase tracking-wider opacity-80 mb-1">Retention Status</h4>
+                  <h4 className="font-bold text-sm uppercase tracking-wider opacity-80 mb-1">
+                    Retention Status
+                  </h4>
                   <p className="font-black text-lg">
-                    {customer360.churnRisk === 'LOW' ? 'Active Customer' : customer360.churnRisk === 'MEDIUM' ? 'At Risk (Slipping Away)' : 'High Churn Risk'}
+                    {customer360.churnRisk === "LOW"
+                      ? "Active Customer"
+                      : customer360.churnRisk === "MEDIUM"
+                        ? "At Risk (Slipping Away)"
+                        : "High Churn Risk"}
                   </p>
                   <p className="text-sm font-medium opacity-80 mt-1">
                     Last ordered {customer360.daysSinceLastOrder} days ago
@@ -229,67 +500,89 @@ export default function CustomersPage() {
                 <div className="flex justify-between items-end mb-2">
                   <div>
                     <p className={crmSectionLabelClassName("mb-0")}>Lifetime Spend</p>
-                    <p className={`text-2xl font-black mt-1 ${text.primary}`}>{formatCurrency(customer360.lifetimeSpend)}</p>
+                    <p className={cn("text-2xl font-black mt-1", text.primary)}>
+                      {formatCurrency(customer360.lifetimeSpend)}
+                    </p>
                   </div>
-                  {customer360.nextTier !== 'MAX' && (
+                  {customer360.nextTier !== "MAX" && (
                     <div className="text-right">
-                      <p className={`text-xs font-bold uppercase tracking-wider ${text.muted}`}>Next Tier: {customer360.nextTier}</p>
-                      <p className={`text-sm font-bold ${metricValueClassName("emerald")}`}>{formatCurrency(customer360.amountToNextTier)} to go</p>
+                      <p className={cn("text-xs font-bold uppercase tracking-wider", text.muted)}>
+                        Next Tier: {customer360.nextTier}
+                      </p>
+                      <p className={cn("text-sm font-bold", metricValueClassName("emerald"))}>
+                        {formatCurrency(customer360.amountToNextTier)} to go
+                      </p>
                     </div>
                   )}
                 </div>
-                {customer360.nextTier !== 'MAX' ? (
-                  <Progress value={parseFloat(customer360.progressPercentage.toFixed(1))} className="h-2 mt-3" />
+                {customer360.nextTier !== "MAX" ? (
+                  <Progress
+                    value={parseFloat(customer360.progressPercentage.toFixed(1))}
+                    className={crmProgressClassName()}
+                  />
                 ) : (
                   <div className={crmMaxTierBadgeClassName()}>Maximum Tier Reached</div>
                 )}
               </div>
 
               <div>
-                <h4 className={crmSectionLabelClassName()}><Heart className={`w-4 h-4 ${metricValueClassName("red")}`}/> Top Favorites</h4>
+                <h4 className={crmSectionLabelClassName()}>
+                  <Heart className={hubCardIconFor("crm", "w-4 h-4")} aria-hidden /> Top Favorites
+                </h4>
                 {customer360.favoriteDrinks.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
-                    {customer360.favoriteDrinks.map((fav: { product: { name: string }; count: number }, i: number) => (
-                      <div key={i} className={crmFavoriteChipClassName()}>
-                        <span className={`font-bold ${metricValueClassName("red")}`}>{fav.product.name}</span>
-                        <span className={crmFavoriteCountClassName()}>{fav.count}x</span>
-                      </div>
-                    ))}
+                    {customer360.favoriteDrinks.map(
+                      (fav: { product: { name: string }; count: number }, i: number) => (
+                        <div key={i} className={crmFavoriteChipClassName()}>
+                          <span className={cn("font-bold", text.secondary)}>
+                            {fav.product.name}
+                          </span>
+                          <span className={crmFavoriteCountClassName()}>{fav.count}x</span>
+                        </div>
+                      ),
+                    )}
                   </div>
                 ) : (
-                  <p className={`text-sm italic ${text.muted}`}>No purchase history yet.</p>
+                  <p className={cn("text-sm italic", text.muted)}>No purchase history yet.</p>
                 )}
               </div>
 
               <div>
-                <h4 className={crmSectionLabelClassName()}><History className={hubCardIconFor("procurement", "w-4 h-4")}/> Recent Activity</h4>
+                <h4 className={crmSectionLabelClassName()}>
+                  <History className={hubCardIconFor("crm", "w-4 h-4")} aria-hidden /> Recent
+                  Activity
+                </h4>
                 {customer360.recentOrders?.length > 0 ? (
                   <div className="space-y-3">
                     {customer360.recentOrders.map((order: Order) => (
                       <div key={order.id} className={crmOrderCardClassName()}>
                         <div className="flex items-center gap-3">
                           <div className={crmOrderIconWrapClassName()}>
-                            <ShoppingBag className="w-4 h-4" />
+                            <ShoppingBag className="w-4 h-4" aria-hidden />
                           </div>
                           <div>
-                            <p className={`font-bold ${text.secondary}`}>{formatDate(order.createdAt)}</p>
-                            <p className={`text-xs font-medium ${text.muted}`}>{order.items?.length ?? 0} items</p>
+                            <p className={cn("font-bold", text.secondary)}>
+                              {formatDate(order.createdAt)}
+                            </p>
+                            <p className={cn("text-xs font-medium", text.muted)}>
+                              {order.items?.length ?? 0} items
+                            </p>
                           </div>
                         </div>
-                        <div className={`font-black ${text.primary}`}>
+                        <div className={cn("font-black", text.primary)}>
                           {formatCurrency(order.netAmount)}
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className={`text-sm italic ${text.muted}`}>No orders found.</p>
+                  <p className={cn("text-sm italic", text.muted)}>No orders found.</p>
                 )}
               </div>
             </div>
           )}
         </SheetContent>
       </Sheet>
-    </div>
+    </>
   );
 }

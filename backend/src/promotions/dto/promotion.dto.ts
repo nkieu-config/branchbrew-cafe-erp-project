@@ -7,6 +7,7 @@ import {
   IsString,
   Min,
   MinLength,
+  ValidateIf,
 } from 'class-validator';
 import { DiscountType } from '@prisma/client';
 
@@ -53,4 +54,35 @@ export class ValidatePromotionDto {
 export class TogglePromotionDto {
   @IsBoolean()
   isActive: boolean;
+}
+
+export class UpdatePromotionDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  description?: string;
+
+  @IsOptional()
+  @IsEnum(DiscountType)
+  discountType?: DiscountType;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  discountValue?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  minPurchase?: number;
+
+  @IsOptional()
+  @ValidateIf((_o, value) => value != null)
+  @IsISO8601()
+  startDate?: string | null;
+
+  @IsOptional()
+  @ValidateIf((_o, value) => value != null)
+  @IsISO8601()
+  endDate?: string | null;
 }

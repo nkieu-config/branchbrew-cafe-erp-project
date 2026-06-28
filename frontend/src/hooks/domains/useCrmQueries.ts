@@ -51,3 +51,24 @@ export const useTogglePromotion = () => {
   });
 };
 
+export const useUpdatePromotion = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: unknown }) =>
+      fetchAPI(API_ENDPOINTS.promotions.update(id), {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['promotions'] }),
+  });
+};
+
+export const useDeletePromotion = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) =>
+      fetchAPI(API_ENDPOINTS.promotions.delete(id), { method: 'DELETE' }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['promotions'] }),
+  });
+};
+
