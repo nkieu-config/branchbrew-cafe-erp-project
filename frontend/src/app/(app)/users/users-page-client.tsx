@@ -1,16 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import type { ColumnsType } from "antd/es/table";
 import Link from "next/link";
+import {
+  Building,
+  Mail,
+  Pencil,
+  Plus,
+  Shield,
+  ShieldCheck,
+  User as UserIcon,
+} from "lucide-react";
+import { toast } from "sonner";
 import { useHrUsers, useCreateUser, useUpdateUser } from "@/hooks/domains/useHrQueries";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { AnimatedPage } from "@/components/animated-page";
 import { HubPageHeader } from "@/components/shared/hub-card";
 import { AccessDeniedState } from "@/components/shared/access-denied-state";
-import { ShieldCheck, Plus, User as UserIcon, Mail, Shield, Building } from "lucide-react";
+import { DataTable } from "@/components/shared/data-table";
+import { ListToolbar } from "@/components/shared/list-toolbar";
+import { QueryErrorBanner } from "@/components/shared/query-error-banner";
+import { TableActionButton } from "@/components/shared/table-action-button";
+import { StatusBadge, roleTone } from "@/components/shared/status-badge";
+import { RoleGuard } from "@/components/RoleGuard";
+import { OrganizationHubLinks } from "@/components/organization/OrganizationHubLinks";
+import { UserFormModal } from "@/components/organization/UserFormModal";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -18,308 +35,499 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { toast } from "sonner";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DataTable } from "@/components/shared/data-table";
-import { TableActionButton } from "@/components/shared/table-action-button";
-import { StatusBadge, roleTone } from "@/components/shared/status-badge";
-import { RoleGuard } from "@/components/RoleGuard";
-import type { User, Branch, CreateUserPayload, Role, EmploymentType } from "@/types/api";
+import {
+  type EmployeeRateFilter,
+  type EmployeeRoleFilter,
+  type EmploymentTypeFilter,
+  type OrgUserBranchFilter,
+  employmentTypeLabel,
+  filterEmployees,
+  roleLabel,
+  summarizeEmployees,
+} from "@/lib/employee-filters";
 import { getErrorMessage } from "@/lib/errors";
+import type {
+  Branch,
+  CreateUserPayload,
+  EmploymentType,
+  Role,
+  User,
+} from "@/types/api";
 import {
   avatarPlaceholderClassName,
+  formSelectContentClassName,
   hubCtaClassName,
+  infoBannerClassName,
+  infoBannerIconClassName,
+  infoBannerTextClassName,
+  infoBannerTitleClassName,
   inlineLinkClassName,
+  inventorySummaryStripClassName,
+  listToolbarFieldClassName,
+  metricValueClassName,
+  organizationSectionPanelClassName,
+  organizationSummaryChipClassName,
   text,
+  userRoleLegendSwatchClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 export default function UsersPageClient({ embedded = false }: { embedded?: boolean }) {
-  const { data: users, isLoading: usersLoading } = useHrUsers();
-  const { data: branches, isLoading: branchesLoading } = useBranches();
-  
+  const {
+    data: users,
+    isLoading: usersLoading,
+    isError: usersError,
+    error: usersQueryError,
+    refetch: refetchUsers,
+    isFetching: usersFetching,
+  } = useHrUsers();
+  const {
+    data: branches,
+    isLoading: branchesLoading,
+    isError: branchesError,
+    error: branchesQueryError,
+    refetch: refetchBranches,
+    isFetching: branchesFetching,
+  } = useBranches();
+
   const createMutation = useCreateUser();
   const updateMutation = useUpdateUser();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "STAFF",
-    branchId: 0,
-    employmentType: "PART_TIME",
-    hourlyRate: 0,
-    baseSalary: 0
-  });
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const [roleFilter, setRoleFilter] = useState<EmployeeRoleFilter>("ALL");
+  const [employmentTypeFilter, setEmploymentTypeFilter] = useState<EmploymentTypeFilter>("ALL");
+  const [rateFilter, setRateFilter] = useState<EmployeeRateFilter>("ALL");
+  const [branchFilter, setBranchFilter] = useState<OrgUserBranchFilter>("ALL");
+
+  const branchList = (branches as Branch[] | undefined) ?? [];
+  const userList = (users as User[] | undefined) ?? [];
+
+  const branchNameById = useMemo(
+    () => new Map(branchList.map((branch) => [branch.id, branch.name])),
+    [branchList],
+  );
+
+  const summary = useMemo(() => summarizeEmployees(userList), [userList]);
+
+  const filteredUsers = useMemo(
+    () =>
+      filterEmployees(userList, {
+        search: debouncedSearch,
+        roleFilter,
+        employmentTypeFilter,
+        rateFilter,
+        branchFilter,
+        branchNames: branchNameById,
+      }),
+    [
+      userList,
+      debouncedSearch,
+      roleFilter,
+      employmentTypeFilter,
+      rateFilter,
+      branchFilter,
+      branchNameById,
+    ],
+  );
+
+  const isLoading = usersLoading || branchesLoading;
+  const isError = usersError || branchesError;
+  const error = usersQueryError ?? branchesQueryError;
+  const isFetching = usersFetching || branchesFetching;
+
+  const hasActiveFilters =
+    search.trim().length > 0 ||
+    roleFilter !== "ALL" ||
+    employmentTypeFilter !== "ALL" ||
+    rateFilter !== "ALL" ||
+    branchFilter !== "ALL";
+
+  const toggleRoleFilter = (next: EmployeeRoleFilter) => {
+    setRoleFilter((current) => (current === next ? "ALL" : next));
+  };
+
+  const toggleRateFilter = () => {
+    setRateFilter((current) => (current === "missing-rate" ? "ALL" : "missing-rate"));
+  };
+
+  const resetFilters = () => {
+    setSearch("");
+    setRoleFilter("ALL");
+    setEmploymentTypeFilter("ALL");
+    setRateFilter("ALL");
+    setBranchFilter("ALL");
+  };
 
   const handleEdit = (user: User) => {
     setEditingUser(user);
-    setFormData({
-      name: user.name || "",
-      email: user.email || "",
-      password: "", // Never populate password
-      role: user.role || "STAFF",
-      branchId: user.branchId || 0,
-      employmentType: user.employmentType || "PART_TIME",
-      hourlyRate: user.hourlyRate || 0,
-      baseSalary: user.baseSalary || 0
-    });
     setIsModalOpen(true);
   };
 
   const handleAddNew = () => {
     setEditingUser(null);
-    setFormData({ 
-      name: "", email: "", password: "", role: "STAFF", branchId: 0, employmentType: "PART_TIME", hourlyRate: 50, baseSalary: 0 
-    });
     setIsModalOpen(true);
   };
 
-  const handleSave = async () => {
-    if (!formData.name || !formData.email || (!editingUser && !formData.password)) {
-      toast.error("Please fill in all required fields");
-      return;
-    }
-
+  const handleSave = async (payload: {
+    name: string;
+    email: string;
+    password?: string;
+    role: Role;
+    branchId: number | null;
+    employmentType: EmploymentType;
+    hourlyRate: number;
+    baseSalary: number;
+  }) => {
     try {
-      const payload: CreateUserPayload = {
-        ...formData,
-        role: formData.role as Role,
-        employmentType: formData.employmentType as EmploymentType,
-        branchId: formData.branchId === 0 ? null : formData.branchId,
+      const body: CreateUserPayload = {
+        ...payload,
+        branchId: payload.branchId,
       };
-      if (!payload.password) delete payload.password;
+      if (!body.password) delete body.password;
 
       if (editingUser) {
-        await updateMutation.mutateAsync({ id: editingUser.id, ...payload });
-        toast.success("User updated successfully");
+        await updateMutation.mutateAsync({ id: editingUser.id, ...body });
+        toast.success("User updated");
       } else {
-        await createMutation.mutateAsync(payload);
-        toast.success("User created successfully");
+        if (!payload.password) {
+          toast.error("Password is required for new users");
+          return;
+        }
+        await createMutation.mutateAsync({ ...body, password: payload.password });
+        toast.success("User created");
       }
       setIsModalOpen(false);
+      setEditingUser(null);
     } catch (err: unknown) {
       toast.error(getErrorMessage(err, "Failed to save user"));
+      throw err;
     }
   };
 
+  const columns = useMemo(
+    () =>
+      [
+        {
+          title: "User",
+          key: "user",
+          render: (_: unknown, record: User) => (
+            <div className="flex items-center gap-3 min-w-0">
+              <div className={avatarPlaceholderClassName()}>
+                <UserIcon className={cn("w-4 h-4", text.muted)} aria-hidden />
+              </div>
+              <div className="min-w-0">
+                <div className={cn("font-medium truncate", text.primary)}>
+                  {record.name || "Unnamed user"}
+                </div>
+                <div className={cn("text-xs flex items-center gap-1 truncate", text.muted)}>
+                  <Mail className="w-3 h-3 shrink-0" aria-hidden />
+                  {record.email}
+                </div>
+              </div>
+            </div>
+          ),
+        },
+        {
+          title: "Role",
+          dataIndex: "role",
+          key: "role",
+          render: (role: Role) => (
+            <StatusBadge tone={roleTone(role)}>
+              <span className="inline-flex items-center gap-1">
+                <Shield className="w-3 h-3" aria-hidden />
+                {roleLabel(role)}
+              </span>
+            </StatusBadge>
+          ),
+        },
+        {
+          title: "Branch",
+          key: "branch",
+          responsive: ["md"],
+          render: (_: unknown, record: User) => {
+            const label =
+              record.branchId == null
+                ? "All branches (HQ)"
+                : branchNameById.get(record.branchId) ??
+                  record.branch?.name ??
+                  `Branch #${record.branchId}`;
+            return (
+              <div className={cn("flex items-center gap-1.5 min-w-0", text.secondary)}>
+                <Building className={cn("w-4 h-4 shrink-0", text.muted)} aria-hidden />
+                <span className="truncate">{label}</span>
+              </div>
+            );
+          },
+        },
+        {
+          title: "Employment",
+          key: "employment",
+          responsive: ["lg"],
+          render: (_: unknown, record: User) => (
+            <span className={text.secondary}>{employmentTypeLabel(record.employmentType)}</span>
+          ),
+        },
+        {
+          title: "Actions",
+          key: "actions",
+          align: "right",
+          width: 100,
+          render: (_: unknown, record: User) => (
+            <TableActionButton
+              label="Edit"
+              icon={Pencil}
+              tone="blue"
+              onClick={() => handleEdit(record)}
+            />
+          ),
+        },
+      ] satisfies ColumnsType<User>,
+    [branchNameById],
+  );
 
   const content = (
-    <div className={`space-y-6 w-full ${embedded ? "max-w-6xl" : "max-w-6xl mx-auto"}`}>
+    <div className={cn("space-y-6 w-full", embedded ? "max-w-6xl" : "max-w-6xl mx-auto")}>
       <HubPageHeader
-        title="Users & Roles"
-        icon={ShieldCheck}
+        hideTitle
+        accentHub="organization"
         description="Manage system access, passwords, and branch assignments."
         actions={
-          <Button 
-            className={hubCtaClassName("organization", "flex items-center gap-2")}
-            onClick={handleAddNew}
-          >
-            <Plus className="w-4 h-4" />
-            Add New User
-          </Button>
+          <OrganizationHubLinks current="users">
+            <Button
+              className={hubCtaClassName("organization", "font-bold min-h-[44px]")}
+              onClick={handleAddNew}
+            >
+              <Plus className="w-4 h-4 mr-2" aria-hidden />
+              Add user
+            </Button>
+          </OrganizationHubLinks>
         }
       />
 
-      <p className={cn("text-sm -mt-4", text.muted)}>
-        To update hourly rates or browse staff by branch, use{" "}
-        <Link href="/hr/employees" className={inlineLinkClassName()}>
-          HR → Employee Directory
-        </Link>
-        .
-      </p>
-
-      <DataTable
-        loading={usersLoading || branchesLoading}
-          columns={[
-            {
-              title: "User",
-              key: "user",
-              render: (_, record: User) => (
-                <div className="flex items-center gap-3">
-                  <div className={avatarPlaceholderClassName()}>
-                    <UserIcon className={cn("w-4 h-4", text.muted)} />
-                  </div>
-                  <div>
-                    <div className={cn("font-medium", text.primary)}>{record.name || 'Unnamed User'}</div>
-                    <div className={cn("text-xs flex items-center gap-1", text.muted)}>
-                      <Mail className="w-3 h-3" /> {record.email}
-                    </div>
-                  </div>
-                </div>
-              )
-            },
-            {
-              title: "Role",
-              dataIndex: "role",
-              key: "role",
-              render: (role) => (
-                <StatusBadge tone={roleTone(role)}>
-                  <span className="inline-flex items-center gap-1">
-                    <Shield className="w-3 h-3" />
-                    {role}
-                  </span>
-                </StatusBadge>
-              )
-            },
-            {
-              title: "Branch",
-              key: "branch",
-              render: (_, record: User) => {
-                const branchName = (branches as Branch[] | undefined)?.find((b) => b.id === record.branchId)?.name || "All Branches (HQ)";
-                return (
-                  <div className={cn("flex items-center gap-1.5", text.secondary)}>
-                    <Building className={cn("w-4 h-4", text.muted)} />
-                    {branchName}
-                  </div>
-                );
-              }
-            },
-            {
-              title: "Employment",
-              key: "employment",
-              render: (_, record: User) => (
-                <div className={text.secondary}>
-                  {record.employmentType ? record.employmentType.replace('_', ' ') : 'N/A'}
-                </div>
-              )
-            },
-            {
-              title: "Actions",
-              key: "actions",
-              align: "right",
-              render: (_, record: User) => (
-                <TableActionButton label="Edit Profile" onClick={() => handleEdit(record)} />
-              )
-            }
-          ]}
-          dataSource={users || []}
-          rowKey="id"
-          pagination={{ pageSize: 10 }}
-          emptyDescription="No users found."
-      />
-
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>{editingUser ? "Edit User Account" : "Create New User"}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 pt-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="user-full-name">Full Name</Label>
-                <Input id="user-full-name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="e.g. Somchai Jai-dee" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="user-email">Email Address</Label>
-                <Input id="user-email" type="email" value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} placeholder="somchai@qafacafe.com" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="user-password">
-                Password {editingUser && <span className={cn(text.muted, "font-normal")}>(Leave blank to keep current)</span>}
-              </Label>
-              <Input id="user-password" type="text" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} placeholder={editingUser ? "••••••••" : "e.g. qafa1234"} />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="user-role">System Role</Label>
-                <Select
-                  value={formData.role}
-                  onValueChange={(value) => {
-                    if (value) setFormData({ ...formData, role: value as Role });
-                  }}
-                >
-                  <SelectTrigger id="user-role" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="STAFF">Staff (POS & basic apps)</SelectItem>
-                    <SelectItem value="MANAGER">Manager (Approvals & Reports)</SelectItem>
-                    <SelectItem value="SUPER_ADMIN">Super Admin (All Access)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="user-branch">Assigned Branch</Label>
-                <Select
-                  value={formData.branchId ? String(formData.branchId) : "0"}
-                  onValueChange={(value) => {
-                    if (value == null) return;
-                    setFormData({ ...formData, branchId: Number(value) });
-                  }}
-                >
-                  <SelectTrigger id="user-branch" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0">All Branches (HQ / Admin)</SelectItem>
-                    {(branches as Branch[] | undefined)?.map((b) => (
-                      <SelectItem key={b.id} value={String(b.id)}>
-                        {b.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="user-employment-type">Employment Type</Label>
-                <Select
-                  value={formData.employmentType}
-                  onValueChange={(value) => {
-                    if (value === "PART_TIME" || value === "FULL_TIME") {
-                      setFormData({ ...formData, employmentType: value as EmploymentType });
-                    }
-                  }}
-                >
-                  <SelectTrigger id="user-employment-type" className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PART_TIME">Part-Time (Hourly)</SelectItem>
-                    <SelectItem value="FULL_TIME">Full-Time (Salaried)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="user-compensation">{formData.employmentType === 'PART_TIME' ? 'Hourly Rate (฿)' : 'Monthly Base Salary (฿)'}</Label>
-                <Input 
-                  id="user-compensation"
-                  type="number" 
-                  value={formData.employmentType === 'PART_TIME' ? formData.hourlyRate : formData.baseSalary} 
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    if (formData.employmentType === 'PART_TIME') setFormData({...formData, hourlyRate: val});
-                    else setFormData({...formData, baseSalary: val});
-                  }} 
-                />
-              </div>
-            </div>
-
-            <div className="pt-4 flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-              <Button onClick={handleSave} disabled={createMutation.isPending || updateMutation.isPending}>
-                {createMutation.isPending || updateMutation.isPending ? "Saving…" : "Save User"}
-              </Button>
+      <div className={organizationSectionPanelClassName()}>
+        <div className={infoBannerClassName()}>
+          <div className="flex items-start gap-3">
+            <ShieldCheck className={infoBannerIconClassName()} aria-hidden />
+            <div>
+              <p className={infoBannerTitleClassName()}>Compensation &amp; HR workflows</p>
+              <p className={infoBannerTextClassName()}>
+                Use this tab for credentials and roles. To update hourly rates or browse staff by
+                branch, open{" "}
+                <Link href="/hr/employees" className={inlineLinkClassName()}>
+                  HR → Employee Directory
+                </Link>
+                .
+              </p>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+
+        {!isLoading && !isError && summary.total > 0 && (
+          <div
+            className={inventorySummaryStripClassName()}
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <span className={cn("font-semibold tabular-nums", text.primary)}>
+              {summary.total} user{summary.total === 1 ? "" : "s"}
+            </span>
+            {summary.superAdmins > 0 && (
+              <button
+                type="button"
+                className={organizationSummaryChipClassName(
+                  roleFilter === "SUPER_ADMIN",
+                  metricValueClassName("purple"),
+                )}
+                onClick={() => toggleRoleFilter("SUPER_ADMIN")}
+              >
+                {summary.superAdmins} super admin{summary.superAdmins === 1 ? "" : "s"}
+              </button>
+            )}
+            {summary.managers > 0 && (
+              <button
+                type="button"
+                className={organizationSummaryChipClassName(
+                  roleFilter === "MANAGER",
+                  metricValueClassName("blue"),
+                )}
+                onClick={() => toggleRoleFilter("MANAGER")}
+              >
+                {summary.managers} manager{summary.managers === 1 ? "" : "s"}
+              </button>
+            )}
+            {summary.staff > 0 && (
+              <button
+                type="button"
+                className={organizationSummaryChipClassName(
+                  roleFilter === "STAFF",
+                  text.muted,
+                )}
+                onClick={() => toggleRoleFilter("STAFF")}
+              >
+                {summary.staff} staff
+              </button>
+            )}
+            {summary.missingRate > 0 && (
+              <button
+                type="button"
+                className={organizationSummaryChipClassName(
+                  rateFilter === "missing-rate",
+                  metricValueClassName("amber"),
+                )}
+                onClick={toggleRateFilter}
+              >
+                {summary.missingRate} missing rate
+              </button>
+            )}
+          </div>
+        )}
+
+        {!isLoading && !isError && summary.total > 0 && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[var(--text-subtle)]">
+            <span className="font-medium uppercase tracking-wide">Legend</span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className={userRoleLegendSwatchClassName("SUPER_ADMIN")} aria-hidden />
+              Super Admin
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className={userRoleLegendSwatchClassName("MANAGER")} aria-hidden />
+              Manager
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <span className={userRoleLegendSwatchClassName("STAFF")} aria-hidden />
+              Staff
+            </span>
+          </div>
+        )}
+
+        {isError && (
+          <QueryErrorBanner
+            message={getErrorMessage(error, "Failed to load users.")}
+            onRetry={() => {
+              void refetchUsers();
+              void refetchBranches();
+            }}
+            loading={isFetching}
+          />
+        )}
+
+        <ListToolbar
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Search name, email, role, branch…"
+          showReset={hasActiveFilters}
+          onReset={resetFilters}
+          filters={
+            <>
+              <Select
+                value={roleFilter}
+                onValueChange={(value) => value && setRoleFilter(value as EmployeeRoleFilter)}
+              >
+                <SelectTrigger
+                  className={listToolbarFieldClassName("w-full sm:w-[160px]")}
+                  aria-label="Filter by role"
+                >
+                  <SelectValue placeholder="Role" />
+                </SelectTrigger>
+                <SelectContent className={formSelectContentClassName()}>
+                  <SelectItem value="ALL">All roles</SelectItem>
+                  <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
+                  <SelectItem value="MANAGER">Manager</SelectItem>
+                  <SelectItem value="STAFF">Staff</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select
+                value={
+                  branchFilter === "ALL"
+                    ? "ALL"
+                    : branchFilter === "hq"
+                      ? "hq"
+                      : String(branchFilter)
+                }
+                onValueChange={(value) => {
+                  if (!value || value === "ALL") setBranchFilter("ALL");
+                  else if (value === "hq") setBranchFilter("hq");
+                  else setBranchFilter(Number(value));
+                }}
+              >
+                <SelectTrigger
+                  className={listToolbarFieldClassName("w-full sm:w-[180px]")}
+                  aria-label="Filter by branch"
+                >
+                  <SelectValue placeholder="Branch" />
+                </SelectTrigger>
+                <SelectContent className={formSelectContentClassName()}>
+                  <SelectItem value="ALL">All branches</SelectItem>
+                  <SelectItem value="hq">HQ / unassigned</SelectItem>
+                  {branchList.map((branch) => (
+                    <SelectItem key={branch.id} value={String(branch.id)}>
+                      {branch.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={employmentTypeFilter}
+                onValueChange={(value) =>
+                  value && setEmploymentTypeFilter(value as EmploymentTypeFilter)
+                }
+              >
+                <SelectTrigger
+                  className={listToolbarFieldClassName("w-full sm:w-[160px]")}
+                  aria-label="Filter by employment type"
+                >
+                  <SelectValue placeholder="Employment" />
+                </SelectTrigger>
+                <SelectContent className={formSelectContentClassName()}>
+                  <SelectItem value="ALL">All types</SelectItem>
+                  <SelectItem value="FULL_TIME">Full-time</SelectItem>
+                  <SelectItem value="PART_TIME">Part-time</SelectItem>
+                </SelectContent>
+              </Select>
+            </>
+          }
+        />
+
+        <DataTable
+          loading={isLoading}
+          columns={columns}
+          dataSource={filteredUsers}
+          rowKey="id"
+          pagination={{ pageSize: 10 }}
+          emptyDescription={
+            hasActiveFilters
+              ? "No users match your filters."
+              : "Add your first user to grant system access."
+          }
+        />
+      </div>
+
+      <UserFormModal
+        open={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingUser(null);
+        }}
+        user={editingUser}
+        branches={branchList}
+        onSubmit={handleSave}
+        isSubmitting={createMutation.isPending || updateMutation.isPending}
+      />
     </div>
   );
 
   if (embedded) return content;
 
   return (
-    <RoleGuard allowedRoles={["SUPER_ADMIN"]} fallback={<AccessDeniedState description="Super Admin access is required to manage users and roles." />}>
+    <RoleGuard
+      allowedRoles={["SUPER_ADMIN"]}
+      fallback={
+        <AccessDeniedState description="Super Admin access is required to manage users and roles." />
+      }
+    >
       <AnimatedPage className="space-y-6 max-w-6xl mx-auto w-full">{content}</AnimatedPage>
     </RoleGuard>
   );

@@ -140,6 +140,10 @@
   --tone-assets-border: color-mix(in oklch, var(--hub-assets) 30%, transparent);
   --tone-assets-fg: color-mix(in oklch, var(--hub-assets) 82%, black);
 
+  --tone-organization-subtle: color-mix(in oklch, var(--hub-organization) 10%, var(--card));
+  --tone-organization-border: color-mix(in oklch, var(--hub-organization) 30%, transparent);
+  --tone-organization-fg: color-mix(in oklch, var(--hub-organization) 82%, black);
+
   --tone-neutral-border: color-mix(in oklch, var(--border) 80%, transparent);
   --tone-neutral-icon: color-mix(in oklch, var(--muted-foreground) 85%, transparent);
 
@@ -499,6 +503,7 @@
   --tone-hr-fg: color-mix(in oklch, var(--hub-hr) 65%, var(--foreground));
   --tone-finance-fg: color-mix(in oklch, var(--hub-finance) 65%, var(--foreground));
   --tone-assets-fg: color-mix(in oklch, var(--hub-assets) 65%, var(--foreground));
+  --tone-organization-fg: color-mix(in oklch, var(--hub-organization) 65%, var(--foreground));
 
   --hub-tab-track: color-mix(in oklch, var(--muted) 50%, transparent);
 

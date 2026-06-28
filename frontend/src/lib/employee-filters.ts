@@ -3,6 +3,31 @@ import type { EmploymentType, Role, User } from "@/types/api";
 export type EmployeeRoleFilter = "ALL" | Role;
 export type EmploymentTypeFilter = "ALL" | EmploymentType;
 export type EmployeeRateFilter = "ALL" | "missing-rate";
+export type OrgUserBranchFilter = "ALL" | "hq" | number;
+
+export function roleLabel(role: Role | string): string {
+  switch (role) {
+    case "SUPER_ADMIN":
+      return "Super Admin";
+    case "MANAGER":
+      return "Manager";
+    case "STAFF":
+      return "Staff";
+    default:
+      return String(role).replace(/_/g, " ");
+  }
+}
+
+export function employmentTypeLabel(type: EmploymentType | string | null | undefined): string {
+  switch (type) {
+    case "FULL_TIME":
+      return "Full-time";
+    case "PART_TIME":
+      return "Part-time";
+    default:
+      return "Not set";
+  }
+}
 
 export function employeeHasMissingRate(user: User): boolean {
   return user.hourlyRate == null || Number(user.hourlyRate) <= 0;
@@ -60,14 +85,23 @@ export function matchesEmployeeRateFilter(user: User, filter: EmployeeRateFilter
   return employeeHasMissingRate(user);
 }
 
-export function matchesEmployeeSearch(user: User, search: string): boolean {
+export function matchesOrgUserBranchFilter(user: User, filter: OrgUserBranchFilter): boolean {
+  if (filter === "ALL") return true;
+  if (filter === "hq") return user.branchId == null;
+  return user.branchId === filter;
+}
+
+export function matchesEmployeeSearch(user: User, search: string, branchName?: string): boolean {
   if (!search) return true;
   const haystack = [
     user.name ?? "",
     user.email,
     user.role,
+    roleLabel(user.role),
     user.employmentType ?? "",
-    user.branch?.name ?? "",
+    employmentTypeLabel(user.employmentType),
+    user.branch?.name ?? branchName ?? "",
+    user.branchId != null ? String(user.branchId) : "hq",
   ]
     .join(" ")
     .toLowerCase();
@@ -81,13 +115,20 @@ export function filterEmployees(
     roleFilter: EmployeeRoleFilter;
     employmentTypeFilter: EmploymentTypeFilter;
     rateFilter: EmployeeRateFilter;
+    branchFilter?: OrgUserBranchFilter;
+    branchNames?: Map<number, string>;
   },
 ): User[] {
   return users.filter(
-    (user) =>
-      matchesEmployeeSearch(user, options.search) &&
-      matchesEmployeeRoleFilter(user, options.roleFilter) &&
-      matchesEmploymentTypeFilter(user, options.employmentTypeFilter) &&
-      matchesEmployeeRateFilter(user, options.rateFilter),
+    (user) => {
+      const branchName = user.branchId != null ? options.branchNames?.get(user.branchId) : undefined;
+      return (
+        matchesEmployeeSearch(user, options.search, branchName) &&
+        matchesEmployeeRoleFilter(user, options.roleFilter) &&
+        matchesEmploymentTypeFilter(user, options.employmentTypeFilter) &&
+        matchesEmployeeRateFilter(user, options.rateFilter) &&
+        matchesOrgUserBranchFilter(user, options.branchFilter ?? "ALL")
+      );
+    },
   );
 }

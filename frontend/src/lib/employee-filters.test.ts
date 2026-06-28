@@ -3,6 +3,7 @@ import type { User } from "@/types/api";
 import {
   employeeHasMissingRate,
   filterEmployees,
+  roleLabel,
   summarizeEmployees,
 } from "./employee-filters";
 
@@ -50,5 +51,18 @@ describe("employee-filters", () => {
     });
     expect(filtered).toHaveLength(1);
     expect(filtered[0]?.name).toBe("Bob");
+  });
+
+  it("labels roles and filters by branch", () => {
+    expect(roleLabel("MANAGER")).toBe("Manager");
+    const hqUser = { ...users[0], branchId: null } as User;
+    const filtered = filterEmployees([hqUser], {
+      search: "",
+      roleFilter: "ALL",
+      employmentTypeFilter: "ALL",
+      rateFilter: "ALL",
+      branchFilter: "hq",
+    });
+    expect(filtered).toHaveLength(1);
   });
 });
