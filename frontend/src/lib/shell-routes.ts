@@ -9,6 +9,14 @@ export function isImmersiveRoute(pathname: string) {
   );
 }
 
+/** POS terminal/settlement — mobile uses POS tab bar instead of global bottom nav. */
+export function isPosImmersiveRoute(pathname: string) {
+  return (
+    pathname.startsWith("/pos/terminal") ||
+    pathname.startsWith("/pos/settlement")
+  );
+}
+
 /** Hub layout pages (HubShell) — used for compact topbar rhythm on desktop. */
 export function isShellHubPage(pathname: string): boolean {
   if (pathname === "/" || pathname === "") return false;

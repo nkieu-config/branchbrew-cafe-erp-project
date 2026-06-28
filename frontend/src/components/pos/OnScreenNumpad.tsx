@@ -56,8 +56,9 @@ export function OnScreenNumpad({ value, onChange, onSubmit, onClose }: OnScreenN
           variant="outline"
           className={posNumpadDeleteClassName()}
           onClick={handleBackspace}
+          aria-label="Delete last digit"
         >
-          <Delete className="w-6 h-6" />
+          <Delete className="w-6 h-6" aria-hidden />
         </Button>
         <Button
           variant="outline"
@@ -70,6 +71,7 @@ export function OnScreenNumpad({ value, onChange, onSubmit, onClose }: OnScreenN
           className={posNumpadSubmitClassName()}
           onClick={onSubmit}
           disabled={value.length < 10}
+          aria-label="Find member by phone number"
         >
           Find
         </Button>

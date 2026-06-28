@@ -21,7 +21,7 @@ type SettlementFormProps = {
   branchIdNum: number | undefined
   expected: SettlementExpected | undefined
   expectedLoading?: boolean
-  expectedUnavailable?: boolean
+  expectedError?: boolean
   canViewFinance?: boolean
 }
 
@@ -45,7 +45,7 @@ export function SettlementForm({
   branchIdNum,
   expected,
   expectedLoading = false,
-  expectedUnavailable = false,
+  expectedError = false,
   canViewFinance = false,
 }: SettlementFormProps) {
   const router = useRouter()
@@ -54,11 +54,11 @@ export function SettlementForm({
   const [actualQR, setActualQR] = useState<string>("")
 
   const submitSettlementMutation = useSubmitSettlement();
-  const formDisabled = expectedUnavailable || submitSettlementMutation.isPending
+  const formDisabled = expectedLoading || submitSettlementMutation.isPending
 
   const handleSettlement = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!actualCash || !branchIdNum || expectedUnavailable) return
+    if (!actualCash || !branchIdNum) return
     try {
       await submitSettlementMutation.mutateAsync({
         branchId: branchIdNum,
@@ -89,6 +89,10 @@ export function SettlementForm({
       
       {expectedLoading ? (
         <SettlementSummarySkeleton />
+      ) : expectedError ? (
+        <p className={cn("text-sm rounded-xl border p-4", text.muted, "border-[var(--pos-panel-border)] bg-[var(--pos-panel-muted-bg)]")}>
+          Expected totals are unavailable. You can still enter actual counts below.
+        </p>
       ) : (
         <div className={posSettlementSummaryClassName()}>
           <div className={`flex justify-between text-sm ${text.muted}`}>
@@ -108,7 +112,7 @@ export function SettlementForm({
             <span className="font-medium tabular-nums">฿{expected?.expectedCreditCard?.toLocaleString() || 0}</span>
           </div>
           <div className={`flex justify-between text-sm ${text.muted}`}>
-            <span>Expected QR Promtpay:</span>
+            <span>Expected QR PromptPay:</span>
             <span className="font-medium tabular-nums">฿{expected?.expectedQR?.toLocaleString() || 0}</span>
           </div>
         </div>

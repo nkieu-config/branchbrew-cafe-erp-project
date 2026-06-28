@@ -1,7 +1,6 @@
 "use client";
 
 import { Landmark } from "lucide-react";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { QueryErrorBanner } from "@/components/shared/query-error-banner";
 import { useAuth } from "@/context/AuthContext";
@@ -37,19 +36,14 @@ export default function SettlementPage() {
 
   return (
     <div className="space-y-6">
-      <HubPageHeader
-        title="End of Day Settlement"
-        description="Reconcile all payment channels and submit to HQ."
-        hideTitle
-        actions={
-          canViewFinance ? (
-            <ButtonLink variant="outline" href="/finance/overview">
-              <Landmark className="w-4 h-4 mr-2" aria-hidden />
-              Finance Overview
-            </ButtonLink>
-          ) : undefined
-        }
-      />
+      {canViewFinance && (
+        <div className="flex justify-end">
+          <ButtonLink variant="outline" href="/finance/overview">
+            <Landmark className="w-4 h-4 mr-2" aria-hidden />
+            Finance Overview
+          </ButtonLink>
+        </div>
+      )}
 
       {expectedErrorMessage && (
         <QueryErrorBanner
@@ -64,7 +58,7 @@ export default function SettlementPage() {
           branchIdNum={branchIdNum}
           expected={expected}
           expectedLoading={expectedLoading}
-          expectedUnavailable={expectedError || expectedLoading}
+          expectedError={expectedError}
           canViewFinance={canViewFinance}
         />
         <ExpenseForm branchIdNum={branchIdNum} />

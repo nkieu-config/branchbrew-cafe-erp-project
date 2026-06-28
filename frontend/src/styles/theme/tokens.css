@@ -354,6 +354,11 @@
   --pos-numpad-key-bg: var(--surface-elevated);
   --pos-numpad-key-hover: color-mix(in oklch, var(--brand) 10%, var(--surface-elevated));
   --pos-numpad-delete: var(--status-danger-fg);
+  --pos-category-active-bg: var(--brand-solid);
+  --pos-category-active-fg: var(--on-brand-solid-fg);
+  --pos-category-inactive-bg: var(--surface-elevated);
+  --pos-category-inactive-fg: var(--foreground);
+  --pos-category-inactive-border: var(--border);
 
   /* KDS immersive */
   --kds-ticket-bg: var(--surface-elevated);
@@ -485,6 +490,34 @@
 
   --pos-accent-hover-border: color-mix(in oklch, var(--brand) 50%, var(--foreground));
   --pos-price-fg: color-mix(in oklch, var(--metric-amber) 75%, var(--foreground));
+  --pos-panel-bg: var(--card);
+  --pos-panel-border: color-mix(in oklch, var(--border) 85%, var(--foreground) 8%);
+  --pos-panel-header-bg: color-mix(in oklch, var(--background) 40%, var(--surface-elevated));
+  --pos-panel-muted-bg: color-mix(in oklch, var(--background) 55%, var(--surface-elevated));
+  --pos-summary-bg: color-mix(in oklch, var(--brand) 62%, black);
+  --pos-summary-fg: var(--foreground);
+  --pos-summary-muted: color-mix(in oklch, var(--foreground) 65%, transparent);
+  --pos-summary-divider: color-mix(in oklch, var(--foreground) 22%, transparent);
   --pos-summary-total: var(--chart-4);
+  --pos-summary-discount: color-mix(in oklch, var(--hub-crm) 55%, var(--foreground));
+  --pos-summary-reward: color-mix(in oklch, var(--metric-blue) 70%, var(--foreground));
+  --pos-crm-bg: color-mix(in oklch, var(--metric-blue) 14%, var(--card));
+  --pos-crm-border: color-mix(in oklch, var(--metric-blue) 35%, transparent);
+  --pos-crm-fg: color-mix(in oklch, var(--metric-blue) 70%, var(--foreground));
+  --pos-crm-muted: color-mix(in oklch, var(--metric-blue) 55%, var(--muted-foreground));
+  --pos-promo-bg: color-mix(in oklch, var(--hub-crm) 12%, var(--card));
+  --pos-promo-border: color-mix(in oklch, var(--hub-crm) 32%, transparent);
+  --pos-promo-fg: color-mix(in oklch, var(--hub-crm) 65%, var(--foreground));
+  --pos-settlement-highlight: color-mix(in oklch, var(--metric-blue) 70%, var(--foreground));
+  --pos-input-bg: var(--surface-elevated);
+  --pos-input-border: color-mix(in oklch, var(--border) 85%, var(--foreground) 8%);
+  --pos-numpad-bg: color-mix(in oklch, var(--background) 50%, var(--card));
+  --pos-numpad-display-bg: var(--surface-elevated);
+  --pos-numpad-key-bg: var(--surface-elevated);
   --pos-numpad-key-hover: color-mix(in oklch, var(--brand) 14%, var(--surface-elevated));
+  --pos-category-active-bg: var(--brand-solid);
+  --pos-category-active-fg: var(--on-brand-solid-fg);
+  --pos-category-inactive-bg: var(--surface-elevated);
+  --pos-category-inactive-fg: var(--foreground);
+  --pos-category-inactive-border: var(--border);
 }

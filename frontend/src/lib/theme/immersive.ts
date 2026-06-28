@@ -18,7 +18,7 @@ const kdsTicketHeader: Record<KdsTicketUrgency, string> = {
 
 export function posProductCardClassName(className?: string) {
   return cn(
-    "cursor-pointer transition-colors active:scale-95 motion-reduce:active:scale-100",
+    "ring-0 shadow-none cursor-default transition-colors",
     "bg-[var(--pos-panel-bg)] border-[var(--pos-panel-border)]",
     "hover:border-[var(--pos-accent-hover-border)] hover:shadow-md",
     className,
@@ -48,7 +48,7 @@ export function posCartPanelClassName(className?: string) {
 export function posFormPanelClassName(className?: string) {
   return cn(
     "p-6 rounded-2xl flex flex-col gap-6",
-    "bg-[var(--table-container-bg)] border border-[var(--table-container-border)] shadow-[var(--shadow-sm)]",
+    "bg-[var(--pos-panel-bg)] border border-[var(--pos-panel-border)] shadow-[var(--shadow-sm)]",
     className,
   );
 }
@@ -178,7 +178,10 @@ export function posSuccessDialogClassName(className?: string) {
 }
 
 export function posSuccessTitleClassName(className?: string) {
-  return cn("text-center text-2xl font-bold flex flex-col items-center gap-2 text-[var(--brand)]", className);
+  return cn(
+    "text-center text-2xl font-bold flex flex-col items-center gap-2 text-[var(--brand-text)]",
+    className,
+  );
 }
 
 export function posReceiptPreviewClassName(className?: string) {
@@ -190,7 +193,7 @@ export function posReceiptPreviewClassName(className?: string) {
 }
 
 export function posQueueNumberClassName(className?: string) {
-  return cn("text-4xl font-black tabular-nums mb-2 text-[var(--brand)]", className);
+  return cn("text-4xl font-black tabular-nums mb-2 text-[var(--brand-text)]", className);
 }
 
 export function posModifierSelectedClassName(className?: string) {
@@ -383,6 +386,35 @@ export function kdsDoneButtonClassName(className?: string) {
 
 export function posLoadingSpinnerClassName(className?: string) {
   return kdsLoadingClassName(className);
+}
+
+export function posDialogContentClassName(className?: string) {
+  return cn(
+    "bg-[var(--pos-panel-bg)] border-[var(--pos-panel-border)] text-[var(--foreground)]",
+    className,
+  );
+}
+
+export function posCategoryChipClassName(isActive: boolean, className?: string) {
+  return cn(
+    "min-h-[44px] rounded-md px-3 text-sm font-semibold border transition-colors",
+    isActive
+      ? "bg-[var(--pos-category-active-bg)] text-[var(--pos-category-active-fg)] border-transparent"
+      : "bg-[var(--pos-category-inactive-bg)] text-[var(--pos-category-inactive-fg)] border-[var(--pos-category-inactive-border)] hover:border-[var(--pos-accent-hover-border)]",
+    className,
+  );
+}
+
+export function posCartEmptyIconClassName(className?: string) {
+  return cn("opacity-40 dark:opacity-50", className);
+}
+
+export function posImmersiveHeaderClassName(className?: string) {
+  return cn(
+    "shrink-0 space-y-1 pb-3 border-b mb-4",
+    "border-[var(--pos-panel-border)]",
+    className,
+  );
 }
 
 export { text };

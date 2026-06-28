@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useProducts, useCreateOrder, useCustomerByPhone, useValidatePromotion } from '@/hooks/domains/usePosQueries';
 import { useModifiers } from '@/hooks/domains/useModifierQueries';
 import { useSettings } from '@/hooks/domains/useSettingsQueries';
+import { useBranches } from '@/hooks/domains/useGeneralQueries';
 import { useAuth } from "@/context/AuthContext";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { QueryErrorBanner } from "@/components/shared/query-error-banner";
@@ -13,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Product } from "@/types/api";
-import { Coffee, ShoppingBag, User, Ticket, Award, Search, X, Printer, Plus, Settings2, Loader2 } from "lucide-react";
+import { ShoppingBag, User, Ticket, Award, Search, X, Printer, Plus, Minus, Settings2, Loader2 } from "lucide-react";
 import { Receipt } from "@/components/pos/Receipt";
 import { useReactToPrint } from "react-to-print";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
@@ -55,14 +56,23 @@ import {
   posModifierSelectedClassName,
   posPrimaryActionClassName,
   posLoadingSpinnerClassName,
+  posDialogContentClassName,
+  posCategoryChipClassName,
+  posCartEmptyIconClassName,
   text,
 } from "@/lib/theme";
+import type { Branch } from "@/types/api";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { getErrorMessage } from "@/lib/errors";
 import { cn } from "@/lib/utils";
 
 export default function POSPage() {
   const { user, activeBranchId } = useAuth();
+  const { data: branches = [] } = useBranches();
+  const branchNameForReceipt =
+    activeBranchId != null
+      ? (branches as Branch[]).find((b) => b.id === activeBranchId)?.name
+      : user?.branch ?? "Branch";
   const { data: settings } = useSettings();
   const { data: productsData, isLoading: loading, isError: productsError, error: productsErr, refetch: refetchProducts } = useProducts();
   const products = filterActive<Product>((productsData || []) as Product[]);
@@ -214,6 +224,16 @@ export default function POSPage() {
     setCart((prev) => prev.filter((item) => item.id !== cartId));
   };
 
+  const adjustCartQuantity = (cartId: string, delta: number) => {
+    setCart((prev) =>
+      prev
+        .map((item) =>
+          item.id === cartId ? { ...item, quantity: item.quantity + delta } : item,
+        )
+        .filter((item) => item.quantity > 0),
+    );
+  };
+
   // Calculations
   const subtotal = cart.reduce(
     (sum, item) => sum + item.unitPrice * item.quantity,
@@ -338,7 +358,7 @@ export default function POSPage() {
   }
 
   return (
-    <div className="flex h-full flex-col lg:flex-row gap-4 lg:gap-6 w-full">
+    <div className="flex h-full flex-col lg:flex-row gap-4 lg:gap-6 w-full min-h-0">
       {/* Products Grid */}
       <div className="flex-1 min-h-0 overflow-y-auto pr-0 lg:pr-2 pb-10 space-y-4">
         {productsError && (
@@ -361,26 +381,22 @@ export default function POSPage() {
           </div>
           {categories.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              <Button
+              <button
                 type="button"
-                size="sm"
-                variant={categoryFilter === null ? "default" : "outline"}
-                className="min-h-[44px]"
+                className={posCategoryChipClassName(categoryFilter === null)}
                 onClick={() => setCategoryFilter(null)}
               >
                 All
-              </Button>
+              </button>
               {categories.map((cat) => (
-                <Button
+                <button
                   key={cat}
                   type="button"
-                  size="sm"
-                  variant={categoryFilter === cat ? "default" : "outline"}
-                  className="min-h-[44px]"
+                  className={posCategoryChipClassName(categoryFilter === cat)}
                   onClick={() => setCategoryFilter(cat)}
                 >
                   {cat}
-                </Button>
+                </button>
               ))}
             </div>
           )}
@@ -395,7 +411,6 @@ export default function POSPage() {
             <Card 
               key={product.id} 
               className={posProductCardClassName()}
-              onClick={() => handleProductClick(product)}
             >
               <CardHeader className="p-4 pb-2">
                 <CardTitle className={`text-lg ${text.primary}`}>{product.name}</CardTitle>
@@ -403,7 +418,17 @@ export default function POSPage() {
               </CardHeader>
               <CardContent className="p-4 pt-0 flex justify-between items-center">
                 <span className={posPriceClassName()}>{formatBaht(product.price)}</span>
-                <Button variant="secondary" size="sm" className={cn(posAddButtonClassName(), "min-h-[44px]")}>Add</Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className={cn(posAddButtonClassName(), "min-h-[44px]")}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleProductClick(product);
+                  }}
+                >
+                  Add
+                </Button>
               </CardContent>
             </Card>
           ))}
@@ -419,7 +444,7 @@ export default function POSPage() {
       </div>
 
       {/* Cart Sidebar */}
-      <div className={posCartPanelClassName("w-full lg:w-[min(420px,100%)] lg:shrink-0 max-h-[45vh] lg:max-h-none")}>
+      <div className={posCartPanelClassName("w-full lg:w-[min(420px,100%)] lg:shrink-0 flex flex-col")}>
         <div className={posCartHeaderClassName()}>
           <h2 className={`text-xl font-bold flex items-center gap-2 ${text.primary}`}>
             <ShoppingBag size={20} className={posAccentIconClassName()} /> Current Order
@@ -431,23 +456,56 @@ export default function POSPage() {
         
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {cart.map((item) => (
-            <div key={item.id} className="flex justify-between items-center border-b border-[var(--pos-panel-border)]/50 pb-3">
-              <div>
+            <div key={item.id} className="flex justify-between items-center gap-3 border-b border-[var(--pos-panel-border)]/50 pb-3">
+              <div className="min-w-0 flex-1">
                 <div className={`font-semibold ${text.primary}`}>{item.product.name}</div>
                 {item.notes && <div className={`text-xs font-medium mb-1 line-clamp-2 ${posAccentTextClassName()}`}>{item.notes}</div>}
-                <div className={`text-sm tabular-nums ${text.muted}`}>{formatBaht(item.unitPrice)} x {item.quantity}</div>
+                <div className={`text-sm tabular-nums ${text.muted}`}>{formatBaht(item.unitPrice)} each</div>
               </div>
-              <div className="flex items-center gap-4">
-                <span className={`font-bold tabular-nums ${text.secondary}`}>{formatBaht(item.unitPrice * item.quantity)}</span>
-                <Button aria-label="Remove item" variant="ghost" size="sm" className={posRemoveItemClassName("h-8 w-8 p-0")} onClick={() => removeFromCart(item.id)}>
-                  ✕
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center rounded-lg border border-[var(--pos-panel-border)] overflow-hidden">
+                  <Button
+                    type="button"
+                    aria-label={`Decrease ${item.product.name} quantity`}
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 w-9 p-0 rounded-none"
+                    onClick={() => adjustCartQuantity(item.id, -1)}
+                  >
+                    <Minus className="w-4 h-4" aria-hidden />
+                  </Button>
+                  <span className="min-w-[2rem] text-center text-sm font-bold tabular-nums px-1">
+                    {item.quantity}
+                  </span>
+                  <Button
+                    type="button"
+                    aria-label={`Increase ${item.product.name} quantity`}
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 w-9 p-0 rounded-none"
+                    onClick={() => adjustCartQuantity(item.id, 1)}
+                  >
+                    <Plus className="w-4 h-4" aria-hidden />
+                  </Button>
+                </div>
+                <span className={`font-bold tabular-nums min-w-[4.5rem] text-right ${text.secondary}`}>
+                  {formatBaht(item.unitPrice * item.quantity)}
+                </span>
+                <Button
+                  aria-label={`Remove ${item.product.name}`}
+                  variant="ghost"
+                  size="sm"
+                  className={posRemoveItemClassName("h-9 w-9 p-0")}
+                  onClick={() => removeFromCart(item.id)}
+                >
+                  <X className="w-4 h-4" aria-hidden />
                 </Button>
               </div>
             </div>
           ))}
           {cart.length === 0 && (
             <div className={`text-center mt-10 flex flex-col items-center gap-2 ${text.muted}`}>
-              <ShoppingBag size={48} className="opacity-20" />
+              <ShoppingBag size={48} className={posCartEmptyIconClassName()} aria-hidden />
               <span>Cart is empty</span>
             </div>
           )}
@@ -483,7 +541,14 @@ export default function POSPage() {
                       max={customer.points} 
                       placeholder="Pts to redeem" 
                       value={pointsToRedeem || ''}
-                      onChange={(e) => setPointsToRedeem(Number(e.target.value))}
+                      onChange={(e) => {
+                        const next = Number(e.target.value);
+                        if (Number.isNaN(next)) {
+                          setPointsToRedeem(0);
+                          return;
+                        }
+                        setPointsToRedeem(Math.min(Math.max(0, next), customer.points));
+                      }}
                       className={posInputClassName("h-8")}
                     />
                     <span className={`text-xs whitespace-nowrap ${text.muted}`}>10 pts = ฿1</span>
@@ -552,7 +617,7 @@ export default function POSPage() {
 
       {/* Checkout Dialog */}
       <Dialog open={showCheckout} onOpenChange={setShowCheckout}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className={posDialogContentClassName("sm:max-w-[425px]")}>
           <DialogHeader>
             <DialogTitle>Complete Payment</DialogTitle>
             <DialogDescription>
@@ -565,14 +630,17 @@ export default function POSPage() {
               <div className="grid grid-cols-3 gap-2">
                 <Button 
                   variant={paymentMethod === 'CASH' ? 'default' : 'outline'}
+                  className="min-h-[44px]"
                   onClick={() => setPaymentMethod('CASH')}
                 >Cash</Button>
                 <Button 
                   variant={paymentMethod === 'CREDIT_CARD' ? 'default' : 'outline'}
+                  className="min-h-[44px]"
                   onClick={() => setPaymentMethod('CREDIT_CARD')}
                 >Card</Button>
                 <Button 
                   variant={paymentMethod === 'QR_PROMPTPAY' ? 'default' : 'outline'}
+                  className="min-h-[44px]"
                   onClick={() => setPaymentMethod('QR_PROMPTPAY')}
                 >QR</Button>
               </div>
@@ -610,7 +678,20 @@ export default function POSPage() {
             )}
           </div>
           <DialogFooter>
-            <Button onClick={handleCheckout} className={posPrimaryActionClassName("w-full")}>Pay ฿{netTotal.toLocaleString()}</Button>
+            <Button
+              onClick={handleCheckout}
+              className={posPrimaryActionClassName("w-full min-h-[44px]")}
+              disabled={createOrderMutation.isPending}
+            >
+              {createOrderMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin motion-reduce:animate-none" aria-hidden />
+                  Processing…
+                </>
+              ) : (
+                <>Pay ฿{netTotal.toLocaleString()}</>
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -619,7 +700,7 @@ export default function POSPage() {
       <Dialog open={showSuccess} onOpenChange={(open) => {
         if (!open) setShowSuccess(false);
       }}>
-        <DialogContent className={posSuccessDialogClassName("sm:max-w-[400px]")}>
+        <DialogContent className={posSuccessDialogClassName(posDialogContentClassName("sm:max-w-[400px]"))}>
           <DialogHeader>
             <DialogTitle className={posSuccessTitleClassName()}>
               <Award className="w-12 h-12" />
@@ -634,7 +715,7 @@ export default function POSPage() {
                 <Receipt
                   ref={receiptRef}
                   order={completedOrder}
-                  branchName={user?.branch ?? "Branch"}
+                  branchName={branchNameForReceipt}
                   settings={{
                     companyName: settings?.companyName,
                     taxId: settings?.taxId,
@@ -677,7 +758,7 @@ export default function POSPage() {
 
       {/* Modifiers Modal */}
       <Dialog open={showModifiers} onOpenChange={setShowModifiers}>
-        <DialogContent className="sm:max-w-[400px]">
+        <DialogContent className={posDialogContentClassName("sm:max-w-[400px]")}>
           <DialogHeader>
             <DialogTitle className={`flex items-center gap-2 text-xl`}><Settings2 className={`w-5 h-5 ${posAccentIconClassName()}`}/> Customize {selectedProduct?.name}</DialogTitle>
           </DialogHeader>
@@ -685,7 +766,7 @@ export default function POSPage() {
             {modifierGroups.map((group) => (
               <div key={group.id} className="space-y-3">
                 <label className={`text-sm font-bold ${text.secondary}`}>{group.name}</label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {group.options.map((opt) => (
                     <Button
                       key={opt.id}
@@ -728,7 +809,7 @@ export default function POSPage() {
 
       {/* Numpad Modal */}
       <Dialog open={showNumpad} onOpenChange={setShowNumpad}>
-        <DialogContent className="sm:max-w-[360px] bg-transparent border-none shadow-none p-0">
+        <DialogContent className={posDialogContentClassName("sm:max-w-[360px] bg-transparent border-none shadow-none p-0")}>
           <OnScreenNumpad 
             value={customerPhone}
             onChange={setCustomerPhone}

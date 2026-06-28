@@ -149,7 +149,7 @@ export default function PosOrdersPage() {
     <>
       <HubCard
         title="Orders & Refunds"
-        icon={Receipt}
+        hideTitle
         description="Void same-day orders or refund completed sales from previous days."
       >
         <ListToolbar
@@ -191,6 +191,39 @@ export default function PosOrdersPage() {
               ? "No orders match your filters."
               : "No orders in the last 14 days."
           }
+          expandable={{
+            expandedRowRender: (row: Order) => (
+              <ul className="py-2 space-y-2 text-sm">
+                {(row.items ?? []).map((item) => (
+                  <li
+                    key={item.id}
+                    className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--table-row-border)] pb-2 last:border-0"
+                  >
+                    <div>
+                      <span className={text.primary}>
+                        {item.product?.name ?? `Product #${item.productId}`}
+                      </span>
+                      {item.notes && (
+                        <span className={cn("block text-xs", text.muted)}>{item.notes}</span>
+                      )}
+                      {item.modifiers?.map((mod) => (
+                        <span key={mod.id} className={cn("block text-xs", text.muted)}>
+                          {mod.optionName}
+                        </span>
+                      ))}
+                    </div>
+                    <span className="font-mono tabular-nums shrink-0">
+                      {item.quantity} × {formatBaht(item.price)}
+                    </span>
+                  </li>
+                ))}
+                {(row.items?.length ?? 0) === 0 && (
+                  <li className={text.muted}>No line items returned for this order.</li>
+                )}
+              </ul>
+            ),
+            rowExpandable: (row) => (row.items?.length ?? 0) > 0,
+          }}
           columns={[
             {
               title: "Queue",

@@ -11,6 +11,8 @@ export function ExpenseForm({ branchIdNum }: { branchIdNum: number | undefined }
   const [expenseForm, setExpenseForm] = useState({ amount: "", category: "", description: "" })
   const createExpenseMutation = useCreateExpense();
 
+  const formDisabled = createExpenseMutation.isPending;
+
   const handleExpense = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!expenseForm.amount || !expenseForm.category || !branchIdNum) return
@@ -44,6 +46,7 @@ export function ExpenseForm({ branchIdNum }: { branchIdNum: number | undefined }
             value={expenseForm.amount}
             onChange={e => setExpenseForm({...expenseForm, amount: e.target.value})}
             required
+            disabled={formDisabled}
             placeholder="e.g. 500"
           />
         </div>
@@ -54,6 +57,7 @@ export function ExpenseForm({ branchIdNum }: { branchIdNum: number | undefined }
             value={expenseForm.category}
             onChange={e => setExpenseForm({...expenseForm, category: e.target.value})}
             required
+            disabled={formDisabled}
           >
             <option value="" disabled>Select category…</option>
             <option value="SUPPLIES">Store Supplies (Ice, Cups)</option>
@@ -70,13 +74,14 @@ export function ExpenseForm({ branchIdNum }: { branchIdNum: number | undefined }
             value={expenseForm.description}
             onChange={e => setExpenseForm({...expenseForm, description: e.target.value})}
             placeholder="e.g. Bought 3 bags of ice"
+            disabled={formDisabled}
           />
         </div>
         <Button
           type="submit"
           className={cn("w-full mt-2 min-h-[44px]")}
           variant="outline"
-          disabled={createExpenseMutation.isPending}
+          disabled={formDisabled}
         >
           {createExpenseMutation.isPending ? "Recording…" : "Record Expense"}
         </Button>

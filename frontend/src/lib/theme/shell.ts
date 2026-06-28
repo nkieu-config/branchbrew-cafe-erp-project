@@ -202,6 +202,11 @@ export function mainContentWithMobileNavClassName(className?: string) {
   return cn("pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0", className);
 }
 
+/** Bottom padding when POS immersive tab bar replaces global mobile nav. */
+export function mainContentWithPosImmersiveNavClassName(className?: string) {
+  return cn("pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0", className);
+}
+
 export function sidebarPinnedLabelClassName(className?: string) {
   return cn(
     "px-3 py-2 mb-1 text-[11px] font-medium uppercase tracking-widest",
