@@ -21,6 +21,32 @@ export const useShifts = (role?: string, branchId?: number) => {
   });
 };
 
+export const useCreateShift = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      userId: number;
+      branchId: number;
+      startTime: string;
+      endTime: string;
+    }) =>
+      fetchAPI(API_ENDPOINTS.hr.createShift, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shifts'] });
+    },
+  });
+};
+
+export const useMyShifts = () => {
+  return useQuery({
+    queryKey: ['shifts', 'me'],
+    queryFn: () => fetchAPI(API_ENDPOINTS.hr.shiftsMe),
+  });
+};
+
 export const useAttendance = () => {
   return useQuery({
     queryKey: ['attendance', 'me'],

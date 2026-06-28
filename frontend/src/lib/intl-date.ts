@@ -1,4 +1,4 @@
-const DEFAULT_LOCALE = "th-TH";
+const DEFAULT_LOCALE = "en-US";
 
 type DateInput = string | Date | number;
 

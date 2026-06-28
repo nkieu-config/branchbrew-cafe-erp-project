@@ -314,31 +314,50 @@ export function ganttTrackClassName(className?: string) {
   );
 }
 
-export type ShiftBarStatus = "scheduled" | "COMPLETED" | "ABSENT";
+export type ShiftBarStatus = "scheduled" | "COMPLETED" | "ABSENT" | "CANCELLED";
 
 const shiftBarClass: Record<ShiftBarStatus, string> = {
   scheduled:
-    "bg-[var(--metric-indigo)] border-[var(--metric-indigo)] text-[var(--on-metric-indigo-fg)]",
+    "bg-[var(--status-info-bg)] border-[var(--status-info-fg)]/30 text-[var(--status-info-fg)]",
   COMPLETED:
     "bg-[var(--metric-emerald)] border-[var(--metric-emerald)] text-[var(--on-metric-emerald-fg)]",
   ABSENT:
     "bg-[var(--metric-red)] border-[var(--metric-red)] text-[var(--on-metric-red-fg)]",
+  CANCELLED:
+    "bg-[var(--status-neutral-bg)] border-[var(--tone-neutral-border)] text-[var(--status-neutral-fg)]",
 };
 
+function shiftBarStatusKey(status: string): ShiftBarStatus {
+  if (status === "COMPLETED") return "COMPLETED";
+  if (status === "ABSENT") return "ABSENT";
+  if (status === "CANCELLED") return "CANCELLED";
+  return "scheduled";
+}
+
+/** Small color chip for Gantt legend — not for timeline bars (no absolute positioning). */
+export function shiftLegendSwatchClassName(status: string, className?: string) {
+  return cn(
+    "inline-block h-3 w-3 shrink-0 rounded-sm border",
+    shiftBarClass[shiftBarStatusKey(status)],
+    className,
+  );
+}
+
 export function shiftBarClassName(status: string, className?: string) {
-  const key: ShiftBarStatus =
-    status === "COMPLETED" ? "COMPLETED" : status === "ABSENT" ? "ABSENT" : "scheduled";
   return cn(
     "absolute top-1 bottom-1 rounded-md border text-[10px] font-black",
     "flex items-center justify-center overflow-hidden shadow-sm",
     "transition-transform motion-reduce:transition-none hover:scale-[1.02] motion-reduce:hover:scale-100 cursor-pointer z-20",
-    shiftBarClass[key],
+    shiftBarClass[shiftBarStatusKey(status)],
     className,
   );
 }
 
 export function hrAvatarClassName(className?: string) {
-  return cn("font-bold shrink-0 bg-[var(--hub-hr)]", className);
+  return cn(
+    "font-bold shrink-0 bg-[var(--hub-hr)] text-[var(--hub-hr-fg)]",
+    className,
+  );
 }
 
 export function attendanceLateRowClassName(className?: string) {
@@ -351,6 +370,57 @@ export function attendanceOnTimeClassName(className?: string) {
 
 export function attendanceLateTimeClassName(className?: string) {
   return cn("font-mono font-bold", metricValueClassName("red"), className);
+}
+
+export function attendanceLegendSwatchClassName(
+  variant: "on-time" | "late" | "active",
+  className?: string,
+) {
+  const tone =
+    variant === "late"
+      ? "bg-[var(--status-danger-fg)]"
+      : variant === "active"
+        ? "bg-[var(--status-info-fg)]"
+        : "bg-[var(--status-success-fg)]";
+  return cn(
+    "inline-block h-3 w-3 shrink-0 rounded-sm border border-[var(--table-row-border)]",
+    tone,
+    className,
+  );
+}
+
+export function leaveLegendSwatchClassName(
+  status: "PENDING" | "APPROVED" | "REJECTED",
+  className?: string,
+) {
+  const tone =
+    status === "APPROVED"
+      ? "bg-[var(--status-success-fg)]"
+      : status === "REJECTED"
+        ? "bg-[var(--status-danger-fg)]"
+        : "bg-[var(--status-warning-fg)]";
+  return cn(
+    "inline-block h-3 w-3 shrink-0 rounded-sm border border-[var(--table-row-border)]",
+    tone,
+    className,
+  );
+}
+
+export function payrollLegendSwatchClassName(
+  status: "DRAFT" | "APPROVED" | "PAID",
+  className?: string,
+) {
+  const tone =
+    status === "APPROVED"
+      ? "bg-[var(--status-success-fg)]"
+      : status === "PAID"
+        ? "bg-[var(--status-info-fg)]"
+        : "bg-[var(--status-warning-fg)]";
+  return cn(
+    "inline-block h-3 w-3 shrink-0 rounded-sm border border-[var(--table-row-border)]",
+    tone,
+    className,
+  );
 }
 
 export function payrollExpandedPanelClassName(className?: string) {
@@ -474,6 +544,40 @@ export function kitchenMetaBadgeClassName(className?: string) {
 }
 
 export function kitchenDialogContentClassName(className?: string) {
+  return cn(
+    "sm:max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto",
+    "bg-[var(--table-container-bg)] border-[var(--table-container-border)] text-foreground",
+    className,
+  );
+}
+
+export function hrSectionPanelClassName(className?: string) {
+  return cn(
+    "rounded-xl shadow-sm border p-4 sm:p-6 space-y-4",
+    "bg-[var(--table-container-bg)] border-[var(--table-container-border)]",
+    className,
+  );
+}
+
+export function hrSummaryChipClassName(active = false, className?: string) {
+  return cn(
+    "rounded-md px-2 py-0.5 font-medium tabular-nums transition-colors",
+    active
+      ? "bg-[var(--tone-hr-subtle)] ring-1 ring-[var(--tone-hr-border)]"
+      : "hover:bg-[var(--tone-hr-subtle)] cursor-pointer",
+    className,
+  );
+}
+
+export function hrMetaBadgeClassName(className?: string) {
+  return cn(
+    "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium uppercase tracking-wide",
+    "bg-[var(--tone-hr-subtle)] text-[var(--tone-hr-fg)] border-[var(--tone-hr-border)]",
+    className,
+  );
+}
+
+export function hrDialogContentClassName(className?: string) {
   return cn(
     "sm:max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto",
     "bg-[var(--table-container-bg)] border-[var(--table-container-border)] text-foreground",

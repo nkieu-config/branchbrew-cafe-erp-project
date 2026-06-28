@@ -1,76 +1,157 @@
-"use client"
+"use client";
 
-import { useAuth } from "@/context/AuthContext"
-import { useShifts } from '@/hooks/domains/useHrQueries';
-import { CalendarDays, Plus, UserPlus, Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { ButtonLink } from "@/components/ui/button-link"
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { addDays, format, subDays } from "date-fns";
+import { useAuth } from "@/context/AuthContext";
+import { useBranches } from "@/hooks/domains/useGeneralQueries";
+import { useCreateShift, useHrUsers, useShifts } from "@/hooks/domains/useHrQueries";
+import {
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Loader2,
+  Plus,
+} from "lucide-react";
+import { getErrorMessage } from "@/lib/errors";
+import { toast } from "sonner";
 import { HubPageHeader } from "@/components/shared/hub-card";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
-import { formatDate, formatTime } from "@/lib/intl-date";
-import { Shift, User } from "@/types/api"
-import { Avatar, Tooltip } from "antd"
+import { QueryErrorBanner } from "@/components/shared/query-error-banner";
+import { ListToolbar } from "@/components/shared/list-toolbar";
+import { RoleGuard } from "@/components/RoleGuard";
+import { AccessDeniedState } from "@/components/shared/access-denied-state";
+import { HrHubLinks } from "@/components/hr/HrHubLinks";
+import { CreateShiftModal } from "@/components/hr/CreateShiftModal";
+import { ShiftGanttTimeline } from "@/components/hr/ShiftGanttTimeline";
+import { Button } from "@/components/ui/button";
 import {
-  ganttGridLineClassName,
-  ganttHeaderClassName,
-  ganttHourLabelClassName,
-  ganttHourMarkerClassName,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { Branch, ShiftStatus, User } from "@/types/api";
+import {
+  filterShifts,
+  groupShiftsByUserId,
+  summarizeShifts,
+  type ShiftStatusFilter,
+  type ShiftWithUser,
+} from "@/lib/shift-filters";
+import { parseHrShiftsSearchParams } from "@/lib/hr-hub-url";
+import { formatDate } from "@/lib/intl-date";
+import {
+  formSelectContentClassName,
   ganttPanelClassName,
-  ganttTimeAxisClassName,
-  ganttTrackClassName,
-  ganttUserColumnClassName,
-  hrAvatarClassName,
-  hubInfoActionClassName,
+  hubCardIconFor,
+  hubCtaClassName,
+  hrSectionPanelClassName,
+  hrSummaryChipClassName,
   hubLoadingSpinnerClassName,
-  shiftBarClassName,
+  inlineLinkClassName,
+  inventorySummaryStripClassName,
+  listToolbarFieldClassName,
+  metricValueClassName,
+  shiftLegendSwatchClassName,
   text,
-} from "@/lib/theme"
+} from "@/lib/theme";
+import { cn } from "@/lib/utils";
+
+function toDateInputValue(date: Date): string {
+  return format(date, "yyyy-MM-dd");
+}
 
 export default function EmployeesShiftsPage() {
-  const { user, activeBranchId } = useAuth()
-  const role = user?.role
+  return (
+    <RoleGuard
+      allowedRoles={["SUPER_ADMIN", "MANAGER"]}
+      fallback={
+        <AccessDeniedState
+          description="Manager or Super Admin access is required to manage shift schedules."
+          backHref="/hr/attendance"
+          backLabel="Back to Attendance"
+        />
+      }
+    >
+      <ShiftsPageContent />
+    </RoleGuard>
+  );
+}
 
-  const { data: shiftsData, isLoading: loading } = useShifts(role, activeBranchId ?? undefined)
-  const shifts = shiftsData || []
+function ShiftsPageContent() {
+  const { user, activeBranchId } = useAuth();
+  const role = user?.role;
+  const searchParams = useSearchParams();
+  const urlState = useMemo(() => parseHrShiftsSearchParams(searchParams), [searchParams]);
 
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const todayEnd = new Date();
-  todayEnd.setHours(23, 59, 59, 999);
+  const { data: branches = [] } = useBranches();
+  const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
+  const branchName = (branches as Branch[]).find((b) => b.id === branchIdNum)?.name;
 
-  const todaysShifts = shifts.filter((s: Shift & { user: User }) => {
-    const d = new Date(s.startTime);
-    return d >= todayStart && d <= todayEnd;
-  });
+  const {
+    data: shiftsData = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useShifts(role, branchIdNum);
+  const { data: employees = [] } = useHrUsers(branchIdNum);
+  const createShiftMutation = useCreateShift();
 
-  const usersWithShifts = Array.from(new Set(todaysShifts.map((s: Shift & { user: User }) => s.user?.name || 'Unknown'))) as string[];
+  const [selectedDate, setSelectedDate] = useState(() => urlState.date ?? toDateInputValue(new Date()));
+  const [statusFilter, setStatusFilter] = useState<ShiftStatusFilter>("ALL");
+  const [employeeFilterId, setEmployeeFilterId] = useState<number | null>(urlState.employeeId);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const HOURS_START = 6;
-  const HOURS_END = 22;
-  const hoursRange = Array.from({ length: HOURS_END - HOURS_START + 1 }, (_, i) => i + HOURS_START);
+  useEffect(() => {
+    if (urlState.date) setSelectedDate(urlState.date);
+    if (urlState.employeeId != null) setEmployeeFilterId(urlState.employeeId);
+  }, [urlState.date, urlState.employeeId]);
 
-  const calculateLeftPercent = (date: string | Date) => {
-    const d = new Date(date);
-    const h = d.getHours() + d.getMinutes() / 60;
-    if (h < HOURS_START) return 0;
-    if (h > HOURS_END) return 100;
-    return ((h - HOURS_START) / (HOURS_END - HOURS_START)) * 100;
-  }
+  const selectedDateObj = useMemo(() => new Date(`${selectedDate}T12:00:00`), [selectedDate]);
 
-  const calculateWidthPercent = (start: string | Date, end: string | Date) => {
-    const s = new Date(start);
-    const e = new Date(end);
-    let sh = s.getHours() + s.getMinutes() / 60;
-    let eh = e.getHours() + e.getMinutes() / 60;
-    
-    if (sh < HOURS_START) sh = HOURS_START;
-    if (eh > HOURS_END) eh = HOURS_END;
-    
-    let width = ((eh - sh) / (HOURS_END - HOURS_START)) * 100;
-    return Math.max(0, width);
-  }
+  const filteredShifts = useMemo(
+    () =>
+      filterShifts(shiftsData as ShiftWithUser[], {
+        date: selectedDateObj,
+        statusFilter,
+        employeeId: employeeFilterId,
+      }),
+    [shiftsData, selectedDateObj, statusFilter, employeeFilterId],
+  );
 
-  if (!activeBranchId) {
+  const summary = useMemo(() => summarizeShifts(filteredShifts), [filteredShifts]);
+  const ganttRows = useMemo(() => groupShiftsByUserId(filteredShifts), [filteredShifts]);
+
+  const hasActiveFilters = statusFilter !== "ALL" || employeeFilterId != null;
+
+  const toggleStatusFilter = (next: ShiftStatusFilter) => {
+    setStatusFilter((current) => (current === next ? "ALL" : next));
+  };
+
+  const shiftDateLabel = formatDate(selectedDateObj);
+
+  const handleCreateShift = async (payload: {
+    userId: number;
+    branchId: number;
+    startTime: string;
+    endTime: string;
+  }) => {
+    try {
+      await createShiftMutation.mutateAsync(payload);
+      toast.success("Shift scheduled");
+      setIsModalOpen(false);
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to schedule shift"));
+    }
+  };
+
+  if (!activeBranchId || !branchIdNum) {
     return (
       <BranchEmptyState description="Select a branch in the top bar to view and manage shift schedules." />
     );
@@ -79,99 +160,272 @@ export default function EmployeesShiftsPage() {
   return (
     <div className="space-y-6">
       <HubPageHeader
-        title={(role === 'SUPER_ADMIN' || role === 'MANAGER') ? 'Shift Schedule (Gantt)' : 'My Shifts'}
+        hideTitle
         icon={CalendarDays}
-        description="Manage and view the time-block shift schedule for today."
+        accentHub="hr"
+        description="Manage time-block shift schedules. Shifts drive attendance late detection and payroll hours."
         actions={
-          (role === 'SUPER_ADMIN' || role === 'MANAGER') && (
-            <div className="flex gap-2">
-              {role === 'SUPER_ADMIN' && (
-                <ButtonLink
-                  className={hubInfoActionClassName("font-bold")}
-                  href="/organization/users"
-                >
-                  <Plus className="w-4 h-4 mr-2" /> Add Employee
-                </ButtonLink>
-              )}
-              <ButtonLink
-                variant="outline"
-                className="font-bold shadow-sm"
-                href="/hr/employees"
-              >
-                <UserPlus className="w-4 h-4 mr-2" /> Directory
-              </ButtonLink>
-            </div>
-          )
+          <HrHubLinks current="shifts" showOrgUsers={role === "SUPER_ADMIN"}>
+            <Button
+              className={hubCtaClassName("hr", "font-bold")}
+              onClick={() => setIsModalOpen(true)}
+            >
+              <Plus className="w-4 h-4 mr-2" aria-hidden />
+              Schedule shift
+            </Button>
+          </HrHubLinks>
         }
       />
 
-      <div className={ganttPanelClassName()}>
-        <div className={ganttHeaderClassName()}>
-          <h2 className={`font-black text-lg ${text.primary}`}>Today&apos;s Timeline ({formatDate(new Date())})</h2>
-        </div>
-
-        {loading ? (
-          <div className="flex h-64 items-center justify-center">
-            <Loader2 className={`w-8 h-8 ${hubLoadingSpinnerClassName()}`} />
-          </div>
-        ) : todaysShifts.length === 0 ? (
-          <div className={`p-12 text-center font-bold ${text.muted}`}>No shifts scheduled for today.</div>
-        ) : (
-          <div className="p-4 overflow-x-auto">
-            <div className="min-w-[800px]">
-              <div className={ganttTimeAxisClassName()}>
-                {hoursRange.map(hour => (
-                  <div key={hour} className={ganttHourLabelClassName()}>
-                    <span className={ganttHourMarkerClassName("-left-3")}>{hour.toString().padStart(2, '0')}:00</span>
-                    {hour === HOURS_END && <span className={ganttHourMarkerClassName("-right-3")}>22:00</span>}
-                  </div>
-                ))}
-              </div>
-
-              <div className="relative mt-4 space-y-4">
-                <div className="absolute top-0 bottom-0 left-40 right-0 flex pointer-events-none">
-                  {hoursRange.slice(0, -1).map(hour => (
-                    <div key={hour} className={ganttGridLineClassName()} />
-                  ))}
-                </div>
-
-                {usersWithShifts.map((userName: string, idx: number) => {
-                  const userShifts = todaysShifts.filter((s: Shift & { user: User }) => s.user?.name === userName);
-                  return (
-                    <div key={idx} className="flex items-center h-12 relative group">
-                      <div className={ganttUserColumnClassName()}>
-                        <Avatar className={hrAvatarClassName()}>{userName.charAt(0)}</Avatar>
-                        <span className={`font-bold text-sm truncate ${text.secondary}`}>{userName}</span>
-                      </div>
-
-                      <div className={ganttTrackClassName()}>
-                        {userShifts.map((shift: Shift & { user: User }, i: number) => {
-                          const left = calculateLeftPercent(shift.startTime);
-                          const width = calculateWidthPercent(shift.startTime, shift.endTime);
-
-                          return (
-                            <Tooltip 
-                              key={i} 
-                              title={`${formatTime(shift.startTime)} - ${formatTime(shift.endTime)} (${shift.status})`}
-                            >
-                              <div 
-                                className={shiftBarClassName(shift.status)}
-                                style={{ left: `${left}%`, width: `${width}%` }}
-                              >
-                                {width > 10 ? shift.status : ''}
-                              </div>
-                            </Tooltip>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
+      <div className={hrSectionPanelClassName()}>
+        {!isLoading && !isError && (
+          <div
+            className={inventorySummaryStripClassName()}
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <span className={cn("font-semibold tabular-nums", text.primary)}>
+              {summary.total > 0
+                ? `${summary.total} shift${summary.total === 1 ? "" : "s"} · ${shiftDateLabel}`
+                : `${shiftDateLabel} — no shifts scheduled`}
+            </span>
+            {summary.scheduled > 0 && (
+              <button
+                type="button"
+                className={hrSummaryChipClassName(
+                  statusFilter === "SCHEDULED",
+                  metricValueClassName("blue"),
+                )}
+                onClick={() => toggleStatusFilter("SCHEDULED")}
+              >
+                {summary.scheduled} scheduled
+              </button>
+            )}
+            {summary.completed > 0 && (
+              <button
+                type="button"
+                className={hrSummaryChipClassName(
+                  statusFilter === "COMPLETED",
+                  metricValueClassName("emerald"),
+                )}
+                onClick={() => toggleStatusFilter("COMPLETED")}
+              >
+                {summary.completed} completed
+              </button>
+            )}
+            {summary.absent > 0 && (
+              <button
+                type="button"
+                className={hrSummaryChipClassName(
+                  statusFilter === "ABSENT",
+                  metricValueClassName("red"),
+                )}
+                onClick={() => toggleStatusFilter("ABSENT")}
+              >
+                {summary.absent} absent
+              </button>
+            )}
+            {summary.cancelled > 0 && (
+              <button
+                type="button"
+                className={hrSummaryChipClassName(
+                  statusFilter === "CANCELLED",
+                  text.muted,
+                )}
+                onClick={() => toggleStatusFilter("CANCELLED")}
+              >
+                {summary.cancelled} cancelled
+              </button>
+            )}
+            {isFetching && !isLoading && (
+              <span className={cn("inline-flex items-center gap-1.5", text.muted)}>
+                <Loader2
+                  className="w-3.5 h-3.5 animate-spin motion-reduce:animate-none"
+                  aria-hidden
+                />
+                Updating…
+              </span>
+            )}
           </div>
         )}
+
+        {!isLoading && !isError && (
+          <div
+            className={cn(
+              "flex flex-wrap items-center gap-x-4 gap-y-2 text-xs",
+              "pb-3 border-b border-[var(--table-row-border)]",
+            )}
+            aria-label="Shift status legend"
+          >
+            {(
+              [
+                ["SCHEDULED", "Scheduled"],
+                ["COMPLETED", "Completed"],
+                ["ABSENT", "Absent"],
+                ["CANCELLED", "Cancelled"],
+              ] as const
+            ).map(([status, label]) => (
+              <span
+                key={status}
+                className={cn("inline-flex items-center gap-1.5 font-medium", text.secondary)}
+              >
+                <span className={shiftLegendSwatchClassName(status)} aria-hidden />
+                {label}
+              </span>
+            ))}
+            <Link
+              href="/hr/attendance"
+              className={cn("inline-flex items-center gap-1 font-medium", inlineLinkClassName())}
+            >
+              <Clock className="w-3.5 h-3.5" aria-hidden />
+              View attendance
+            </Link>
+          </div>
+        )}
+
+        {isError && (
+          <QueryErrorBanner
+            message={getErrorMessage(error, "Failed to load shifts")}
+            onRetry={() => void refetch()}
+            loading={isFetching}
+          />
+        )}
+
+        <ListToolbar
+          branchName={branchName}
+          showReset={hasActiveFilters}
+          onReset={() => {
+            setStatusFilter("ALL");
+            setEmployeeFilterId(null);
+          }}
+          filters={
+            <>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="min-h-[44px] min-w-[44px] shrink-0"
+                  aria-label="Previous day"
+                  onClick={() =>
+                    setSelectedDate(toDateInputValue(subDays(selectedDateObj, 1)))
+                  }
+                >
+                  <ChevronLeft className="w-4 h-4" aria-hidden />
+                </Button>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(event) => setSelectedDate(event.target.value)}
+                  className={listToolbarFieldClassName("min-h-[44px] w-full sm:w-[160px]")}
+                  aria-label="Shift date"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="min-h-[44px] min-w-[44px] shrink-0"
+                  aria-label="Next day"
+                  onClick={() =>
+                    setSelectedDate(toDateInputValue(addDays(selectedDateObj, 1)))
+                  }
+                >
+                  <ChevronRight className="w-4 h-4" aria-hidden />
+                </Button>
+              </div>
+              <Select
+                value={statusFilter}
+                onValueChange={(value) => {
+                  if (value != null) setStatusFilter(value as ShiftStatusFilter);
+                }}
+              >
+                <SelectTrigger
+                  className={listToolbarFieldClassName("min-h-[44px] w-full sm:w-[180px]")}
+                  aria-label="Filter by shift status"
+                >
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent className={formSelectContentClassName()}>
+                  <SelectItem value="ALL">All statuses</SelectItem>
+                  {( ["SCHEDULED", "COMPLETED", "ABSENT", "CANCELLED"] as ShiftStatus[]).map(
+                    (status) => (
+                      <SelectItem key={status} value={status}>
+                        {status.charAt(0) + status.slice(1).toLowerCase()}
+                      </SelectItem>
+                    ),
+                  )}
+                </SelectContent>
+              </Select>
+              {employees.length > 0 && (
+                <Select
+                  value={employeeFilterId != null ? String(employeeFilterId) : "ALL"}
+                  onValueChange={(value) => {
+                    if (value == null) return;
+                    setEmployeeFilterId(value === "ALL" ? null : Number(value));
+                  }}
+                >
+                  <SelectTrigger
+                    className={listToolbarFieldClassName("min-h-[44px] w-full sm:w-[200px]")}
+                    aria-label="Filter by employee"
+                  >
+                    <SelectValue placeholder="All employees" />
+                  </SelectTrigger>
+                  <SelectContent className={formSelectContentClassName()}>
+                    <SelectItem value="ALL">All employees</SelectItem>
+                    {employees.map((employee: User) => (
+                      <SelectItem key={employee.id} value={String(employee.id)}>
+                        {employee.name ?? employee.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </>
+          }
+        />
+
+        <div className={ganttPanelClassName()}>
+          {isLoading ? (
+            <div className="flex h-64 items-center justify-center">
+              <Loader2 className={hubLoadingSpinnerClassName("w-8 h-8")} aria-hidden />
+              <span className="sr-only">Loading shift schedule…</span>
+            </div>
+          ) : !isError && ganttRows.length === 0 ? (
+            <div className="py-16 text-center px-4">
+              <CalendarDays className={hubCardIconFor("hr", "w-12 h-12 mx-auto mb-4")} />
+              <p className={cn("font-semibold", text.primary)}>
+                {hasActiveFilters ? "No shifts match your filters" : "No shifts scheduled"}
+              </p>
+              <p className={cn("text-sm mt-2 max-w-md mx-auto", text.muted)}>
+                {hasActiveFilters
+                  ? "Try another date, status, or employee filter."
+                  : `No shifts on ${shiftDateLabel}. Schedule a block to populate the timeline.`}
+              </p>
+              {!hasActiveFilters && (
+                <Button
+                  className={cn("mt-6", hubCtaClassName("hr", "font-bold"))}
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  <Plus className="w-4 h-4 mr-2" aria-hidden />
+                  Schedule shift
+                </Button>
+              )}
+            </div>
+          ) : !isError ? (
+            <ShiftGanttTimeline rows={ganttRows} />
+          ) : null}
+        </div>
       </div>
+
+      <CreateShiftModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        employees={employees}
+        branchId={branchIdNum}
+        defaultDate={selectedDate}
+        onSubmit={handleCreateShift}
+        isSubmitting={createShiftMutation.isPending}
+      />
     </div>
-  )
+  );
 }

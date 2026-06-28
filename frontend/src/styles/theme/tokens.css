@@ -128,6 +128,10 @@
   --tone-kitchen-border: color-mix(in oklch, var(--hub-kitchen) 30%, transparent);
   --tone-kitchen-fg: color-mix(in oklch, var(--hub-kitchen) 82%, black);
 
+  --tone-hr-subtle: color-mix(in oklch, var(--hub-hr) 10%, var(--card));
+  --tone-hr-border: color-mix(in oklch, var(--hub-hr) 30%, transparent);
+  --tone-hr-fg: color-mix(in oklch, var(--hub-hr) 82%, black);
+
   --tone-neutral-border: color-mix(in oklch, var(--border) 80%, transparent);
   --tone-neutral-icon: color-mix(in oklch, var(--muted-foreground) 85%, transparent);
 
@@ -484,6 +488,7 @@
   --tone-products-fg: color-mix(in oklch, var(--chart-5) 65%, var(--foreground));
   --tone-procurement-fg: color-mix(in oklch, var(--hub-procurement) 65%, var(--foreground));
   --tone-kitchen-fg: color-mix(in oklch, var(--hub-kitchen) 65%, var(--foreground));
+  --tone-hr-fg: color-mix(in oklch, var(--hub-hr) 65%, var(--foreground));
 
   --hub-tab-track: color-mix(in oklch, var(--muted) 50%, transparent);
 
