@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { usePurchaseOrders, useSuppliers, useCreatePurchaseOrder, useSubmitPurchaseOrder, useApprovePurchaseOrder, useRejectPurchaseOrder, useReceivePurchaseOrder } from '@/hooks/domains/useProcurementQueries';
 import { useIngredients } from '@/hooks/domains/useProductionQueries';
 import { useAuth } from "@/context/AuthContext";
@@ -23,6 +24,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { ListToolbar } from "@/components/shared/list-toolbar";
 import { getErrorMessage } from "@/lib/errors";
+import { readOperationalStatusParam } from "@/lib/operational-links";
 import { cn } from "@/lib/utils";
 import {
   expandedRowPanelClassName,
@@ -84,9 +86,21 @@ export default function ProcurementPage() {
   const [confirmAction, setConfirmAction] = useState<
     { type: "approve" | "reject"; po: PurchaseOrder } | null
   >(null);
+  const searchParams = useSearchParams();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
-  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const pendingFromUrl = readOperationalStatusParam(searchParams.get("status"), [
+    "PENDING",
+    "DRAFT",
+    "APPROVED",
+    "REJECTED",
+    "RECEIVED",
+  ]);
+  const [statusFilter, setStatusFilter] = useState<string>(pendingFromUrl ?? "ALL");
+
+  useEffect(() => {
+    if (pendingFromUrl) setStatusFilter(pendingFromUrl);
+  }, [pendingFromUrl]);
 
   // Removed manual loadData with useEffect
 

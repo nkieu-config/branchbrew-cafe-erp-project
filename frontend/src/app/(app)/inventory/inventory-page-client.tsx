@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useBranchInventory } from "@/hooks/domains/useInventoryQueries";
 import { useAuth } from "@/context/AuthContext";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
@@ -42,9 +43,15 @@ export default function InventoryBalancePage() {
   } = useBranchInventory(activeBranchId || undefined);
   const inventory = inventoryData || [];
 
+  const searchParams = useSearchParams();
+  const lowFromUrl = searchParams.get("filter") === "low";
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
-  const [stockFilter, setStockFilter] = useState<StockFilter>("ALL");
+  const [stockFilter, setStockFilter] = useState<StockFilter>(lowFromUrl ? "low" : "ALL");
+
+  useEffect(() => {
+    if (searchParams.get("filter") === "low") setStockFilter("low");
+  }, [searchParams]);
 
   const filteredInventory = useMemo(() => {
     return inventory.filter((record: InventoryRow) => {

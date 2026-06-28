@@ -26,6 +26,7 @@ export const useCreateTransfer = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transfers'] });
       queryClient.invalidateQueries({ queryKey: ['branch'] });
+      queryClient.invalidateQueries({ queryKey: ['analyticsSummary'] });
     },
   });
 };
@@ -40,6 +41,7 @@ export const useAcceptTransfer = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transfers'] });
       queryClient.invalidateQueries({ queryKey: ['branch'] });
+      queryClient.invalidateQueries({ queryKey: ['analyticsSummary'] });
     },
   });
 };

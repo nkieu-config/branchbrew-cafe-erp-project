@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { HubPageHeader } from "@/components/shared/hub-card"
 import { QueryErrorBanner } from "@/components/shared/query-error-banner"
 import { ConfirmDialog } from "@/components/shared/confirm-dialog"
@@ -46,8 +47,17 @@ function FinanceTableSkeleton({ rows = 4 }: { rows?: number }) {
 
 export default function FinanceDashboardPage() {
   const { isAuthenticated, activeBranchId } = useAuth()
+  const searchParams = useSearchParams()
+  const pendingFromUrl = searchParams.get("status") === "PENDING"
   const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
   const [approveTarget, setApproveTarget] = useState<Settlement | null>(null)
+  const [settlementFilter, setSettlementFilter] = useState<"ALL" | "PENDING">(
+    pendingFromUrl ? "PENDING" : "ALL",
+  )
+
+  useEffect(() => {
+    if (searchParams.get("status") === "PENDING") setSettlementFilter("PENDING")
+  }, [searchParams])
   
   const {
     data: settlements = [],
@@ -98,6 +108,13 @@ export default function FinanceDashboardPage() {
     void refetchExpenses()
   }
 
+  const visibleSettlements = useMemo(() => {
+    if (settlementFilter !== "PENDING") return settlements
+    return settlements.filter((s: Settlement) => s.status === "PENDING")
+  }, [settlements, settlementFilter])
+
+  const pendingCount = settlements.filter((s: Settlement) => s.status === "PENDING").length
+
   return (
     <div className="space-y-6">
       <HubPageHeader
@@ -117,10 +134,26 @@ export default function FinanceDashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className={financeSectionPanelClassName("flex flex-col")}>
-          <h2 className={financeSectionTitleClassName()}>
-            <CheckCircle2 className={financeHubIconClassName()} />
-            Shift Settlements
-          </h2>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <h2 className={financeSectionTitleClassName("mb-0")}>
+              <CheckCircle2 className={financeHubIconClassName()} />
+              Shift Settlements
+              {pendingCount > 0 && (
+                <span className="ml-2 text-sm font-normal text-[var(--text-muted)]">
+                  ({pendingCount} pending)
+                </span>
+              )}
+            </h2>
+            <select
+              value={settlementFilter}
+              onChange={(e) => setSettlementFilter(e.target.value as "ALL" | "PENDING")}
+              className="min-h-[44px] rounded-md border px-3 text-sm border-[var(--border)] bg-[var(--table-container-bg)]"
+              aria-label="Filter settlements by status"
+            >
+              <option value="ALL">All statuses</option>
+              <option value="PENDING">Pending approval</option>
+            </select>
+          </div>
           <div className="overflow-x-auto">
             {isLoading ? (
               <FinanceTableSkeleton />
@@ -138,7 +171,7 @@ export default function FinanceDashboardPage() {
                   </tr>
                 </thead>
                 <tbody className={nativeTableBodyClassName()}>
-                  {settlements.map((s: Settlement) => (
+                  {visibleSettlements.map((s: Settlement) => (
                     <tr key={s.id} className={nativeTableRowClassName()}>
                       <td className={nativeTableCellMutedClassName()}>{formatDate(s.date)}</td>
                       <td className={nativeTableCellPrimaryClassName()}>{s.branch?.name || 'Main'}</td>
@@ -159,9 +192,13 @@ export default function FinanceDashboardPage() {
                       </td>
                     </tr>
                   ))}
-                  {settlements.length === 0 && !isLoading && (
+                  {visibleSettlements.length === 0 && !isLoading && (
                     <tr>
-                      <td colSpan={7} className={nativeTableEmptyCellClassName()}>No settlements found.</td>
+                      <td colSpan={7} className={nativeTableEmptyCellClassName()}>
+                        {settlementFilter === "PENDING"
+                          ? "No pending settlements."
+                          : "No settlements found."}
+                      </td>
                     </tr>
                   )}
                 </tbody>

@@ -12,6 +12,7 @@ import {
   shouldShowHubSubNav,
   type SidebarItem,
 } from "@/lib/navigation";
+import { resolveChildTabHref, resolveSidebarItemHref } from "@/lib/operational-links";
 import type { SidebarNavBadgeMap } from "@/lib/sidebar-badges";
 import {
   sidebarNavChildLinkClassName,
@@ -54,6 +55,12 @@ export function SidebarNavItem({
   const showTree =
     hub != null && isHubActive && shouldShowHubSubNav(childTabs, hub.basePath);
   const badge = badges?.[item.id];
+  const parentHref = resolveSidebarItemHref(
+    item.id,
+    item.href,
+    badges,
+    childTabBadges,
+  );
 
   const activeChildTab = hub
     ? childTabs.find((tab) => isTabActive(pathname, tab.path, hub.basePath))
@@ -65,7 +72,7 @@ export function SidebarNavItem({
     <div className="space-y-0.5">
       <div className="group/navitem flex items-center gap-1">
         <Link
-          href={item.href}
+          href={parentHref}
           onClick={onNavigate}
           aria-current={isParentCurrentPage ? "page" : undefined}
           className={cn(sidebarNavLinkClassName(isHubActive, isParentCurrentPage), "min-w-0 flex-1")}
@@ -102,7 +109,7 @@ export function SidebarNavItem({
             return (
               <li key={tab.path}>
                 <Link
-                  href={tab.path}
+                  href={resolveChildTabHref(tab.path, childTabBadges)}
                   onClick={onNavigate}
                   aria-current={isChildActive ? "page" : undefined}
                   aria-label={tabBadge ? `${tab.label}, ${tabBadge.label}` : tab.label}

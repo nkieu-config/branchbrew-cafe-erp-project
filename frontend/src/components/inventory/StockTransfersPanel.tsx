@@ -3,10 +3,12 @@
 import {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useState,
 } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Form, Select, InputNumber } from "antd";
 import { CheckCircle2, ArrowRightLeft, ExternalLink, Building2 } from "lucide-react";
@@ -92,15 +94,31 @@ export const StockTransfersPanel = forwardRef<
 
   const loading = loadingTransfers || loadingBranches || loadingIng;
 
+  const searchParams = useSearchParams();
+  const pendingFromUrl = searchParams.get("status") === "PENDING";
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "PENDING">(
+    pendingFromUrl ? "PENDING" : "ALL",
+  );
+
+  useEffect(() => {
+    if (searchParams.get("status") === "PENDING") setStatusFilter("PENDING");
+  }, [searchParams]);
+
   const visibleTransfers = useMemo(() => {
-    if (variant === "page") return transfers;
-    if (!branchId) return transfers.filter((t) => t.status === "PENDING");
-    return transfers.filter(
-      (t) =>
-        t.status === "PENDING" &&
-        (t.toBranchId === branchId || t.fromBranchId === branchId),
-    );
-  }, [transfers, variant, branchId]);
+    const base =
+      variant === "page"
+        ? transfers
+        : !branchId
+          ? transfers.filter((t) => t.status === "PENDING")
+          : transfers.filter(
+              (t) =>
+                t.status === "PENDING" &&
+                (t.toBranchId === branchId || t.fromBranchId === branchId),
+            );
+
+    if (variant !== "page" || statusFilter !== "PENDING") return base;
+    return base.filter((t) => t.status === "PENDING");
+  }, [transfers, variant, branchId, statusFilter]);
 
   const canAccept = useCallback(
     (transfer: StockTransfer) => {
@@ -342,7 +360,22 @@ export const StockTransfersPanel = forwardRef<
         </div>
       )}
 
-      {variant === "page" && table}
+      {variant === "page" && (
+        <div className="space-y-4">
+          <div className="flex justify-end">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as "ALL" | "PENDING")}
+              className="min-h-[44px] rounded-md border px-3 text-sm border-[var(--border)] bg-[var(--table-container-bg)]"
+              aria-label="Filter transfers by status"
+            >
+              <option value="ALL">All statuses</option>
+              <option value="PENDING">Pending incoming</option>
+            </select>
+          </div>
+          {table}
+        </div>
+      )}
 
       <FormModal
         title="Request Stock Transfer"

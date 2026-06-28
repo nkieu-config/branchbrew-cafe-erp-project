@@ -29,7 +29,9 @@ import { formatDateRange } from "@/lib/intl-date";
 import { getErrorMessage } from "@/lib/errors";
 import { toast } from "sonner";
 import { hubCtaClassName, tableActionAccentClassName } from "@/lib/theme";
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+import { QueryErrorBanner } from "@/components/shared/query-error-banner";
 import { DatePicker } from "antd";
 import type { Dayjs } from "dayjs";
 
@@ -43,9 +45,29 @@ export default function LeaveRequestsPage() {
   const { activeBranchId, user } = useAuth();
   const role = user?.role;
   const isManagerOrAdmin = role === "SUPER_ADMIN" || role === "MANAGER";
+  const searchParams = useSearchParams();
+  const pendingFromUrl = searchParams.get("status") === "PENDING";
   const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
 
-  const { data: leaveRequests = [], isLoading } = useLeaveRequests(branchIdNum, isManagerOrAdmin);
+  const {
+    data: leaveRequests = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useLeaveRequests(branchIdNum, isManagerOrAdmin);
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "PENDING">(
+    pendingFromUrl ? "PENDING" : "ALL",
+  );
+
+  useEffect(() => {
+    if (searchParams.get("status") === "PENDING") setStatusFilter("PENDING");
+  }, [searchParams]);
+
+  const visibleLeaveRequests = useMemo(() => {
+    if (statusFilter !== "PENDING") return leaveRequests;
+    return leaveRequests.filter((req: LeaveRequest) => req.status === "PENDING");
+  }, [leaveRequests, statusFilter]);
   const updateLeaveStatusMutation = useUpdateLeaveStatus();
   const createLeaveMutation = useCreateLeave();
 
@@ -122,6 +144,25 @@ export default function LeaveRequestsPage() {
           </Button>
         }
       >
+        {isError && (
+          <QueryErrorBanner
+            message={getErrorMessage(error, "Failed to load leave requests")}
+            onRetry={() => void refetch()}
+          />
+        )}
+        {isManagerOrAdmin && (
+          <div className="flex justify-end mb-4">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as "ALL" | "PENDING")}
+              className="min-h-[44px] rounded-md border px-3 text-sm border-[var(--border)] bg-[var(--table-container-bg)]"
+              aria-label="Filter leave requests by status"
+            >
+              <option value="ALL">All statuses</option>
+              <option value="PENDING">Pending approval</option>
+            </select>
+          </div>
+        )}
         <DataTable
           columns={[
             ...(role === "SUPER_ADMIN" || role === "MANAGER"
@@ -170,7 +211,7 @@ export default function LeaveRequestsPage() {
                 ]
               : []),
           ]}
-          dataSource={leaveRequests}
+          dataSource={visibleLeaveRequests}
           rowKey="id"
           loading={isLoading}
         />
