@@ -1,0 +1,218 @@
+"use client";
+
+import { useCallback, useMemo, useState } from "react";
+import { Plus, Users } from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
+import { useHrUsers, useUpdateHourlyRate } from "@/hooks/domains/useHrQueries";
+import { useBranches } from "@/hooks/domains/useGeneralQueries";
+import { HubPageHeader } from "@/components/shared/hub-card";
+import { HubListPage } from "@/components/shared/hub-list-page";
+import { ListFilterSelect } from "@/components/shared/list-filters";
+import { BranchEmptyState } from "@/components/shared/branch-empty-state";
+import { EditCompensationModal } from "@/components/hr/EditCompensationModal";
+import { EmployeeDirectoryTable } from "@/components/hr/EmployeeDirectoryTable";
+import { ButtonLink } from "@/components/ui/button-link";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { getErrorMessage } from "@/lib/errors";
+import {
+  type EmployeeRateFilter,
+  type EmployeeRoleFilter,
+  type EmploymentTypeFilter,
+  filterEmployees,
+} from "@/lib/employee-filters";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
+import { hrSectionPanelClassName } from "@/lib/theme/hub-hr";
+import type { Branch, User } from "@/types/api";
+
+export default function EmployeesPageClient() {
+  const { user, activeBranchId } = useAuth();
+  const role = user?.role;
+  const canEditCompensation = role === "SUPER_ADMIN" || role === "MANAGER";
+  const canLinkPayroll = canEditCompensation;
+
+  const { data: branches = [] } = useBranches();
+  const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
+  const branchName = (branches as Branch[]).find((b) => b.id === branchIdNum)?.name;
+
+  const {
+    data: usersData,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useHrUsers(branchIdNum);
+  const updateHourlyRateMutation = useUpdateHourlyRate();
+
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const [roleFilter, setRoleFilter] = useState<EmployeeRoleFilter>("ALL");
+  const [employmentTypeFilter, setEmploymentTypeFilter] = useState<EmploymentTypeFilter>("ALL");
+  const [rateFilter, setRateFilter] = useState<EmployeeRateFilter>("ALL");
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [hourlyRate, setHourlyRate] = useState("");
+
+  const employees = usersData ?? [];
+
+  const filteredEmployees = useMemo(
+    () =>
+      filterEmployees(employees, {
+        search: debouncedSearch,
+        roleFilter,
+        employmentTypeFilter,
+        rateFilter,
+      }),
+    [employees, debouncedSearch, roleFilter, employmentTypeFilter, rateFilter],
+  );
+
+  const hasActiveFilters =
+    search.trim().length > 0 ||
+    roleFilter !== "ALL" ||
+    employmentTypeFilter !== "ALL" ||
+    rateFilter !== "ALL";
+
+  const handleEditRate = useCallback((record: User) => {
+    setSelectedUser(record);
+    setHourlyRate(record.hourlyRate != null && record.hourlyRate > 0 ? String(record.hourlyRate) : "");
+    setIsModalOpen(true);
+  }, []);
+
+  const handleUpdateSubmit = async () => {
+    if (!selectedUser) return;
+    const rate = Number(hourlyRate);
+    if (Number.isNaN(rate) || rate < 0) {
+      toast.error("Hourly rate is required");
+      return;
+    }
+    try {
+      await updateHourlyRateMutation.mutateAsync({ userId: selectedUser.id, hourlyRate: rate });
+      toast.success("Hourly rate updated successfully");
+      setIsModalOpen(false);
+      setSelectedUser(null);
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to update hourly rate"));
+    }
+  };
+
+  const closeModal = useCallback(() => {
+    setIsModalOpen(false);
+    setSelectedUser(null);
+  }, []);
+
+  if (!activeBranchId) {
+    return (
+      <BranchEmptyState description="Select a branch in the top bar to view the employee directory." />
+    );
+  }
+
+  return (
+    <>
+      <HubPageHeader
+        hideTitle
+        icon={Users}
+        accentHub="hr"
+        branchScope={{ branchName }}
+        actions={
+          role === "SUPER_ADMIN" ? (
+            <ButtonLink href="/organization/users" className={hubCtaClassName("hr")}>
+              <Plus className="w-4 h-4 mr-2" aria-hidden />
+              Add user
+            </ButtonLink>
+          ) : undefined
+        }
+      />
+
+      <HubListPage className={hrSectionPanelClassName()}>
+        <HubListPage.Error
+          message={isError ? getErrorMessage(error, "Failed to load employees") : undefined}
+          onRetry={() => void refetch()}
+          loading={isFetching}
+        />
+
+        <HubListPage.Toolbar
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Search name, email, role…"
+          showReset={hasActiveFilters}
+          onReset={() => {
+            setSearch("");
+            setRoleFilter("ALL");
+            setEmploymentTypeFilter("ALL");
+            setRateFilter("ALL");
+          }}
+          filters={
+            <>
+              <ListFilterSelect
+                value={roleFilter}
+                onValueChange={(value) => setRoleFilter(value as EmployeeRoleFilter)}
+                ariaLabel="Filter by role"
+                widthClassName="w-full sm:w-[180px]"
+                options={[
+                  { value: "ALL", label: "All roles" },
+                  { value: "SUPER_ADMIN", label: "Super Admin" },
+                  { value: "MANAGER", label: "Manager" },
+                  { value: "STAFF", label: "Staff" },
+                ]}
+              />
+              <ListFilterSelect
+                value={employmentTypeFilter}
+                onValueChange={(value) => setEmploymentTypeFilter(value as EmploymentTypeFilter)}
+                ariaLabel="Filter by employment type"
+                widthClassName="w-full sm:w-[180px]"
+                options={[
+                  { value: "ALL", label: "All types" },
+                  { value: "FULL_TIME", label: "Full time" },
+                  { value: "PART_TIME", label: "Part time" },
+                ]}
+              />
+              <ListFilterSelect
+                value={rateFilter}
+                onValueChange={(value) => setRateFilter(value as EmployeeRateFilter)}
+                ariaLabel="Filter by hourly rate"
+                widthClassName="w-full sm:w-[180px]"
+                options={[
+                  { value: "ALL", label: "All rates" },
+                  { value: "missing-rate", label: "Missing rate" },
+                ]}
+              />
+            </>
+          }
+        />
+
+        <HubListPage.Count
+          isLoading={isLoading}
+          isError={isError}
+          isFetching={isFetching}
+          hasActiveFilters={hasActiveFilters}
+          filteredCount={filteredEmployees.length}
+          totalCount={employees.length}
+          itemLabel="employee"
+          emptyLabel="No employees for this branch yet"
+        />
+
+        <EmployeeDirectoryTable
+          employees={filteredEmployees}
+          isLoading={isLoading}
+          hasActiveFilters={hasActiveFilters}
+          canEditCompensation={canEditCompensation}
+          canLinkPayroll={canLinkPayroll}
+          onEditRate={handleEditRate}
+        />
+      </HubListPage>
+
+      <EditCompensationModal
+        open={isModalOpen}
+        user={selectedUser}
+        hourlyRate={hourlyRate}
+        onHourlyRateChange={setHourlyRate}
+        onClose={closeModal}
+        onSubmit={() => void handleUpdateSubmit()}
+        isSubmitting={updateHourlyRateMutation.isPending}
+        canLinkPayroll={canLinkPayroll}
+      />
+    </>
+  );
+}

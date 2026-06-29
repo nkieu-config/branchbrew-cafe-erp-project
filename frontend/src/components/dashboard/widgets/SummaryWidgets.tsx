@@ -29,7 +29,7 @@ import {
   type DashboardExpiryAlert,
   type DashboardLowStockAlert,
 } from "@/lib/inventory-alerts";
-import { formatDashboardCurrency } from "./format-currency";
+import { formatDashboardCurrency } from "@/lib/format-dashboard-currency";
 import { formatDate } from "@/lib/intl-date";
 import { dashboardAlertsEmptyClass, dashboardAlertsEmptyIconClassName, dashboardAlertsEmptyTextClassName, dashboardAlertsExpiryMetaClassName, dashboardAlertsExpiryValueClassName, dashboardAlertsFooterClass, dashboardAlertsFooterLinkClass, dashboardAlertsHeaderClass, dashboardAlertsLowMetaClassName, dashboardAlertsLowValueClassName, dashboardAlertsRowClass, dashboardSkeletonClass, dashboardTrendBadgeClass, dashboardWidgetCardClass, dashboardWidgetIconSoftClass, dashboardWidgetIconSolidClass, dashboardWidgetLabelClass, dashboardWidgetTitleClass, dashboardWidgetValueClass } from "@/lib/theme/dashboard";
 import { text } from "@/lib/theme/surface";

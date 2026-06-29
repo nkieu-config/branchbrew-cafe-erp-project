@@ -4,6 +4,7 @@ import {
   matchesMenuStatusFilter,
   productHasRecipe,
   productIsActive,
+  filterMenuProducts,
 } from "./menu-product-filters";
 
 function product(overrides: Partial<Product> = {}): Product {
@@ -36,5 +37,26 @@ describe("menu-product-filters", () => {
   it("filters by status", () => {
     expect(matchesMenuStatusFilter(product(), "active")).toBe(true);
     expect(matchesMenuStatusFilter(product({ isActive: false }), "active")).toBe(false);
+  });
+
+  it("filters products by search, category, and status", () => {
+    const products = [
+      product({ id: 1, name: "Latte", category: "Coffee" }),
+      product({ id: 2, name: "Tea", category: "Tea", isActive: false }),
+    ];
+    expect(
+      filterMenuProducts(products, {
+        search: "latte",
+        categoryFilter: "ALL",
+        statusFilter: "ALL",
+      }),
+    ).toHaveLength(1);
+    expect(
+      filterMenuProducts(products, {
+        search: "",
+        categoryFilter: "Tea",
+        statusFilter: "inactive",
+      }),
+    ).toHaveLength(1);
   });
 });

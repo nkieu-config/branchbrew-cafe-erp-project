@@ -42,3 +42,32 @@ export function countPurchaseOrdersBySupplier(
   }
   return counts;
 }
+
+export function matchesSupplierSearch(supplier: Supplier, search: string): boolean {
+  if (!search) return true;
+  const haystack = [supplier.name, supplier.contactEmail ?? "", supplier.phone ?? ""]
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(search);
+}
+
+export function filterSuppliers(
+  suppliers: Supplier[],
+  options: {
+    search: string;
+    contactFilter: SupplierContactFilter;
+  },
+): Supplier[] {
+  return suppliers.filter(
+    (supplier) =>
+      matchesSupplierSearch(supplier, options.search) &&
+      matchesSupplierContactFilter(supplier, options.contactFilter),
+  );
+}
+
+export function hasSupplierFilters(options: {
+  search: string;
+  contactFilter: SupplierContactFilter;
+}): boolean {
+  return options.search.trim().length > 0 || options.contactFilter !== "ALL";
+}

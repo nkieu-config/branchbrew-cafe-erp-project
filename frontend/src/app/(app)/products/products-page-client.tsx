@@ -1,0 +1,207 @@
+"use client";
+
+import { useCallback, useMemo, useState } from "react";
+import { Coffee, Plus, ArrowRight } from "lucide-react";
+import { toast } from "sonner";
+import { useDeleteProduct } from "@/hooks/domains/useProductQueries";
+import { useProductsSummary } from "@/hooks/domains/useProductsSummary";
+import { Button } from "@/components/ui/button";
+import { ButtonLink } from "@/components/ui/button-link";
+import { ProductFormModal } from "@/components/products/ProductFormModal";
+import { MenuProductListTable } from "@/components/products/MenuProductListTable";
+import { HubPageHeader } from "@/components/shared/hub-card";
+import { HubListPage } from "@/components/shared/hub-list-page";
+import { ListFilterSelect } from "@/components/shared/list-filters";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { getErrorMessage } from "@/lib/errors";
+import {
+  extractProductCategories,
+  filterMenuProducts,
+  hasMenuProductFilters,
+  type MenuStatusFilter,
+} from "@/lib/menu-product-filters";
+import { buildProductsCostingUrl } from "@/lib/products-hub-url";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
+import { productsSectionPanelClassName } from "@/lib/theme/hub-products";
+import type { Product } from "@/types/api";
+
+export default function ProductsPageClient() {
+  const {
+    products,
+    summary,
+    isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
+  } = useProductsSummary();
+  const deleteMutation = useDeleteProduct();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
+  const [statusFilter, setStatusFilter] = useState<MenuStatusFilter>("ALL");
+
+  const categories = useMemo(() => extractProductCategories(products), [products]);
+
+  const costingUrl = useMemo(
+    () =>
+      buildProductsCostingUrl(
+        categoryFilter !== "ALL" ? { category: categoryFilter } : undefined,
+      ),
+    [categoryFilter],
+  );
+
+  const filteredProducts = useMemo(
+    () =>
+      filterMenuProducts(products, {
+        search: debouncedSearch,
+        categoryFilter,
+        statusFilter,
+      }),
+    [products, debouncedSearch, categoryFilter, statusFilter],
+  );
+
+  const hasActiveFilters = hasMenuProductFilters({
+    search,
+    categoryFilter,
+    statusFilter,
+  });
+
+  const handleEdit = useCallback((product: Product) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  }, []);
+
+  const handleAddNew = useCallback(() => {
+    setSelectedProduct(null);
+    setIsModalOpen(true);
+  }, []);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteMutation.mutateAsync(deleteTarget.id);
+      toast.success("Menu item deleted");
+      setDeleteTarget(null);
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err, "Failed to delete menu item"));
+    }
+  };
+
+  return (
+    <>
+      <HubPageHeader
+        hideTitle
+        icon={Coffee}
+        accentHub="products"
+        actions={
+          <Button onClick={handleAddNew} className={hubCtaClassName("products")}>
+            <Plus className="w-4 h-4 mr-2" aria-hidden />
+            Add Menu Item
+          </Button>
+        }
+      />
+
+      <HubListPage className={productsSectionPanelClassName()}>
+        <HubListPage.Error
+          message={isError ? getErrorMessage(error, "Failed to load menu items") : undefined}
+          onRetry={() => void refetch()}
+          loading={isFetching}
+        />
+
+        <HubListPage.Toolbar
+          search={search}
+          onSearchChange={setSearch}
+          searchPlaceholder="Search menu items…"
+          showReset={hasActiveFilters}
+          onReset={() => {
+            setSearch("");
+            setCategoryFilter("ALL");
+            setStatusFilter("ALL");
+          }}
+          filters={
+            <>
+              <ListFilterSelect
+                value={categoryFilter}
+                onValueChange={setCategoryFilter}
+                ariaLabel="Filter by category"
+                widthClassName="w-full sm:w-[200px]"
+                options={[
+                  { value: "ALL", label: "All categories" },
+                  ...categories.map((cat) => ({ value: cat, label: cat })),
+                ]}
+              />
+              <ListFilterSelect
+                value={statusFilter}
+                onValueChange={(value) => setStatusFilter(value as MenuStatusFilter)}
+                ariaLabel="Filter by status"
+                widthClassName="w-full sm:w-[180px]"
+                options={[
+                  { value: "ALL", label: "All statuses" },
+                  { value: "active", label: "Active" },
+                  { value: "inactive", label: "Inactive" },
+                ]}
+              />
+              <ButtonLink
+                href={costingUrl}
+                variant="outline"
+                className="min-h-[44px] font-medium"
+              >
+                Open in Food Cost
+                <ArrowRight className="w-4 h-4 ml-2" aria-hidden />
+              </ButtonLink>
+            </>
+          }
+        />
+
+        <HubListPage.Count
+          isLoading={isLoading}
+          isError={isError}
+          isFetching={isFetching}
+          hasActiveFilters={hasActiveFilters}
+          filteredCount={filteredProducts.length}
+          totalCount={summary.total}
+          itemLabel="menu item"
+          emptyLabel="No menu items yet"
+        />
+
+        <MenuProductListTable
+          products={filteredProducts}
+          isLoading={isLoading}
+          hasActiveFilters={hasActiveFilters}
+          onEdit={handleEdit}
+          onDelete={setDeleteTarget}
+        />
+      </HubListPage>
+
+      <ProductFormModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedProduct(null);
+        }}
+        product={selectedProduct ?? undefined}
+      />
+
+      <ConfirmDialog
+        open={deleteTarget != null}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+        title="Delete menu item?"
+        description={
+          deleteTarget
+            ? `Remove "${deleteTarget.name}" from the menu? This cannot be undone.`
+            : undefined
+        }
+        confirmLabel="Delete"
+        destructive
+        loading={deleteMutation.isPending}
+        onConfirm={handleDelete}
+      />
+    </>
+  );
+}

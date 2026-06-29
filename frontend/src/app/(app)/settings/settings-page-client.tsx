@@ -38,7 +38,7 @@ function settingsToForm(settings: Record<string, string | undefined>): Record<st
   };
 }
 
-export default function SettingsPage() {
+export default function SettingsPageClient() {
   const { data: settings, isLoading, isError, error, refetch, isFetching } = useSettings();
   const updateSettingsMutation = useUpdateSettings();
 

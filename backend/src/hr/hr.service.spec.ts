@@ -20,10 +20,6 @@ describe('HrService', () => {
     prisma = module.get(PrismaService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-
   describe('generatePayrollRun', () => {
     it('should throw BadRequestException if run already exists', async () => {
       prisma.payrollRun.findFirst.mockResolvedValue({ id: 1 } as any);

@@ -5,6 +5,8 @@ import {
   ingredientMissingCost,
   matchesIngredientCostFilter,
   matchesIngredientStatusFilter,
+  filterIngredients,
+  summarizeIngredients,
 } from "./ingredient-filters";
 
 function ing(overrides: Partial<Ingredient> = {}): Ingredient {
@@ -33,5 +35,19 @@ describe("ingredient-filters", () => {
   it("filters by status and cost", () => {
     expect(matchesIngredientStatusFilter(ing(), "active")).toBe(true);
     expect(matchesIngredientCostFilter(ing({ costPerUnit: 0 }), "missing-cost")).toBe(true);
+  });
+
+  it("summarizes and filters ingredients", () => {
+    const items = [ing(), ing({ id: 2, name: "Sugar", costPerUnit: 0, isActive: false })];
+    const summary = summarizeIngredients(items);
+    expect(summary.total).toBe(2);
+    expect(summary.missingCost).toBe(1);
+    expect(
+      filterIngredients(items, {
+        search: "milk",
+        statusFilter: "ALL",
+        costFilter: "ALL",
+      }),
+    ).toHaveLength(1);
   });
 });

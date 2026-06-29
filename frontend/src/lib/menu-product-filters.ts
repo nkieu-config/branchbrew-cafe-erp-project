@@ -17,3 +17,45 @@ export function matchesMenuStatusFilter(
   if (filter === "ALL") return true;
   return filter === "active" ? productIsActive(product) : !productIsActive(product);
 }
+
+export function matchesMenuProductSearch(product: Product, search: string): boolean {
+  if (!search) return true;
+  const haystack = [product.name, product.category, String(product.id)].join(" ").toLowerCase();
+  return haystack.includes(search);
+}
+
+export function extractProductCategories(products: Product[]): string[] {
+  const set = new Set<string>();
+  for (const product of products) {
+    if (product.category) set.add(product.category);
+  }
+  return Array.from(set).sort((a, b) => a.localeCompare(b));
+}
+
+export function filterMenuProducts(
+  products: Product[],
+  options: {
+    search: string;
+    categoryFilter: string;
+    statusFilter: MenuStatusFilter;
+  },
+): Product[] {
+  return products.filter(
+    (product) =>
+      matchesMenuProductSearch(product, options.search) &&
+      (options.categoryFilter === "ALL" || product.category === options.categoryFilter) &&
+      matchesMenuStatusFilter(product, options.statusFilter),
+  );
+}
+
+export function hasMenuProductFilters(options: {
+  search: string;
+  categoryFilter: string;
+  statusFilter: MenuStatusFilter;
+}): boolean {
+  return (
+    options.search.trim().length > 0 ||
+    options.categoryFilter !== "ALL" ||
+    options.statusFilter !== "ALL"
+  );
+}

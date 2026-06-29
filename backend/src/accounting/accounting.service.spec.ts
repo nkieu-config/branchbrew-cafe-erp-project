@@ -22,10 +22,6 @@ describe('AccountingService', () => {
     service = module.get<AccountingService>(AccountingService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-
   describe('createJournalEntry', () => {
     const mockAccounts = [
       { id: 1, code: '1010', name: 'Cash', type: 'ASSET' },

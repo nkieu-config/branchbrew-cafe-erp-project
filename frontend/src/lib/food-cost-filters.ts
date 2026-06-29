@@ -117,3 +117,77 @@ export function summarizeFoodCost(products: Product[]) {
     avgPercent: percentCount > 0 ? percentSum / percentCount : 0,
   };
 }
+
+export const TARGET_FOOD_COST_PERCENT = 30;
+
+export function foodCostStatusLabel(bucket: FoodCostBucket): string {
+  switch (bucket) {
+    case "good":
+      return "On target";
+    case "warn":
+      return "Watch";
+    case "bad":
+      return "High cost";
+    case "no-recipe":
+      return "No recipe";
+    case "no-price":
+      return "No price";
+  }
+}
+
+export function foodCostStatusTone(
+  bucket: FoodCostBucket,
+): "success" | "warning" | "danger" | "neutral" | "info" {
+  switch (bucket) {
+    case "good":
+      return "success";
+    case "warn":
+      return "warning";
+    case "bad":
+      return "danger";
+    case "no-recipe":
+      return "neutral";
+    case "no-price":
+      return "info";
+  }
+}
+
+export function matchesFoodCostSearch(product: Product, search: string): boolean {
+  if (!search) return true;
+  const haystack = [product.name, product.category ?? "", String(product.id)]
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(search);
+}
+
+export function filterFoodCostProducts(
+  products: Product[],
+  options: {
+    search: string;
+    categoryFilter: string;
+    statusFilter: FoodCostStatusFilter;
+    activeFilter: FoodCostActiveFilter;
+  },
+): Product[] {
+  return products.filter(
+    (product) =>
+      matchesFoodCostSearch(product, options.search) &&
+      (options.categoryFilter === "ALL" || product.category === options.categoryFilter) &&
+      matchesFoodCostStatusFilter(product, options.statusFilter) &&
+      matchesFoodCostActiveFilter(product, options.activeFilter),
+  );
+}
+
+export function hasFoodCostFilters(options: {
+  search: string;
+  categoryFilter: string;
+  statusFilter: FoodCostStatusFilter;
+  activeFilter: FoodCostActiveFilter;
+}): boolean {
+  return (
+    options.search.trim().length > 0 ||
+    options.categoryFilter !== "ALL" ||
+    options.statusFilter !== "ALL" ||
+    options.activeFilter !== "ALL"
+  );
+}

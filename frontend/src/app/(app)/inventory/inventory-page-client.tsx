@@ -44,7 +44,7 @@ function matchesStockFilter(level: ReturnType<typeof stockLevel>, filter: StockF
   return level === filter;
 }
 
-export default function InventoryBalancePage() {
+export default function InventoryPageClient() {
   const router = useRouter();
   const { activeBranchId, user } = useAuth();
   const role = user?.role as Role | undefined;

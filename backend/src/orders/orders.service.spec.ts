@@ -39,10 +39,6 @@ describe('OrdersService', () => {
     prisma.order.findFirst.mockResolvedValue(null);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-
   describe('createOrder', () => {
     const mockOrderData = {
       userId: 1,

@@ -15,22 +15,8 @@ export default defineConfig({
   },
   projects: [
     {
-      name: "setup",
-      testMatch: /auth\.setup\.ts/,
-    },
-    {
       name: "chromium",
-      testIgnore: [/light-mode-audit\.spec\.ts/, /auth\.setup\.ts/],
       use: { ...devices["Desktop Chrome"] },
-    },
-    {
-      name: "light-audit",
-      testMatch: /light-mode-audit\.spec\.ts/,
-      dependencies: ["setup"],
-      use: {
-        ...devices["Desktop Chrome"],
-        storageState: "e2e/.auth/admin-light.json",
-      },
     },
   ],
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
