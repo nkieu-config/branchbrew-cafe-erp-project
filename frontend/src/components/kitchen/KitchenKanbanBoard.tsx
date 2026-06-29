@@ -19,7 +19,7 @@ import type { ProductionOrder, Ingredient } from "@/types/api";
 import { formatDate } from "@/lib/intl-date";
 import { formatBaht } from "@/lib/money";
 import { hubAccentIconClass } from "@/lib/theme/hub-accent";
-import { kanbanCardClassName, kanbanCompletedCardClassName, kanbanColumnClassName, kanbanColumnHeaderClassName, kanbanMetaChipClassName, kanbanOrderBadgeClassName, productionColumnTone } from "@/lib/theme/hub-kitchen";
+import { kanbanCardClassName, kanbanCompletedCardClassName, kanbanColumnClassName, kanbanColumnHeaderClassName, kanbanMetaChipClassName, kanbanOrderBadgeClassName, kitchenKanbanBoardClassName, productionColumnTone } from "@/lib/theme/hub-kitchen";
 import { metricValueClassName } from "@/lib/theme/metric";
 import { text } from "@/lib/theme/surface";
 import { typeHeadingClassName, typeMicroClassName, typeUiLabelClassName } from "@/lib/theme/typography";
@@ -47,7 +47,7 @@ function KanbanColumn({
   const isEmpty = !children || (Array.isArray(children) && children.length === 0);
 
   return (
-    <div ref={setNodeRef} className={kanbanColumnClassName(isOver)}>
+    <div ref={setNodeRef} className={kanbanColumnClassName(isOver)} role="region" aria-label={title}>
       <div className={kanbanColumnHeaderClassName(tone)}>
         <div className="flex items-center gap-2">
           {icon}
@@ -146,7 +146,7 @@ export function KitchenKanbanBoard({
 
   return (
     <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={onDragStart} onDragEnd={onDragEnd}>
-      <div className="flex gap-4 overflow-x-auto pb-4 h-[calc(100vh-200px)]">
+      <div className={kitchenKanbanBoardClassName()}>
         <KanbanColumn
           id="PLANNED"
           title="Planned"

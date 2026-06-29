@@ -24,11 +24,19 @@ export function productionColumnTone(status: string): StatusTone {
 
 export function kanbanColumnClassName(isOver: boolean, className?: string) {
   return cn(
-    "flex flex-col min-w-[320px] max-w-[350px] flex-1 rounded-2xl border overflow-hidden transition-colors",
+    "flex flex-col min-w-[min(88vw,320px)] max-w-[350px] flex-1 shrink-0 snap-center rounded-2xl border overflow-hidden transition-colors",
     "bg-[var(--form-line-bg)]",
     isOver
       ? "border-[var(--hub-kitchen)] bg-[var(--status-warning-bg)]/30"
       : "border-[var(--table-container-border)]",
+    className,
+  );
+}
+
+export function kitchenKanbanBoardClassName(className?: string) {
+  return cn(
+    "flex flex-1 min-h-0 gap-4 overflow-x-auto snap-x snap-mandatory pb-4",
+    "min-h-[min(55dvh,520px)]",
     className,
   );
 }

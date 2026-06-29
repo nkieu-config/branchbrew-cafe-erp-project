@@ -1,6 +1,7 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/providers/ThemeToggle";
@@ -19,7 +20,7 @@ import {
   shouldShowMobileBreadcrumb,
   type BreadcrumbItem,
 } from "@/lib/navigation";
-import { isImmersiveRoute, isShellHubPage } from "@/lib/shell-routes";
+import { isShellHubPage } from "@/lib/shell-routes";
 import { breadcrumbCurrentClassName, breadcrumbLinkClassName, breadcrumbNavClassName, breadcrumbParentClassName, breadcrumbSeparatorClassName, destructiveMenuItemClassName, profileMenuPanelClassName, shellContentFrameClassName, topbarActionButtonClassName, topbarActionsRowClassName, topbarActionsDividerClassName, topbarDesktopBreadcrumbClassName, topbarMenuButtonClassName, topbarRegionClassName, topbarShellClassName, profileMenuHeaderDividerClassName } from "@/lib/theme/shell";
 import { text } from "@/lib/theme/surface";
 import { typeUiLabelClassName } from "@/lib/theme/typography";
@@ -28,13 +29,34 @@ import { cn } from "@/lib/utils";
 function ProfileMenu() {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; left: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const updateMenuPosition = useCallback(() => {
+    if (!buttonRef.current) return;
+    const rect = buttonRef.current.getBoundingClientRect();
+    const menuWidth = 224;
+    const viewportPadding = 8;
+    const left = Math.min(
+      Math.max(viewportPadding, rect.right - menuWidth),
+      window.innerWidth - menuWidth - viewportPadding,
+    );
+    setMenuPosition({
+      top: rect.bottom + 8,
+      left,
+    });
+  }, []);
 
   useEffect(() => {
     if (!open) return;
 
+    updateMenuPosition();
+
     const handlePointerDown = (event: MouseEvent) => {
-      if (containerRef.current?.contains(event.target as Node)) return;
+      const target = event.target as Node;
+      if (containerRef.current?.contains(target) || menuRef.current?.contains(target)) return;
       setOpen(false);
     };
 
@@ -42,55 +64,79 @@ function ProfileMenu() {
       if (event.key === "Escape") setOpen(false);
     };
 
+    const handleReposition = () => updateMenuPosition();
+
     document.addEventListener("mousedown", handlePointerDown);
     document.addEventListener("keydown", handleEscape);
+    window.addEventListener("resize", handleReposition);
+    window.addEventListener("scroll", handleReposition, true);
     return () => {
       document.removeEventListener("mousedown", handlePointerDown);
       document.removeEventListener("keydown", handleEscape);
+      window.removeEventListener("resize", handleReposition);
+      window.removeEventListener("scroll", handleReposition, true);
     };
-  }, [open]);
+  }, [open, updateMenuPosition]);
 
   if (!user) return null;
 
   const roleLabel = user.role.replace("_", " ");
 
+  const menu =
+    open && menuPosition
+      ? createPortal(
+          <div
+            ref={menuRef}
+            role="menu"
+            aria-label="Account"
+            className={profileMenuPanelClassName("fixed")}
+            style={{ top: menuPosition.top, left: menuPosition.left }}
+          >
+            <div className={profileMenuHeaderDividerClassName()}>
+              <p className={cn(typeUiLabelClassName("text-sm truncate"), text.primary)}>{user.name}</p>
+              <p className={cn("text-xs capitalize flex items-center gap-1", text.muted)}>
+                <User className="w-3 h-3" aria-hidden />
+                {roleLabel}
+              </p>
+            </div>
+            <button
+              type="button"
+              role="menuitem"
+              className={destructiveMenuItemClassName()}
+              onClick={() => {
+                setOpen(false);
+                void logout();
+              }}
+            >
+              <LogOut className="w-4 h-4" aria-hidden />
+              Logout
+            </button>
+          </div>,
+          document.body,
+        )
+      : null;
+
   return (
     <div className="relative" ref={containerRef}>
       <button
+        ref={buttonRef}
         type="button"
         className={topbarActionButtonClassName({ active: open })}
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label={`Account menu — ${user.name}, ${roleLabel}`}
         title="Account"
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={() => {
+          setOpen((prev) => {
+            const next = !prev;
+            if (next) updateMenuPosition();
+            return next;
+          });
+        }}
       >
         <User className="h-4 w-4" aria-hidden />
       </button>
-
-      {open && (
-        <div role="menu" aria-label="Account" className={profileMenuPanelClassName()}>
-          <div className={profileMenuHeaderDividerClassName()}>
-            <p className={cn(typeUiLabelClassName("text-sm truncate"), text.primary)}>{user.name}</p>
-            <p className={cn("text-xs capitalize flex items-center gap-1", text.muted)}>
-              <User className="w-3 h-3" aria-hidden />
-              {roleLabel}
-            </p>
-          </div>
-          <button
-            type="button"
-            role="menuitem"
-            className={destructiveMenuItemClassName()}
-            onClick={() => {
-              setOpen(false);
-              void logout();
-            }}
-          >
-            <LogOut className="w-4 h-4" aria-hidden />
-            Logout
-          </button>
-        </div>
-      )}
+      {menu}
     </div>
   );
 }
@@ -143,7 +189,6 @@ export function Topbar() {
   const { user } = useAuth();
   const { isSuperAdmin, branches, activeBranchId, setActiveBranchId } = useBranchPickerInit();
   const trail = resolveBreadcrumbTrail(pathname);
-  const immersive = isImmersiveRoute(pathname);
   const role = user?.role ?? "STAFF";
   const hub = findHubByPathname(pathname);
   const hubTabs = hub && role ? getVisibleHubTabs(hub.id, role) : [];
@@ -192,8 +237,7 @@ export function Topbar() {
           {isSuperAdmin && branches.length > 0 && (
             <div
               className={cn(
-                "absolute right-full mr-2 top-1/2 -translate-y-1/2 flex items-center max-w-[min(220px,40vw)]",
-                !immersive && "lg:hidden",
+                "absolute right-full mr-2 top-1/2 -translate-y-1/2 flex items-center max-w-[min(240px,40vw)]",
               )}
             >
               <BranchPicker

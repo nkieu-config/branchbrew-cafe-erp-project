@@ -9,7 +9,6 @@ import { Topbar } from "@/components/layout/Topbar";
 import { SocketProvider } from "@/context/SocketContext";
 import { MobileNavProvider, useMobileNav } from "@/context/MobileNavContext";
 import { SidebarBadgesProvider } from "@/context/SidebarBadgesContext";
-import { SidebarPreferencesProvider } from "@/context/SidebarPreferencesContext";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { isImmersiveRoute, isOperationalImmersiveRoute } from "@/lib/shell-routes";
 import { cn } from "@/lib/utils";
@@ -82,14 +81,14 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
         id="main-content"
         ref={mainRef}
         tabIndex={-1}
-        className="flex-1 min-w-0 h-full relative z-10 flex flex-col overflow-hidden outline-none"
+        className="flex-1 min-w-0 min-h-0 h-full relative z-10 flex flex-col outline-none"
       >
         <div className={cn(operationalImmersive && "hidden lg:block")}>
           <Topbar />
         </div>
         <div
           className={cn(
-            "flex-1 overflow-y-auto overflow-x-hidden",
+            "relative z-0 flex-1 min-h-0 overflow-y-auto overflow-x-hidden",
             mobileContentPadding,
           )}
         >
@@ -112,11 +111,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <SocketProvider>
       <MobileNavProvider>
-        <SidebarPreferencesProvider>
-          <SidebarBadgesProvider>
+        <SidebarBadgesProvider>
             <AppShellInner>{children}</AppShellInner>
           </SidebarBadgesProvider>
-        </SidebarPreferencesProvider>
       </MobileNavProvider>
     </SocketProvider>
   );

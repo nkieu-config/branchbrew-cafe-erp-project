@@ -11,11 +11,12 @@ import {
 } from "@/hooks/domains/useProductionQueries";
 import { useProductionBOMs } from "@/hooks/domains/useAccountingQueries";
 import { useIngredients } from "@/hooks/domains/useProductQueries";
-import { ChefHat, Loader2, Plus } from "lucide-react";
+import { ChefHat, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
+import { QueryLoadingPanel } from "@/components/shared/query-states";
 import { CreateProductionOrderModal } from "@/components/kitchen/CreateProductionOrderModal";
 import { CentralKitchenBranchNotice } from "@/components/kitchen/CentralKitchenBanner";
 import { Button } from "@/components/ui/button";
@@ -26,19 +27,14 @@ import type { ProductionOrderWithTarget } from "@/components/kitchen/KitchenKanb
 import { getErrorMessage } from "@/lib/errors";
 import { getBomTargetIds } from "@/lib/bom-filters";
 import { summarizeProductionOrders } from "@/lib/production-order-filters";
-import { hubCtaClassName, hubLoadingSpinnerClassName } from "@/lib/theme/hub-primitives";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { kitchenSectionPanelClassName } from "@/lib/theme/hub-kitchen";
 
 const KitchenKanbanBoard = dynamic(
   () => import("@/components/kitchen/KitchenKanbanBoard").then((m) => m.KitchenKanbanBoard),
   {
     ssr: false,
-    loading: () => (
-      <div className="py-20 flex justify-center">
-        <Loader2 className={hubLoadingSpinnerClassName()} aria-hidden />
-        <span className="sr-only">Loading production board…</span>
-      </div>
-    ),
+    loading: () => <QueryLoadingPanel message="Loading production board…" minHeightClassName="py-20" />,
   },
 );
 
@@ -142,9 +138,7 @@ export default function CentralKitchenPage() {
   const completedOrders = orders.filter((o: ProductionOrderWithTarget) => o.status === "COMPLETED");
 
   if (!activeBranchId) {
-    return (
-      <BranchEmptyState description="Use the branch selector in the top bar to manage production." />
-    );
+    return <BranchEmptyState title="Select a branch for production" />;
   }
 
   return (
@@ -189,10 +183,7 @@ export default function CentralKitchenPage() {
 
         <HubListPage.Body>
         {isLoading && orders.length === 0 ? (
-          <div className="py-20 flex justify-center">
-            <Loader2 className={hubLoadingSpinnerClassName()} aria-hidden />
-            <span className="sr-only">Loading production board…</span>
-          </div>
+          <QueryLoadingPanel message="Loading production board…" minHeightClassName="py-20" />
         ) : !isError ? (
           <KitchenKanbanBoard
             plannedOrders={plannedOrders}
