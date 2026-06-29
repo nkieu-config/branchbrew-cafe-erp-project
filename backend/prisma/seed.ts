@@ -13,6 +13,22 @@ const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
+function dateDaysAgo(days: number): Date {
+  const date = new Date();
+  date.setHours(12, 0, 0, 0);
+  date.setDate(date.getDate() - days);
+  return date;
+}
+
+function settlementDifference(
+  expected: { cash: number; card: number; qr: number },
+  actual: { cash: number; card: number; qr: number },
+): number {
+  const totalExpected = expected.cash + expected.card + expected.qr;
+  const totalActual = actual.cash + actual.card + actual.qr;
+  return Math.round((totalActual - totalExpected) * 100) / 100;
+}
+
 async function main() {
   console.log('Cleaning existing data...');
   await prisma.orderItemModifier.deleteMany();
@@ -79,7 +95,7 @@ async function main() {
     },
   });
 
-  await prisma.user.create({
+  const manager = await prisma.user.create({
     data: {
       email: 'manager@branchbrew.dev',
       name: 'Siam Manager',
@@ -324,6 +340,13 @@ async function main() {
     data: { phone: '0811111111', name: 'Demo Member', points: 120, tier: 'SILVER' },
   });
 
+  await prisma.customer.createMany({
+    data: [
+      { phone: '0822222222', name: 'Gold Member', points: 450, tier: 'GOLD' },
+      { phone: '0833333333', name: 'Walk-in Regular', points: 0, tier: 'REGULAR' },
+    ],
+  });
+
   await prisma.promotion.create({
     data: {
       code: 'WELCOME10',
@@ -450,10 +473,130 @@ async function main() {
     },
   });
 
+  // Portfolio Phase 1 — finance overview + CRM list depth
+  console.log('Seeding portfolio demo data (Phase 1)...');
+
+  const settlementYesterday = {
+    cash: { expected: 11800, actual: 11800 },
+    card: { expected: 4200, actual: 4200 },
+    qr: { expected: 2100, actual: 2100 },
+  };
+  await prisma.shiftSettlement.create({
+    data: {
+      branchId: mainBranch.id,
+      date: dateDaysAgo(1),
+      expectedCash: settlementYesterday.cash.expected,
+      actualCash: settlementYesterday.cash.actual,
+      expectedCreditCard: settlementYesterday.card.expected,
+      actualCreditCard: settlementYesterday.card.actual,
+      expectedQR: settlementYesterday.qr.expected,
+      actualQR: settlementYesterday.qr.actual,
+      difference: settlementDifference(
+        {
+          cash: settlementYesterday.cash.expected,
+          card: settlementYesterday.card.expected,
+          qr: settlementYesterday.qr.expected,
+        },
+        {
+          cash: settlementYesterday.cash.actual,
+          card: settlementYesterday.card.actual,
+          qr: settlementYesterday.qr.actual,
+        },
+      ),
+      status: 'APPROVED',
+      submittedById: manager.id,
+    },
+  });
+
+  const settlementToday = {
+    cash: { expected: 8650, actual: 8500 },
+    card: { expected: 3200, actual: 3200 },
+    qr: { expected: 1450, actual: 1450 },
+  };
+  await prisma.shiftSettlement.create({
+    data: {
+      branchId: mainBranch.id,
+      date: dateDaysAgo(0),
+      expectedCash: settlementToday.cash.expected,
+      actualCash: settlementToday.cash.actual,
+      expectedCreditCard: settlementToday.card.expected,
+      actualCreditCard: settlementToday.card.actual,
+      expectedQR: settlementToday.qr.expected,
+      actualQR: settlementToday.qr.actual,
+      difference: settlementDifference(
+        {
+          cash: settlementToday.cash.expected,
+          card: settlementToday.card.expected,
+          qr: settlementToday.qr.expected,
+        },
+        {
+          cash: settlementToday.cash.actual,
+          card: settlementToday.card.actual,
+          qr: settlementToday.qr.actual,
+        },
+      ),
+      status: 'PENDING',
+      submittedById: manager.id,
+    },
+  });
+
+  const settlementAsokRejected = {
+    cash: { expected: 5400, actual: 5100 },
+    card: { expected: 1800, actual: 1800 },
+    qr: { expected: 900, actual: 750 },
+  };
+  await prisma.shiftSettlement.create({
+    data: {
+      branchId: secondBranch.id,
+      date: dateDaysAgo(3),
+      expectedCash: settlementAsokRejected.cash.expected,
+      actualCash: settlementAsokRejected.cash.actual,
+      expectedCreditCard: settlementAsokRejected.card.expected,
+      actualCreditCard: settlementAsokRejected.card.actual,
+      expectedQR: settlementAsokRejected.qr.expected,
+      actualQR: settlementAsokRejected.qr.actual,
+      difference: settlementDifference(
+        {
+          cash: settlementAsokRejected.cash.expected,
+          card: settlementAsokRejected.card.expected,
+          qr: settlementAsokRejected.qr.expected,
+        },
+        {
+          cash: settlementAsokRejected.cash.actual,
+          card: settlementAsokRejected.card.actual,
+          qr: settlementAsokRejected.qr.actual,
+        },
+      ),
+      status: 'REJECTED',
+      submittedById: manager.id,
+    },
+  });
+
+  const expenseRows = [
+    { daysAgo: 1, branchId: mainBranch.id, amount: 450, category: 'Supplies', description: 'Napkins and stirrers' },
+    { daysAgo: 2, branchId: mainBranch.id, amount: 1200, category: 'Utilities', description: 'Electricity top-up' },
+    { daysAgo: 4, branchId: secondBranch.id, amount: 320, category: 'Cleaning', description: 'Floor detergent' },
+    { daysAgo: 5, branchId: mainBranch.id, amount: 800, category: 'Marketing', description: 'Weekend flyer printing' },
+    { daysAgo: 6, branchId: mainBranch.id, amount: 150, category: 'Misc', description: 'Courier for spare parts' },
+  ];
+  for (const row of expenseRows) {
+    await prisma.expense.create({
+      data: {
+        branchId: row.branchId,
+        amount: row.amount,
+        category: row.category,
+        description: row.description,
+        recordedById: manager.id,
+        createdAt: dateDaysAgo(row.daysAgo),
+      },
+    });
+  }
+
   console.log('Seeding completed!');
   console.log('Demo logins: admin@branchbrew.dev / manager@branchbrew.dev / staff.siam@branchbrew.dev');
   console.log('Password: password123');
-  console.log('Promo code: WELCOME10 | Member phone: 0811111111');
+  console.log('Promo code: WELCOME10 | Member phones: 0811111111, 0822222222, 0833333333');
+  console.log('Portfolio: manager → /finance/overview (1 pending settlement) | /crm/customers (3 members)');
   console.log('Central Kitchen: select "BranchBrew Central Kitchen" branch → /kitchen');
   console.log('Auto-waste demo: 250ml Oat Milk batch at Siam is past expiry (hourly cron)');
 }
