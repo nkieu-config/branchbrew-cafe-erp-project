@@ -24,7 +24,7 @@ describe("branch-storage", () => {
 
   it("prefers Siam Paragon as demo default", () => {
     const id = resolveDefaultBranchId([
-      { id: 1, name: "Qafa Central Kitchen" },
+      { id: 1, name: "BranchBrew Central Kitchen" },
       { id: 2, name: "Siam Paragon Branch" },
     ]);
     expect(id).toBe(2);

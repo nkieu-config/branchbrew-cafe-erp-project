@@ -41,7 +41,7 @@ export function SidebarRail({ onExpand, onNavigate, className }: SidebarRailProp
           href="/"
           onClick={onNavigate}
           className={sidebarBrandMarkClassName()}
-          aria-label="QafaCafe home"
+          aria-label="BranchBrew home"
         >
           <Coffee className={sidebarBrandMarkIconClassName()} aria-hidden />
         </Link>

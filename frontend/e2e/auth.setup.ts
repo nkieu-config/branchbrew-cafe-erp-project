@@ -3,7 +3,7 @@ import { dirname } from "node:path";
 import { test as setup } from "@playwright/test";
 
 const authFile = "e2e/.auth/manager.json";
-const email = process.env.E2E_EMAIL ?? "manager@qafacafe.com";
+const email = process.env.E2E_EMAIL ?? "manager@branchbrew.dev";
 const password = process.env.E2E_PASSWORD ?? "password123";
 
 setup("authenticate manager", async ({ page }) => {

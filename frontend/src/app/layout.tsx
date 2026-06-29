@@ -8,8 +8,32 @@ import QueryProvider from "@/providers/QueryProvider";
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
 
 export const metadata: Metadata = {
-  title: "QafaCafe ERP",
-  description: "Enterprise POS and Management Dashboard",
+  metadataBase: process.env.NEXT_PUBLIC_APP_URL
+    ? new URL(process.env.NEXT_PUBLIC_APP_URL)
+    : undefined,
+  title: {
+    default: "BranchBrew ERP",
+    template: "%s | BranchBrew",
+  },
+  description: "Multi-branch cafe ERP — POS, inventory, kitchen, and payroll",
+  applicationName: "BranchBrew",
+  authors: [{ name: "BranchBrew" }],
+  creator: "BranchBrew",
+  openGraph: {
+    type: "website",
+    siteName: "BranchBrew",
+    title: "BranchBrew ERP",
+    description: "Multi-branch cafe ERP — POS, inventory, kitchen, and payroll",
+  },
+  twitter: {
+    card: "summary",
+    title: "BranchBrew ERP",
+    description: "Multi-branch cafe ERP — POS, inventory, kitchen, and payroll",
+  },
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/apple-icon.svg", type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({

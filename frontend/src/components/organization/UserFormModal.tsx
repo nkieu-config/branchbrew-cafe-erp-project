@@ -162,7 +162,7 @@ export function UserFormModal({
                 autoComplete="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="somchai@qafacafe.com"
+                placeholder="somchai@branchbrew.dev"
                 className={formFieldInsetClassName()}
                 required
               />

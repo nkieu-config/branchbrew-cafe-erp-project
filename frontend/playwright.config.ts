@@ -33,6 +33,11 @@ export default defineConfig({
         storageState: authFile,
       },
     },
+    {
+      name: "flows",
+      testMatch: /-flow\.spec\.ts/,
+      use: { ...devices["Desktop Chrome"] },
+    },
   ],
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
     ? undefined

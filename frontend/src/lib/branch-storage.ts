@@ -1,4 +1,4 @@
-const ACTIVE_BRANCH_KEY = 'qafa_active_branch_id';
+const ACTIVE_BRANCH_KEY = "branchbrew_active_branch_id";
 
 export type BranchSelection = number | null | 'unset';
 

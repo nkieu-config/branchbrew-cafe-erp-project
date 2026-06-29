@@ -22,7 +22,7 @@ export const Receipt = forwardRef<
 
   const vatRate = settings?.vatRate ?? 7;
   const vatAmount = inclusiveTaxAmount(order.netTotal ?? 0, vatRate);
-  const companyName = settings?.companyName || "QAFA CAFE";
+  const companyName = settings?.companyName || "BRANCH BREW";
   const taxId = settings?.taxId || "010556XXXXXX0";
   const footer = settings?.receiptFooter || "Thank You For Visiting!";
   const date = formatDateTime(new Date());
@@ -124,7 +124,7 @@ export const Receipt = forwardRef<
           {String(order.id).padStart(10, "0")}
         </div>
         <p className={receiptEmphasisClassName("m-0")}>{footer}</p>
-        <p className={receiptMutedClassName("mt-0.5 mb-0")}>Powered by QafaCafe ERP</p>
+        <p className={receiptMutedClassName("mt-0.5 mb-0")}>Powered by BranchBrew ERP</p>
       </div>
     </div>
   );

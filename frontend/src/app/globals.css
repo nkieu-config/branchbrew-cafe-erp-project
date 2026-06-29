@@ -10,7 +10,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --font-heading: var(--font-sans);
   --color-chart-5: var(--chart-5);
   --color-chart-4: var(--chart-4);
@@ -71,7 +71,7 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* QafaCafe — Cursor-inspired warm cream + roast orange (light) */
+/* BranchBrew — warm cream + roast orange (light) */
 :root {
   --background: #f7f7f4;
   --foreground: #26251e;

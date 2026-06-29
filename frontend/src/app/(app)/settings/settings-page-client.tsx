@@ -132,7 +132,7 @@ export default function SettingsPageClient() {
                     id="settings-company-name"
                     value={formData.companyName}
                     onChange={(event) => handleChange("companyName", event.target.value)}
-                    placeholder="e.g. Qafa Cafe Co., Ltd."
+                    placeholder="e.g. BranchBrew Co., Ltd."
                     className={formFieldInsetClassName()}
                   />
                 </div>

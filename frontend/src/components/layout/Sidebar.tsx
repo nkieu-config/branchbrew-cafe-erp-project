@@ -44,7 +44,7 @@ export function Sidebar({ onNavigate, onCollapse, className }: SidebarProps) {
           <div className={cn(sidebarBrandMarkClassName(), "mr-3")} aria-hidden>
             <Coffee className={sidebarBrandMarkIconClassName()} />
           </div>
-          <span className={cn(sidebarBrandTitleClassName(), "flex-1 min-w-0 truncate")}>QafaCafe</span>
+          <span className={cn(sidebarBrandTitleClassName(), "flex-1 min-w-0 truncate")}>BranchBrew</span>
           {onCollapse && (
             <button
               type="button"

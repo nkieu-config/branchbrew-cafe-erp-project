@@ -21,6 +21,7 @@ async function main() {
   await prisma.wasteLog.deleteMany();
   await prisma.attendanceRecord.deleteMany();
   await prisma.shift.deleteMany();
+  await prisma.leaveRequest.deleteMany();
   await prisma.purchaseOrderItem.deleteMany();
   await prisma.purchaseOrder.deleteMany();
   await prisma.stockTransfer.deleteMany();
@@ -44,6 +45,10 @@ async function main() {
   await prisma.ingredient.deleteMany();
   await prisma.supplier.deleteMany();
   await prisma.systemSetting.deleteMany();
+  await prisma.payslip.deleteMany();
+  await prisma.payrollRun.deleteMany();
+  await prisma.maintenanceLog.deleteMany();
+  await prisma.equipment.deleteMany();
   await prisma.user.deleteMany();
   await prisma.branch.deleteMany();
 
@@ -59,7 +64,7 @@ async function main() {
   });
   const centralKitchen = await prisma.branch.create({
     data: {
-      name: 'Qafa Central Kitchen',
+      name: 'BranchBrew Central Kitchen',
       location: 'Bangkok',
       isCentralKitchen: true,
     },
@@ -67,7 +72,7 @@ async function main() {
 
   const admin = await prisma.user.create({
     data: {
-      email: 'admin@qafacafe.com',
+      email: 'admin@branchbrew.dev',
       name: 'Super Admin',
       password: hashedPassword,
       role: 'SUPER_ADMIN',
@@ -76,7 +81,7 @@ async function main() {
 
   await prisma.user.create({
     data: {
-      email: 'manager@qafacafe.com',
+      email: 'manager@branchbrew.dev',
       name: 'Siam Manager',
       password: hashedPassword,
       role: 'MANAGER',
@@ -86,7 +91,7 @@ async function main() {
 
   await prisma.user.create({
     data: {
-      email: 'staff.siam@qafacafe.com',
+      email: 'staff.siam@branchbrew.dev',
       name: 'Siam Cashier',
       password: hashedPassword,
       role: 'STAFF',
@@ -332,11 +337,11 @@ async function main() {
 
   await prisma.systemSetting.createMany({
     data: [
-      { key: 'company_name', value: 'QafaCafe Demo' },
+      { key: 'company_name', value: 'BranchBrew Demo' },
       { key: 'tax_id', value: '0105560000000' },
       { key: 'vat_rate', value: '7' },
       { key: 'currency', value: 'THB' },
-      { key: 'receipt_footer', value: 'Thank you for visiting QafaCafe!' },
+      { key: 'receipt_footer', value: 'Thank you for visiting BranchBrew!' },
     ],
   });
 
@@ -446,10 +451,10 @@ async function main() {
   });
 
   console.log('Seeding completed!');
-  console.log('Demo logins: admin@qafacafe.com / manager@qafacafe.com / staff.siam@qafacafe.com');
+  console.log('Demo logins: admin@branchbrew.dev / manager@branchbrew.dev / staff.siam@branchbrew.dev');
   console.log('Password: password123');
   console.log('Promo code: WELCOME10 | Member phone: 0811111111');
-  console.log('Central Kitchen: select "Qafa Central Kitchen" branch → /kitchen');
+  console.log('Central Kitchen: select "BranchBrew Central Kitchen" branch → /kitchen');
   console.log('Auto-waste demo: 250ml Oat Milk batch at Siam is past expiry (hourly cron)');
 }
 
