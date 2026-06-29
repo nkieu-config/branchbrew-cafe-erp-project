@@ -1,0 +1,41 @@
+import type { PrismaClient } from '@prisma/client';
+
+export async function cleanDatabase(prisma: PrismaClient): Promise<void> {
+  console.log('Cleaning existing data...');
+  await prisma.orderItemModifier.deleteMany();
+  await prisma.expense.deleteMany();
+  await prisma.shiftSettlement.deleteMany();
+  await prisma.wasteLog.deleteMany();
+  await prisma.attendanceRecord.deleteMany();
+  await prisma.shift.deleteMany();
+  await prisma.leaveRequest.deleteMany();
+  await prisma.purchaseOrderItem.deleteMany();
+  await prisma.purchaseOrder.deleteMany();
+  await prisma.stockTransfer.deleteMany();
+  await prisma.productionOrder.deleteMany();
+  await prisma.productionBOM.deleteMany();
+  await prisma.orderItem.deleteMany();
+  await prisma.order.deleteMany();
+  await prisma.promotion.deleteMany();
+  await prisma.customer.deleteMany();
+  await prisma.recipeItem.deleteMany();
+  await prisma.product.deleteMany();
+  await prisma.inventoryBatch.deleteMany();
+  await prisma.branchInventory.deleteMany();
+  await prisma.journalEntryLine.deleteMany();
+  await prisma.journalEntry.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.outboxEvent.deleteMany();
+  await prisma.auditLog.deleteMany();
+  await prisma.modifierOption.deleteMany();
+  await prisma.modifierGroup.deleteMany();
+  await prisma.ingredient.deleteMany();
+  await prisma.supplier.deleteMany();
+  await prisma.systemSetting.deleteMany();
+  await prisma.payslip.deleteMany();
+  await prisma.payrollRun.deleteMany();
+  await prisma.maintenanceLog.deleteMany();
+  await prisma.equipment.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.branch.deleteMany();
+}

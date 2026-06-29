@@ -7,6 +7,21 @@ import { toNum } from '../common/decimal.util';
 export class ReportsService {
   constructor(private prisma: PrismaService) {}
 
+  private startOfToday(): Date {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  }
+
+  private retailBranchIds(): Promise<number[]> {
+    return this.prisma.branch
+      .findMany({
+        where: { isCentralKitchen: false },
+        select: { id: true },
+      })
+      .then((branches) => branches.map((branch) => branch.id));
+  }
+
   async getSalesTrends(branchId?: number) {
     // Return last 7 days of sales aggregated by day
     const sevenDaysAgo = new Date();
@@ -56,16 +71,20 @@ export class ReportsService {
   }
 
   async getTopProducts(branchId?: number) {
-    // We aggregate OrderItems across orders
-    const where = branchId ? { order: { branchId } } : {};
+    const today = this.startOfToday();
 
     const items = await this.prisma.orderItem.groupBy({
       by: ['productId'],
       _sum: {
         quantity: true,
-        price: true, // This is total price if we sum (quantity * unit price) but Prisma _sum.price sums the price column
       },
-      where,
+      where: {
+        order: {
+          createdAt: { gte: today },
+          status: 'COMPLETED',
+          ...(branchId ? { branchId } : {}),
+        },
+      },
       orderBy: {
         _sum: { quantity: 'desc' },
       },
@@ -137,8 +156,7 @@ export class ReportsService {
   }
 
   async getExecutiveSummary(branchId?: number) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const today = this.startOfToday();
 
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
@@ -177,10 +195,13 @@ export class ReportsService {
       totalSales: number;
     } | null = null;
     if (!branchId) {
+      const retailBranchIds = await this.retailBranchIds();
+
       const branchSales = await this.prisma.order.groupBy({
         by: ['branchId'],
         _sum: { netAmount: true },
         where: {
+          branchId: { in: retailBranchIds },
           createdAt: { gte: today },
           status: { in: ['COMPLETED', 'PENDING', 'PREPARING'] },
         },

@@ -26,6 +26,7 @@ import {
 } from './helpers/recipe-requirements.helper';
 import { isSameCalendarDay, isTerminalOrderStatus } from './order-void.util';
 import { allocateQueueNumber } from './helpers/queue-number.helper';
+import { kdsOrderInclude } from './kds-order.include';
 import {
   applyOrderReversalEffects,
   ORDER_REVERSAL_INCLUDE,
@@ -303,8 +304,7 @@ export class OrdersService {
           },
         },
         include: {
-          items: { include: { product: true } },
-          customer: true,
+          ...kdsOrderInclude,
           promotion: true,
         },
       });
@@ -352,10 +352,7 @@ export class OrdersService {
         branchId,
         status: { in: ['PENDING', 'PREPARING'] },
       },
-      include: {
-        items: { include: { product: true } },
-        customer: true,
-      },
+      include: kdsOrderInclude,
       orderBy: { createdAt: 'asc' },
     });
   }
