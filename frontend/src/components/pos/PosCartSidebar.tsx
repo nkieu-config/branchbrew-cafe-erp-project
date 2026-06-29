@@ -29,6 +29,7 @@ import {
   posCartQtyClassName,
   posCartSectionClassName,
   posCartTitleClassName,
+  posCartTouchButtonClassName,
   posCrmMutedClassName,
   posCrmPanelClassName,
   posCrmTierBadgeClassName,
@@ -48,7 +49,30 @@ import {
   posSummaryTotalRowClassName,
 } from "@/lib/theme/immersive";
 import { text } from "@/lib/theme/surface";
+import { cn } from "@/lib/utils";
 import type { Customer, ValidatedPromotion } from "@/types/api";
+
+export type PosCartSidebarProps = {
+  cart: PosCartItem[];
+  customer: Customer | null;
+  pointsToRedeem: number;
+  onPointsToRedeemChange: (value: number) => void;
+  onFindMember: () => void;
+  onClearCustomer: () => void;
+  promoCode: string;
+  onPromoCodeChange: (value: string) => void;
+  appliedPromo: ValidatedPromotion | null;
+  onApplyPromo: () => void;
+  onClearPromo: () => void;
+  subtotal: number;
+  totalDiscount: number;
+  netTotal: number;
+  pointsEarned: number;
+  onAdjustQuantity: (cartId: string, delta: number) => void;
+  onRemoveItem: (cartId: string) => void;
+  onCheckout: () => void;
+  className?: string;
+};
 
 export function PosCartSidebar({
   cart,
@@ -69,30 +93,12 @@ export function PosCartSidebar({
   onAdjustQuantity,
   onRemoveItem,
   onCheckout,
-}: {
-  cart: PosCartItem[];
-  customer: Customer | null;
-  pointsToRedeem: number;
-  onPointsToRedeemChange: (value: number) => void;
-  onFindMember: () => void;
-  onClearCustomer: () => void;
-  promoCode: string;
-  onPromoCodeChange: (value: string) => void;
-  appliedPromo: ValidatedPromotion | null;
-  onApplyPromo: () => void;
-  onClearPromo: () => void;
-  subtotal: number;
-  totalDiscount: number;
-  netTotal: number;
-  pointsEarned: number;
-  onAdjustQuantity: (cartId: string, delta: number) => void;
-  onRemoveItem: (cartId: string) => void;
-  onCheckout: () => void;
-}) {
+  className,
+}: PosCartSidebarProps) {
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className={posCartPanelClassName("w-full lg:w-[min(420px,100%)] lg:shrink-0 flex flex-col")}>
+    <div className={posCartPanelClassName(cn("w-full lg:w-[min(420px,100%)] lg:shrink-0 flex flex-col", className))}>
       <div className={posCartHeaderClassName()}>
         <h2 className={posCartTitleClassName()}>
           <ShoppingBag size={20} className={posAccentIconClassName()} /> Current Order
@@ -124,7 +130,7 @@ export function PosCartSidebar({
                   aria-label={`Decrease ${item.product.name} quantity`}
                   variant="ghost"
                   size="sm"
-                  className="h-9 w-9 p-0 rounded-none"
+                  className={posCartTouchButtonClassName("rounded-none")}
                   onClick={() => onAdjustQuantity(item.id, -1)}
                 >
                   <Minus className="w-4 h-4" aria-hidden />
@@ -135,7 +141,7 @@ export function PosCartSidebar({
                   aria-label={`Increase ${item.product.name} quantity`}
                   variant="ghost"
                   size="sm"
-                  className="h-9 w-9 p-0 rounded-none"
+                  className={posCartTouchButtonClassName("rounded-none")}
                   onClick={() => onAdjustQuantity(item.id, 1)}
                 >
                   <Plus className="w-4 h-4" aria-hidden />
@@ -148,7 +154,7 @@ export function PosCartSidebar({
                 aria-label={`Remove ${item.product.name}`}
                 variant="ghost"
                 size="sm"
-                className={posRemoveItemClassName("h-9 w-9 p-0")}
+                className={posRemoveItemClassName(posCartTouchButtonClassName())}
                 onClick={() => onRemoveItem(item.id)}
               >
                 <X className="w-4 h-4" aria-hidden />
@@ -180,7 +186,7 @@ export function PosCartSidebar({
                 aria-label="Clear customer"
                 variant="ghost"
                 size="sm"
-                className={`absolute top-1 right-1 h-6 w-6 p-0 ${posCrmMutedClassName()}`}
+                className={cn(posCrmMutedClassName(), posCartTouchButtonClassName(), "absolute top-0 right-0")}
                 onClick={onClearCustomer}
               >
                 <X className="w-4 h-4" />
@@ -228,7 +234,7 @@ export function PosCartSidebar({
                 onChange={(e) => onPromoCodeChange(e.target.value.toUpperCase())}
                 className={posInputClassName("uppercase")}
               />
-              <Button variant="secondary" onClick={onApplyPromo}>
+              <Button variant="secondary" className="min-h-[44px]" onClick={onApplyPromo}>
                 Apply
               </Button>
             </div>
@@ -241,7 +247,7 @@ export function PosCartSidebar({
                 aria-label="Remove promotion"
                 variant="ghost"
                 size="sm"
-                className={`h-6 w-6 p-0 ${posPromoTitleClassName()}`}
+                className={cn(posPromoTitleClassName(), posCartTouchButtonClassName())}
                 onClick={onClearPromo}
               >
                 <X className="w-4 h-4" />

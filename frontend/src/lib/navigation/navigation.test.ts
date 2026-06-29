@@ -10,6 +10,7 @@ import {
   isTabActive,
   shouldShowHubSubNav,
   shouldShowMobileBreadcrumb,
+  shouldShowDesktopBreadcrumb,
   resolveBreadcrumbTrail,
   resolveHubShellTitle,
   resolveSidebarHubId,
@@ -213,6 +214,48 @@ describe("mobile breadcrumb visibility", () => {
     ).toBe(false);
     expect(
       shouldShowMobileBreadcrumb("/finance/overview", "MANAGER", { hubTabsVisible: false }),
+    ).toBe(true);
+  });
+});
+
+describe("desktop breadcrumb visibility", () => {
+  it("hides on dashboard", () => {
+    expect(shouldShowDesktopBreadcrumb("/", "MANAGER", resolveBreadcrumbTrail("/"))).toBe(false);
+  });
+
+  it("hides on hub roots with sidebar sub-nav", () => {
+    expect(
+      shouldShowDesktopBreadcrumb(
+        "/inventory",
+        "MANAGER",
+        resolveBreadcrumbTrail("/inventory"),
+      ),
+    ).toBe(false);
+  });
+
+  it("shows on multi-segment hub tabs and nested routes", () => {
+    expect(
+      shouldShowDesktopBreadcrumb(
+        "/finance/overview",
+        "MANAGER",
+        resolveBreadcrumbTrail("/finance/overview"),
+      ),
+    ).toBe(true);
+    expect(
+      shouldShowDesktopBreadcrumb(
+        "/inventory/batches/lot-42",
+        "MANAGER",
+        resolveBreadcrumbTrail("/inventory/batches/lot-42"),
+      ),
+    ).toBe(true);
+  });
+
+  it("shows on single-tab hubs and non-hub sidebar items", () => {
+    expect(
+      shouldShowDesktopBreadcrumb("/assets", "MANAGER", resolveBreadcrumbTrail("/assets")),
+    ).toBe(true);
+    expect(
+      shouldShowDesktopBreadcrumb("/kds", "STAFF", resolveBreadcrumbTrail("/kds")),
     ).toBe(true);
   });
 });

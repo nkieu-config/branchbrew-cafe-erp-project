@@ -14,12 +14,13 @@ import {
   findHubByPathname,
   getVisibleHubTabs,
   resolveBreadcrumbTrail,
+  shouldShowDesktopBreadcrumb,
   shouldShowHubSubNav,
   shouldShowMobileBreadcrumb,
   type BreadcrumbItem,
 } from "@/lib/navigation";
 import { isImmersiveRoute, isShellHubPage } from "@/lib/shell-routes";
-import { breadcrumbCurrentClassName, breadcrumbLinkClassName, breadcrumbNavClassName, breadcrumbParentClassName, breadcrumbSeparatorClassName, destructiveMenuItemClassName, profileMenuPanelClassName, shellContentFrameClassName, topbarActionButtonClassName, topbarActionsRowClassName, topbarActionsDividerClassName, topbarMenuButtonClassName, topbarRegionClassName, topbarShellClassName, profileMenuHeaderDividerClassName } from "@/lib/theme/shell";
+import { breadcrumbCurrentClassName, breadcrumbLinkClassName, breadcrumbNavClassName, breadcrumbParentClassName, breadcrumbSeparatorClassName, destructiveMenuItemClassName, profileMenuPanelClassName, shellContentFrameClassName, topbarActionButtonClassName, topbarActionsRowClassName, topbarActionsDividerClassName, topbarDesktopBreadcrumbClassName, topbarMenuButtonClassName, topbarRegionClassName, topbarShellClassName, profileMenuHeaderDividerClassName } from "@/lib/theme/shell";
 import { text } from "@/lib/theme/surface";
 import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
@@ -153,6 +154,7 @@ export function Topbar() {
   const showMobileBreadcrumb = shouldShowMobileBreadcrumb(pathname, role, {
     hubTabsVisible,
   });
+  const showDesktopBreadcrumb = shouldShowDesktopBreadcrumb(pathname, role, trail);
 
   return (
     <div className={topbarRegionClassName()}>
@@ -167,7 +169,8 @@ export function Topbar() {
             type="button"
             className={topbarMenuButtonClassName()}
             onClick={toggle}
-            aria-label="Open navigation menu"
+            aria-expanded={mobileNavOpen}
+            aria-label={mobileNavOpen ? "Close navigation menu" : "Open navigation menu"}
           >
             <Menu className="h-4 w-4" aria-hidden />
           </button>
@@ -177,6 +180,10 @@ export function Topbar() {
               items={trail}
               className={cn(breadcrumbNavClassName(), "lg:hidden min-w-0")}
             />
+          )}
+
+          {showDesktopBreadcrumb && (
+            <BreadcrumbTrail items={trail} className={topbarDesktopBreadcrumbClassName()} />
           )}
         </div>
 

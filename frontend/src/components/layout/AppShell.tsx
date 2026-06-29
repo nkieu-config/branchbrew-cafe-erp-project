@@ -84,7 +84,9 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
         tabIndex={-1}
         className="flex-1 min-w-0 h-full relative z-10 flex flex-col overflow-hidden outline-none"
       >
-        <Topbar />
+        <div className={cn(operationalImmersive && "hidden lg:block")}>
+          <Topbar />
+        </div>
         <div
           className={cn(
             "flex-1 overflow-y-auto overflow-x-hidden",

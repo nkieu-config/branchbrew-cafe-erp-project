@@ -52,7 +52,7 @@ export function PosProductCatalog({
   onProductClick: (product: Product) => void;
 }) {
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto pr-0 lg:pr-2 pb-10 space-y-4">
+    <div className="flex-1 min-h-0 overflow-y-auto pr-0 lg:pr-2 pb-[calc(7.5rem+env(safe-area-inset-bottom,0px))] lg:pb-10 space-y-4">
       <HubListPage.Error
         message={
           productsError ? getErrorMessage(productsErr, "Failed to load menu items") : undefined

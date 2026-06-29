@@ -76,14 +76,14 @@ export function KdsImmersiveHeader({
               allBranches={activeBranchId == null}
             />
           </div>
-          <p className={cn("text-sm", text.muted)}>Real-time order queue for this branch.</p>
+          <p className={cn("text-sm hidden sm:block", text.muted)}>Real-time order queue for this branch.</p>
         </div>
         <KdsConnectionBadge isConnected={isConnected} />
       </div>
 
       {!isLoading && (
         <div
-          className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm pt-2"
+          className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs sm:text-sm pt-1 sm:pt-2"
           aria-live="polite"
           aria-atomic="true"
         >

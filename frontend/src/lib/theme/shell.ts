@@ -89,13 +89,13 @@ export function topbarClockSlotClassName(className?: string) {
   return cn("inline-flex items-center justify-center shrink-0 min-w-9", className);
 }
 
-/** 36×36 icon control — matches sidebar icon buttons, sized for dense toolbar. */
+/** 44×44 icon control — matches sidebar touch targets. */
 export function topbarIconButtonClassName(
   options: { active?: boolean; className?: string } = {},
 ) {
   return cn(
     "inline-flex items-center justify-center",
-    "h-9 w-9 min-h-[36px] min-w-[36px] shrink-0 rounded-lg border border-transparent",
+    "h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 rounded-lg border border-transparent",
     "text-[var(--topbar-action-fg)] transition-colors",
     "hover:bg-[var(--topbar-action-hover)] hover:text-[var(--foreground)]",
     focusRing,
@@ -118,7 +118,7 @@ export function topbarMenuButtonClassName(className?: string) {
 export function topbarPrimaryActionClassName(className?: string) {
   return cn(
     "inline-flex items-center justify-center gap-1.5 shrink-0 rounded-lg border border-transparent",
-    "h-9 min-h-[36px] px-2.5 text-sm font-semibold shadow-sm transition-colors",
+    "h-11 min-h-[44px] px-3 text-sm font-semibold shadow-sm transition-colors",
     "bg-[var(--brand-solid)] text-[var(--on-brand-solid-fg)]",
     "hover:opacity-90",
     focusRing,
@@ -286,6 +286,14 @@ export function sidebarBrandTitleClassName() {
   );
 }
 
+export function sidebarBrandLinkClassName(className?: string) {
+  return cn(
+    "flex items-center min-w-0 flex-1 gap-3 rounded-lg transition-opacity hover:opacity-90",
+    focusRing,
+    className,
+  );
+}
+
 export function sidebarBrandMarkClassName(className?: string) {
   return cn(
     "w-8 h-8 rounded-lg flex items-center justify-center shadow-sm",
@@ -375,7 +383,7 @@ export function sidebarLogoutButtonClassName(className?: string) {
 
 export function topbarBranchPickerClassName(className?: string) {
   return cn(
-    "flex items-center gap-2 rounded-xl px-2 py-1 shadow-sm min-h-[36px] border",
+    "flex items-center gap-2 rounded-xl px-2 py-1 shadow-sm min-h-[44px] border",
     "bg-[var(--topbar-picker-bg)] border-[var(--topbar-picker-border)]",
     className,
   );

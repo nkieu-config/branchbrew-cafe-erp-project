@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Coffee, ChevronDown, PanelLeftClose } from "lucide-react";
 import { BranchPicker } from "@/components/shared/branch-picker";
@@ -10,7 +11,7 @@ import { useSidebarExpandedGroups } from "@/hooks/useSidebarExpandedGroups";
 import { useSidebarNavBadges } from "@/hooks/useSidebarNavBadges";
 import { useSidebarPinnedItems } from "@/hooks/useSidebarPinnedItems";
 import { FLAT_SIDEBAR_ITEMS, SIDEBAR_GROUPS } from "@/lib/navigation";
-import { sidebarBrandTitleClassName, sidebarBrandMarkClassName, sidebarBrandMarkIconClassName, sidebarGroupButtonClassName, sidebarIconButtonClassName, sidebarPinnedLabelClassName, sidebarRootClassName, shell, shellHeaderInsetClassName } from "@/lib/theme/shell";
+import { sidebarBrandLinkClassName, sidebarBrandTitleClassName, sidebarBrandMarkClassName, sidebarBrandMarkIconClassName, sidebarGroupButtonClassName, sidebarIconButtonClassName, sidebarPinnedLabelClassName, sidebarRootClassName, shell, shellHeaderInsetClassName } from "@/lib/theme/shell";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types/api";
 
@@ -40,11 +41,18 @@ export function Sidebar({ onNavigate, onCollapse, className }: SidebarProps) {
   return (
     <div className={sidebarRootClassName(className)}>
       <div className={cn("shrink-0 border-b", shell.sidebarDivider, shellHeaderInsetClassName())}>
-        <div className="h-14 md:h-16 flex items-center px-4">
-          <div className={cn(sidebarBrandMarkClassName(), "mr-3")} aria-hidden>
-            <Coffee className={sidebarBrandMarkIconClassName()} />
-          </div>
-          <span className={cn(sidebarBrandTitleClassName(), "flex-1 min-w-0 truncate")}>BranchBrew</span>
+        <div className="h-14 md:h-16 flex items-center gap-2 px-4">
+          <Link
+            href="/"
+            onClick={onNavigate}
+            className={sidebarBrandLinkClassName()}
+            aria-label="BranchBrew home"
+          >
+            <div className={sidebarBrandMarkClassName()} aria-hidden>
+              <Coffee className={sidebarBrandMarkIconClassName()} />
+            </div>
+            <span className={cn(sidebarBrandTitleClassName(), "min-w-0 truncate")}>BranchBrew</span>
+          </Link>
           {onCollapse && (
             <button
               type="button"

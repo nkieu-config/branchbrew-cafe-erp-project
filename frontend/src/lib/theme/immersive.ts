@@ -50,6 +50,20 @@ export function posCartPanelClassName(className?: string) {
   );
 }
 
+/** Sticky cart summary above POS bottom nav on mobile. */
+export function posMobileCartBarClassName(className?: string) {
+  return cn(
+    "fixed inset-x-0 z-40 flex items-center gap-2 border-t px-3 py-2 lg:hidden",
+    "bottom-[calc(3.5rem+env(safe-area-inset-bottom,0px))]",
+    "bg-[var(--pos-panel-bg)] border-[var(--pos-panel-border)] shadow-[var(--shadow-lg)]",
+    className,
+  );
+}
+
+export function posCartTouchButtonClassName(className?: string) {
+  return cn("h-11 w-11 min-h-[44px] min-w-[44px] p-0", className);
+}
+
 export function posFormPanelClassName(className?: string) {
   return cn(
     "p-6 rounded-2xl flex flex-col gap-6",
@@ -421,7 +435,7 @@ export function kdsTicketGridClassName(className?: string) {
 
 export function kdsTicketClassName(urgency: KdsTicketUrgency, className?: string) {
   return cn(
-    "w-full min-h-[420px] max-h-[min(85vh,720px)] lg:min-h-[min(70vh,520px)] rounded-2xl shadow-xl border-4 overflow-hidden flex flex-col",
+    "w-full min-h-[min(320px,52dvh)] sm:min-h-[420px] max-h-[min(85vh,720px)] lg:min-h-[min(70vh,520px)] rounded-2xl shadow-xl border-4 overflow-hidden flex flex-col",
     "bg-[var(--kds-ticket-bg)] transition-[border-color,box-shadow] duration-150 motion-reduce:transition-none",
     kdsTicketBorder[urgency],
     className,
@@ -478,7 +492,7 @@ export function kdsTimerChipClassName(className?: string) {
 
 export function kdsImmersiveHeaderClassName(className?: string) {
   return cn(
-    "shrink-0 space-y-1 pb-3 border-b mb-4",
+    "shrink-0 space-y-0.5 sm:space-y-1 pb-2 sm:pb-3 border-b mb-2 sm:mb-4",
     "border-[var(--kds-ticket-divider)]",
     className,
   );
@@ -529,7 +543,7 @@ export function posCartEmptyIconClassName(className?: string) {
 
 export function posImmersiveHeaderClassName(className?: string) {
   return cn(
-    "shrink-0 space-y-1 pb-3 border-b mb-4",
+    "shrink-0 space-y-0.5 sm:space-y-1 pb-2 sm:pb-3 border-b mb-2 sm:mb-4",
     "border-[var(--pos-panel-border)]",
     className,
   );

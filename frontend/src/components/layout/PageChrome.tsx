@@ -128,7 +128,7 @@ export function PageChrome({
 
   const actionSlot =
     mergedScope || mergedActions ? (
-      <div className="flex flex-wrap items-center gap-2 shrink-0">
+      <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto">
         {mergedScope && (
           <BranchScopeIndicator
             branchName={mergedScope.branchName}
@@ -142,8 +142,8 @@ export function PageChrome({
   return (
     <div className={cn("w-full space-y-4 lg:space-y-5 h-full flex flex-col", className)}>
       <div className="space-y-1">
-        <div className="flex shrink-0 items-center justify-between gap-3">
-          <h1 className={shellPageTitleClassName()}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
+          <h1 className={cn(shellPageTitleClassName(), "min-w-0 flex-1")}>
             <Icon className={cn("w-6 h-6 shrink-0", iconClassName)} aria-hidden />
             <span className="truncate">{title}</span>
           </h1>

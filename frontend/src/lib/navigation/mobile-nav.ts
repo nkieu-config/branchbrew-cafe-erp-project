@@ -6,7 +6,9 @@ import {
   Receipt,
   Menu,
 } from "lucide-react";
-import type { MobileBottomNavItem, NavRole } from "./types";
+import { findHubByPathname, getVisibleHubTabs, shouldShowHubSubNav } from "./hub-utils";
+import { findActiveSidebarItem, resolveSidebarHubId } from "./sidebar";
+import type { BreadcrumbItem, MobileBottomNavItem, NavRole } from "./types";
 
 export const MOBILE_BOTTOM_NAV_ITEMS: MobileBottomNavItem[] = [
   {
@@ -91,6 +93,29 @@ export function shouldShowMobileBreadcrumb(
   if (options.hubTabsVisible) return false;
   if (isMobileBottomNavPathCovered(pathname, role)) return false;
   return true;
+}
+
+/** Whether the topbar should show the desktop breadcrumb trail (lg+). */
+export function shouldShowDesktopBreadcrumb(
+  pathname: string,
+  role: string,
+  trail: BreadcrumbItem[],
+): boolean {
+  if (pathname === "/") return false;
+  if (trail.length > 1) return true;
+
+  const hub = findHubByPathname(pathname);
+  if (hub) {
+    const tabs = getVisibleHubTabs(hub.id, role);
+    return !shouldShowHubSubNav(tabs, hub.basePath);
+  }
+
+  const activeItem = findActiveSidebarItem(pathname);
+  if (activeItem && resolveSidebarHubId(activeItem.id)) {
+    return false;
+  }
+
+  return trail.length === 1;
 }
 
 /** Maps mobile bottom-nav item ids to sidebar badge keys. */

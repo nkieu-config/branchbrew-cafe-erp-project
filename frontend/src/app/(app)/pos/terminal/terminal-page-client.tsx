@@ -15,6 +15,7 @@ import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { useAuth } from "@/context/AuthContext";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { PosCartSidebar } from "@/components/pos/PosCartSidebar";
+import { PosMobileCart } from "@/components/pos/PosMobileCart";
 import { PosCheckoutDialog } from "@/components/pos/PosCheckoutDialog";
 import { PosCustomerLookupDialog } from "@/components/pos/PosCustomerLookupDialog";
 import { PosModifierDialog } from "@/components/pos/PosModifierDialog";
@@ -310,6 +311,27 @@ export default function PosTerminalPageClient() {
     );
   }
 
+  const cartProps = {
+    cart,
+    customer,
+    pointsToRedeem,
+    onPointsToRedeemChange: setPointsToRedeem,
+    onFindMember: () => setShowNumpad(true),
+    onClearCustomer: handleClearCRM,
+    promoCode,
+    onPromoCodeChange: setPromoCode,
+    appliedPromo,
+    onApplyPromo: () => void handleApplyPromo(),
+    onClearPromo: () => setAppliedPromo(null),
+    subtotal,
+    totalDiscount,
+    netTotal,
+    pointsEarned,
+    onAdjustQuantity: adjustCartQuantity,
+    onRemoveItem: removeFromCart,
+    onCheckout: () => setShowCheckout(true),
+  };
+
   return (
     <div className="flex h-full flex-col lg:flex-row gap-4 lg:gap-6 w-full min-h-0">
       <PosProductCatalog
@@ -328,26 +350,11 @@ export default function PosTerminalPageClient() {
         onProductClick={handleProductClick}
       />
 
-      <PosCartSidebar
-        cart={cart}
-        customer={customer}
-        pointsToRedeem={pointsToRedeem}
-        onPointsToRedeemChange={setPointsToRedeem}
-        onFindMember={() => setShowNumpad(true)}
-        onClearCustomer={handleClearCRM}
-        promoCode={promoCode}
-        onPromoCodeChange={setPromoCode}
-        appliedPromo={appliedPromo}
-        onApplyPromo={() => void handleApplyPromo()}
-        onClearPromo={() => setAppliedPromo(null)}
-        subtotal={subtotal}
-        totalDiscount={totalDiscount}
-        netTotal={netTotal}
-        pointsEarned={pointsEarned}
-        onAdjustQuantity={adjustCartQuantity}
-        onRemoveItem={removeFromCart}
-        onCheckout={() => setShowCheckout(true)}
-      />
+      <div className="hidden lg:flex lg:shrink-0">
+        <PosCartSidebar {...cartProps} />
+      </div>
+
+      <PosMobileCart {...cartProps} />
 
       <PosCheckoutDialog
         open={showCheckout}

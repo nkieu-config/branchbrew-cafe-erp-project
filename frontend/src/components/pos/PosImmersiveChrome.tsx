@@ -51,7 +51,7 @@ export function PosImmersiveHeader() {
           allBranches={activeBranchId == null}
         />
       </div>
-      <p className={cn("text-sm", text.muted)}>{resolvePosPageDescription(pathname)}</p>
+      <p className={cn("text-sm hidden sm:block", text.muted)}>{resolvePosPageDescription(pathname)}</p>
     </header>
   );
 }

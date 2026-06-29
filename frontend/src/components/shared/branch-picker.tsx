@@ -62,8 +62,8 @@ export function BranchPicker({
           aria-label="Select branch"
           className={selectFocusClassName(
             isSidebar
-              ? "h-9 min-h-[36px] border-0 bg-transparent shadow-none w-full text-xs font-medium"
-              : "h-9 min-h-[36px] border-0 bg-transparent shadow-none max-w-[140px] sm:max-w-[220px]",
+              ? "h-11 min-h-[44px] border-0 bg-transparent shadow-none w-full text-xs font-medium"
+              : "h-11 min-h-[44px] border-0 bg-transparent shadow-none max-w-[140px] sm:max-w-[220px]",
           )}
         >
           <SelectValue placeholder="Select branch" />
