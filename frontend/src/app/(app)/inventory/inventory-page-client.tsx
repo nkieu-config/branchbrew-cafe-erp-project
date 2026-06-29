@@ -17,16 +17,11 @@ import { TableActionButton } from "@/components/shared/table-action-button";
 import { ButtonLink } from "@/components/ui/button-link";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { getErrorMessage } from "@/lib/errors";
-import {
-  hubCtaClassName,
-  hubListDataTableProps,
-  inventorySectionPanelClassName,
-  stockLevel,
-  stockLevelLabel,
-  stockLevelStatusTone,
-  tableCellMutedClassName,
-  text,
-} from "@/lib/theme";
+import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { tableCellMutedClassName } from "@/lib/theme/feedback";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
+import { inventorySectionPanelClassName, stockLevel, stockLevelLabel, stockLevelStatusTone } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
 
 import type { BranchInventory, Branch, Ingredient, Role } from "@/types/api";

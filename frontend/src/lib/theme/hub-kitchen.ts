@@ -3,6 +3,12 @@ import type { StatusTone } from "./status";
 import { statusToneClassName } from "./status";
 import { text } from "./surface";
 
+export {
+  kitchenDialogContentClassName,
+  kitchenMetaBadgeClassName,
+  kitchenSectionPanelClassName,
+} from "./hub-section-aliases";
+
 export function productionColumnTone(status: string): StatusTone {
   switch (status) {
     case "PLANNED":

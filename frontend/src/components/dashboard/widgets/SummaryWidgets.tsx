@@ -31,32 +31,9 @@ import {
 } from "@/lib/inventory-alerts";
 import { formatDashboardCurrency } from "./format-currency";
 import { formatDate } from "@/lib/intl-date";
-import {
-  dashboardAlertsEmptyClass,
-  dashboardAlertsEmptyIconClassName,
-  dashboardAlertsEmptyTextClassName,
-  dashboardAlertsExpiryMetaClassName,
-  dashboardAlertsExpiryValueClassName,
-  dashboardAlertsFooterClass,
-  dashboardAlertsFooterLinkClass,
-  dashboardAlertsHeaderClass,
-  dashboardAlertsLowMetaClassName,
-  dashboardAlertsLowValueClassName,
-  dashboardAlertsRowClass,
-  dashboardSkeletonClass,
-  dashboardTrendBadgeClass,
-  dashboardWidgetCardClass,
-  dashboardWidgetIconSoftClass,
-  dashboardWidgetIconSolidClass,
-  dashboardWidgetLabelClass,
-  dashboardWidgetTitleClass,
-  dashboardWidgetValueClass,
-  typeHeadingClassName,
-  typeMetricClassName,
-  typeSectionLabelClassName,
-  typeUiLabelClassName,
-  text,
-} from "@/lib/theme";
+import { dashboardAlertsEmptyClass, dashboardAlertsEmptyIconClassName, dashboardAlertsEmptyTextClassName, dashboardAlertsExpiryMetaClassName, dashboardAlertsExpiryValueClassName, dashboardAlertsFooterClass, dashboardAlertsFooterLinkClass, dashboardAlertsHeaderClass, dashboardAlertsLowMetaClassName, dashboardAlertsLowValueClassName, dashboardAlertsRowClass, dashboardSkeletonClass, dashboardTrendBadgeClass, dashboardWidgetCardClass, dashboardWidgetIconSoftClass, dashboardWidgetIconSolidClass, dashboardWidgetLabelClass, dashboardWidgetTitleClass, dashboardWidgetValueClass } from "@/lib/theme/dashboard";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName, typeMetricClassName, typeSectionLabelClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import { API_ENDPOINTS } from "@/lib/endpoints";
 import { fetchAPI } from "@/lib/api";

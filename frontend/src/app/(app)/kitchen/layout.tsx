@@ -1,7 +1,7 @@
 "use client";
 
 import { HubShell } from "@/components/layout/HubShell";
-import { RoleGuard } from "@/components/RoleGuard";
+import { RoleGuard } from "@/components/auth/RoleGuard";
 import { AccessDeniedState } from "@/components/shared/access-denied-state";
 
 export default function KitchenLayout({ children }: { children: React.ReactNode }) {

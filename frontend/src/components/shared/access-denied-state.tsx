@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { ShieldOff } from "lucide-react";
-import { surface, text, typeUiLabelClassName, accessDeniedIconClassName } from "@/lib/theme";
+import { accessDeniedIconClassName } from "@/lib/theme/color-helpers";
+import { surface, text } from "@/lib/theme/surface";
+import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type AccessDeniedStateProps = {

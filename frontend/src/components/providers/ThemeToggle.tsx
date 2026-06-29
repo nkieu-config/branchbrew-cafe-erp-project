@@ -2,7 +2,7 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { topbarActionButtonClassName } from "@/lib/theme";
+import { topbarActionButtonClassName } from "@/lib/theme/shell";
 import { cn } from "@/lib/utils";
 
 type ThemeToggleProps = {

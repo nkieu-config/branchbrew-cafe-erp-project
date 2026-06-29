@@ -6,13 +6,9 @@ import { useActiveClockIn, useClockIn, useClockOut } from "@/hooks/domains/useHr
 import { Clock, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errors";
-import {
-  topbarActionButtonClassName,
-  topbarClockWidgetClassName,
-  topbarPrimaryActionClassName,
-  surfaceInsetSkeletonClassName,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { surfaceInsetSkeletonClassName } from "@/lib/theme/color-helpers";
+import { topbarActionButtonClassName, topbarClockWidgetClassName, topbarPrimaryActionClassName } from "@/lib/theme/shell";
+import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type ClockInOutWidgetProps = {

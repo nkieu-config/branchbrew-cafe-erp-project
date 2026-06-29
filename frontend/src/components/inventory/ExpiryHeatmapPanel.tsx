@@ -7,23 +7,9 @@ import { CalendarDays, AlertCircle } from "lucide-react";
 import { differenceInDays } from "date-fns";
 import { formatIsoDate } from "@/lib/intl-date";
 import { isTrackableBatch } from "@/lib/inventory-alerts";
-import {
-  expiryCalendarShellClassName,
-  expiryCalendarFrameClassName,
-  expiryCellClassName,
-  expiryHeatmapHeaderClassName,
-  expiryHeatmapHeaderIconClassName,
-  expiryHeatmapPanelClassName,
-  expiryHeatmapPopoverClassName,
-  expiryLegendDotClassName,
-  expiryPopoverQtyClassName,
-  expiryUrgency,
-  typeHeadingClassName,
-  typeMicroClassName,
-  typeSectionLabelClassName,
-  typeUiLabelClassName,
-  text,
-} from "@/lib/theme";
+import { expiryCalendarShellClassName, expiryCalendarFrameClassName, expiryCellClassName, expiryHeatmapHeaderClassName, expiryHeatmapHeaderIconClassName, expiryHeatmapPanelClassName, expiryHeatmapPopoverClassName, expiryLegendDotClassName, expiryPopoverQtyClassName, expiryUrgency } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName, typeMicroClassName, typeSectionLabelClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { Dayjs } from "dayjs";
 import type { InventoryBatch, Ingredient, PurchaseOrder, Supplier } from "@/types/api";

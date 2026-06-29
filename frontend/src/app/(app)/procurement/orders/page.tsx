@@ -66,28 +66,16 @@ import {
   type POStatusFilter,
 } from "@/lib/purchase-order-filters";
 import type { Branch, PurchaseOrder, PurchaseOrderItem, Supplier } from "@/types/api";
-import {
-  expandedRowPanelClassName,
-  formFieldInsetClassName,
-  formLineDateFieldClassName,
-  hubCtaClassName,
-  hubListDataTableProps,
-  infoBannerClassName,
-  infoBannerIconClassName,
-  infoBannerTextClassName,
-  infoBannerTitleClassName,
-  inlineLinkClassName,
-  metricValueClassName,
-  procurementMetaBadgeClassName,
-  procurementSectionPanelClassName,
-  procurementDialogContentClassName,
-  receiveLineClassName,
-  tableActionAccentClassName,
-  tableCellMutedClassName,
-  text,
-  typeHeadingClassName,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { tableCellMutedClassName } from "@/lib/theme/feedback";
+import { infoBannerClassName, infoBannerIconClassName, infoBannerTextClassName, infoBannerTitleClassName } from "@/lib/theme/hub-banners";
+import { expandedRowPanelClassName, hubCtaClassName, inlineLinkClassName, tableActionAccentClassName } from "@/lib/theme/hub-primitives";
+import { receiveLineClassName } from "@/lib/theme/hub-procurement";
+import { procurementMetaBadgeClassName, procurementSectionPanelClassName, procurementDialogContentClassName } from "@/lib/theme/hub-procurement";
+import { metricValueClassName } from "@/lib/theme/metric";
+import { formFieldInsetClassName, formLineDateFieldClassName } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 export default function ProcurementOrdersPage() {

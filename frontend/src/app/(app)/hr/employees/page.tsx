@@ -30,19 +30,14 @@ import {
   filterEmployees,
 } from "@/lib/employee-filters";
 import { buildHrPayrollUrl } from "@/lib/hr-hub-url";
-import {
-  expandedRowPanelClassName,
-  hrAvatarClassName,
-  hrSectionPanelClassName,
-  hubCtaClassName,
-  hubListDataTableProps,
-  inlineLinkClassName,
-  metricValueClassName,
-  tableActionAccentClassName,
-  tableCellMutedClassName,
-  text,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { tableCellMutedClassName } from "@/lib/theme/feedback";
+import { hrAvatarClassName } from "@/lib/theme/hub-hr";
+import { expandedRowPanelClassName, hubCtaClassName, inlineLinkClassName, tableActionAccentClassName } from "@/lib/theme/hub-primitives";
+import { hrSectionPanelClassName } from "@/lib/theme/hub-hr";
+import { metricValueClassName } from "@/lib/theme/metric";
+import { text } from "@/lib/theme/surface";
+import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 export default function EmployeeDirectoryPage() {

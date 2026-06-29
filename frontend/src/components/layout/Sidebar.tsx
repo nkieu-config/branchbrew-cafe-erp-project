@@ -10,17 +10,7 @@ import { useSidebarExpandedGroups } from "@/hooks/useSidebarExpandedGroups";
 import { useSidebarNavBadges } from "@/hooks/useSidebarNavBadges";
 import { useSidebarPinnedItems } from "@/hooks/useSidebarPinnedItems";
 import { FLAT_SIDEBAR_ITEMS, SIDEBAR_GROUPS } from "@/lib/navigation";
-import {
-  sidebarBrandTitleClassName,
-  sidebarBrandMarkClassName,
-  sidebarBrandMarkIconClassName,
-  sidebarGroupButtonClassName,
-  sidebarIconButtonClassName,
-  sidebarPinnedLabelClassName,
-  sidebarRootClassName,
-  shell,
-  shellHeaderInsetClassName,
-} from "@/lib/theme";
+import { sidebarBrandTitleClassName, sidebarBrandMarkClassName, sidebarBrandMarkIconClassName, sidebarGroupButtonClassName, sidebarIconButtonClassName, sidebarPinnedLabelClassName, sidebarRootClassName, shell, shellHeaderInsetClassName } from "@/lib/theme/shell";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types/api";
 

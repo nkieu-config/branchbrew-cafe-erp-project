@@ -26,57 +26,9 @@ import { toNumber, formatBaht } from "@/lib/money";
 import { formatQueueNumber } from "@/lib/queue";
 import { parseVatRatePercent } from "@/lib/vat";
 import type { Customer, ValidatedPromotion, ReceiptOrder, ModifierGroup } from "@/types/api";
-import {
-  posProductCardClassName,
-  posPriceClassName,
-  posAddButtonClassName,
-  posCartPanelClassName,
-  posCartHeaderClassName,
-  posCartTitleClassName,
-  posCartItemNameClassName,
-  posCartQtyClassName,
-  posCartLineTotalClassName,
-  posCartSectionClassName,
-  posCartBadgeClassName,
-  posAccentIconClassName,
-  posAccentTextClassName,
-  posSummaryPanelClassName,
-  posSummaryMutedClassName,
-  posSummaryTotalClassName,
-  posSummaryTotalRowClassName,
-  posPayActionClassName,
-  posCrmPanelClassName,
-  posCrmTitleClassName,
-  posCrmMutedClassName,
-  posCrmTierBadgeClassName,
-  posPromoPanelClassName,
-  posPromoTitleClassName,
-  posDashedButtonClassName,
-  posInputClassName,
-  posRemoveItemClassName,
-  posEmptyProductsClassName,
-  posSuccessDialogClassName,
-  posSuccessTitleClassName,
-  posReceiptPreviewClassName,
-  posReceiptCaptionClassName,
-  posQueueNumberClassName,
-  posModifierSelectedClassName,
-  posModifierGroupLabelClassName,
-  posPrimaryActionClassName,
-  posStickyFilterBarClassName,
-  posSummaryDiscountClassName,
-  posSummaryRewardClassName,
-  decorativeIconClassName,
-  posLoadingSpinnerClassName,
-  posDialogContentClassName,
-  posCartLineDividerClassName,
-  posCheckoutMutedPanelClassName,
-  posQtyStepperShellClassName,
-  posNativeCheckboxClassName,
-  posCategoryChipClassName,
-  posCartEmptyIconClassName,
-  text,
-} from "@/lib/theme";
+import { decorativeIconClassName } from "@/lib/theme/color-helpers";
+import { posProductCardClassName, posPriceClassName, posAddButtonClassName, posCartPanelClassName, posCartHeaderClassName, posCartTitleClassName, posCartItemNameClassName, posCartQtyClassName, posCartLineTotalClassName, posCartSectionClassName, posCartBadgeClassName, posAccentIconClassName, posAccentTextClassName, posSummaryPanelClassName, posSummaryMutedClassName, posSummaryTotalClassName, posSummaryTotalRowClassName, posPayActionClassName, posCrmPanelClassName, posCrmTitleClassName, posCrmMutedClassName, posCrmTierBadgeClassName, posPromoPanelClassName, posPromoTitleClassName, posDashedButtonClassName, posInputClassName, posRemoveItemClassName, posEmptyProductsClassName, posSuccessDialogClassName, posSuccessTitleClassName, posReceiptPreviewClassName, posReceiptCaptionClassName, posQueueNumberClassName, posModifierSelectedClassName, posModifierGroupLabelClassName, posPrimaryActionClassName, posStickyFilterBarClassName, posSummaryDiscountClassName, posSummaryRewardClassName, posLoadingSpinnerClassName, posDialogContentClassName, posCartLineDividerClassName, posCheckoutMutedPanelClassName, posQtyStepperShellClassName, posNativeCheckboxClassName, posCategoryChipClassName, posCartEmptyIconClassName } from "@/lib/theme/immersive";
+import { text } from "@/lib/theme/surface";
 import type { Branch } from "@/types/api";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { getErrorMessage } from "@/lib/errors";

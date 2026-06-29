@@ -5,7 +5,9 @@ import { metricValueClassName } from "./metric";
 import { text } from "./surface";
 import { typeMetricClassName } from "./typography";
 
-/** @deprecated Use listToolbarFieldClassName from @/lib/theme instead. */
+export { crmSectionPanelClassName } from "./hub-section-aliases";
+
+/** @deprecated Use listToolbarFieldClassName from @/lib/theme/hub-primitives instead. */
 export function crmSearchInputClassName(className?: string) {
   return cn(
     "pl-9 bg-[var(--table-container-bg)] border-[var(--table-container-border)]",

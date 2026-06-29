@@ -1,14 +1,9 @@
 import React from "react";
 import { LucideIcon } from "lucide-react";
-import {
-  metricIconWrapClassName,
-  metricTrendClassName,
-  metricValueClassName,
-  typeMetricClassName,
-  surfaceCardClassName,
-  text,
-  type MetricTone,
-} from "@/lib/theme";
+import { metricIconWrapClassName, metricTrendClassName, metricValueClassName } from "@/lib/theme/metric";
+import type { MetricTone } from "@/lib/theme/metric";
+import { surfaceCardClassName, text } from "@/lib/theme/surface";
+import { typeMetricClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 interface StatCardProps {

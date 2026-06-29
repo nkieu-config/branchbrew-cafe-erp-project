@@ -12,7 +12,12 @@ import {
   Legend,
 } from "recharts";
 import { LineChart as LineChartIcon } from "lucide-react";
-import { readCssVar, themeDefaults, dashboardChartEmptyClass, decorativeIconClassName, surfaceInsetSkeletonClassName, text, typeUiLabelClassName } from "@/lib/theme";
+import { decorativeIconClassName, surfaceInsetSkeletonClassName } from "@/lib/theme/color-helpers";
+import { readCssVar } from "@/lib/theme/css-var";
+import { dashboardChartEmptyClass } from "@/lib/theme/dashboard";
+import { themeDefaults } from "@/lib/theme/defaults";
+import { text } from "@/lib/theme/surface";
+import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { useChartTheme } from "@/hooks/useChartTheme";
 import type { LedgerChartPoint } from "@/lib/ledger-filters";
 import { cn } from "@/lib/utils";

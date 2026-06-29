@@ -9,12 +9,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { HubId } from "@/lib/navigation";
-import {
-  formDialogContentClassName,
-  formModalDefaultIconClassName,
-  hubModalIconClassName,
-  typeHeadingClassName,
-} from "@/lib/theme";
+import { formModalDefaultIconClassName, hubModalIconClassName } from "@/lib/theme/color-helpers";
+import { formDialogContentClassName, typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 interface FormModalProps {

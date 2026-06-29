@@ -5,30 +5,7 @@ import { formatDateTime } from "@/lib/intl-date";
 import { formatMoney } from "@/lib/money";
 import { formatQueueNumber } from "@/lib/queue";
 import { inclusiveTaxAmount } from "@/lib/vat";
-import {
-  receiptBarcodeBoxClassName,
-  receiptFooterClassName,
-  receiptHeaderClassName,
-  receiptBranchClassName,
-  receiptDocTypeClassName,
-  receiptEmphasisClassName,
-  receiptIconClassName,
-  receiptItemNameClassName,
-  receiptItemNoteClassName,
-  receiptMutedClassName,
-  receiptPaymentSectionClassName,
-  receiptQueueBoxClassName,
-  receiptRootClassName,
-  receiptRowClassName,
-  receiptSectionDividerClassName,
-  receiptSubtleClassName,
-  receiptTableClassName,
-  receiptTableHeadRowClassName,
-  receiptTitleClassName,
-  receiptTotalRowClassName,
-  receiptTotalsClassName,
-  receiptVatRowClassName,
-} from "@/lib/theme";
+import { receiptBarcodeBoxClassName, receiptFooterClassName, receiptHeaderClassName, receiptBranchClassName, receiptDocTypeClassName, receiptEmphasisClassName, receiptIconClassName, receiptItemNameClassName, receiptItemNoteClassName, receiptMutedClassName, receiptPaymentSectionClassName, receiptQueueBoxClassName, receiptRootClassName, receiptRowClassName, receiptSectionDividerClassName, receiptSubtleClassName, receiptTableClassName, receiptTableHeadRowClassName, receiptTitleClassName, receiptTotalRowClassName, receiptTotalsClassName, receiptVatRowClassName } from "@/lib/theme/print-receipt";
 
 export interface ReceiptSettings {
   companyName?: string;

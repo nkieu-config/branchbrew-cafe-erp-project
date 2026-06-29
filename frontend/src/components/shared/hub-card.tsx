@@ -2,7 +2,9 @@ import { ReactNode } from "react";
 import { LucideIcon } from "lucide-react";
 import type { HubId } from "@/lib/navigation";
 import type { PageChromeBranchScope } from "@/components/layout/PageChrome";
-import { hubCardIconClass, surfaceCardClassName, text, typeHeadingClassName } from "@/lib/theme";
+import { hubCardIconClass } from "@/lib/theme/hub-accent";
+import { surfaceCardClassName, text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import { HubPageHeaderClient } from "@/components/shared/hub-page-header-client";
 

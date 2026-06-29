@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  formatPromoValidityRange,
   getPromoValidity,
   isDuplicatePromoCodeError,
   promoValidityLabel,
@@ -63,5 +64,21 @@ describe("toDateInputValue", () => {
   it("formats ISO dates for date inputs", () => {
     expect(toDateInputValue("2024-06-15T12:00:00.000Z")).toBe("2024-06-15");
     expect(toDateInputValue(null)).toBe("");
+  });
+});
+
+describe("formatPromoValidityRange", () => {
+  it("formats start and end dates", () => {
+    const range = formatPromoValidityRange(
+      promo({
+        startDate: "2024-06-01T00:00:00.000Z",
+        endDate: "2024-06-30T23:59:59.999Z",
+      }),
+    );
+    expect(range).toContain("–");
+  });
+
+  it("returns em dash when no dates", () => {
+    expect(formatPromoValidityRange(promo())).toBe("—");
   });
 });

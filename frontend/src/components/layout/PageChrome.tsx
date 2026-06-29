@@ -16,7 +16,9 @@ import type { LucideIcon } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import { BranchScopeIndicator } from "@/components/shared/branch-scope-indicator";
 import { isTabActive } from "@/lib/navigation";
-import { hubTabClassName, hubTabTrackClassName, hubTabScrollFadeRightClassName, hubTabScrollFadeLeftClassName, shellPageTitleClassName, text, typeHeadingClassName } from "@/lib/theme";
+import { shellPageTitleClassName } from "@/lib/theme/shell";
+import { hubTabClassName, hubTabTrackClassName, hubTabScrollFadeRightClassName, hubTabScrollFadeLeftClassName, text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 export type PageChromeBranchScope = {

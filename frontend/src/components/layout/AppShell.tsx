@@ -13,7 +13,7 @@ import { SidebarPreferencesProvider } from "@/context/SidebarPreferencesContext"
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { isImmersiveRoute, isOperationalImmersiveRoute } from "@/lib/shell-routes";
 import { cn } from "@/lib/utils";
-import { mainContentWithMobileNavClassName, mainContentWithPosImmersiveNavClassName, shell, shellContentFrameClassName, shellContentPaddingYClassName, skipLinkClassName } from "@/lib/theme";
+import { mainContentWithMobileNavClassName, mainContentWithPosImmersiveNavClassName, shell, shellContentFrameClassName, shellContentPaddingYClassName, skipLinkClassName } from "@/lib/theme/shell";
 
 function AppShellInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

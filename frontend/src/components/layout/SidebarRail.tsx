@@ -8,15 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useSidebarNavBadges } from "@/hooks/useSidebarNavBadges";
 import { useSidebarPinnedItems } from "@/hooks/useSidebarPinnedItems";
 import { FLAT_SIDEBAR_ITEMS, findActiveSidebarItem, isSidebarItemActive } from "@/lib/navigation";
-import {
-  sidebarRailExpandButtonClassName,
-  sidebarRailLinkClassName,
-  sidebarBrandMarkClassName,
-  sidebarBrandMarkIconClassName,
-  sidebarRootClassName,
-  shell,
-  shellHeaderInsetClassName,
-} from "@/lib/theme";
+import { sidebarRailExpandButtonClassName, sidebarRailLinkClassName, sidebarBrandMarkClassName, sidebarBrandMarkIconClassName, sidebarRootClassName, shell, shellHeaderInsetClassName } from "@/lib/theme/shell";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types/api";
 

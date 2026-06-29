@@ -50,16 +50,10 @@ import {
 import { getErrorMessage } from "@/lib/errors";
 import { formatHubListCountWithFetching } from "@/lib/format-hub-list-count";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import {
-  compactPanelLinkClassName,
-  formFieldInsetClassName,
-  formSelectContentClassName,
-  formSourceBannerClassName,
-  hubCtaClassName,
-  inventoryHubIconClassName,
-  text,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
+import { compactPanelLinkClassName, formFieldInsetClassName, formSelectContentClassName, formSourceBannerClassName, inventoryHubIconClassName } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
+import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { Branch, Ingredient, StockTransfer } from "@/types/api";
 import type { ColumnsType } from "antd/es/table";

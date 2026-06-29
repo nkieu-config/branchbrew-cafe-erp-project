@@ -7,17 +7,12 @@ import Link from "next/link";
 import { DataTable } from "@/components/shared/data-table";
 import type { Payslip } from "@/types/api";
 import { formatBaht } from "@/lib/money";
-import {
-  antTableSummaryRowClassName,
-  inlineLinkClassName,
-  payrollDeductionClassName,
-  payrollExpandedPanelClassName,
-  payrollNetPayClassName,
-  payrollOtMetricClassName,
-  tableCellMutedClassName,
-  text,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { antTableSummaryRowClassName } from "@/lib/theme/data-table";
+import { tableCellMutedClassName } from "@/lib/theme/feedback";
+import { payrollDeductionClassName, payrollExpandedPanelClassName, payrollNetPayClassName, payrollOtMetricClassName } from "@/lib/theme/hub-hr";
+import { inlineLinkClassName } from "@/lib/theme/hub-primitives";
+import { text } from "@/lib/theme/surface";
+import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type PayrollPayslipPanelProps = {

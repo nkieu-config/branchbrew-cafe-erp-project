@@ -12,21 +12,11 @@ import {
   type ShiftWithUser,
 } from "@/lib/shift-filters";
 import { buildHrEmployeesUrl } from "@/lib/hr-hub-url";
-import {
-  ganttGridLineClassName,
-  ganttHourLabelClassName,
-  ganttHourMarkerClassName,
-  ganttTimeAxisClassName,
-  ganttTrackClassName,
-  ganttUserColumnClassName,
-  horizontalScrollHintClassName,
-  hrAvatarClassName,
-  inlineLinkClassName,
-  shiftBarClassName,
-  text,
-  typeMicroClassName,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { horizontalScrollHintClassName } from "@/lib/theme/data-table";
+import { ganttGridLineClassName, ganttHourLabelClassName, ganttHourMarkerClassName, ganttTimeAxisClassName, ganttTrackClassName, ganttUserColumnClassName, hrAvatarClassName, shiftBarClassName } from "@/lib/theme/hub-hr";
+import { inlineLinkClassName } from "@/lib/theme/hub-primitives";
+import { text } from "@/lib/theme/surface";
+import { typeMicroClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type ShiftGanttTimelineProps = {

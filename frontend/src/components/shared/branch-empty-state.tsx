@@ -1,5 +1,7 @@
 import { MapPin } from "lucide-react";
-import { surface, text, typeUiLabelClassName, emptyStateIconClassName } from "@/lib/theme";
+import { emptyStateIconClassName } from "@/lib/theme/color-helpers";
+import { surface, text } from "@/lib/theme/surface";
+import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type BranchEmptyStateProps = {

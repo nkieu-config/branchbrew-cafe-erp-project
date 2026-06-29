@@ -16,7 +16,7 @@ import { ListFilterSelect } from "@/components/shared/list-filters";
 import { DataTable } from "@/components/shared/data-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { TableActionButton } from "@/components/shared/table-action-button";
-import { RoleGuard } from "@/components/RoleGuard";
+import { RoleGuard } from "@/components/auth/RoleGuard";
 import { AccessDeniedState } from "@/components/shared/access-denied-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,17 +42,13 @@ import {
 import { Building2, Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Supplier } from "@/types/api";
-import {
-  formFieldInsetClassName,
-  hubCtaClassName,
-  hubListDataTableProps,
-  inlineLinkClassName,
-  procurementDialogContentClassName,
-  procurementSectionPanelClassName,
-  tableCellMutedClassName,
-  text,
-  typeHeadingClassName,
-} from "@/lib/theme";
+import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { tableCellMutedClassName } from "@/lib/theme/feedback";
+import { hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
+import { procurementDialogContentClassName, procurementSectionPanelClassName } from "@/lib/theme/hub-procurement";
+import { formFieldInsetClassName } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 export default function SuppliersPage() {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AnimatedPage } from "@/components/animated-page";
+import { AnimatedPage } from "@/components/layout/animated-page";
 import {
   KdsConnectionBadge,
   KdsImmersiveHeader,
@@ -17,29 +17,10 @@ import { formatQueueNumber } from "@/lib/queue";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { getErrorMessage } from "@/lib/errors";
 import { toast } from "sonner";
-import {
-  kdsDoneButtonClassName,
-  kdsEmptyStateClassName,
-  kdsEmptyIconClassName,
-  kdsPageHeaderDividerClassName,
-  kdsErrorBannerClassName,
-  kdsErrorRetryClassName,
-  kdsItemDividerClassName,
-  kdsItemModifierClassName,
-  kdsItemNoteClassName,
-  kdsItemQtyClassName,
-  kdsLoadingClassName,
-  kdsStartButtonClassName,
-  kdsTicketClassName,
-  kdsTicketFooterClassName,
-  kdsTicketGridClassName,
-  kdsTicketHeaderClassName,
-  kdsTimerChipClassName,
-  type KdsTicketUrgency,
-  text,
-  typeHeadingClassName,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { kdsDoneButtonClassName, kdsEmptyStateClassName, kdsEmptyIconClassName, kdsPageHeaderDividerClassName, kdsErrorBannerClassName, kdsErrorRetryClassName, kdsItemDividerClassName, kdsItemModifierClassName, kdsItemNoteClassName, kdsItemQtyClassName, kdsLoadingClassName, kdsStartButtonClassName, kdsTicketClassName, kdsTicketFooterClassName, kdsTicketGridClassName, kdsTicketHeaderClassName, kdsTimerChipClassName } from "@/lib/theme/immersive";
+import type { KdsTicketUrgency } from "@/lib/theme/immersive";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 function ticketUrgency(waitMinutes: number): KdsTicketUrgency {

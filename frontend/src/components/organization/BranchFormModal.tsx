@@ -16,15 +16,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Branch } from "@/types/api";
-import {
-  formContextBannerClassName,
-  formFieldInsetClassName,
-  hubCtaClassName,
-  hubModalIconClassName,
-  organizationDialogContentClassName,
-  text,
-  typeHeadingClassName,
-} from "@/lib/theme";
+import { formContextBannerClassName, hubModalIconClassName } from "@/lib/theme/color-helpers";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
+import { organizationDialogContentClassName } from "@/lib/theme/organization";
+import { formFieldInsetClassName } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type BranchFormModalProps = {

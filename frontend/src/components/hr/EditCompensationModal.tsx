@@ -16,19 +16,14 @@ import { Label } from "@/components/ui/label";
 import { Avatar } from "@/components/ui/avatar";
 import type { User } from "@/types/api";
 import { formatBaht } from "@/lib/money";
-import {
-  formFieldInsetClassName,
-  formLineRowClassName,
-  hrAvatarClassName,
-  hrDialogContentClassName,
-  hubCtaClassName,
-  hubModalIconClassName,
-  inlineLinkClassName,
-  metricValueClassName,
-  text,
-  typeHeadingClassName,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { hubModalIconClassName } from "@/lib/theme/color-helpers";
+import { hrAvatarClassName } from "@/lib/theme/hub-hr";
+import { hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
+import { hrDialogContentClassName } from "@/lib/theme/hub-hr";
+import { metricValueClassName } from "@/lib/theme/metric";
+import { formFieldInsetClassName, formLineRowClassName } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import { buildHrPayrollUrl } from "@/lib/hr-hub-url";
 

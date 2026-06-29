@@ -3,7 +3,7 @@
 import { ConfigProvider } from 'antd';
 import { useTheme } from 'next-themes';
 import React from 'react';
-import { getAntdThemeConfig } from '@/lib/theme';
+import { getAntdThemeConfig } from "@/lib/theme/antd-bridge";
 
 export function AntdProvider({ children }: { children: React.ReactNode }) {
   const { resolvedTheme } = useTheme();

@@ -7,9 +7,9 @@ import { LayoutDashboard } from "lucide-react";
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { useAuth } from "@/context/AuthContext";
-import { AnimatedPage } from "@/components/animated-page";
+import { AnimatedPage } from "@/components/layout/animated-page";
 import { PageChrome } from "@/components/layout/PageChrome";
-import { dashboardShellIconClassName, dashboardSkeletonClass } from "@/lib/theme";
+import { dashboardShellIconClassName, dashboardSkeletonClass } from "@/lib/theme/dashboard";
 import type { Branch } from "@/types/api";
 import {
   SalesWidget,
@@ -23,7 +23,7 @@ import {
   StatWidgetSkeleton,
   ChartWidgetSkeleton,
 } from "@/components/dashboard/widgets/WidgetSkeletons";
-import { DashboardLayoutSkeleton } from "@/components/dashboard/dashboard-layout-skeleton";
+import { DashboardLayoutSkeleton } from "@/components/dashboard/DashboardLayoutSkeleton";
 
 const DashboardSortableGridLazy = dynamic(
   () => import("@/components/dashboard/DashboardSortableGrid").then((m) => m.DashboardSortableGrid),
@@ -226,7 +226,7 @@ function AnalyticsDashboardContent() {
   );
 }
 
-export default function AnalyticsDashboard() {
+export default function DashboardPageClient() {
   return (
     <Suspense
       fallback={

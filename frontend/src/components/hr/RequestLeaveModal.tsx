@@ -20,16 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  formFieldInsetClassName,
-  formLineDateFieldClassName,
-  formSelectContentClassName,
-  hrDialogContentClassName,
-  hubCtaClassName,
-  hubModalIconClassName,
-  text,
-  typeHeadingClassName,
-} from "@/lib/theme";
+import { hubModalIconClassName } from "@/lib/theme/color-helpers";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
+import { hrDialogContentClassName } from "@/lib/theme/hub-hr";
+import { formFieldInsetClassName, formLineDateFieldClassName, formSelectContentClassName } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 const LEAVE_TYPES = [

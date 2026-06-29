@@ -2,7 +2,7 @@
 
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { queryErrorBannerClassName, queryErrorMessageClassName } from "@/lib/theme";
+import { queryErrorBannerClassName, queryErrorMessageClassName } from "@/lib/theme/feedback";
 import { cn } from "@/lib/utils";
 
 type QueryErrorBannerProps = {

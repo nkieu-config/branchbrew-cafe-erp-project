@@ -26,22 +26,13 @@ import { toNumber } from "@/lib/money";
 import { FormEmptyIngredientsBanner } from "@/components/shared/form-panel";
 import { FormModalFooter } from "@/components/shared/form-modal";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { useLineItemRows } from "@/hooks/use-line-item-rows";
-import {
-  formFieldInsetClassName,
-  formLineQtyFieldClassName,
-  formLineRowClassName,
-  formRemoveButtonClassName,
-  formSectionClassName,
-  formSelectContentClassName,
-  hubCtaClassName,
-  hubModalIconClassName,
-  inlineLinkClassName,
-  procurementDialogContentClassName,
-  text,
-  typeHeadingClassName,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { useLineItemRows } from "@/hooks/useLineItemRows";
+import { hubModalIconClassName } from "@/lib/theme/color-helpers";
+import { formSectionClassName, hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
+import { procurementDialogContentClassName } from "@/lib/theme/hub-procurement";
+import { formFieldInsetClassName, formLineQtyFieldClassName, formLineRowClassName, formRemoveButtonClassName, formSelectContentClassName } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type PoLineDraft = {

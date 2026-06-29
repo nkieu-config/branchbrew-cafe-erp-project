@@ -1,3 +1,7 @@
+/**
+ * Settings hub page chrome — list panels, hub icons, audit sheets.
+ * Not for in-page form blocks; use `settings-form-section.ts` for those.
+ */
 import { cn } from "@/lib/utils";
 import { hubIconClassName, hubSectionPanelClassName } from "./hub-panel";
 

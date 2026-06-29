@@ -37,21 +37,12 @@ import {
 import { getErrorMessage } from "@/lib/errors";
 import { formatDate } from "@/lib/intl-date";
 import type { Branch, Equipment, EquipmentStatus, EquipmentType } from "@/types/api";
-import {
-  assetsSectionPanelClassName,
-  equipmentMaintenanceDateClassName,
-  equipmentMaintenanceDueRowClassName,
-  equipmentMaintenanceOverdueRowClassName,
-  hubCtaClassName,
-  hubListDataTableProps,
-  hubLoadingSpinnerClassName,
-  infoBannerClassName,
-  infoBannerIconClassName,
-  infoBannerTextClassName,
-  infoBannerTitleClassName,
-  tableCellMutedClassName,
-  text,
-} from "@/lib/theme";
+import { assetsSectionPanelClassName, equipmentMaintenanceDateClassName, equipmentMaintenanceDueRowClassName, equipmentMaintenanceOverdueRowClassName } from "@/lib/theme/assets";
+import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { tableCellMutedClassName } from "@/lib/theme/feedback";
+import { infoBannerClassName, infoBannerIconClassName, infoBannerTextClassName, infoBannerTitleClassName } from "@/lib/theme/hub-banners";
+import { hubCtaClassName, hubLoadingSpinnerClassName } from "@/lib/theme/hub-primitives";
+import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
 
 export default function AssetsPage() {

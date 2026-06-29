@@ -3,7 +3,7 @@
 import { Component, type ReactNode } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { dashboardErrorPanelClass, dashboardErrorMessageClass, dashboardWidgetErrorIconClassName } from "@/lib/theme";
+import { dashboardErrorPanelClass, dashboardErrorMessageClass, dashboardWidgetErrorIconClassName } from "@/lib/theme/dashboard";
 
 type Props = {
   children: ReactNode;

@@ -39,19 +39,11 @@ import {
 import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { useLineItemRows } from "@/hooks/use-line-item-rows";
-import {
-  formFieldInsetClassName,
-  formSelectContentClassName,
-  formLineDateFieldClassName,
-  formLineFieldClassName,
-  formLineQtyFieldClassName,
-  formLineRowClassName,
-  formRemoveButtonClassName,
-  formValidationHintClassName,
-  hubCtaClassName,
-  text,
-} from "@/lib/theme";
+import { useLineItemRows } from "@/hooks/useLineItemRows";
+import { formValidationHintClassName } from "@/lib/theme/color-helpers";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
+import { formFieldInsetClassName, formSelectContentClassName, formLineDateFieldClassName, formLineFieldClassName, formLineQtyFieldClassName, formLineRowClassName, formRemoveButtonClassName } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
 
 type StockLineRow = StockLineItem & { rowId: string };

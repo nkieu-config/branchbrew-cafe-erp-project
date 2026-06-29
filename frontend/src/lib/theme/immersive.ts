@@ -536,3 +536,5 @@ export function posImmersiveHeaderClassName(className?: string) {
 }
 
 export { text };
+
+export { posSectionPanelClassName } from "./hub-section-aliases";

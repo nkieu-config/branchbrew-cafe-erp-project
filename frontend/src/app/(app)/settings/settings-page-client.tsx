@@ -12,19 +12,12 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { getErrorMessage } from "@/lib/errors";
 import { parseVatRatePercent } from "@/lib/vat";
-import {
-  formFieldInsetClassName,
-  hubCtaClassName,
-  hubCardIconFor,
-  hubLoadingSpinnerClassName,
-  metricValueClassName,
-  settingsSectionClassName,
-  settingsSectionHeaderClassName,
-  settingsSectionPanelClassName,
-  settingsSectionTitleClassName,
-  statusInlineAlertClassName,
-  text,
-} from "@/lib/theme";
+import { hubCtaClassName, hubCardIconFor, hubLoadingSpinnerClassName, statusInlineAlertClassName } from "@/lib/theme/hub-primitives";
+import { metricValueClassName } from "@/lib/theme/metric";
+import { settingsSectionClassName, settingsSectionHeaderClassName, settingsSectionTitleClassName } from "@/lib/theme/settings-form-section";
+import { settingsSectionPanelClassName } from "@/lib/theme/settings-hub-chrome";
+import { formFieldInsetClassName } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
 
 const EMPTY_FORM: Record<string, string> = {

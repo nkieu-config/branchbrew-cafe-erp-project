@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { PackageOpen } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button-link";
 import { formPanelClassName } from "@/lib/theme/stock";
-import { decorativeIconClassName, formContextBannerClassName } from "@/lib/theme";
+import { decorativeIconClassName, formContextBannerClassName } from "@/lib/theme/color-helpers";
 import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
 

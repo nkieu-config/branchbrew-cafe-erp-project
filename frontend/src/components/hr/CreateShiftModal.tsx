@@ -23,17 +23,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { User } from "@/types/api";
-import {
-  formFieldInsetClassName,
-  formLineDateFieldClassName,
-  formSelectContentClassName,
-  hrDialogContentClassName,
-  hubCtaClassName,
-  hubModalIconClassName,
-  inlineLinkClassName,
-  text,
-  typeHeadingClassName,
-} from "@/lib/theme";
+import { hubModalIconClassName } from "@/lib/theme/color-helpers";
+import { hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
+import { hrDialogContentClassName } from "@/lib/theme/hub-hr";
+import { formFieldInsetClassName, formLineDateFieldClassName, formSelectContentClassName } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type CreateShiftModalProps = {

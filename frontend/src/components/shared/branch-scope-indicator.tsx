@@ -2,7 +2,7 @@
 
 import { MapPin, Globe } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { branchScopeAllClassName, branchScopeIndicatorClassName } from "@/lib/theme";
+import { branchScopeAllClassName, branchScopeIndicatorClassName } from "@/lib/theme/feedback";
 import { cn } from "@/lib/utils";
 
 type BranchScopeIndicatorProps = {

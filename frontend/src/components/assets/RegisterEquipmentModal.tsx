@@ -23,16 +23,12 @@ import {
 } from "@/components/ui/select";
 import { EQUIPMENT_TYPE_OPTIONS } from "@/lib/equipment-filters";
 import type { EquipmentType } from "@/types/api";
-import {
-  assetsDialogContentClassName,
-  formFieldInsetClassName,
-  formLineDateFieldClassName,
-  formSelectContentClassName,
-  hubCtaClassName,
-  hubModalIconClassName,
-  text,
-  typeHeadingClassName,
-} from "@/lib/theme";
+import { assetsDialogContentClassName } from "@/lib/theme/assets";
+import { hubModalIconClassName } from "@/lib/theme/color-helpers";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
+import { formFieldInsetClassName, formLineDateFieldClassName, formSelectContentClassName } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type RegisterEquipmentModalProps = {

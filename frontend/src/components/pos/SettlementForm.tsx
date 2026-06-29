@@ -6,21 +6,10 @@ import { toast } from "sonner"
 import { useSubmitSettlement } from '@/hooks/domains/useFinanceQueries'
 import type { SettlementExpected } from '@/types/api'
 import { getErrorMessage } from '@/lib/errors'
-import {
-  posCheckoutMutedPanelClassName,
-  posFormPanelClassName,
-  posNativeInputClassName,
-  posPanelTopDividerClassName,
-  posPrimaryActionClassName,
-  posSettlementHighlightClassName,
-  posSettlementIconClassName,
-  posSettlementSummaryClassName,
-  statusTextClassName,
-  surfaceInsetSkeletonClassName,
-  text,
-  typeHeadingClassName,
-  typeUiLabelClassName,
-} from '@/lib/theme'
+import { statusTextClassName, surfaceInsetSkeletonClassName } from "@/lib/theme/color-helpers";
+import { posCheckoutMutedPanelClassName, posFormPanelClassName, posNativeInputClassName, posPanelTopDividerClassName, posPrimaryActionClassName, posSettlementHighlightClassName, posSettlementIconClassName, posSettlementSummaryClassName } from "@/lib/theme/immersive";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from '@/lib/utils'
 
 type SettlementFormProps = {

@@ -12,7 +12,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { Button } from "@/components/ui/button";
 import { ArrowRightLeft, LayoutGrid, Plus } from "lucide-react";
-import { hubCtaClassName, inventorySectionPanelClassName } from "@/lib/theme";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
+import { inventorySectionPanelClassName } from "@/lib/theme/stock";
 import type { Branch } from "@/types/api";
 
 export default function TransfersPage() {

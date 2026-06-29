@@ -1,15 +1,9 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Delete, X } from 'lucide-react';
-import {
-  posNumpadDeleteClassName,
-  posNumpadDisplayClassName,
-  posNumpadKeyClassName,
-  posNumpadShellClassName,
-  posNumpadSubmitClassName,
-  text,
-  typeHeadingClassName,
-} from '@/lib/theme';
+import { posNumpadDeleteClassName, posNumpadDisplayClassName, posNumpadKeyClassName, posNumpadShellClassName, posNumpadSubmitClassName } from "@/lib/theme/immersive";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from '@/lib/utils';
 
 interface OnScreenNumpadProps {

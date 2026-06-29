@@ -33,22 +33,12 @@ import {
 import { roleLabel } from "@/lib/employee-filters";
 import { formatDateTime } from "@/lib/intl-date";
 import { getErrorMessage } from "@/lib/errors";
-import {
-  dataTableContainerClassName,
-  horizontalScrollHintClassName,
-  hubLoadingSpinnerClassName,
-  infoBannerClassName,
-  infoBannerIconClassName,
-  infoBannerTextClassName,
-  infoBannerTitleClassName,
-  listMobileCardClassName,
-  nativeTableEmptyCellClassName,
-  semanticTableClassName,
-  settingsSectionPanelClassName,
-  text,
-  typeMicroClassName,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { dataTableContainerClassName, horizontalScrollHintClassName, listMobileCardClassName, nativeTableEmptyCellClassName, semanticTableClassName } from "@/lib/theme/data-table";
+import { infoBannerClassName, infoBannerIconClassName, infoBannerTextClassName, infoBannerTitleClassName } from "@/lib/theme/hub-banners";
+import { hubLoadingSpinnerClassName } from "@/lib/theme/hub-primitives";
+import { settingsSectionPanelClassName } from "@/lib/theme/settings-hub-chrome";
+import { text } from "@/lib/theme/surface";
+import { typeMicroClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 15;

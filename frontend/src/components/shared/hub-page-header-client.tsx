@@ -2,7 +2,9 @@
 
 import type { HubCardProps } from "@/components/shared/hub-card";
 import { usePageChromeContext, usePageChromeExtension } from "@/components/layout/PageChrome";
-import { hubCardIconClass, text, typeHeadingClassName } from "@/lib/theme";
+import { hubCardIconClass } from "@/lib/theme/hub-accent";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type HubPageHeaderClientProps = Omit<HubCardProps, "children">;

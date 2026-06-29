@@ -8,14 +8,9 @@ import { useAuth } from "@/context/AuthContext";
 import { useMobileNav } from "@/context/MobileNavContext";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { getVisibleHubTabs, isTabActive } from "@/lib/navigation";
-import {
-  mobileBottomNavClassName,
-  mobileBottomNavIconClassName,
-  mobileBottomNavItemClassName,
-  posImmersiveHeaderClassName,
-  shellPageTitleClassName,
-  text,
-} from "@/lib/theme";
+import { posImmersiveHeaderClassName } from "@/lib/theme/immersive";
+import { mobileBottomNavClassName, mobileBottomNavIconClassName, mobileBottomNavItemClassName, shellPageTitleClassName } from "@/lib/theme/shell";
+import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
 import type { Branch } from "@/types/api";
 

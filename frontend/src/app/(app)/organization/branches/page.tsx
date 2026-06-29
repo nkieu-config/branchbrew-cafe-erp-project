@@ -1,4 +1,4 @@
-import BranchesPageClient from "@/app/(app)/branches/branches-page-client";
+import BranchesPageClient from "./branches-page-client";
 
 export default function OrganizationBranchesPage() {
   return <BranchesPageClient embedded />;

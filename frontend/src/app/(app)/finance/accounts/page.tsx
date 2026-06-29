@@ -26,22 +26,13 @@ import {
 } from "@/lib/account-filters";
 import { getErrorMessage } from "@/lib/errors";
 import type { AccountTableRow } from "@/types/api";
-import {
-  financeHubIconClassName,
-  financeSectionPanelClassName,
-  financeSectionTitleClassName,
-  hubCtaClassName,
-  hubListDataTableProps,
-  infoBannerClassName,
-  infoBannerIconClassName,
-  infoBannerTextClassName,
-  infoBannerTitleClassName,
-  inlineLinkClassName,
-  tableCellMutedClassName,
-  text,
-  typeHeadingClassName,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { tableCellMutedClassName } from "@/lib/theme/feedback";
+import { financeHubIconClassName, financeSectionPanelClassName, financeSectionTitleClassName } from "@/lib/theme/finance";
+import { infoBannerClassName, infoBannerIconClassName, infoBannerTextClassName, infoBannerTitleClassName } from "@/lib/theme/hub-banners";
+import { hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 export default function ChartOfAccountsPage() {

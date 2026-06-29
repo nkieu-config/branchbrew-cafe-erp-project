@@ -3,12 +3,8 @@
 import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useSalesTrendsSuspense } from "@/hooks/domains/useReportsQueries";
-import {
-  dashboardSkeletonClass,
-  dashboardWidgetCardClass,
-  dashboardWidgetTitleClass,
-  text,
-} from "@/lib/theme";
+import { dashboardSkeletonClass, dashboardWidgetCardClass, dashboardWidgetTitleClass } from "@/lib/theme/dashboard";
+import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
 
 const SalesChart = dynamic(

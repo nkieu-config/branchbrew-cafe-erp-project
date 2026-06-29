@@ -17,7 +17,7 @@ import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { CreateProductionOrderModal } from "@/components/kitchen/CreateProductionOrderModal";
-import { CentralKitchenBranchNotice } from "@/components/kitchen/central-kitchen-banner";
+import { CentralKitchenBranchNotice } from "@/components/kitchen/CentralKitchenBanner";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
@@ -26,11 +26,8 @@ import type { ProductionOrderWithTarget } from "@/components/kitchen/KitchenKanb
 import { getErrorMessage } from "@/lib/errors";
 import { getBomTargetIds } from "@/lib/bom-filters";
 import { summarizeProductionOrders } from "@/lib/production-order-filters";
-import {
-  hubCtaClassName,
-  hubLoadingSpinnerClassName,
-  kitchenSectionPanelClassName,
-} from "@/lib/theme";
+import { hubCtaClassName, hubLoadingSpinnerClassName } from "@/lib/theme/hub-primitives";
+import { kitchenSectionPanelClassName } from "@/lib/theme/hub-kitchen";
 
 const KitchenKanbanBoard = dynamic(
   () => import("@/components/kitchen/KitchenKanbanBoard").then((m) => m.KitchenKanbanBoard),

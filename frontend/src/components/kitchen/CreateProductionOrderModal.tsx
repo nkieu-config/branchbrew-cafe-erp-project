@@ -23,21 +23,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Ingredient } from "@/types/api";
-import {
-  formFieldInsetClassName,
-  formLineDateFieldClassName,
-  formSelectContentClassName,
-  hubCtaClassName,
-  hubModalIconClassName,
-  infoBannerClassName,
-  infoBannerIconClassName,
-  infoBannerTextClassName,
-  infoBannerTitleClassName,
-  inlineLinkClassName,
-  kitchenDialogContentClassName,
-  text,
-  typeHeadingClassName,
-} from "@/lib/theme";
+import { hubModalIconClassName } from "@/lib/theme/color-helpers";
+import { infoBannerClassName, infoBannerIconClassName, infoBannerTextClassName, infoBannerTitleClassName } from "@/lib/theme/hub-banners";
+import { hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
+import { kitchenDialogContentClassName } from "@/lib/theme/hub-kitchen";
+import { formFieldInsetClassName, formLineDateFieldClassName, formSelectContentClassName } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type CreateProductionOrderModalProps = {

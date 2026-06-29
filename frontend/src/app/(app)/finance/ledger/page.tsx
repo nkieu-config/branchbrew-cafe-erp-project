@@ -32,20 +32,11 @@ import {
   summarizeJournalEntries,
   summarizeLedgerChart,
 } from "@/lib/ledger-filters";
-import {
-  financeHubIconClassName,
-  financeMetricIconClassName,
-  financeSectionPanelClassName,
-  financeSectionTitleClassName,
-  hubCtaClassName,
-  hubListDataTableProps,
-  infoBannerClassName,
-  infoBannerIconClassName,
-  infoBannerTextClassName,
-  infoBannerTitleClassName,
-  inlineLinkClassName,
-  text,
-} from "@/lib/theme";
+import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { financeHubIconClassName, financeMetricIconClassName, financeSectionPanelClassName, financeSectionTitleClassName } from "@/lib/theme/finance";
+import { infoBannerClassName, infoBannerIconClassName, infoBannerTextClassName, infoBannerTitleClassName } from "@/lib/theme/hub-banners";
+import { hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
+import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
 
 const LedgerTrendChart = dynamic(

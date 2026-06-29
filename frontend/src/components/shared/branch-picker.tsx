@@ -2,12 +2,7 @@
 
 import { useMemo } from "react";
 import { MapPin } from "lucide-react";
-import {
-  selectFocusClassName,
-  sidebarBranchPillClassName,
-  topbarBranchIconClassName,
-  topbarBranchPickerClassName,
-} from "@/lib/theme";
+import { selectFocusClassName, sidebarBranchPillClassName, topbarBranchIconClassName, topbarBranchPickerClassName } from "@/lib/theme/shell";
 import {
   Select,
   SelectContent,

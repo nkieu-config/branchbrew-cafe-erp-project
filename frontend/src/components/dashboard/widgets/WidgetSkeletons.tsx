@@ -1,4 +1,4 @@
-import { dashboardSkeletonClass } from "@/lib/theme";
+import { dashboardSkeletonClass } from "@/lib/theme/dashboard";
 import { cn } from "@/lib/utils";
 
 export function StatWidgetSkeleton() {

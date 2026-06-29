@@ -9,7 +9,7 @@
  * - `./hub-kitchen` — kanban, production tones
  * - `./hub-hr` — gantt, shifts, attendance, payroll
  * - `./hub-crm` — CRM cards, tiers, loyalty
- * - `./hub-settings` — settings section chrome
+ * - `./settings-form-section` — settings form section chrome
  */
 export {
   hubCtaClassName,
@@ -121,4 +121,4 @@ export {
   settingsSectionClassName,
   settingsSectionHeaderClassName,
   settingsSectionTitleClassName,
-} from "./hub-settings";
+} from "./settings-form-section";

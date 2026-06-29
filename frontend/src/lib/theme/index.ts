@@ -327,7 +327,7 @@ export {
   settingsSectionPanelClassName,
   settingsHubIconClassName,
   settingsSheetContentClassName,
-} from "./settings-hub";
+} from "./settings-hub-chrome";
 export {
   authPageShellClassName,
   authLoadingClassName,

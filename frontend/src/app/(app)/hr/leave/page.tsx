@@ -44,22 +44,13 @@ import {
   summarizeLeaveRequests,
 } from "@/lib/leave-filters";
 import { buildHrLeaveUrl, parseHrLeaveSearchParams } from "@/lib/hr-hub-url";
-import {
-  expandedRowPanelClassName,
-  hrMetaBadgeClassName,
-  hrSectionPanelClassName,
-  hubCtaClassName,
-  hubListDataTableProps,
-  infoBannerClassName,
-  infoBannerIconClassName,
-  infoBannerTextClassName,
-  infoBannerTitleClassName,
-  inlineLinkClassName,
-  tableActionAccentClassName,
-  tableCellMutedClassName,
-  text,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { tableCellMutedClassName } from "@/lib/theme/feedback";
+import { infoBannerClassName, infoBannerIconClassName, infoBannerTextClassName, infoBannerTitleClassName } from "@/lib/theme/hub-banners";
+import { expandedRowPanelClassName, hubCtaClassName, inlineLinkClassName, tableActionAccentClassName } from "@/lib/theme/hub-primitives";
+import { hrMetaBadgeClassName, hrSectionPanelClassName } from "@/lib/theme/hub-hr";
+import { text } from "@/lib/theme/surface";
+import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type LeaveConfirmAction = {

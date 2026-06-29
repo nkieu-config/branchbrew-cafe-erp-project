@@ -15,7 +15,8 @@ import { toast } from "sonner";
 import { useHrUsers, useCreateUser, useUpdateUser } from "@/hooks/domains/useHrQueries";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { AnimatedPage } from "@/components/animated-page";
+import { RoleGuard } from "@/components/auth/RoleGuard";
+import { AnimatedPage } from "@/components/layout/animated-page";
 import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
@@ -23,7 +24,6 @@ import { AccessDeniedState } from "@/components/shared/access-denied-state";
 import { DataTable } from "@/components/shared/data-table";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { StatusBadge, roleTone } from "@/components/shared/status-badge";
-import { RoleGuard } from "@/components/RoleGuard";
 import { UserFormModal } from "@/components/organization/UserFormModal";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,14 +44,10 @@ import type {
   Role,
   User,
 } from "@/types/api";
-import {
-  avatarPlaceholderClassName,
-  hubCtaClassName,
-  hubListDataTableProps,
-  inlineLinkClassName,
-  organizationSectionPanelClassName,
-  text,
-} from "@/lib/theme";
+import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { avatarPlaceholderClassName, hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
+import { organizationSectionPanelClassName } from "@/lib/theme/organization";
+import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
 
 export default function UsersPageClient({ embedded = false }: { embedded?: boolean }) {

@@ -19,7 +19,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { dashboardDragActiveClass, dashboardDragHandleClass } from "@/lib/theme";
+import { dashboardDragActiveClass, dashboardDragHandleClass } from "@/lib/theme/dashboard";
 import { cn } from "@/lib/utils";
 
 export const DASHBOARD_WIDGET_LABELS: Record<string, string> = {

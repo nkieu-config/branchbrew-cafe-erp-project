@@ -8,12 +8,7 @@ import { SidebarNavBadge } from "@/components/shared/sidebar-nav-badge";
 import { useSidebarNavBadges } from "@/hooks/useSidebarNavBadges";
 import { resolveMobileBottomNavBadge } from "@/lib/sidebar-badges";
 import { getMobileBottomNavItems, isMobileBottomNavActive } from "@/lib/navigation";
-import {
-  mobileBottomNavClassName,
-  mobileBottomNavIconClassName,
-  mobileBottomNavItemClassName,
-  mobileNavBadgePlacementClassName,
-} from "@/lib/theme";
+import { mobileBottomNavClassName, mobileBottomNavIconClassName, mobileBottomNavItemClassName, mobileNavBadgePlacementClassName } from "@/lib/theme/shell";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types/api";
 

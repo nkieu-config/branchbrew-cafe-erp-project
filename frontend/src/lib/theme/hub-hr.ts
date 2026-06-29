@@ -3,6 +3,12 @@ import { metricValueClassName } from "./metric";
 import { text } from "./surface";
 import { expandedRowPanelClassName } from "./hub-primitives";
 
+export {
+  hrDialogContentClassName,
+  hrMetaBadgeClassName,
+  hrSectionPanelClassName,
+} from "./hub-section-aliases";
+
 export function ganttPanelClassName(className?: string) {
   return cn(
     "rounded-2xl shadow-sm border overflow-hidden flex flex-col",

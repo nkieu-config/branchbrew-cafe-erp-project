@@ -12,15 +12,11 @@ import {
 } from "@/lib/audit-filters";
 import { roleLabel } from "@/lib/employee-filters";
 import { formatDateTime } from "@/lib/intl-date";
-import {
-  decorativeIconClassName,
-  expandedRowPanelClassName,
-  formContextBannerClassName,
-  hubModalIconClassName,
-  settingsSheetContentClassName,
-  text,
-  typeHeadingClassName,
-} from "@/lib/theme";
+import { decorativeIconClassName, formContextBannerClassName, hubModalIconClassName } from "@/lib/theme/color-helpers";
+import { expandedRowPanelClassName } from "@/lib/theme/hub-primitives";
+import { settingsSheetContentClassName } from "@/lib/theme/settings-hub-chrome";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type AuditLogDetailSheetProps = {

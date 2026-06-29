@@ -22,7 +22,7 @@ import { ListFilterSelect } from "@/components/shared/list-filters";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { DataTable } from "@/components/shared/data-table";
-import { RoleGuard } from "@/components/RoleGuard";
+import { RoleGuard } from "@/components/auth/RoleGuard";
 import { StatusBadge, payrollStatusTone } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { PayrollPayslipPanel } from "@/components/hr/PayrollPayslipPanel";
@@ -50,21 +50,13 @@ import {
   payrollStatusLabel,
   summarizePayrollRuns,
 } from "@/lib/payroll-filters";
-import {
-  hrSectionPanelClassName,
-  hubCtaClassName,
-  hubListDataTableProps,
-  hubLoadingSpinnerClassName,
-  infoBannerClassName,
-  infoBannerIconClassName,
-  infoBannerTextClassName,
-  infoBannerTitleClassName,
-  inlineLinkClassName,
-  metricValueClassName,
-  tableActionAccentClassName,
-  text,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { infoBannerClassName, infoBannerIconClassName, infoBannerTextClassName, infoBannerTitleClassName } from "@/lib/theme/hub-banners";
+import { hubCtaClassName, hubLoadingSpinnerClassName, inlineLinkClassName, tableActionAccentClassName } from "@/lib/theme/hub-primitives";
+import { hrSectionPanelClassName } from "@/lib/theme/hub-hr";
+import { metricValueClassName } from "@/lib/theme/metric";
+import { text } from "@/lib/theme/surface";
+import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 export default function PayrollPage() {

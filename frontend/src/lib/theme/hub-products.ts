@@ -2,6 +2,12 @@ import { cn } from "@/lib/utils";
 import type { MetricTone } from "./metric";
 import { metricValueClassName } from "./metric";
 
+export {
+  productsCategoryBadgeClassName,
+  productsDialogContentClassName,
+  productsSectionPanelClassName,
+} from "./hub-section-aliases";
+
 export function foodCostStatusMetricTone(status: "good" | "warn" | "bad"): MetricTone {
   switch (status) {
     case "good":

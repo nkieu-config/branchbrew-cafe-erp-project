@@ -188,7 +188,7 @@ export function inventorySummaryStripClassName(className?: string) {
   );
 }
 
-/** @deprecated Use summaryChipClassName("inventory", ...) from @/lib/theme */
+/** @deprecated Use summaryChipClassName("inventory", ...) from @/lib/theme/hub-primitives */
 export function inventorySummaryChipClassName(active = false, className?: string) {
   return summaryChipClassName("inventory", active, className);
 }

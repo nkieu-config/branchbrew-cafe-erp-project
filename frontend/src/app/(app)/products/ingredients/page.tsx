@@ -39,17 +39,13 @@ import {
   type IngredientStatusFilter,
 } from "@/lib/ingredient-filters";
 import { parseProductsIngredientsSearchParams } from "@/lib/products-hub-url";
-import {
-  hubCtaClassName,
-  hubListDataTableProps,
-  metricValueClassName,
-  productsCategoryBadgeClassName,
-  productsSectionPanelClassName,
-  tableCellMutedClassName,
-  text,
-  typeHeadingClassName,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { tableCellMutedClassName } from "@/lib/theme/feedback";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
+import { productsCategoryBadgeClassName, productsSectionPanelClassName } from "@/lib/theme/hub-products";
+import { metricValueClassName } from "@/lib/theme/metric";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { Ingredient } from "@/types/api";

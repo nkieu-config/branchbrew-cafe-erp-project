@@ -7,7 +7,7 @@ import {
   formatHubListCount,
   formatHubListCountWithFetching,
 } from "@/lib/format-hub-list-count";
-import { text } from "@/lib/theme";
+import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
 
 type HubListPageRootProps = {

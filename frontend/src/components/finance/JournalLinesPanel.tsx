@@ -4,15 +4,11 @@ import { Table } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import type { JournalEntry, JournalLine } from "@/types/api";
 import { formatBaht } from "@/lib/money";
-import {
-  antTableShellClassName,
-  antTableSummaryRowClassName,
-  ledgerCreditClassName,
-  ledgerDebitClassName,
-  payrollExpandedPanelClassName,
-  text,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { antTableShellClassName, antTableSummaryRowClassName } from "@/lib/theme/data-table";
+import { ledgerCreditClassName, ledgerDebitClassName } from "@/lib/theme/finance";
+import { payrollExpandedPanelClassName } from "@/lib/theme/hub-hr";
+import { text } from "@/lib/theme/surface";
+import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type JournalLinesPanelProps = {

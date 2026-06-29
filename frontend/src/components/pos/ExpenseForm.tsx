@@ -4,7 +4,9 @@ import { Wallet } from "lucide-react"
 import { toast } from "sonner"
 import { getErrorMessage } from '@/lib/errors'
 import { useCreateExpense } from '@/hooks/domains/useFinanceQueries'
-import { posExpenseIconClassName, posFormPanelClassName, posNativeInputClassName, text, typeHeadingClassName } from '@/lib/theme'
+import { posExpenseIconClassName, posFormPanelClassName, posNativeInputClassName } from "@/lib/theme/immersive";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from '@/lib/utils'
 
 export function ExpenseForm({ branchIdNum }: { branchIdNum: number | undefined }) {

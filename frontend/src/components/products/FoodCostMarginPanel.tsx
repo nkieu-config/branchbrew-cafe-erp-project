@@ -4,15 +4,11 @@ import Link from "next/link";
 import { ArrowRight, TrendingDown, TrendingUp } from "lucide-react";
 import { formatBaht } from "@/lib/money";
 import { compareFoodCostMargins } from "@/lib/food-cost-margin";
-import {
-  foodCostStatusClassName,
-  formSectionClassName,
-  inlineLinkClassName,
-  metricValueClassName,
-  text,
-  typeHeadingClassName,
-  typeSectionLabelClassName,
-} from "@/lib/theme";
+import { formSectionClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
+import { foodCostStatusClassName } from "@/lib/theme/hub-products";
+import { metricValueClassName } from "@/lib/theme/metric";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName, typeSectionLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { Order } from "@/types/api";
 import { foodCostStatus } from "@/lib/food-cost";

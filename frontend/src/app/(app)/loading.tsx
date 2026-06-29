@@ -1,4 +1,4 @@
-import { text } from "@/lib/theme";
+import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
 
 export default function AppLoading() {

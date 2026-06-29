@@ -3,7 +3,7 @@
 import { Fragment, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { ThemeToggle } from "@/components/providers/ThemeToggle";
 import { ClockInOutWidget } from "@/components/hr/ClockInOutWidget";
 import { BranchPicker } from "@/components/shared/branch-picker";
 import { LogOut, Menu, User } from "lucide-react";
@@ -19,25 +19,9 @@ import {
   type BreadcrumbItem,
 } from "@/lib/navigation";
 import { isImmersiveRoute, isShellHubPage } from "@/lib/shell-routes";
-import {
-  breadcrumbCurrentClassName,
-  breadcrumbLinkClassName,
-  breadcrumbNavClassName,
-  breadcrumbParentClassName,
-  breadcrumbSeparatorClassName,
-  destructiveMenuItemClassName,
-  profileMenuPanelClassName,
-  shellContentFrameClassName,
-  text,
-  topbarActionButtonClassName,
-  topbarActionsRowClassName,
-  topbarActionsDividerClassName,
-  topbarMenuButtonClassName,
-  topbarRegionClassName,
-  topbarShellClassName,
-  profileMenuHeaderDividerClassName,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { breadcrumbCurrentClassName, breadcrumbLinkClassName, breadcrumbNavClassName, breadcrumbParentClassName, breadcrumbSeparatorClassName, destructiveMenuItemClassName, profileMenuPanelClassName, shellContentFrameClassName, topbarActionButtonClassName, topbarActionsRowClassName, topbarActionsDividerClassName, topbarMenuButtonClassName, topbarRegionClassName, topbarShellClassName, profileMenuHeaderDividerClassName } from "@/lib/theme/shell";
+import { text } from "@/lib/theme/surface";
+import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 function ProfileMenu() {

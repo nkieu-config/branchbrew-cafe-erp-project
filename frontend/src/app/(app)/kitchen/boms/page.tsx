@@ -9,8 +9,8 @@ import { ListTree, Loader2, Plus } from "lucide-react";
 import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { DataTable } from "@/components/shared/data-table";
-import { BOMModalForm } from "@/components/kitchen/BOMModalForm";
-import { CentralKitchenBanner } from "@/components/kitchen/central-kitchen-banner";
+import { BOMFormModal } from "@/components/kitchen/BOMFormModal";
+import { CentralKitchenBanner } from "@/components/kitchen/CentralKitchenBanner";
 import { Button } from "@/components/ui/button";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { getErrorMessage } from "@/lib/errors";
@@ -19,19 +19,12 @@ import { groupProductionBoms } from "@/lib/bom";
 import { buildProductsCostingUrl, buildProductsIngredientsUrl } from "@/lib/products-hub-url";
 import { matchesBomSearch, summarizeProductionBoms } from "@/lib/bom-filters";
 import type { BomGroupRow, BomTableRow, ProductionBOM } from "@/types/api";
-import {
-  hubCardIconFor,
-  hubCtaClassName,
-  hubListDataTableProps,
-  inlineLinkClassName,
-  kitchenMetaBadgeClassName,
-  kitchenSectionPanelClassName,
-  summaryChipClassName,
-  metricValueClassName,
-  text,
-  typeHeadingClassName,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { hubCardIconFor, hubCtaClassName, inlineLinkClassName, summaryChipClassName } from "@/lib/theme/hub-primitives";
+import { kitchenMetaBadgeClassName, kitchenSectionPanelClassName } from "@/lib/theme/hub-kitchen";
+import { metricValueClassName } from "@/lib/theme/metric";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 export default function BOMPage() {
@@ -261,7 +254,7 @@ export default function BOMPage() {
         )}
       </HubListPage>
 
-      <BOMModalForm
+      <BOMFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         ingredients={ingredients}

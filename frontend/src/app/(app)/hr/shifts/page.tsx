@@ -21,7 +21,7 @@ import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterDate, ListFilterSelect } from "@/components/shared/list-filters";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
-import { RoleGuard } from "@/components/RoleGuard";
+import { RoleGuard } from "@/components/auth/RoleGuard";
 import { AccessDeniedState } from "@/components/shared/access-denied-state";
 import { CreateShiftModal } from "@/components/hr/CreateShiftModal";
 import { ShiftGanttTimeline } from "@/components/hr/ShiftGanttTimeline";
@@ -37,16 +37,11 @@ import {
 import { parseHrShiftsSearchParams } from "@/lib/hr-hub-url";
 import { formatDate } from "@/lib/intl-date";
 import { formatHubListCountWithFetching } from "@/lib/format-hub-list-count";
-import {
-  ganttPanelClassName,
-  hubCardIconFor,
-  hubCtaClassName,
-  hrSectionPanelClassName,
-  hubLoadingSpinnerClassName,
-  inlineLinkClassName,
-  text,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { ganttPanelClassName } from "@/lib/theme/hub-hr";
+import { hubCardIconFor, hubCtaClassName, hubLoadingSpinnerClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
+import { hrSectionPanelClassName } from "@/lib/theme/hub-hr";
+import { text } from "@/lib/theme/surface";
+import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 function toDateInputValue(date: Date): string {

@@ -4,12 +4,7 @@ import type { TableProps } from "antd";
 import { useTheme } from "next-themes";
 import { Inbox } from "lucide-react";
 import { QueryErrorBanner } from "@/components/shared/query-error-banner";
-import {
-  dataTableContainerClassName,
-  dataTableEmptyIconClassName,
-  dataTableEmptyTextClassName,
-  dataTableSkeletonClassName,
-} from "@/lib/theme";
+import { dataTableContainerClassName, dataTableEmptyIconClassName, dataTableEmptyTextClassName, dataTableSkeletonClassName } from "@/lib/theme/data-table";
 
 interface DataTableProps<RecordType extends object = object> extends TableProps<RecordType> {
   containerClassName?: string;

@@ -14,13 +14,7 @@ import {
 } from "@/lib/navigation";
 import { resolveChildTabHref, resolveSidebarItemHref } from "@/lib/operational-links";
 import type { SidebarNavBadgeMap } from "@/lib/sidebar-badges";
-import {
-  sidebarNavChildLinkClassName,
-  sidebarNavIconClassName,
-  sidebarNavLinkClassName,
-  sidebarPinButtonClassName,
-  sidebarTreeIndentClassName,
-} from "@/lib/theme";
+import { sidebarNavChildLinkClassName, sidebarNavIconClassName, sidebarNavLinkClassName, sidebarPinButtonClassName, sidebarTreeIndentClassName } from "@/lib/theme/shell";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types/api";
 

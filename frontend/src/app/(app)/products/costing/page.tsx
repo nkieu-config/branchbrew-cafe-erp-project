@@ -40,19 +40,14 @@ import {
 } from "@/lib/food-cost-filters";
 import { productHasRecipe } from "@/lib/menu-product-filters";
 import { parseProductsCostingSearchParams } from "@/lib/products-hub-url";
-import {
-  foodCostProgressIndicatorClassName,
-  foodCostStatusClassName,
-  hubListDataTableProps,
-  inlineLinkClassName,
-  metricValueClassName,
-  productsCategoryBadgeClassName,
-  productsSectionPanelClassName,
-  tableCellMutedClassName,
-  text,
-  typeHeadingClassName,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { tableCellMutedClassName } from "@/lib/theme/feedback";
+import { inlineLinkClassName } from "@/lib/theme/hub-primitives";
+import { foodCostProgressIndicatorClassName, foodCostStatusClassName } from "@/lib/theme/hub-products";
+import { productsCategoryBadgeClassName, productsSectionPanelClassName } from "@/lib/theme/hub-products";
+import { metricValueClassName } from "@/lib/theme/metric";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/types/api";
 

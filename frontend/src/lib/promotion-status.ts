@@ -1,5 +1,6 @@
 import type { Promotion } from "@/types/api";
-import type { StatusTone } from "@/lib/theme";
+import { StatusTone } from "@/lib/theme/status";
+import { formatDate } from "@/lib/intl-date";
 
 export type PromoValidity = "active" | "inactive" | "expired" | "scheduled";
 
@@ -62,4 +63,13 @@ export function dateInputToIso(date: string, endOfDay = false): string | undefin
   return endOfDay
     ? new Date(`${date}T23:59:59.999`).toISOString()
     : new Date(`${date}T00:00:00`).toISOString();
+}
+
+export function formatPromoValidityRange(promotion: Promotion): string {
+  const start = promotion.startDate ? formatDate(promotion.startDate) : null;
+  const end = promotion.endDate ? formatDate(promotion.endDate) : null;
+  if (start && end) return `${start} – ${end}`;
+  if (start) return `From ${start}`;
+  if (end) return `Until ${end}`;
+  return "—";
 }

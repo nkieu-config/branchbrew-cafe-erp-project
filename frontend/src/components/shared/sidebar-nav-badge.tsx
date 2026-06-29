@@ -1,5 +1,5 @@
 import { formatSidebarBadgeCount, type SidebarNavBadgeTone } from "@/lib/sidebar-badges";
-import { sidebarNavBadgeClassName, sidebarRailBadgeDotClassName } from "@/lib/theme";
+import { sidebarNavBadgeClassName, sidebarRailBadgeDotClassName } from "@/lib/theme/shell";
 import { cn } from "@/lib/utils";
 
 type SidebarNavBadgeProps = {

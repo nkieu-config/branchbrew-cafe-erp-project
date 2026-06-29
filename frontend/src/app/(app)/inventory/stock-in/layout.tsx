@@ -1,6 +1,6 @@
 "use client";
 
-import { RoleGuard } from "@/components/RoleGuard";
+import { RoleGuard } from "@/components/auth/RoleGuard";
 import { AccessDeniedState } from "@/components/shared/access-denied-state";
 
 export default function StockInLayout({ children }: { children: React.ReactNode }) {

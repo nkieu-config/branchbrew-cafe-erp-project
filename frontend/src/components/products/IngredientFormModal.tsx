@@ -28,15 +28,12 @@ import { useSuppliers } from "@/hooks/domains/useProcurementQueries";
 import { toast } from "sonner";
 import type { Ingredient, Supplier } from "@/types/api";
 import { getErrorMessage } from "@/lib/errors";
-import {
-  formFieldInsetClassName,
-  formSelectContentClassName,
-  hubCtaClassName,
-  productsDialogContentClassName,
-  tableRowDividerClassName,
-  text,
-  typeHeadingClassName,
-} from "@/lib/theme";
+import { tableRowDividerClassName } from "@/lib/theme/color-helpers";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
+import { productsDialogContentClassName } from "@/lib/theme/hub-products";
+import { formFieldInsetClassName, formSelectContentClassName } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 export function IngredientFormModal({

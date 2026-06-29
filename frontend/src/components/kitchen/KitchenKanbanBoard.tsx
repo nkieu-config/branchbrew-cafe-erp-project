@@ -18,22 +18,12 @@ import { CSS } from "@dnd-kit/utilities";
 import type { ProductionOrder, Ingredient } from "@/types/api";
 import { formatDate } from "@/lib/intl-date";
 import { formatBaht } from "@/lib/money";
-import {
-  hubAccentIconClass,
-  kanbanCardClassName,
-  kanbanCompletedCardClassName,
-  kanbanColumnClassName,
-  kanbanColumnHeaderClassName,
-  kanbanMetaChipClassName,
-  kanbanOrderBadgeClassName,
-  metricValueClassName,
-  productionColumnTone,
-  typeHeadingClassName,
-  typeMicroClassName,
-  typeUiLabelClassName,
-  text,
-} from "@/lib/theme";
-import type { StatusTone } from "@/lib/theme";
+import { hubAccentIconClass } from "@/lib/theme/hub-accent";
+import { kanbanCardClassName, kanbanCompletedCardClassName, kanbanColumnClassName, kanbanColumnHeaderClassName, kanbanMetaChipClassName, kanbanOrderBadgeClassName, productionColumnTone } from "@/lib/theme/hub-kitchen";
+import { metricValueClassName } from "@/lib/theme/metric";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName, typeMicroClassName, typeUiLabelClassName } from "@/lib/theme/typography";
+import { StatusTone } from "@/lib/theme/status";
 import { cn } from "@/lib/utils";
 
 export type ProductionOrderWithTarget = ProductionOrder & { targetIngredient: Ingredient };

@@ -5,14 +5,9 @@ import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { BranchScopeIndicator } from "@/components/shared/branch-scope-indicator";
-import {
-  listToolbarClassName,
-  listToolbarFieldClassName,
-  listToolbarFiltersClassName,
-  listToolbarSearchClassName,
-  decorativeIconClassName,
-  text,
-} from "@/lib/theme";
+import { decorativeIconClassName } from "@/lib/theme/color-helpers";
+import { listToolbarClassName, listToolbarFieldClassName, listToolbarFiltersClassName, listToolbarSearchClassName } from "@/lib/theme/feedback";
+import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
 
 type ListToolbarProps = {

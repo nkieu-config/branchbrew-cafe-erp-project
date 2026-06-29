@@ -5,14 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import type { Branch } from "@/types/api";
-import {
-  hubCtaClassName,
-  warningBannerClassName,
-  warningBannerIconClassName,
-  warningBannerPanelClassName,
-  warningBannerTextClassName,
-  warningBannerTitleClassName,
-} from "@/lib/theme";
+import { warningBannerClassName, warningBannerIconClassName, warningBannerPanelClassName, warningBannerTextClassName, warningBannerTitleClassName } from "@/lib/theme/hub-banners";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { cn } from "@/lib/utils";
 
 type CentralKitchenBranchNoticeProps = {

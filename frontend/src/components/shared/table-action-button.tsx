@@ -2,7 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { metricValueClassName, touchTargetClassName, dataTableRowHoverClassName, type MetricTone } from "@/lib/theme";
+import { dataTableRowHoverClassName } from "@/lib/theme/data-table";
+import { metricValueClassName } from "@/lib/theme/metric";
+import type { MetricTone } from "@/lib/theme/metric";
+import { touchTargetClassName } from "@/lib/theme/typography";
 import type { LucideIcon } from "lucide-react";
 
 type TableActionButtonProps = {

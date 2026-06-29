@@ -64,22 +64,16 @@ import {
   type ModifierHighlightFilter,
 } from "@/lib/modifier-filters";
 import { StatusBadge } from "@/components/shared/status-badge";
-import {
-  formContextBannerClassName,
-  formFieldInsetClassName,
-  formSelectContentClassName,
-  hubCtaClassName,
-  hubListDataTableProps,
-  hubLoadingSpinnerClassName,
-  metricValueClassName,
-  modifierGroupPanelClassName,
-  productsCategoryBadgeClassName,
-  productsDialogContentClassName,
-  productsSectionPanelClassName,
-  tableCellMutedClassName,
-  text,
-  typeHeadingClassName,
-} from "@/lib/theme";
+import { formContextBannerClassName } from "@/lib/theme/color-helpers";
+import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { tableCellMutedClassName } from "@/lib/theme/feedback";
+import { hubCtaClassName, hubLoadingSpinnerClassName } from "@/lib/theme/hub-primitives";
+import { modifierGroupPanelClassName } from "@/lib/theme/hub-products";
+import { productsCategoryBadgeClassName, productsDialogContentClassName, productsSectionPanelClassName } from "@/lib/theme/hub-products";
+import { metricValueClassName } from "@/lib/theme/metric";
+import { formFieldInsetClassName, formSelectContentClassName } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 const ALL_CATEGORIES = "__all__";

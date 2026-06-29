@@ -5,7 +5,7 @@ import { Building2, Loader2, MapPin, Pencil, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useBranches, useCreateBranch, useUpdateBranch } from "@/hooks/domains/useGeneralQueries";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { AnimatedPage } from "@/components/animated-page";
+import { AnimatedPage } from "@/components/layout/animated-page";
 import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
@@ -21,24 +21,13 @@ import {
 } from "@/lib/branch-filters";
 import { getErrorMessage } from "@/lib/errors";
 import type { Branch } from "@/types/api";
-import {
-  branchCardAccentClassName,
-  branchCardClassName,
-  branchCardMetaClassName,
-  emptyStatePanelClassName,
-  hubCtaClassName,
-  hubLoadingSpinnerClassName,
-  infoBannerClassName,
-  infoBannerIconClassName,
-  infoBannerTextClassName,
-  infoBannerTitleClassName,
-  metricValueClassName,
-  organizationSectionPanelClassName,
-  tableRowDividerClassName,
-  text,
-  typeHeadingClassName,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { tableRowDividerClassName } from "@/lib/theme/color-helpers";
+import { infoBannerClassName, infoBannerIconClassName, infoBannerTextClassName, infoBannerTitleClassName } from "@/lib/theme/hub-banners";
+import { branchCardClassName, emptyStatePanelClassName, hubCtaClassName, hubLoadingSpinnerClassName } from "@/lib/theme/hub-primitives";
+import { metricValueClassName } from "@/lib/theme/metric";
+import { branchCardAccentClassName, branchCardMetaClassName, organizationSectionPanelClassName } from "@/lib/theme/organization";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 export default function BranchesPageClient({ embedded = false }: { embedded?: boolean }) {

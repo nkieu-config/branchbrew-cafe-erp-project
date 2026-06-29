@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AnimatedPage } from "@/components/animated-page";
+import { AnimatedPage } from "@/components/layout/animated-page";
 import { AntdScope } from "@/components/providers/AntdScope";
 import {
   HubTabsNav,
@@ -20,7 +20,7 @@ import {
   shouldShowHubSubNav,
   type HubId,
 } from "@/lib/navigation";
-import { hubAccentIconClass } from "@/lib/theme";
+import { hubAccentIconClass } from "@/lib/theme/hub-accent";
 import { cn } from "@/lib/utils";
 
 type HubShellProps = {

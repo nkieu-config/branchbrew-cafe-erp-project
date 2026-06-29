@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { collectDuplicateKeys } from "./use-line-item-rows";
+import { collectDuplicateKeys } from "./useLineItemRows";
 
 describe("collectDuplicateKeys", () => {
   it("returns duplicate ingredient ids", () => {

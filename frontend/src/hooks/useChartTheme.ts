@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getChartTheme, type ChartTheme } from "@/lib/theme";
+import { getChartTheme } from "@/lib/theme/chart-styles";
+import type { ChartTheme } from "@/lib/theme/chart-styles";
 
 /** Sync Recharts theme when light/dark class toggles on `<html>`. */
 export function useChartTheme(): ChartTheme {

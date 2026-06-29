@@ -1,4 +1,4 @@
-import UsersPageClient from "@/app/(app)/users/users-page-client";
+import UsersPageClient from "./users-page-client";
 
 export default function OrganizationUsersPage() {
   return <UsersPageClient embedded />;

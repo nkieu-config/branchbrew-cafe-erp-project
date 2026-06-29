@@ -31,15 +31,13 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
-import {
-  posQueueHighlightClassName,
-  posSectionPanelClassName,
-  hubListDataTableProps,
-  tableCellMutedClassName,
-  tableRowDividerClassName,
-  text,
-  typeHeadingClassName,
-} from "@/lib/theme";
+import { tableRowDividerClassName } from "@/lib/theme/color-helpers";
+import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { tableCellMutedClassName } from "@/lib/theme/feedback";
+import { posSectionPanelClassName } from "@/lib/theme/immersive";
+import { posQueueHighlightClassName } from "@/lib/theme/immersive";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 function isToday(iso: string) {

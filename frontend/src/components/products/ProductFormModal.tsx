@@ -30,19 +30,13 @@ import type { Product, Ingredient } from "@/types/api";
 import { getErrorMessage } from "@/lib/errors";
 import { FormModalFooter } from "@/components/shared/form-modal";
 import { StatusBadge } from "@/components/shared/status-badge";
-import { useLineItemRows } from "@/hooks/use-line-item-rows";
-import {
-  formFieldInsetClassName,
-  formFieldInvalidClassName,
-  formRemoveButtonClassName,
-  formSectionClassName,
-  formSelectContentClassName,
-  hubCtaClassName,
-  productsDialogContentClassName,
-  tableRowDividerClassName,
-  text,
-  typeHeadingClassName,
-} from "@/lib/theme";
+import { useLineItemRows } from "@/hooks/useLineItemRows";
+import { formFieldInvalidClassName, tableRowDividerClassName } from "@/lib/theme/color-helpers";
+import { formSectionClassName, hubCtaClassName } from "@/lib/theme/hub-primitives";
+import { productsDialogContentClassName } from "@/lib/theme/hub-products";
+import { formFieldInsetClassName, formRemoveButtonClassName, formSelectContentClassName } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type RecipeRow = {

@@ -1,3 +1,7 @@
+/**
+ * Settings form section chrome — bordered blocks inside settings tabs.
+ * Not for hub list panels or sheets; use `settings-hub-chrome.ts` for those.
+ */
 import { cn } from "@/lib/utils";
 import { text } from "./surface";
 

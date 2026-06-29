@@ -22,15 +22,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Branch, EmploymentType, Role, User } from "@/types/api";
-import {
-  formFieldInsetClassName,
-  formSelectContentClassName,
-  hubCtaClassName,
-  hubModalIconClassName,
-  organizationDialogWideClassName,
-  text,
-  typeHeadingClassName,
-} from "@/lib/theme";
+import { hubModalIconClassName } from "@/lib/theme/color-helpers";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
+import { organizationDialogWideClassName } from "@/lib/theme/organization";
+import { formFieldInsetClassName, formSelectContentClassName } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type UserFormModalProps = {

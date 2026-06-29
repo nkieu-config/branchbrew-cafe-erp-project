@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-import { hubPrimaryActionClassName } from "./stock";
 import { text } from "./surface";
 
 export function authPageShellClassName(className?: string) {
@@ -30,7 +29,13 @@ export function authInputClassName(className?: string) {
 }
 
 export function authPrimaryButtonClassName(className?: string) {
-  return cn(hubPrimaryActionClassName(), "w-full h-12 shadow-lg mt-4 group", className);
+  return cn(
+    "inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors",
+    "bg-[#8b5a2b] text-white dark:bg-[var(--brand-solid)] dark:text-[var(--foreground)]",
+    "hover:opacity-90 shadow-sm w-full h-12 shadow-lg mt-4 group border-transparent",
+    "disabled:pointer-events-none disabled:opacity-50",
+    className,
+  );
 }
 
 export function authDemoPanelClassName(className?: string) {

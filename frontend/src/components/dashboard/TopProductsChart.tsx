@@ -12,7 +12,11 @@ import {
   Cell,
 } from "recharts";
 import { Award } from "lucide-react";
-import { dashboardChartEmptyClass, decorativeIconClassName, getChartPalette, text, typeUiLabelClassName } from "@/lib/theme";
+import { getChartPalette } from "@/lib/theme/chart-styles";
+import { decorativeIconClassName } from "@/lib/theme/color-helpers";
+import { dashboardChartEmptyClass } from "@/lib/theme/dashboard";
+import { text } from "@/lib/theme/surface";
+import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { useChartTheme } from "@/hooks/useChartTheme";
 import { cn } from "@/lib/utils";
 

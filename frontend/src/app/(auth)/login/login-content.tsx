@@ -5,34 +5,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { loginApi } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Coffee, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import { getErrorMessage } from "@/lib/errors";
-import {
-  authBrandMarkClassName,
-  authDemoButtonClassName,
-  authDemoDividerClassName,
-  authDemoPanelClassName,
-  authHeroCardClassName,
-  authHeroGlowClassName,
-  authHeroPanelClassName,
-  authHeroStatClassName,
-  authHeroStatLabelClassName,
-  authHeroStatValueClassName,
-  authHeroTextClassName,
-  authHeroTitleClassName,
-  authInputClassName,
-  authLoadingClassName,
-  authPageShellClassName,
-  authPrimaryButtonClassName,
-  text,
-  typeHeadingClassName,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { authBrandMarkClassName, authDemoButtonClassName, authDemoDividerClassName, authDemoPanelClassName, authHeroCardClassName, authHeroGlowClassName, authHeroPanelClassName, authHeroStatClassName, authHeroStatLabelClassName, authHeroStatValueClassName, authHeroTextClassName, authHeroTitleClassName, authInputClassName, authLoadingClassName, authPageShellClassName, authPrimaryButtonClassName } from "@/lib/theme/auth";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 export default function LoginContent() {
@@ -133,13 +114,13 @@ export default function LoginContent() {
               />
             </div>
 
-            <Button type="submit" className={authPrimaryButtonClassName()} disabled={loading}>
+            <button type="submit" className={authPrimaryButtonClassName()} disabled={loading}>
               {loading ? "Authenticating…" : (
                 <span className="flex items-center">
                   Sign In <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform motion-reduce:transition-none" />
                 </span>
               )}
-            </Button>
+            </button>
           </form>
 
           <div className={authDemoPanelClassName()}>

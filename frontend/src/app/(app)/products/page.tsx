@@ -29,18 +29,13 @@ import {
   type MenuStatusFilter,
 } from "@/lib/menu-product-filters";
 import { buildProductsCostingUrl } from "@/lib/products-hub-url";
-import {
-  foodCostStatusClassName,
-  hubListDataTableProps,
-  hubCtaClassName,
-  inlineLinkClassName,
-  productsCategoryBadgeClassName,
-  productsSectionPanelClassName,
-  tableCellMutedClassName,
-  text,
-  typeHeadingClassName,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { tableCellMutedClassName } from "@/lib/theme/feedback";
+import { hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
+import { foodCostStatusClassName } from "@/lib/theme/hub-products";
+import { productsCategoryBadgeClassName, productsSectionPanelClassName } from "@/lib/theme/hub-products";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import type { Product } from "@/types/api";

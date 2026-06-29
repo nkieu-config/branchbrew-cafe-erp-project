@@ -13,7 +13,10 @@ import {
 import type { SalesTrendPoint } from "@/types/api";
 import { format, parseISO } from "date-fns";
 import { BarChart3 } from "lucide-react";
-import { dashboardChartEmptyClass, dashboardSkeletonClass, decorativeIconClassName, text, typeUiLabelClassName } from "@/lib/theme";
+import { decorativeIconClassName } from "@/lib/theme/color-helpers";
+import { dashboardChartEmptyClass, dashboardSkeletonClass } from "@/lib/theme/dashboard";
+import { text } from "@/lib/theme/surface";
+import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { useChartTheme } from "@/hooks/useChartTheme";
 import { cn } from "@/lib/utils";
 

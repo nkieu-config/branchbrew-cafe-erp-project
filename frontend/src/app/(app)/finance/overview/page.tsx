@@ -45,28 +45,10 @@ import {
   buildFinanceOverviewUrl,
   parseFinanceOverviewSearchParams,
 } from "@/lib/finance-hub-url";
-import {
-  financeExpenseAmountClassName,
-  financeHubIconClassName,
-  financeMetricIconClassName,
-  financeSectionPanelClassName,
-  financeSectionTitleClassName,
-  hubCtaClassName,
-  infoBannerClassName,
-  infoBannerIconClassName,
-  infoBannerTextClassName,
-  infoBannerTitleClassName,
-  inlineLinkClassName,
-  nativeTableBodyClassName,
-  nativeTableCellMutedClassName,
-  nativeTableCellPrimaryClassName,
-  nativeTableClassName,
-  nativeTableEmptyCellClassName,
-  nativeTableHeadClassName,
-  nativeTableRowClassName,
-  settlementDifferenceClassName,
-  tableActionAccentClassName,
-} from "@/lib/theme";
+import { nativeTableBodyClassName, nativeTableCellMutedClassName, nativeTableCellPrimaryClassName, nativeTableClassName, nativeTableEmptyCellClassName, nativeTableHeadClassName, nativeTableRowClassName } from "@/lib/theme/data-table";
+import { financeExpenseAmountClassName, financeHubIconClassName, financeMetricIconClassName, financeSectionPanelClassName, financeSectionTitleClassName, settlementDifferenceClassName } from "@/lib/theme/finance";
+import { infoBannerClassName, infoBannerIconClassName, infoBannerTextClassName, infoBannerTitleClassName } from "@/lib/theme/hub-banners";
+import { hubCtaClassName, inlineLinkClassName, tableActionAccentClassName } from "@/lib/theme/hub-primitives";
 import { cn } from "@/lib/utils";
 
 function FinanceTableSkeleton({ rows = 4 }: { rows?: number }) {

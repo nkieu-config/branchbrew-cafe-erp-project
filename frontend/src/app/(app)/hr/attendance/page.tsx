@@ -40,22 +40,14 @@ import {
   isAttendanceLate,
   summarizeAttendance,
 } from "@/lib/attendance-filters";
-import {
-  attendanceLateRowClassName,
-  attendanceLateTimeClassName,
-  attendanceOnTimeClassName,
-  hubCtaClassName,
-  hubListDataTableProps,
-  hrSectionPanelClassName,
-  infoBannerClassName,
-  infoBannerIconClassName,
-  infoBannerTextClassName,
-  infoBannerTitleClassName,
-  inlineLinkClassName,
-  statusTextClassName,
-  text,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { statusTextClassName } from "@/lib/theme/color-helpers";
+import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { infoBannerClassName, infoBannerIconClassName, infoBannerTextClassName, infoBannerTitleClassName } from "@/lib/theme/hub-banners";
+import { attendanceLateRowClassName, attendanceLateTimeClassName, attendanceOnTimeClassName } from "@/lib/theme/hub-hr";
+import { hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
+import { hrSectionPanelClassName } from "@/lib/theme/hub-hr";
+import { text } from "@/lib/theme/surface";
+import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 function useElapsedTimer(clockIn: string | undefined | null) {

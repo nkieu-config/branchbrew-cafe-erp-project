@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
-import { statusToneClassName, type StatusTone } from "@/lib/theme";
+import { statusToneClassName } from "@/lib/theme/status";
+import type { StatusTone } from "@/lib/theme/status";
 
 export type { StatusTone as StatusBadgeTone };
 

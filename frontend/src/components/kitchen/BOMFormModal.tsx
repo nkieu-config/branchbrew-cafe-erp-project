@@ -24,22 +24,15 @@ import { FormEmptyIngredientsBanner } from "@/components/shared/form-panel";
 import { FormModalFooter } from "@/components/shared/form-modal";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { useCreateProductionBOM } from "@/hooks/domains/useAccountingQueries";
-import { useLineItemRows } from "@/hooks/use-line-item-rows";
+import { useLineItemRows } from "@/hooks/useLineItemRows";
 import { getErrorMessage } from "@/lib/errors";
 import type { Ingredient } from "@/types/api";
-import {
-  formFieldInsetClassName,
-  formLineQtyFieldClassName,
-  formLineRowClassName,
-  formRemoveButtonClassName,
-  formSectionClassName,
-  formSelectContentClassName,
-  hubCtaClassName,
-  hubModalIconClassName,
-  kitchenDialogContentClassName,
-  text,
-  typeHeadingClassName,
-} from "@/lib/theme";
+import { hubModalIconClassName } from "@/lib/theme/color-helpers";
+import { formSectionClassName, hubCtaClassName } from "@/lib/theme/hub-primitives";
+import { kitchenDialogContentClassName } from "@/lib/theme/hub-kitchen";
+import { formFieldInsetClassName, formLineQtyFieldClassName, formLineRowClassName, formRemoveButtonClassName, formSelectContentClassName } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type RawLineDraft = {
@@ -48,7 +41,7 @@ type RawLineDraft = {
   quantityNeeded: string;
 };
 
-type BOMModalFormProps = {
+type BOMFormModalProps = {
   isOpen: boolean;
   onClose: () => void;
   ingredients: Ingredient[];
@@ -66,7 +59,7 @@ function isLineDirty(line: RawLineDraft) {
   return line.rawIngredientId > 0 || line.quantityNeeded.trim().length > 0;
 }
 
-export function BOMModalForm({ isOpen, onClose, ingredients }: BOMModalFormProps) {
+export function BOMFormModal({ isOpen, onClose, ingredients }: BOMFormModalProps) {
   const [targetId, setTargetId] = useState<string>("");
   const createMutation = useCreateProductionBOM();
 

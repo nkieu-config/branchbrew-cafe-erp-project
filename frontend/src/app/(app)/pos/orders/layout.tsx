@@ -1,6 +1,6 @@
 "use client";
 
-import { RoleGuard } from "@/components/RoleGuard";
+import { RoleGuard } from "@/components/auth/RoleGuard";
 import { AntdScope } from "@/components/providers/AntdScope";
 import { AccessDeniedState } from "@/components/shared/access-denied-state";
 

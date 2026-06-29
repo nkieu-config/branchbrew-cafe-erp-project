@@ -3,7 +3,10 @@
 import { useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { AlertCircle } from "lucide-react"
-import { hubPrimaryActionClassName, statusToneClassName, text, typeHeadingClassName } from "@/lib/theme"
+import { statusToneClassName } from "@/lib/theme/status";
+import { hubPrimaryActionClassName } from "@/lib/theme/stock";
+import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils"
 
 export default function Error({

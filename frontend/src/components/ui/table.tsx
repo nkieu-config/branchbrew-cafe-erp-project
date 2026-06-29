@@ -2,7 +2,7 @@
 
 import * as React from "react"
 
-import { horizontalScrollHintClassName } from "@/lib/theme"
+import { horizontalScrollHintClassName } from "@/lib/theme/data-table";
 import { cn } from "@/lib/utils"
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {

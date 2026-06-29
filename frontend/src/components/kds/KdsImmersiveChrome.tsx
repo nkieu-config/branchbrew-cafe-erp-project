@@ -14,20 +14,11 @@ import {
   isMobileBottomNavActive,
 } from "@/lib/navigation";
 import { resolveMobileBottomNavBadge } from "@/lib/sidebar-badges";
-import {
-  kdsConnectedBadgeClassName,
-  kdsConnectedDotClassName,
-  kdsDisconnectedBadgeClassName,
-  kdsImmersiveHeaderClassName,
-  mobileBottomNavClassName,
-  mobileBottomNavIconClassName,
-  mobileBottomNavItemClassName,
-  mobileNavBadgePlacementClassName,
-  shellPageTitleClassName,
-  statusTextClassName,
-  text,
-  typeUiLabelClassName,
-} from "@/lib/theme";
+import { statusTextClassName } from "@/lib/theme/color-helpers";
+import { kdsConnectedBadgeClassName, kdsConnectedDotClassName, kdsDisconnectedBadgeClassName, kdsImmersiveHeaderClassName } from "@/lib/theme/immersive";
+import { mobileBottomNavClassName, mobileBottomNavIconClassName, mobileBottomNavItemClassName, mobileNavBadgePlacementClassName, shellPageTitleClassName } from "@/lib/theme/shell";
+import { text } from "@/lib/theme/surface";
+import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { Branch, Role } from "@/types/api";
 
