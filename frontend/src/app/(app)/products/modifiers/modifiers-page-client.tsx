@@ -7,7 +7,6 @@ import {
   Plus,
   Pencil,
   Trash2,
-  Loader2,
   Monitor,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -15,6 +14,7 @@ import { DataTable } from "@/components/shared/data-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
+import { QueryLoadingPanel } from "@/components/shared/query-states";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { Button } from "@/components/ui/button";
@@ -53,7 +53,7 @@ import {
 import { StatusBadge } from "@/components/shared/status-badge";
 import { hubListDataTableProps } from "@/lib/theme/data-table";
 import { tableCellMutedClassName } from "@/lib/theme/feedback";
-import { hubCtaClassName, hubLoadingSpinnerClassName } from "@/lib/theme/hub-primitives";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { modifierGroupPanelClassName } from "@/lib/theme/hub-products";
 import { productsCategoryBadgeClassName, productsSectionPanelClassName } from "@/lib/theme/hub-products";
 import { metricValueClassName } from "@/lib/theme/metric";
@@ -476,94 +476,91 @@ export default function ModifiersPageClient() {
             : undefined}
         </HubListPage.Count>
 
-        {isLoading ? (
-          <div
-            className="flex flex-col items-center justify-center gap-3 py-16"
-            role="status"
-            aria-live="polite"
-          >
-            <Loader2
-              className={hubLoadingSpinnerClassName("w-8 h-8 animate-spin motion-reduce:animate-none")}
-              aria-hidden
+        <HubListPage.Body className="space-y-4">
+          {isLoading ? (
+            <QueryLoadingPanel message="Loading modifier groups…" minHeightClassName="py-16" />
+          ) : !isError && filteredGroups.length === 0 ? (
+            <HubListPage.Empty
+              title={
+                hasActiveFilters
+                  ? "No modifier groups match your filters."
+                  : "No modifier groups yet"
+              }
+              description={
+                hasActiveFilters ? undefined : "Create one to customize POS orders."
+              }
             />
-            <span className={text.muted}>Loading modifier groups…</span>
-          </div>
-        ) : !isError && filteredGroups.length === 0 ? (
-          <p className={cn("text-sm py-8 text-center", text.muted)}>
-            {hasActiveFilters
-              ? "No modifier groups match your filters."
-              : "No modifier groups yet. Create one to customize POS orders."}
-          </p>
-        ) : (
-          !isError &&
-          filteredGroups.map((group: ModifierGroup) => (
-            <div key={group.id} className={modifierGroupPanelClassName()}>
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <h3 className={typeHeadingClassName("text-lg")}>
-                    {group.name}
-                  </h3>
-                  <div className="flex flex-wrap gap-2 mt-1">
-                    {group.category ? (
+          ) : (
+            !isError &&
+            filteredGroups.map((group: ModifierGroup) => (
+              <div key={group.id} className={modifierGroupPanelClassName()}>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h3 className={typeHeadingClassName("text-lg")}>
+                      {group.name}
+                    </h3>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {group.category ? (
+                        <span className={productsCategoryBadgeClassName()}>
+                          {group.category}
+                        </span>
+                      ) : (
+                        <span className={productsCategoryBadgeClassName()}>
+                          All categories
+                        </span>
+                      )}
                       <span className={productsCategoryBadgeClassName()}>
-                        {group.category}
+                        Order: {group.sortOrder}
                       </span>
-                    ) : (
-                      <span className={productsCategoryBadgeClassName()}>
-                        All categories
-                      </span>
-                    )}
-                    <span className={productsCategoryBadgeClassName()}>
-                      Order: {group.sortOrder}
-                    </span>
-                    {group.swapIngredient && (
-                      <StatusBadge tone="success">
-                        Swaps: {group.swapIngredient.name}
-                      </StatusBadge>
-                    )}
+                      {group.swapIngredient && (
+                        <StatusBadge tone="success">
+                          Swaps: {group.swapIngredient.name}
+                        </StatusBadge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={groupActionButtonClass}
+                      onClick={() => openEditGroup(group)}
+                    >
+                      <Pencil className="w-4 h-4 mr-1" aria-hidden />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={groupActionButtonClass}
+                      onClick={() => openCreateOption(group.id)}
+                    >
+                      <Plus className="w-4 h-4 mr-1" aria-hidden />
+                      Option
+                    </Button>
+                    <TableActionButton
+                      icon={Trash2}
+                      label={`Delete ${group.name}`}
+                      iconOnly
+                      variant="outline"
+                      destructive
+                      onClick={() => setPendingDelete({ type: "group", item: group })}
+                    />
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={groupActionButtonClass}
-                    onClick={() => openEditGroup(group)}
-                  >
-                    <Pencil className="w-4 h-4 mr-1" aria-hidden />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={groupActionButtonClass}
-                    onClick={() => openCreateOption(group.id)}
-                  >
-                    <Plus className="w-4 h-4 mr-1" aria-hidden />
-                    Option
-                  </Button>
-                  <TableActionButton
-                    icon={Trash2}
-                    label={`Delete ${group.name}`}
-                    iconOnly
-                    variant="outline"
-                    destructive
-                    onClick={() => setPendingDelete({ type: "group", item: group })}
-                  />
-                </div>
-              </div>
 
-              <DataTable
-                {...hubListDataTableProps()}
-                rowKey="id"
-                dataSource={group.options}
-                pagination={false}
-                emptyDescription="No options in this group yet."
-                columns={makeOptionColumns(group)}
-              />
-            </div>
-          ))
-        )}
+                <DataTable
+                  {...hubListDataTableProps()}
+                  rowKey="id"
+                  dataSource={group.options}
+                  pagination={false}
+                  emptyDescription="No options in this group yet."
+                  columns={makeOptionColumns(group)}
+                />
+              </div>
+            ))
+          )}
+        </HubListPage.Body>
       </HubListPage>
 
       <ModifierGroupFormDialog

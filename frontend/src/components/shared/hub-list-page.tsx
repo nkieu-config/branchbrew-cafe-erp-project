@@ -1,12 +1,14 @@
 "use client";
 
 import { type ReactNode } from "react";
+import { Inbox } from "lucide-react";
 import { ListToolbar } from "@/components/shared/list-toolbar";
 import { QueryErrorBanner } from "@/components/shared/query-error-banner";
 import {
   formatHubListCount,
   formatHubListCountWithFetching,
 } from "@/lib/format-hub-list-count";
+import { dataTableEmptyIconClassName, dataTableEmptyTextClassName } from "@/lib/theme/data-table";
 import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
 
@@ -138,12 +140,31 @@ function HubListPageBody({ children, className }: HubListPageBodyProps) {
   return <div className={className}>{children}</div>;
 }
 
+type HubListPageEmptyProps = {
+  title: string;
+  description?: string;
+  className?: string;
+};
+
+function HubListPageEmpty({ title, description, className }: HubListPageEmptyProps) {
+  return (
+    <div className={cn("py-12 text-center", className)}>
+      <Inbox className={dataTableEmptyIconClassName()} aria-hidden />
+      <p className={dataTableEmptyTextClassName()}>{title}</p>
+      {description ? (
+        <p className={cn("mt-2 text-sm", text.muted)}>{description}</p>
+      ) : null}
+    </div>
+  );
+}
+
 export const HubListPage = Object.assign(HubListPageRoot, {
   Banner: HubListPageBanner,
   Error: HubListPageError,
   Toolbar: ListToolbar,
   Count: HubListPageCount,
   Body: HubListPageBody,
+  Empty: HubListPageEmpty,
 });
 
 export type { HubListPageCountProps, HubListPageErrorProps, HubListPageRootProps };

@@ -1,7 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3001";
-const authFile = "e2e/.auth/manager.json";
+const managerAuthFile = "e2e/.auth/manager.json";
+const adminAuthFile = "e2e/.auth/admin.json";
 
 export default defineConfig({
   testDir: "./e2e",
@@ -20,6 +21,10 @@ export default defineConfig({
       testMatch: /auth\.setup\.ts/,
     },
     {
+      name: "admin-setup",
+      testMatch: /auth-admin\.setup\.ts/,
+    },
+    {
       name: "public",
       testMatch: /smoke\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
@@ -30,13 +35,23 @@ export default defineConfig({
       dependencies: ["setup"],
       use: {
         ...devices["Desktop Chrome"],
-        storageState: authFile,
+        storageState: managerAuthFile,
       },
     },
     {
       name: "flows",
       testMatch: /-flow\.spec\.ts/,
+      testIgnore: /super-admin-branch-flow\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "admin-flows",
+      testMatch: /super-admin-branch-flow\.spec\.ts/,
+      dependencies: ["admin-setup"],
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: adminAuthFile,
+      },
     },
   ],
   webServer: process.env.PLAYWRIGHT_SKIP_WEBSERVER
