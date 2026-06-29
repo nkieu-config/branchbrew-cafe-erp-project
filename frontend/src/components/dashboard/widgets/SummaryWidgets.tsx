@@ -13,13 +13,11 @@ import {
   CheckCircle2,
   Award,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 import { useAnalyticsSummarySuspense, useTopProductsSuspense } from "@/hooks/domains/useReportsQueries";
 import {
-  useBranchDetails,
-  useBranchInventory,
+  useBranchDetailsSuspense,
+  useBranchInventorySuspense,
 } from "@/hooks/domains/useInventoryQueries";
-import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import {
   buildExpiryAlerts,
   buildLowStockAlerts,
@@ -33,11 +31,8 @@ import { formatDashboardCurrency } from "@/lib/format-dashboard-currency";
 import { formatDate } from "@/lib/intl-date";
 import { dashboardAlertsEmptyClass, dashboardAlertsEmptyIconClassName, dashboardAlertsEmptyTextClassName, dashboardAlertsExpiryMetaClassName, dashboardAlertsExpiryValueClassName, dashboardAlertsFooterClass, dashboardAlertsFooterLinkClass, dashboardAlertsHeaderClass, dashboardAlertsLowMetaClassName, dashboardAlertsLowValueClassName, dashboardAlertsRowClass, dashboardSkeletonClass, dashboardTrendBadgeClass, dashboardWidgetCardClass, dashboardWidgetIconSoftClass, dashboardWidgetIconSolidClass, dashboardWidgetLabelClass, dashboardWidgetTitleClass, dashboardWidgetValueClass } from "@/lib/theme/dashboard";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName, typeMetricClassName, typeSectionLabelClassName, typeUiLabelClassName } from "@/lib/theme/typography";
+import { typeHeadingClassName, typeMetricClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
-import { API_ENDPOINTS } from "@/lib/endpoints";
-import { fetchAPI } from "@/lib/api";
-import type { Branch } from "@/types/api";
 
 const TopProductsChart = dynamic(
   () => import("@/components/dashboard/TopProductsChart").then((m) => m.TopProductsChart),
@@ -279,66 +274,38 @@ function InventoryAlertsList({
   );
 }
 
-export function LowStockWidget({ branchId }: { branchId: string }) {
-  const isAllBranches = branchId === "ALL";
-  const parsedBranchId = isAllBranches ? undefined : Number(branchId);
-  const { data: branches = [] } = useBranches();
-  const branchName =
-    parsedBranchId != null
-      ? (branches as Branch[]).find((b) => b.id === parsedBranchId)?.name ?? "Branch"
-      : "Branch";
-
-  const { data: summary } = useQuery({
-    queryKey: ["analyticsSummary", branchId],
-    queryFn: () => fetchAPI(API_ENDPOINTS.reports.executiveSummary(branchId)),
-    enabled: isAllBranches,
-  });
-  const { data: inventory = [], isLoading: loadingInventory } = useBranchInventory(parsedBranchId);
-  const { data: branchDetails, isLoading: loadingBranch } = useBranchDetails(parsedBranchId);
-
-  const branchAlerts = useMemo(() => {
-    if (isAllBranches) return null;
-
-    const lowStockAlerts = buildLowStockAlerts(inventory, branchName);
-    const expiryAlerts = buildExpiryAlerts(branchDetails?.inventoryBatches, branchName);
-
-    return {
-      lowStockAlerts,
-      expiryAlerts,
-      lowTotal: countLowStockRecords(inventory),
-      expiryTotal: countExpiringBatches(branchDetails?.inventoryBatches),
-    };
-  }, [branchDetails?.inventoryBatches, branchName, inventory, isAllBranches]);
-
-  const allBranchAlerts = useMemo(() => {
-    if (!isAllBranches || !summary) return null;
-
-    const lowStockAlerts = (summary.lowStockAlerts ?? []) as DashboardLowStockAlert[];
-    const expiryAlerts = (summary.expiryAlerts ?? []) as DashboardExpiryAlert[];
-
-    return {
-      lowStockAlerts,
-      expiryAlerts,
-      lowTotal: lowStockAlerts.length,
-      expiryTotal: expiryAlerts.length,
-    };
-  }, [isAllBranches, summary]);
-
-  const alerts = branchAlerts ?? allBranchAlerts ?? {
-    lowStockAlerts: [],
-    expiryAlerts: [],
-    lowTotal: 0,
-    expiryTotal: 0,
-  };
-
-  if (!isAllBranches && (loadingInventory || loadingBranch)) {
-    return <div className={dashboardSkeletonClass("h-[300px] w-full")} />;
+export function LowStockWidget({
+  branchId,
+  branchName,
+}: {
+  branchId: string;
+  branchName?: string;
+}) {
+  if (branchId === "ALL") {
+    return <LowStockAllBranchesWidget branchId={branchId} />;
   }
 
-  if (isAllBranches && !summary) {
-    return <div className={dashboardSkeletonClass("h-[300px] w-full")} />;
-  }
+  return (
+    <LowStockSingleBranchWidget
+      branchId={Number(branchId)}
+      branchName={branchName ?? "Branch"}
+    />
+  );
+}
 
+function LowStockWidgetShell({
+  lowStockAlerts,
+  expiryAlerts,
+  lowTotal,
+  expiryTotal,
+  isAllBranches,
+}: {
+  lowStockAlerts: DashboardLowStockAlert[];
+  expiryAlerts: DashboardExpiryAlert[];
+  lowTotal: number;
+  expiryTotal: number;
+  isAllBranches: boolean;
+}) {
   return (
     <Card className={dashboardWidgetCardClass("alerts", "h-[300px] overflow-hidden flex flex-col")}>
       <CardHeader className={dashboardAlertsHeaderClass()}>
@@ -348,13 +315,62 @@ export function LowStockWidget({ branchId }: { branchId: string }) {
         </CardTitle>
       </CardHeader>
       <InventoryAlertsList
-        lowStockAlerts={alerts.lowStockAlerts}
-        expiryAlerts={alerts.expiryAlerts}
-        lowTotal={alerts.lowTotal}
-        expiryTotal={alerts.expiryTotal}
+        lowStockAlerts={lowStockAlerts}
+        expiryAlerts={expiryAlerts}
+        lowTotal={lowTotal}
+        expiryTotal={expiryTotal}
         isAllBranches={isAllBranches}
       />
     </Card>
+  );
+}
+
+function LowStockAllBranchesWidget({ branchId }: { branchId: string }) {
+  const { data: summary } = useAnalyticsSummarySuspense(branchId);
+  const lowStockAlerts = (summary.lowStockAlerts ?? []) as DashboardLowStockAlert[];
+  const expiryAlerts = (summary.expiryAlerts ?? []) as DashboardExpiryAlert[];
+
+  return (
+    <LowStockWidgetShell
+      lowStockAlerts={lowStockAlerts}
+      expiryAlerts={expiryAlerts}
+      lowTotal={lowStockAlerts.length}
+      expiryTotal={expiryAlerts.length}
+      isAllBranches
+    />
+  );
+}
+
+function LowStockSingleBranchWidget({
+  branchId,
+  branchName,
+}: {
+  branchId: number;
+  branchName: string;
+}) {
+  const { data: inventory = [] } = useBranchInventorySuspense(branchId);
+  const { data: branchDetails } = useBranchDetailsSuspense(branchId);
+
+  const alerts = useMemo(() => {
+    const lowStockAlerts = buildLowStockAlerts(inventory, branchName);
+    const expiryAlerts = buildExpiryAlerts(branchDetails?.inventoryBatches, branchName);
+
+    return {
+      lowStockAlerts,
+      expiryAlerts,
+      lowTotal: countLowStockRecords(inventory),
+      expiryTotal: countExpiringBatches(branchDetails?.inventoryBatches),
+    };
+  }, [branchDetails?.inventoryBatches, branchName, inventory]);
+
+  return (
+    <LowStockWidgetShell
+      lowStockAlerts={alerts.lowStockAlerts}
+      expiryAlerts={alerts.expiryAlerts}
+      lowTotal={alerts.lowTotal}
+      expiryTotal={alerts.expiryTotal}
+      isAllBranches={false}
+    />
   );
 }
 

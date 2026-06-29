@@ -183,14 +183,20 @@ export function dashboardDragActiveClass(isDragging: boolean) {
     : "";
 }
 
-export function dashboardDragHandleClass() {
+export function dashboardDragHandleBarClass() {
   return cn(
-    "dashboard-drag-handle absolute top-4 right-4 z-20 p-2 cursor-grab active:cursor-grabbing transition-opacity",
-    "backdrop-blur rounded-md border shadow-sm touch-manipulation",
+    "dashboard-drag-handle flex shrink-0 items-center justify-center",
+    "h-7 w-full cursor-grab active:cursor-grabbing touch-manipulation",
+    "rounded-t-xl border-b border-border/50",
     "text-[var(--widget-drag-handle-fg)] bg-[var(--widget-drag-handle-bg)]",
-    "hover:bg-[var(--widget-drag-handle-hover)] border-border",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--widget-drag-ring)]",
+    "hover:bg-[var(--widget-drag-handle-hover)]",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--widget-drag-ring)]",
   );
+}
+
+/** @deprecated Use dashboardDragHandleBarClass — kept for theme token tests */
+export function dashboardDragHandleClass() {
+  return dashboardDragHandleBarClass();
 }
 
 export function dashboardHeaderClass(className?: string) {

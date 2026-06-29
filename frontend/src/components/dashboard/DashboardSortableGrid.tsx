@@ -19,12 +19,12 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { dashboardDragActiveClass, dashboardDragHandleClass } from "@/lib/theme/dashboard";
+import { dashboardDragActiveClass, dashboardDragHandleBarClass } from "@/lib/theme/dashboard";
 import { cn } from "@/lib/utils";
 
 export const DASHBOARD_WIDGET_LABELS: Record<string, string> = {
   sales: "Today's Sales",
-  topBranch: "Branch performance",
+  topBranch: "Top Branch Today",
   lowStock: "Inventory Alerts",
   topProducts: "Top 5 Best Sellers",
   salesChart: "Revenue Overview",
@@ -52,17 +52,23 @@ function SortableWidget({
     <div
       ref={setNodeRef}
       style={style}
-      className={cn("relative group", className, dashboardDragActiveClass(isDragging))}
+      className={cn(
+        "group flex flex-col overflow-hidden rounded-xl",
+        className,
+        dashboardDragActiveClass(isDragging),
+      )}
     >
       <div
         {...attributes}
         {...listeners}
-        className={dashboardDragHandleClass()}
+        className={dashboardDragHandleBarClass()}
         aria-label={`Drag to reorder ${label}`}
       >
-        <GripHorizontal className="w-5 h-5" aria-hidden />
+        <GripHorizontal className="w-4 h-4" aria-hidden />
       </div>
-      {children}
+      <div className="min-w-0 flex-1 [&_.dashboard-widget]:rounded-t-none">
+        {children}
+      </div>
     </div>
   );
 }

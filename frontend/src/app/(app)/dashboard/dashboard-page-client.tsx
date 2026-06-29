@@ -1,14 +1,15 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { LayoutDashboard } from "lucide-react";
+import { LayoutDashboard, RotateCcw } from "lucide-react";
 import { QueryErrorResetBoundary } from "@tanstack/react-query";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { useAuth } from "@/context/AuthContext";
 import { AnimatedPage } from "@/components/layout/animated-page";
 import { PageChrome } from "@/components/layout/PageChrome";
+import { Button } from "@/components/ui/button";
 import { dashboardShellIconClassName, dashboardSkeletonClass } from "@/lib/theme/dashboard";
 import type { Branch } from "@/types/api";
 import {
@@ -22,6 +23,7 @@ import { WidgetErrorBoundary } from "@/components/dashboard/widgets/WidgetErrorB
 import {
   StatWidgetSkeleton,
   ChartWidgetSkeleton,
+  AlertsWidgetSkeleton,
 } from "@/components/dashboard/widgets/WidgetSkeletons";
 import { DashboardLayoutSkeleton } from "@/components/dashboard/DashboardLayoutSkeleton";
 
@@ -136,6 +138,20 @@ function AnalyticsDashboardContent() {
     [pathname, router, searchParams],
   );
 
+  const isCustomLayout = useMemo(
+    () => widgetOrder.join(",") !== DEFAULT_LAYOUT.join(","),
+    [widgetOrder],
+  );
+
+  const handleResetLayout = useCallback(() => {
+    setWidgetOrder(DEFAULT_LAYOUT);
+    localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(DEFAULT_LAYOUT));
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set(LAYOUT_PARAM, DEFAULT_LAYOUT.join(","));
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [pathname, router, searchParams]);
+
   const getWidgetClassName = useCallback(
     (id: string) =>
       id === "topProducts" || id === "salesChart" ? "lg:col-span-2 2xl:col-span-2" : "",
@@ -164,7 +180,9 @@ function AnalyticsDashboardContent() {
         case "lowStock":
           return (
             <WidgetBoundary onReset={reset}>
-              <LowStockWidget branchId={analyticsBranch} />
+              <Suspense fallback={<AlertsWidgetSkeleton />}>
+                <LowStockWidget branchId={analyticsBranch} branchName={branchName} />
+              </Suspense>
             </WidgetBoundary>
           );
         case "topProducts":
@@ -192,8 +210,22 @@ function AnalyticsDashboardContent() {
 
   const dashboardDescription =
     user?.role === "SUPER_ADMIN"
-      ? "Drag the handle on each widget to customize layout. Data reflects the branch selected in the top bar."
-      : "Drag the handle at the top-right of each widget to customize layout.";
+      ? "Drag the bar at the top of each widget to customize layout. Data reflects the branch selected in the top bar."
+      : "Drag the bar at the top of each widget to customize layout.";
+
+  const dashboardActions = (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      onClick={handleResetLayout}
+      disabled={!isCustomLayout}
+      aria-label="Reset dashboard widget layout to default"
+    >
+      <RotateCcw className="w-4 h-4 mr-2" aria-hidden />
+      Reset layout
+    </Button>
+  );
 
   return (
     <AnimatedPage className="w-full h-full flex flex-col">
@@ -202,6 +234,7 @@ function AnalyticsDashboardContent() {
         icon={LayoutDashboard}
         iconClassName={dashboardShellIconClassName()}
         description={dashboardDescription}
+        actions={dashboardActions}
         branchScope={{
           branchName,
           allBranches: activeBranchId == null,

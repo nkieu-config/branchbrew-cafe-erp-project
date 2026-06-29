@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { API_ENDPOINTS } from '@/lib/endpoints';
 import { fetchAPI } from '@/lib/api';
 import { NAV_COUNTS_QUERY_KEY } from '@/lib/nav-counts';
@@ -11,6 +11,13 @@ export const useBranchDetails = (branchId?: number) => {
     queryKey: ['branch', branchId],
     queryFn: () => fetchAPI(API_ENDPOINTS.branches.detail(branchId!)),
     enabled: !!branchId,
+  });
+};
+
+export const useBranchDetailsSuspense = (branchId: number) => {
+  return useSuspenseQuery({
+    queryKey: ['branch', branchId],
+    queryFn: () => fetchAPI(API_ENDPOINTS.branches.detail(branchId)),
   });
 };
 
@@ -53,13 +60,20 @@ export const useReportWaste = () => {
 };
 
 // ==========================================
-// 🚀 NEW INVENTORY MODULE HOOKS (PHASE 2)
+// Stock transfers, waste logs, and related inventory hooks
 // ==========================================
 export function useBranchInventory(branchId?: number) {
   return useQuery({
     queryKey: ["inventory-balance", branchId],
     queryFn: () => fetchAPI(API_ENDPOINTS.inventory.balance(branchId!)),
     enabled: !!branchId,
+  });
+}
+
+export function useBranchInventorySuspense(branchId: number) {
+  return useSuspenseQuery({
+    queryKey: ["inventory-balance", branchId],
+    queryFn: () => fetchAPI(API_ENDPOINTS.inventory.balance(branchId)),
   });
 }
 

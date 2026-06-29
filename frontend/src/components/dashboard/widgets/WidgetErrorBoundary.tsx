@@ -22,7 +22,7 @@ export class WidgetErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.hasError) {
       return (
-        <div className={dashboardErrorPanelClass()}>
+        <div className={dashboardErrorPanelClass()} role="alert">
           <AlertTriangle className={dashboardWidgetErrorIconClassName("w-8 h-8")} aria-hidden />
           <p className={dashboardErrorMessageClass()}>Failed to load this widget.</p>
           {this.props.onReset && (
