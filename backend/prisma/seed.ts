@@ -20,6 +20,20 @@ function dateDaysAgo(days: number): Date {
   return date;
 }
 
+function dateAtDayOffset(dayOffset: number, hour: number, minute = 0): Date {
+  const date = new Date();
+  date.setHours(hour, minute, 0, 0);
+  date.setDate(date.getDate() + dayOffset);
+  return date;
+}
+
+function shiftWindow(dayOffset: number, startHour: number, endHour: number) {
+  return {
+    startTime: dateAtDayOffset(dayOffset, startHour),
+    endTime: dateAtDayOffset(dayOffset, endHour),
+  };
+}
+
 function settlementDifference(
   expected: { cash: number; card: number; qr: number },
   actual: { cash: number; card: number; qr: number },
@@ -105,7 +119,7 @@ async function main() {
     },
   });
 
-  await prisma.user.create({
+  const staff = await prisma.user.create({
     data: {
       email: 'staff.siam@branchbrew.dev',
       name: 'Siam Cashier',
@@ -592,11 +606,170 @@ async function main() {
     });
   }
 
+  // Portfolio Phase 2 — HR hub + assets
+  console.log('Seeding portfolio demo data (Phase 2)...');
+
+  const staffMorningTomorrow = shiftWindow(1, 8, 16);
+  const staffAfternoonLater = shiftWindow(2, 12, 20);
+  const staffYesterdayShift = shiftWindow(-1, 8, 16);
+  const managerTomorrowShift = shiftWindow(1, 10, 18);
+  const asokAbsentShift = shiftWindow(0, 9, 17);
+
+  await prisma.shift.createMany({
+    data: [
+      {
+        userId: staff.id,
+        branchId: mainBranch.id,
+        startTime: staffMorningTomorrow.startTime,
+        endTime: staffMorningTomorrow.endTime,
+        status: 'SCHEDULED',
+      },
+      {
+        userId: staff.id,
+        branchId: mainBranch.id,
+        startTime: staffAfternoonLater.startTime,
+        endTime: staffAfternoonLater.endTime,
+        status: 'SCHEDULED',
+      },
+      {
+        userId: staff.id,
+        branchId: mainBranch.id,
+        startTime: staffYesterdayShift.startTime,
+        endTime: staffYesterdayShift.endTime,
+        status: 'COMPLETED',
+      },
+      {
+        userId: manager.id,
+        branchId: mainBranch.id,
+        startTime: managerTomorrowShift.startTime,
+        endTime: managerTomorrowShift.endTime,
+        status: 'SCHEDULED',
+      },
+      {
+        userId: manager.id,
+        branchId: secondBranch.id,
+        startTime: asokAbsentShift.startTime,
+        endTime: asokAbsentShift.endTime,
+        status: 'ABSENT',
+      },
+    ],
+  });
+
+  const staffYesterdayClockIn = dateAtDayOffset(-1, 8, 2);
+  const staffYesterdayClockOut = dateAtDayOffset(-1, 16, 5);
+  const staffTwoDaysClockIn = dateAtDayOffset(-2, 8, 0);
+  const staffTwoDaysClockOut = dateAtDayOffset(-2, 15, 55);
+  const managerActiveClockIn = dateAtDayOffset(0, 9, 15);
+
+  await prisma.attendanceRecord.createMany({
+    data: [
+      {
+        userId: staff.id,
+        branchId: mainBranch.id,
+        clockIn: staffYesterdayClockIn,
+        clockOut: staffYesterdayClockOut,
+        totalHours: 8,
+      },
+      {
+        userId: staff.id,
+        branchId: mainBranch.id,
+        clockIn: staffTwoDaysClockIn,
+        clockOut: staffTwoDaysClockOut,
+        totalHours: 7.9,
+      },
+      {
+        userId: manager.id,
+        branchId: mainBranch.id,
+        clockIn: managerActiveClockIn,
+        clockOut: null,
+        totalHours: null,
+      },
+    ],
+  });
+
+  await prisma.leaveRequest.createMany({
+    data: [
+      {
+        userId: staff.id,
+        type: 'ANNUAL',
+        startDate: dateDaysAgo(-5),
+        endDate: dateDaysAgo(-3),
+        reason: 'Family trip to Chiang Mai',
+        status: 'PENDING',
+      },
+      {
+        userId: manager.id,
+        type: 'SICK',
+        startDate: dateDaysAgo(4),
+        endDate: dateDaysAgo(3),
+        reason: 'Flu recovery day',
+        status: 'APPROVED',
+      },
+    ],
+  });
+
+  const espressoMachine = await prisma.equipment.create({
+    data: {
+      branchId: mainBranch.id,
+      name: 'La Marzocco Linea PB',
+      type: 'ESPRESSO_MACHINE',
+      serialNumber: 'LM-SIAM-001',
+      status: 'ACTIVE',
+      purchaseDate: dateDaysAgo(400),
+      warrantyExpiry: dateDaysAgo(-180),
+      nextMaintenanceDate: dateDaysAgo(-14),
+    },
+  });
+
+  await prisma.equipment.createMany({
+    data: [
+      {
+        branchId: mainBranch.id,
+        name: 'Mazzer Major V Grinder',
+        type: 'GRINDER',
+        serialNumber: 'MZ-SIAM-002',
+        status: 'ACTIVE',
+        purchaseDate: dateDaysAgo(380),
+        warrantyExpiry: dateDaysAgo(-120),
+      },
+      {
+        branchId: mainBranch.id,
+        name: 'Front Counter POS Terminal',
+        type: 'POS_SYSTEM',
+        serialNumber: 'POS-SIAM-01',
+        status: 'MAINTENANCE',
+        purchaseDate: dateDaysAgo(200),
+        nextMaintenanceDate: dateDaysAgo(0),
+      },
+    ],
+  });
+
+  await prisma.maintenanceLog.createMany({
+    data: [
+      {
+        equipmentId: espressoMachine.id,
+        description: 'Group head gasket replacement and backflush',
+        cost: 2800,
+        performedBy: 'La Marzocco service partner',
+        date: dateDaysAgo(45),
+      },
+      {
+        equipmentId: espressoMachine.id,
+        description: 'Quarterly boiler inspection',
+        cost: 1500,
+        performedBy: 'Siam Manager',
+        date: dateDaysAgo(10),
+      },
+    ],
+  });
+
   console.log('Seeding completed!');
   console.log('Demo logins: admin@branchbrew.dev / manager@branchbrew.dev / staff.siam@branchbrew.dev');
   console.log('Password: password123');
   console.log('Promo code: WELCOME10 | Member phones: 0811111111, 0822222222, 0833333333');
   console.log('Portfolio: manager → /finance/overview (1 pending settlement) | /crm/customers (3 members)');
+  console.log('Portfolio: manager → /hr (shifts, attendance, leave) | /assets/equipment (3 items)');
+  console.log('Portfolio: manager topbar shows active clock-in; staff has completed attendance history');
   console.log('Central Kitchen: select "BranchBrew Central Kitchen" branch → /kitchen');
   console.log('Auto-waste demo: 250ml Oat Milk batch at Siam is past expiry (hourly cron)');
 }
