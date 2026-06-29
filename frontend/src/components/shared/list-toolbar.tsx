@@ -10,6 +10,8 @@ import {
   listToolbarFieldClassName,
   listToolbarFiltersClassName,
   listToolbarSearchClassName,
+  decorativeIconClassName,
+  text,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +48,9 @@ export function ListToolbar({
         {hasSearch && (
           <div className="relative flex-1 sm:max-w-xs">
             <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-subtle)] pointer-events-none"
+              className={decorativeIconClassName(
+                "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none",
+              )}
               aria-hidden
             />
             <Input
@@ -71,7 +75,7 @@ export function ListToolbar({
             variant="ghost"
             size="sm"
             onClick={onReset}
-            className="min-h-[44px] text-[var(--text-secondary)]"
+            className={cn("min-h-[44px]", text.secondary)}
           >
             <X className="w-4 h-4 mr-1.5" aria-hidden />
             Reset filters

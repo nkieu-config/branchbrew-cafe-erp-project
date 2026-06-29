@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ShieldOff } from "lucide-react";
-import { surface, text, typeUiLabelClassName } from "@/lib/theme";
+import { surface, text, typeUiLabelClassName, accessDeniedIconClassName } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 type AccessDeniedStateProps = {
@@ -20,7 +20,7 @@ export function AccessDeniedState({
 }: AccessDeniedStateProps) {
   return (
     <div className={cn(surface.empty)}>
-      <ShieldOff className="w-10 h-10 mx-auto mb-4 text-[var(--state-denied-icon)]" aria-hidden />
+      <ShieldOff className={accessDeniedIconClassName("w-10 h-10 mx-auto mb-4")} aria-hidden />
       <p className={typeUiLabelClassName(text.primary)}>{title}</p>
       <p className={cn("text-sm mt-2", text.muted)}>{description}</p>
       {showBackLink && (

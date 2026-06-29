@@ -109,3 +109,18 @@ export function payrollExpandedPanelClassName(className?: string) {
 export function payrollSummaryRowClassName(className?: string) {
   return cn("font-bold bg-[var(--table-summary-bg)]", className);
 }
+
+/** Supplemental OT line items — informational, not a warning. */
+export function payrollOtMetricClassName(className?: string) {
+  return cn("font-mono tabular-nums", metricValueClassName("blue"), className);
+}
+
+/** Payroll deductions (SSO, tax). */
+export function payrollDeductionClassName(className?: string) {
+  return cn("font-mono tabular-nums", metricValueClassName("red"), className);
+}
+
+/** Net pay highlight. */
+export function payrollNetPayClassName(className?: string) {
+  return cn("font-mono tabular-nums", metricValueClassName("emerald"), className);
+}

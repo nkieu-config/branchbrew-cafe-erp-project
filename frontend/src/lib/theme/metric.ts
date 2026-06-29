@@ -19,12 +19,38 @@ const metricTextClass: Record<MetricTone, string> = {
   slate: "text-[var(--metric-slate)]",
 };
 
+/** Icon/text on status-soft surfaces — readable fg paired with tone bg. */
+const metricOnSoftClass: Record<MetricTone, string> = {
+  emerald: "text-[var(--status-success-fg)]",
+  blue: "text-[var(--status-blue-fg)]",
+  red: "text-[var(--status-danger-fg)]",
+  amber: "text-[var(--status-warning-fg)]",
+  indigo: "text-[var(--status-purple-fg)]",
+  purple: "text-[var(--status-purple-fg)]",
+  slate: "text-[var(--status-neutral-fg)]",
+};
+
+const metricSoftBgClass: Record<MetricTone, string> = {
+  emerald: "bg-[var(--status-success-bg)]",
+  blue: "bg-[var(--status-blue-bg)]",
+  red: "bg-[var(--status-danger-bg)]",
+  amber: "bg-[var(--status-warning-bg)]",
+  indigo: "bg-[var(--status-purple-bg)]",
+  purple: "bg-[var(--status-purple-bg)]",
+  slate: "bg-[var(--status-neutral-bg)]",
+};
+
 export function metricValueClassName(tone: MetricTone) {
   return metricTextClass[tone];
 }
 
-export function metricIconWrapClassName(tone: MetricTone) {
-  return cn("p-3 rounded-xl bg-muted", metricTextClass[tone]);
+export function metricIconWrapClassName(tone: MetricTone, className?: string) {
+  return cn(
+    "p-3 rounded-xl",
+    metricSoftBgClass[tone],
+    metricOnSoftClass[tone],
+    className,
+  );
 }
 
 export function metricTrendClassName(positive: boolean) {

@@ -10,6 +10,7 @@ import {
   topbarActionButtonClassName,
   topbarClockWidgetClassName,
   topbarPrimaryActionClassName,
+  surfaceInsetSkeletonClassName,
   typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -86,7 +87,7 @@ export function ClockInOutWidget({ variant = "toolbar" }: ClockInOutWidgetProps)
   if (isLoading) {
     return wrap(
       <div
-        className={cn(topbarActionButtonClassName(), "w-[4.5rem] animate-pulse bg-[var(--surface-inset)]")}
+        className={cn(topbarActionButtonClassName(), surfaceInsetSkeletonClassName("w-[4.5rem]"))}
         aria-hidden
       />,
     );

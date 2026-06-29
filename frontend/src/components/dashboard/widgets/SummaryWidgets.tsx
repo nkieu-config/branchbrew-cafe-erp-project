@@ -33,9 +33,15 @@ import { formatDashboardCurrency } from "./format-currency";
 import { formatDate } from "@/lib/intl-date";
 import {
   dashboardAlertsEmptyClass,
+  dashboardAlertsEmptyIconClassName,
+  dashboardAlertsEmptyTextClassName,
+  dashboardAlertsExpiryMetaClassName,
+  dashboardAlertsExpiryValueClassName,
   dashboardAlertsFooterClass,
   dashboardAlertsFooterLinkClass,
   dashboardAlertsHeaderClass,
+  dashboardAlertsLowMetaClassName,
+  dashboardAlertsLowValueClassName,
   dashboardAlertsRowClass,
   dashboardSkeletonClass,
   dashboardTrendBadgeClass,
@@ -178,10 +184,7 @@ function AlertRow({
   return (
     <Link
       href={href}
-      className={cn(
-        dashboardAlertsRowClass(type),
-        "transition-colors hover:brightness-[0.98] dark:hover:brightness-110",
-      )}
+      className={dashboardAlertsRowClass(type)}
     >
       {children}
     </Link>
@@ -249,15 +252,10 @@ function InventoryAlertsList({
                   </div>
                 </div>
                 <div className="text-right">
-                  <div
-                    className={cn(
-                      typeMetricClassName("text-xl"),
-                      "text-[var(--widget-alerts-low-value)]",
-                    )}
-                  >
+                  <div className={dashboardAlertsLowValueClassName("text-xl")}>
                     {alert.stock}
                   </div>
-                  <div className={typeSectionLabelClassName("tracking-wider text-[var(--widget-alerts-low-meta)]")}>
+                  <div className={dashboardAlertsLowMetaClassName()}>
                     Min: {alert.minStock}
                   </div>
                 </div>
@@ -273,15 +271,10 @@ function InventoryAlertsList({
                   </div>
                 </div>
                 <div className="text-right">
-                  <div
-                    className={cn(
-                      typeMetricClassName("text-xl"),
-                      "text-[var(--widget-alerts-expiry-value)]",
-                    )}
-                  >
+                  <div className={dashboardAlertsExpiryValueClassName("text-xl")}>
                     {alert.quantity}
                   </div>
-                  <div className={typeSectionLabelClassName("tracking-wider text-[var(--widget-alerts-expiry-meta)]")}>
+                  <div className={dashboardAlertsExpiryMetaClassName()}>
                     {formatDate(alert.expiryDate)}
                   </div>
                 </div>
@@ -291,10 +284,10 @@ function InventoryAlertsList({
         ) : (
           <div className={dashboardAlertsEmptyClass()}>
             <CheckCircle2
-              className="w-12 h-12 mb-3 text-[var(--widget-alerts-empty-icon)]"
+              className={dashboardAlertsEmptyIconClassName("w-12 h-12 mb-3")}
               aria-hidden
             />
-            <span className={typeHeadingClassName("text-lg text-[var(--widget-alerts-empty-text)]")}>
+            <span className={dashboardAlertsEmptyTextClassName()}>
               Stock and expiry levels look healthy.
             </span>
           </div>

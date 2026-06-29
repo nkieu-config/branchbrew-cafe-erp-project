@@ -21,6 +21,7 @@ import { formatBaht } from "@/lib/money";
 import {
   hubAccentIconClass,
   kanbanCardClassName,
+  kanbanCompletedCardClassName,
   kanbanColumnClassName,
   kanbanColumnHeaderClassName,
   kanbanMetaChipClassName,
@@ -95,7 +96,7 @@ function KanbanCard({ order, isOverlay = false }: { order: ProductionOrderWithTa
       {...attributes}
       className={cn(
         kanbanCardClassName(isOverlay),
-        isCompleted && "opacity-80 ring-1 ring-dashed ring-[var(--border)] cursor-not-allowed",
+        isCompleted && kanbanCompletedCardClassName(),
       )}
     >
       <div className="flex justify-between items-start mb-2">

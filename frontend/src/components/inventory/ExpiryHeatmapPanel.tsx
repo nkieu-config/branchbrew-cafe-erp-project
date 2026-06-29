@@ -9,13 +9,15 @@ import { formatIsoDate } from "@/lib/intl-date";
 import { isTrackableBatch } from "@/lib/inventory-alerts";
 import {
   expiryCalendarShellClassName,
+  expiryCalendarFrameClassName,
   expiryCellClassName,
   expiryHeatmapHeaderClassName,
+  expiryHeatmapHeaderIconClassName,
   expiryHeatmapPanelClassName,
   expiryHeatmapPopoverClassName,
   expiryLegendDotClassName,
+  expiryPopoverQtyClassName,
   expiryUrgency,
-  metricValueClassName,
   typeHeadingClassName,
   typeMicroClassName,
   typeSectionLabelClassName,
@@ -79,7 +81,7 @@ export function ExpiryHeatmapPanel({ batches }: ExpiryHeatmapPanelProps) {
         {expiringBatches.map((b) => (
           <div key={b.id} className="flex justify-between items-center text-sm gap-4">
             <span className={typeUiLabelClassName(text.secondary)}>{batchIngredientLabel(b)}</span>
-            <span className="font-mono bg-[var(--form-line-bg)] px-1 rounded">
+            <span className={expiryPopoverQtyClassName()}>
               {b.quantity} {b.ingredient?.unit ?? ""}
             </span>
           </div>
@@ -115,7 +117,7 @@ export function ExpiryHeatmapPanel({ batches }: ExpiryHeatmapPanelProps) {
   return (
     <div className={expiryHeatmapPanelClassName()}>
       <div className={expiryHeatmapHeaderClassName()}>
-        <CalendarDays className={`w-5 h-5 ${metricValueClassName("red")}`} aria-hidden />
+        <CalendarDays className={expiryHeatmapHeaderIconClassName()} aria-hidden />
         Expiry Heatmap
       </div>
       <div className="p-4">
@@ -130,9 +132,7 @@ export function ExpiryHeatmapPanel({ batches }: ExpiryHeatmapPanelProps) {
             if (info.type === "date") return dateCellRender(current);
             return info.originNode;
           }}
-          className={expiryCalendarShellClassName(
-            "rounded-xl border border-[var(--table-row-border)] overflow-hidden",
-          )}
+          className={expiryCalendarShellClassName(expiryCalendarFrameClassName())}
         />
         <p className={`mt-3 text-xs ${text.muted}`}>
           Day view only — use month navigation to browse expiry dates. Only batches with remaining

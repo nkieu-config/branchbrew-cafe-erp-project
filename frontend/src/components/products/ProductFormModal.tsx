@@ -33,11 +33,13 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { useLineItemRows } from "@/hooks/use-line-item-rows";
 import {
   formFieldInsetClassName,
+  formFieldInvalidClassName,
   formRemoveButtonClassName,
   formSectionClassName,
   formSelectContentClassName,
   hubCtaClassName,
   productsDialogContentClassName,
+  tableRowDividerClassName,
   text,
   typeHeadingClassName,
 } from "@/lib/theme";
@@ -227,7 +229,7 @@ export function ProductFormModal({
                 />
               </div>
             </div>
-            <div className="flex items-center justify-between gap-3 pt-2 border-t border-[var(--table-row-border)]">
+            <div className={cn("flex items-center justify-between gap-3 pt-2 border-t", tableRowDividerClassName())}>
               <Label htmlFor="isActiveProduct" className={cn("cursor-pointer", text.secondary)}>
                 Active (available for sale on POS)
               </Label>
@@ -284,7 +286,7 @@ export function ProductFormModal({
                           <SelectTrigger
                             id={`recipe-ingredient-${item.rowId}`}
                             className={formFieldInsetClassName(
-                              cn("w-full", isDuplicate && "border-destructive"),
+                              formFieldInsetClassName(formFieldInvalidClassName(isDuplicate)),
                             )}
                             aria-invalid={isDuplicate}
                           >

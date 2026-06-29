@@ -35,6 +35,7 @@ import {
   topbarMenuButtonClassName,
   topbarRegionClassName,
   topbarShellClassName,
+  profileMenuHeaderDividerClassName,
   typeUiLabelClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
@@ -72,7 +73,7 @@ function ProfileMenu() {
     <div className="relative" ref={containerRef}>
       <button
         type="button"
-        className={cn(topbarActionButtonClassName(), open && "bg-[var(--topbar-action-hover)]")}
+        className={topbarActionButtonClassName({ active: open })}
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label={`Account menu — ${user.name}, ${roleLabel}`}
@@ -84,7 +85,7 @@ function ProfileMenu() {
 
       {open && (
         <div role="menu" aria-label="Account" className={profileMenuPanelClassName()}>
-          <div className={cn("px-3 py-2 border-b mb-1 border-[var(--profile-menu-divider)]")}>
+          <div className={profileMenuHeaderDividerClassName()}>
             <p className={cn(typeUiLabelClassName("text-sm truncate"), text.primary)}>{user.name}</p>
             <p className={cn("text-xs capitalize flex items-center gap-1", text.muted)}>
               <User className="w-3 h-3" aria-hidden />

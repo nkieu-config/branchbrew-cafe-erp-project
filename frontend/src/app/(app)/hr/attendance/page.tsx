@@ -52,6 +52,7 @@ import {
   infoBannerTextClassName,
   infoBannerTitleClassName,
   inlineLinkClassName,
+  statusTextClassName,
   text,
   typeUiLabelClassName,
 } from "@/lib/theme";
@@ -314,7 +315,7 @@ export default function AttendancePage() {
                         <>
                           {" "}
                           ·{" "}
-                          <span className={typeUiLabelClassName("font-mono tabular-nums text-[var(--status-info-fg)]")}>
+                          <span className={statusTextClassName("info", typeUiLabelClassName("font-mono tabular-nums"))}>
                             {elapsed}
                           </span>{" "}
                           elapsed

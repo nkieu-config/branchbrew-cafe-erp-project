@@ -71,6 +71,7 @@ export {
   kanbanColumnClassName,
   kanbanColumnHeaderClassName,
   kanbanCardClassName,
+  kanbanCompletedCardClassName,
   kanbanOrderBadgeClassName,
   kanbanMetaChipClassName,
 } from "./hub-kitchen";
@@ -90,6 +91,9 @@ export {
   attendanceOnTimeClassName,
   attendanceLateTimeClassName,
   payrollExpandedPanelClassName,
+  payrollOtMetricClassName,
+  payrollDeductionClassName,
+  payrollNetPayClassName,
   payrollSummaryRowClassName,
   type ShiftBarStatus,
 } from "./hub-hr";

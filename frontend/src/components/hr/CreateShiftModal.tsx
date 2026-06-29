@@ -29,6 +29,7 @@ import {
   formSelectContentClassName,
   hrDialogContentClassName,
   hubCtaClassName,
+  hubModalIconClassName,
   inlineLinkClassName,
   text,
   typeHeadingClassName,
@@ -117,7 +118,7 @@ export function CreateShiftModal({
       <DialogContent className={hrDialogContentClassName()}>
         <DialogHeader>
           <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <CalendarDays className="w-5 h-5 text-[var(--hub-hr)]" aria-hidden />
+            <CalendarDays className={hubModalIconClassName("hr")} aria-hidden />
             Schedule shift
           </DialogTitle>
           <DialogDescription>

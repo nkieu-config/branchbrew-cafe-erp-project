@@ -22,7 +22,9 @@ import {
   mobileBottomNavClassName,
   mobileBottomNavIconClassName,
   mobileBottomNavItemClassName,
+  mobileNavBadgePlacementClassName,
   shellPageTitleClassName,
+  statusTextClassName,
   text,
   typeUiLabelClassName,
 } from "@/lib/theme";
@@ -101,7 +103,7 @@ export function KdsImmersiveHeader({
             <span className={text.muted}>{queueStats.preparing} preparing</span>
           )}
           {queueStats.late > 0 && (
-            <span className="font-medium text-[var(--status-danger-fg)]">
+            <span className={statusTextClassName("danger", "font-medium")}>
               {queueStats.late} overdue (10+ min)
             </span>
           )}
@@ -149,7 +151,7 @@ export function KdsImmersiveNav() {
                     tone={badge.tone}
                     label={badge.label}
                     variant="dot"
-                    className="top-0 right-0 translate-x-1/3 -translate-y-1/3 ring-[var(--mobile-nav-bg)]"
+                    className={mobileNavBadgePlacementClassName()}
                   />
                 )}
               </span>
@@ -174,7 +176,7 @@ export function KdsImmersiveNav() {
                   tone={badge.tone}
                   label={badge.label}
                   variant="dot"
-                  className="top-0 right-0 translate-x-1/3 -translate-y-1/3 ring-[var(--mobile-nav-bg)]"
+                  className={mobileNavBadgePlacementClassName()}
                 />
               )}
             </span>

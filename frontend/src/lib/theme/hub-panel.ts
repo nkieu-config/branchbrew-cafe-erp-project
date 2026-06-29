@@ -54,9 +54,10 @@ const HUB_TONE_VARS: Record<
 
 /** Standard elevated panel for hub list tabs (Tier A/C list regions). */
 export function hubSectionPanelClassName(hubId?: HubId, className?: string) {
+  void hubId;
   return cn(
-    "rounded-xl shadow-sm border p-4 sm:p-6 space-y-4",
-    "bg-[var(--table-container-bg)] border-[var(--table-container-border)]",
+    "hub-section-panel rounded-xl shadow-sm border p-4 sm:p-6 space-y-4",
+    "bg-[var(--hub-section-bg)] border-[var(--hub-section-border)]",
     className,
   );
 }

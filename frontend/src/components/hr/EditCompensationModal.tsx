@@ -22,6 +22,7 @@ import {
   hrAvatarClassName,
   hrDialogContentClassName,
   hubCtaClassName,
+  hubModalIconClassName,
   inlineLinkClassName,
   metricValueClassName,
   text,
@@ -62,7 +63,7 @@ export function EditCompensationModal({
       <DialogContent className={hrDialogContentClassName()}>
         <DialogHeader>
           <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <UserCog className="w-5 h-5 text-[var(--hub-hr)]" aria-hidden />
+            <UserCog className={hubModalIconClassName("hr")} aria-hidden />
             Edit compensation
           </DialogTitle>
           <DialogDescription>

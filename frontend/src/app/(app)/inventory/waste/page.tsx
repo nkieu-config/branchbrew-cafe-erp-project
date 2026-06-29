@@ -50,6 +50,7 @@ import {
   formLineRowClassName,
   formPanelHeaderClassName,
   formRemoveButtonClassName,
+  formValidationHintClassName,
   hubDangerActionClassName,
   hubListDataTableProps,
   inventorySectionPanelClassName,
@@ -513,12 +514,12 @@ export default function WasteLogPage() {
                 {validLineCount} line{validLineCount === 1 ? "" : "s"} ready to record
               </p>
               {ingredientsError ? (
-                <p className="text-[var(--status-warning-fg)]">
+                <p className={formValidationHintClassName()}>
                   Fix the ingredient load error above before confirming.
                 </p>
               ) : null}
               {duplicateIds.size > 0 ? (
-                <p className="text-[var(--status-warning-fg)]">
+                <p className={formValidationHintClassName()}>
                   Remove duplicate ingredients before confirming.
                 </p>
               ) : null}

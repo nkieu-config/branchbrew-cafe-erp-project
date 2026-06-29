@@ -28,6 +28,7 @@ import {
   formLineDateFieldClassName,
   formSelectContentClassName,
   hubCtaClassName,
+  hubModalIconClassName,
   infoBannerClassName,
   infoBannerIconClassName,
   infoBannerTextClassName,
@@ -106,7 +107,7 @@ export function CreateProductionOrderModal({
       <DialogContent className={kitchenDialogContentClassName()}>
         <DialogHeader>
           <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <ChefHat className="w-5 h-5 text-[var(--hub-kitchen)]" aria-hidden />
+            <ChefHat className={hubModalIconClassName("kitchen")} aria-hidden />
             Create Production Order
           </DialogTitle>
           <DialogDescription>

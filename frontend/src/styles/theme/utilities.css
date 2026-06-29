@@ -126,6 +126,36 @@
 
   .data-table-shell.data-table-shell--flat {
     @apply border-none shadow-none;
+    background: transparent;
+  }
+
+  /* Flat tables inside hub section panels — body surface lifts off panel frame */
+  .data-table-shell.data-table-shell--flat .ant-table-body,
+  .data-table-shell.data-table-shell--flat .ant-table-tbody > tr > td,
+  .data-table-shell.data-table-shell--flat .ant-table-tbody > tr.ant-table-placeholder > td {
+    background: var(--table-body-bg) !important;
+  }
+
+  .data-table-shell.data-table-shell--flat .ant-table-tbody > tr:hover > td,
+  .data-table-shell.data-table-shell--flat .ant-table-tbody > tr.ant-table-row:hover > td,
+  .data-table-shell.data-table-shell--flat .ant-table-tbody > tr.ant-table-row-selected > td {
+    background: var(--table-row-hover) !important;
+  }
+
+  .data-table-shell.data-table-shell--flat .ant-table-placeholder .ant-table-cell {
+    background: var(--table-body-bg) !important;
+  }
+
+  .hub-section-panel .native-table tbody tr {
+    background: var(--table-body-bg);
+  }
+
+  .hub-section-panel .semantic-table [data-slot="table-container"] {
+    background: var(--table-body-bg);
+  }
+
+  .hub-section-panel .semantic-table [data-slot="table-body"] [data-slot="table-row"] {
+    background: var(--table-body-bg);
   }
 
   /* Nested in HubCard — one outer shell; table keeps inset header + row hover */
@@ -571,5 +601,163 @@
 
   .scroll-hint-x::-webkit-scrollbar-track {
     background: transparent;
+  }
+
+  /* 80mm thermal receipt — uses --receipt-* tokens (fixed B&W, not app theme) */
+  .receipt-root {
+    width: 80mm;
+    padding: 2mm;
+    margin: 0 auto;
+    background: var(--receipt-bg);
+    color: var(--receipt-fg);
+    font-family: "SF Mono", Consolas, Menlo, monospace;
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .receipt-header {
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .receipt-emphasis {
+    font-weight: bold;
+  }
+
+  .receipt-header-branch {
+    margin: 0;
+    font-size: 11px;
+  }
+
+  .receipt-doc-type {
+    margin-top: 4px;
+    margin-bottom: 0;
+    font-weight: bold;
+  }
+
+  .receipt-icon {
+    color: var(--receipt-fg);
+  }
+
+  .receipt-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin: 0 0 2px 0;
+    letter-spacing: 1px;
+  }
+
+  .receipt-subtle {
+    margin: 0;
+    font-size: 10px;
+    color: var(--receipt-subtle-fg);
+  }
+
+  .receipt-muted {
+    color: var(--receipt-muted-fg);
+    font-size: 9px;
+  }
+
+  .receipt-section-divider {
+    border-bottom: 1px dashed var(--receipt-divider);
+    padding-bottom: 4px;
+    margin-bottom: 4px;
+  }
+
+  .receipt-queue-box {
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+    padding: 6px 0;
+    border: 2px solid var(--receipt-divider);
+  }
+
+  .receipt-row {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .receipt-table {
+    width: 100%;
+    margin-bottom: 4px;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  .receipt-table-head-row {
+    border-bottom: 1px dashed var(--receipt-divider);
+  }
+
+  .receipt-table-head-row th {
+    font-weight: normal;
+    padding-bottom: 4px;
+  }
+
+  .receipt-item-name {
+    font-weight: bold;
+  }
+
+  .receipt-item-note {
+    font-size: 9px;
+    color: var(--receipt-muted-fg);
+    margin-top: 1px;
+  }
+
+  .receipt-totals {
+    border-top: 1px dashed var(--receipt-divider);
+    padding-top: 4px;
+  }
+
+  .receipt-vat-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2px;
+    font-size: 10px;
+  }
+
+  .receipt-payment-section {
+    border-top: 1px dashed var(--receipt-divider);
+    margin-top: 4px;
+    padding-top: 4px;
+    margin-bottom: 12px;
+  }
+
+  .receipt-total-row {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 16px;
+    margin-top: 4px;
+    border-top: 1px solid var(--receipt-divider);
+    padding-top: 4px;
+  }
+
+  .receipt-footer {
+    text-align: center;
+    margin-top: 12px;
+  }
+
+  .receipt-barcode-box {
+    border: 1px solid var(--receipt-divider);
+    padding: 4px;
+    margin: 0 auto 6px auto;
+    width: 80%;
+    font-size: 10px;
+    letter-spacing: 3px;
+    font-family: monospace;
+  }
+
+  @media print {
+    @page {
+      margin: 0;
+      size: 80mm auto;
+    }
+
+    body {
+      margin: 0;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
   }
 }

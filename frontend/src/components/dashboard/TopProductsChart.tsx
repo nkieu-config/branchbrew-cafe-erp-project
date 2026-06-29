@@ -12,7 +12,7 @@ import {
   Cell,
 } from "recharts";
 import { Award } from "lucide-react";
-import { dashboardChartEmptyClass, getChartPalette, text, typeUiLabelClassName } from "@/lib/theme";
+import { dashboardChartEmptyClass, decorativeIconClassName, getChartPalette, text, typeUiLabelClassName } from "@/lib/theme";
 import { useChartTheme } from "@/hooks/useChartTheme";
 import { cn } from "@/lib/utils";
 
@@ -29,7 +29,7 @@ export function TopProductsChart({ data }: { data: TopProduct[] }) {
   if (data.length === 0) {
     return (
       <div className={dashboardChartEmptyClass("h-full min-h-[280px]")}>
-        <Award className="w-10 h-10 text-[var(--text-subtle)]" aria-hidden />
+        <Award className={decorativeIconClassName("w-10 h-10")} aria-hidden />
         <p className={cn(typeUiLabelClassName("text-sm"), text.primary)}>No sales recorded today</p>
         <p className={cn("text-sm", text.muted)}>Best sellers will appear once items are sold.</p>
       </div>

@@ -36,6 +36,7 @@ import {
   posSectionPanelClassName,
   hubListDataTableProps,
   tableCellMutedClassName,
+  tableRowDividerClassName,
   text,
   typeHeadingClassName,
 } from "@/lib/theme";
@@ -217,7 +218,9 @@ export default function PosOrdersPage() {
                 {(row.items ?? []).map((item) => (
                   <li
                     key={item.id}
-                    className="flex flex-wrap items-baseline justify-between gap-2 border-b border-[var(--table-row-border)] pb-2 last:border-0"
+                    className={tableRowDividerClassName(
+                      "flex flex-wrap items-baseline justify-between gap-2 border-b pb-2 last:border-0",
+                    )}
                   >
                     <div>
                       <span className={text.primary}>

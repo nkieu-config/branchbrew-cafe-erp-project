@@ -13,7 +13,10 @@ import {
 import { roleLabel } from "@/lib/employee-filters";
 import { formatDateTime } from "@/lib/intl-date";
 import {
+  decorativeIconClassName,
   expandedRowPanelClassName,
+  formContextBannerClassName,
+  hubModalIconClassName,
   settingsSheetContentClassName,
   text,
   typeHeadingClassName,
@@ -56,7 +59,7 @@ export function AuditLogDetailSheet({ log, open, onClose }: AuditLogDetailSheetP
       >
         <SheetHeader className="mb-6 text-left">
           <SheetTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <History className="w-5 h-5 text-[var(--hub-settings)]" aria-hidden />
+            <History className={hubModalIconClassName("settings")} aria-hidden />
             Audit entry
           </SheetTitle>
         </SheetHeader>
@@ -72,7 +75,7 @@ export function AuditLogDetailSheet({ log, open, onClose }: AuditLogDetailSheetP
               </DetailField>
               <DetailField label="User">
                 <span className="inline-flex items-center gap-2 min-w-0">
-                  <User className="w-4 h-4 shrink-0 text-[var(--text-subtle)]" aria-hidden />
+                  <User className={decorativeIconClassName("w-4 h-4 shrink-0")} aria-hidden />
                   <span className="truncate">{log.user?.name || log.user?.email || "Unknown"}</span>
                 </span>
                 {log.user?.role && (
@@ -88,7 +91,7 @@ export function AuditLogDetailSheet({ log, open, onClose }: AuditLogDetailSheetP
               </DetailField>
               <DetailField label="Target module">
                 <span className="inline-flex items-center gap-2 min-w-0">
-                  <Activity className="w-4 h-4 shrink-0 text-[var(--text-subtle)]" aria-hidden />
+                  <Activity className={decorativeIconClassName("w-4 h-4 shrink-0")} aria-hidden />
                   <span>{auditTargetTypeLabel(log.targetType)}</span>
                   {log.targetId != null && (
                     <span className={cn("tabular-nums", text.muted)}>#{log.targetId}</span>
@@ -99,14 +102,15 @@ export function AuditLogDetailSheet({ log, open, onClose }: AuditLogDetailSheetP
 
             <div className={expandedRowPanelClassName("space-y-3")}>
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-[var(--text-subtle)]" aria-hidden />
+                <FileText className={decorativeIconClassName("w-4 h-4")} aria-hidden />
                 <h3 className={typeHeadingClassName()}>Details</h3>
               </div>
               {details.isStructured ? (
                 <pre
                   className={cn(
-                    "overflow-x-auto rounded-lg border p-3 text-xs font-mono whitespace-pre-wrap break-words",
-                    "border-[var(--table-row-border)] bg-[var(--form-line-bg)]",
+                    formContextBannerClassName(
+                      "overflow-x-auto p-3 text-xs font-mono whitespace-pre-wrap break-words",
+                    ),
                     text.secondary,
                   )}
                 >

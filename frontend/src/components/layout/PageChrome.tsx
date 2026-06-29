@@ -16,7 +16,7 @@ import type { LucideIcon } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import { BranchScopeIndicator } from "@/components/shared/branch-scope-indicator";
 import { isTabActive } from "@/lib/navigation";
-import { hubTabClassName, hubTabTrackClassName, shellPageTitleClassName, text, typeHeadingClassName } from "@/lib/theme";
+import { hubTabClassName, hubTabTrackClassName, hubTabScrollFadeRightClassName, hubTabScrollFadeLeftClassName, shellPageTitleClassName, text, typeHeadingClassName } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 export type PageChromeBranchScope = {
@@ -214,14 +214,8 @@ export function HubTabsNav({
           );
         })}
       </div>
-      <div
-        className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[var(--hub-fade-from)] to-transparent motion-reduce:opacity-0"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-[var(--hub-fade-from)] to-transparent motion-reduce:opacity-0"
-        aria-hidden="true"
-      />
+      <div className={hubTabScrollFadeRightClassName()} aria-hidden="true" />
+      <div className={hubTabScrollFadeLeftClassName()} aria-hidden="true" />
     </nav>
   );
 }

@@ -29,6 +29,7 @@ import {
   formLineDateFieldClassName,
   formSelectContentClassName,
   hubCtaClassName,
+  hubModalIconClassName,
   text,
   typeHeadingClassName,
 } from "@/lib/theme";
@@ -96,7 +97,7 @@ export function RegisterEquipmentModal({
       <DialogContent className={assetsDialogContentClassName()}>
         <DialogHeader>
           <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <Plus className="w-5 h-5 text-[var(--hub-assets)]" aria-hidden />
+            <Plus className={hubModalIconClassName("assets")} aria-hidden />
             Register equipment
           </DialogTitle>
           <DialogDescription>

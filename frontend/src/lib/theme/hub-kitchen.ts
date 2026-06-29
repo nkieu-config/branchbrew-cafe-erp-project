@@ -45,6 +45,13 @@ export function kanbanCardClassName(isOverlay?: boolean, className?: string) {
   );
 }
 
+export function kanbanCompletedCardClassName(className?: string) {
+  return cn(
+    "opacity-80 ring-1 ring-dashed ring-[var(--border)] cursor-not-allowed",
+    className,
+  );
+}
+
 export function kanbanOrderBadgeClassName(className?: string) {
   return cn(
     "text-xs font-bold font-mono px-2 py-0.5 rounded-md",

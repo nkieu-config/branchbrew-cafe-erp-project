@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { PackageOpen } from "lucide-react";
 import { ButtonLink } from "@/components/ui/button-link";
 import { formPanelClassName } from "@/lib/theme/stock";
+import { decorativeIconClassName, formContextBannerClassName } from "@/lib/theme";
 import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
 
@@ -51,11 +52,11 @@ export function FormEmptyIngredientsBanner({
     <div
       className={cn(
         "flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-8 text-center",
-        "bg-[var(--form-line-bg)] border-[var(--form-line-border)]",
+        formContextBannerClassName(),
         className,
       )}
     >
-      <PackageOpen className="w-10 h-10 text-[var(--text-subtle)]" aria-hidden />
+      <PackageOpen className={decorativeIconClassName("w-10 h-10")} aria-hidden />
       <p className={cn("font-medium", text.primary)}>No ingredients available</p>
       <p className={cn("text-sm max-w-md", text.muted)}>
         Add raw ingredients in Products before recording stock movements.{" "}

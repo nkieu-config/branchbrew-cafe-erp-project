@@ -7,11 +7,11 @@ import {
 import { crmSectionPanelClassName, hrMetaBadgeClassName } from "./hub-section-aliases";
 
 describe("hub panel primitives", () => {
-  it("hubSectionPanelClassName uses standard list panel radius and table tokens", () => {
+  it("hubSectionPanelClassName uses hub section frame tokens", () => {
     const panel = hubSectionPanelClassName("inventory");
-    expect(panel).toContain("rounded-xl");
-    expect(panel).toContain("var(--table-container-bg)");
-    expect(panel).toContain("var(--table-container-border)");
+    expect(panel).toContain("hub-section-panel");
+    expect(panel).toContain("var(--hub-section-bg)");
+    expect(panel).toContain("var(--hub-section-border)");
   });
 
   it("deprecated hub aliases delegate to parameterized primitives", () => {

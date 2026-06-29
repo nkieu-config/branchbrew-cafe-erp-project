@@ -11,6 +11,8 @@ import { FLAT_SIDEBAR_ITEMS, findActiveSidebarItem, isSidebarItemActive } from "
 import {
   sidebarRailExpandButtonClassName,
   sidebarRailLinkClassName,
+  sidebarBrandMarkClassName,
+  sidebarBrandMarkIconClassName,
   sidebarRootClassName,
   shell,
   shellHeaderInsetClassName,
@@ -46,10 +48,10 @@ export function SidebarRail({ onExpand, onNavigate, className }: SidebarRailProp
         <Link
           href="/"
           onClick={onNavigate}
-          className="w-8 h-8 rounded-lg flex items-center justify-center shadow-sm bg-[var(--sidebar-brand-mark-bg)]"
+          className={sidebarBrandMarkClassName()}
           aria-label="QafaCafe home"
         >
-          <Coffee className="w-5 h-5 text-[var(--sidebar-brand-mark-fg)]" aria-hidden />
+          <Coffee className={sidebarBrandMarkIconClassName()} aria-hidden />
         </Link>
       </div>
 

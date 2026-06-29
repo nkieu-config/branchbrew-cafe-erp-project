@@ -33,21 +33,33 @@
   --color-popover: var(--popover);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-brand-text: var(--brand-text);
   --color-surface: var(--surface);
   --color-surface-elevated: var(--surface-elevated);
   --color-text-secondary: var(--text-secondary);
   --color-text-subtle: var(--text-subtle);
   --color-hub-inventory: var(--hub-inventory);
+  --color-hub-inventory-icon: var(--hub-inventory-icon);
   --color-hub-procurement: var(--hub-procurement);
+  --color-hub-procurement-icon: var(--hub-procurement-icon);
   --color-hub-hr: var(--hub-hr);
+  --color-hub-hr-icon: var(--hub-hr-icon);
   --color-hub-products: var(--hub-products);
+  --color-hub-products-icon: var(--hub-products-icon);
   --color-hub-kitchen: var(--hub-kitchen);
+  --color-hub-kitchen-icon: var(--hub-kitchen-icon);
   --color-hub-crm: var(--hub-crm);
+  --color-hub-crm-icon: var(--hub-crm-icon);
   --color-hub-finance: var(--hub-finance);
+  --color-hub-finance-icon: var(--hub-finance-icon);
   --color-hub-assets: var(--hub-assets);
+  --color-hub-assets-icon: var(--hub-assets-icon);
   --color-hub-pos: var(--hub-pos);
+  --color-hub-pos-icon: var(--hub-pos-icon);
   --color-hub-settings: var(--hub-settings);
+  --color-hub-settings-icon: var(--hub-settings-icon);
   --color-hub-organization: var(--hub-organization);
+  --color-hub-organization-icon: var(--hub-organization-icon);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --radius-sm: calc(var(--radius) * 0.6);
@@ -94,6 +106,8 @@
   --chart-4: #e8a87c;
   --chart-5: #7a5540;
 
+  --success: #1f8a65;
+
   --radius: 0.75rem;
 }
 
@@ -130,6 +144,8 @@
   --chart-3: #b8a9c9;
   --chart-4: #e8a87c;
   --chart-5: #b8a088;
+
+  --success: #2dab7a;
 }
 
 @layer base {

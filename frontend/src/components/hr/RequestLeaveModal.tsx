@@ -26,6 +26,7 @@ import {
   formSelectContentClassName,
   hrDialogContentClassName,
   hubCtaClassName,
+  hubModalIconClassName,
   text,
   typeHeadingClassName,
 } from "@/lib/theme";
@@ -92,7 +93,7 @@ export function RequestLeaveModal({
       <DialogContent className={hrDialogContentClassName()}>
         <DialogHeader>
           <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <Briefcase className="w-5 h-5 text-[var(--hub-hr)]" aria-hidden />
+            <Briefcase className={hubModalIconClassName("hr")} aria-hidden />
             Request leave
           </DialogTitle>
           <DialogDescription>
@@ -160,7 +161,7 @@ export function RequestLeaveModal({
               placeholder="Briefly explain your reason…"
               className={cn(
                 formFieldInsetClassName("min-h-[96px] resize-y py-2"),
-                "placeholder:text-[var(--text-muted)]",
+                "placeholder:text-muted-foreground",
               )}
             />
           </div>

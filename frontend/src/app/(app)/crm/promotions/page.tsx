@@ -53,7 +53,10 @@ import {
 import {
   crmDialogContentClassName,
   crmSectionPanelClassName,
+  formContextBannerClassName,
   formFieldInsetClassName,
+  formFieldInvalidClassName,
+  formFieldErrorMessageClassName,
   formSelectContentClassName,
   hubCtaClassName,
   hubListDataTableProps,
@@ -383,12 +386,10 @@ export default function PromotionsPage() {
             required
             placeholder="e.g. SUMMER20"
             aria-invalid={codeError != null}
-            className={formFieldInsetClassName(
-              cn(codeError != null && "border-destructive ring-destructive/30"),
-            )}
+            className={formFieldInsetClassName(formFieldInvalidClassName(codeError != null))}
           />
           {codeError && (
-            <p className="text-sm text-destructive" role="alert">
+            <p className={formFieldErrorMessageClassName()} role="alert">
               {codeError}
             </p>
           )}
@@ -396,7 +397,7 @@ export default function PromotionsPage() {
       ) : (
         <div className="space-y-2">
           <Label className={text.secondary}>Code</Label>
-          <p className={typeUiLabelClassName(cn("font-mono text-sm px-3 py-2.5 rounded-xl bg-[var(--form-line-bg)] border border-[var(--form-line-border)]", text.primary))}>
+          <p className={typeUiLabelClassName(cn(formContextBannerClassName("font-mono text-sm px-3 py-2.5 rounded-xl"), text.primary))}>
             {code}
           </p>
         </div>

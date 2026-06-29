@@ -63,8 +63,16 @@ import {
   posModifierSelectedClassName,
   posModifierGroupLabelClassName,
   posPrimaryActionClassName,
+  posStickyFilterBarClassName,
+  posSummaryDiscountClassName,
+  posSummaryRewardClassName,
+  decorativeIconClassName,
   posLoadingSpinnerClassName,
   posDialogContentClassName,
+  posCartLineDividerClassName,
+  posCheckoutMutedPanelClassName,
+  posQtyStepperShellClassName,
+  posNativeCheckboxClassName,
   posCategoryChipClassName,
   posCartEmptyIconClassName,
   text,
@@ -376,9 +384,9 @@ export default function POSPage() {
           onRetry={() => void refetchProducts()}
           loading={productsFetching}
         />
-        <div className="sticky top-0 z-10 space-y-3 rounded-xl border border-[var(--pos-panel-border)] bg-[var(--pos-panel-bg)] p-3 shadow-sm">
+        <div className={posStickyFilterBarClassName()}>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-subtle)] pointer-events-none" aria-hidden />
+            <Search className={decorativeIconClassName("absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none")} aria-hidden />
             <Input
               type="search"
               value={productSearch}
@@ -465,14 +473,14 @@ export default function POSPage() {
         
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {cart.map((item) => (
-            <div key={item.id} className="flex justify-between items-center gap-3 border-b border-[var(--pos-panel-border)]/50 pb-3">
+            <div key={item.id} className={posCartLineDividerClassName("flex justify-between items-center gap-3")}>
               <div className="min-w-0 flex-1">
                 <div className={posCartItemNameClassName()}>{item.product.name}</div>
                 {item.notes && <div className={`text-xs font-medium mb-1 line-clamp-2 ${posAccentTextClassName()}`}>{item.notes}</div>}
                 <div className={`text-sm tabular-nums ${text.muted}`}>{formatBaht(item.unitPrice)} each</div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
-                <div className="flex items-center rounded-lg border border-[var(--pos-panel-border)] overflow-hidden">
+                <div className={posQtyStepperShellClassName()}>
                   <Button
                     type="button"
                     aria-label={`Decrease ${item.product.name} quantity`}
@@ -603,7 +611,7 @@ export default function POSPage() {
             <span className="tabular-nums">฿{subtotal.toLocaleString()}</span>
           </div>
           {totalDiscount > 0 && (
-            <div className="flex justify-between text-sm text-[var(--pos-summary-discount)]">
+            <div className={posSummaryDiscountClassName("flex justify-between")}>
               <span>Discount</span>
               <span className="tabular-nums">- ฿{totalDiscount.toLocaleString()}</span>
             </div>
@@ -613,7 +621,7 @@ export default function POSPage() {
             <span className={posSummaryTotalClassName()}>฿{netTotal.toLocaleString()}</span>
           </div>
           {pointsEarned > 0 && (
-            <div className="flex justify-end text-xs text-[var(--pos-summary-reward)] pt-1">
+            <div className={posSummaryRewardClassName("flex justify-end pt-1")}>
               <Award className="w-3 h-3 mr-1" /> Earn {pointsEarned} pts
             </div>
           )}
@@ -664,13 +672,13 @@ export default function POSPage() {
                 id="tax-invoice"
                 checked={isTaxInvoiceRequested}
                 onChange={(e) => setIsTaxInvoiceRequested(e.target.checked)}
-                className="rounded border-[var(--pos-input-border)] w-4 h-4"
+                className={posNativeCheckboxClassName()}
               />
               <label htmlFor="tax-invoice" className="text-sm font-medium cursor-pointer">Request e-Tax Invoice</label>
             </div>
             
             {isTaxInvoiceRequested && (
-              <div className={`space-y-3 p-3 rounded-lg border bg-[var(--pos-panel-muted-bg)] border-[var(--pos-panel-border)]`}>
+              <div className={posCheckoutMutedPanelClassName()}>
                 <Input 
                   placeholder="Company / Individual Name" 
                   value={taxInvoiceName}

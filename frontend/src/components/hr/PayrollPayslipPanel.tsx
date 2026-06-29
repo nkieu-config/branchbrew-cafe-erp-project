@@ -10,8 +10,10 @@ import { formatBaht } from "@/lib/money";
 import {
   antTableSummaryRowClassName,
   inlineLinkClassName,
-  metricValueClassName,
+  payrollDeductionClassName,
   payrollExpandedPanelClassName,
+  payrollNetPayClassName,
+  payrollOtMetricClassName,
   tableCellMutedClassName,
   text,
   typeUiLabelClassName,
@@ -68,9 +70,7 @@ export function PayrollPayslipPanel({
           width: 96,
           align: "right" as const,
           render: (val: number) => (
-            <span className={cn("font-mono tabular-nums", metricValueClassName("amber"))}>
-              {val.toFixed(1)}
-            </span>
+            <span className={payrollOtMetricClassName()}>{val.toFixed(1)}</span>
           ),
         },
         {
@@ -90,9 +90,7 @@ export function PayrollPayslipPanel({
           width: 120,
           align: "right" as const,
           render: (val: number) => (
-            <span className={cn("font-mono tabular-nums", metricValueClassName("amber"))}>
-              {formatBaht(val)}
-            </span>
+            <span className={payrollOtMetricClassName()}>{formatBaht(val)}</span>
           ),
         },
         {
@@ -114,9 +112,7 @@ export function PayrollPayslipPanel({
           width: 120,
           align: "right" as const,
           render: (val: number) => (
-            <span className={cn("font-mono tabular-nums", metricValueClassName("red"))}>
-              -{formatBaht(val)}
-            </span>
+            <span className={payrollDeductionClassName()}>-{formatBaht(val)}</span>
           ),
         },
         {
@@ -126,9 +122,7 @@ export function PayrollPayslipPanel({
           width: 120,
           align: "right" as const,
           render: (val: number) => (
-            <span className={cn("font-mono tabular-nums", metricValueClassName("red"))}>
-              -{formatBaht(val)}
-            </span>
+            <span className={payrollDeductionClassName()}>-{formatBaht(val)}</span>
           ),
         },
         {
@@ -139,7 +133,7 @@ export function PayrollPayslipPanel({
           width: 140,
           align: "right" as const,
           render: (val: number) => (
-            <span className={typeUiLabelClassName(cn("font-mono tabular-nums", metricValueClassName("emerald")))}>
+            <span className={typeUiLabelClassName(payrollNetPayClassName())}>
               {formatBaht(val)}
             </span>
           ),
@@ -195,17 +189,13 @@ export function PayrollPayslipPanel({
                 </span>
               </Table.Summary.Cell>
               <Table.Summary.Cell index={2} align="right">
-                <span className={cn("font-mono tabular-nums", metricValueClassName("red"))}>
-                  -{formatBaht(totalSso)}
-                </span>
+                <span className={payrollDeductionClassName()}>-{formatBaht(totalSso)}</span>
               </Table.Summary.Cell>
               <Table.Summary.Cell index={3} align="right">
-                <span className={cn("font-mono tabular-nums", metricValueClassName("red"))}>
-                  -{formatBaht(totalTax)}
-                </span>
+                <span className={payrollDeductionClassName()}>-{formatBaht(totalTax)}</span>
               </Table.Summary.Cell>
               <Table.Summary.Cell index={4} align="right">
-                <span className={typeUiLabelClassName(cn("font-mono tabular-nums", metricValueClassName("emerald")))}>
+                <span className={typeUiLabelClassName(payrollNetPayClassName())}>
                   {formatBaht(totalNet)}
                 </span>
               </Table.Summary.Cell>

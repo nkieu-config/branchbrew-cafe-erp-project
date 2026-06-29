@@ -26,6 +26,7 @@ import {
   formFieldInsetClassName,
   formSelectContentClassName,
   hubCtaClassName,
+  hubModalIconClassName,
   organizationDialogWideClassName,
   text,
   typeHeadingClassName,
@@ -129,7 +130,7 @@ export function UserFormModal({
       <DialogContent className={organizationDialogWideClassName()}>
         <DialogHeader>
           <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <ShieldCheck className="w-5 h-5 text-[var(--hub-organization)]" aria-hidden />
+            <ShieldCheck className={hubModalIconClassName("organization")} aria-hidden />
             {user ? "Edit user account" : "Create user account"}
           </DialogTitle>
           <DialogDescription>

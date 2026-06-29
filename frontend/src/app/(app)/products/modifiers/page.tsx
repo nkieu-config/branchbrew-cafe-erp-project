@@ -65,6 +65,7 @@ import {
 } from "@/lib/modifier-filters";
 import { StatusBadge } from "@/components/shared/status-badge";
 import {
+  formContextBannerClassName,
   formFieldInsetClassName,
   formSelectContentClassName,
   hubCtaClassName,
@@ -781,7 +782,7 @@ export default function ModifiersPage() {
                 />
               </div>
             </div>
-            <div className="flex items-center justify-between gap-4 rounded-lg border border-[var(--form-line-border)] bg-[var(--form-line-bg)] px-4 py-3">
+            <div className={formContextBannerClassName("flex items-center justify-between gap-4 px-4 py-3")}>
               <div className="space-y-0.5">
                 <Label htmlFor="modifier-option-is-default" className={text.secondary}>
                   Default selection

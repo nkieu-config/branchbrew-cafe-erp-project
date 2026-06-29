@@ -35,6 +35,7 @@ import {
   formSectionClassName,
   formSelectContentClassName,
   hubCtaClassName,
+  hubModalIconClassName,
   inlineLinkClassName,
   procurementDialogContentClassName,
   text,
@@ -166,7 +167,7 @@ export function CreatePOModal({
       <DialogContent className={procurementDialogContentClassName("sm:max-w-2xl")}>
         <DialogHeader>
           <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <Truck className="w-5 h-5 text-[var(--hub-procurement)]" aria-hidden />
+            <Truck className={hubModalIconClassName("procurement")} aria-hidden />
             Create Purchase Order
           </DialogTitle>
           <DialogDescription>

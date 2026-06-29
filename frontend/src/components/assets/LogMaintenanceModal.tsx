@@ -29,6 +29,7 @@ import {
   formLineDateFieldClassName,
   formSelectContentClassName,
   hubCtaClassName,
+  hubModalIconClassName,
   text,
   typeHeadingClassName,
 } from "@/lib/theme";
@@ -120,7 +121,7 @@ export function LogMaintenanceModal({
       <DialogContent className={assetsDialogContentClassName()}>
         <DialogHeader>
           <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <Wrench className="w-5 h-5 text-[var(--hub-assets)]" aria-hidden />
+            <Wrench className={hubModalIconClassName("assets")} aria-hidden />
             Log maintenance
           </DialogTitle>
           <DialogDescription>

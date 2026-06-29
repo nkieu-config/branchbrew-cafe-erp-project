@@ -17,8 +17,10 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Branch } from "@/types/api";
 import {
+  formContextBannerClassName,
   formFieldInsetClassName,
   hubCtaClassName,
+  hubModalIconClassName,
   organizationDialogContentClassName,
   text,
   typeHeadingClassName,
@@ -79,7 +81,7 @@ export function BranchFormModal({
       <DialogContent className={organizationDialogContentClassName()}>
         <DialogHeader>
           <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <Building2 className="w-5 h-5 text-[var(--hub-organization)]" aria-hidden />
+            <Building2 className={hubModalIconClassName("organization")} aria-hidden />
             {branch ? "Edit branch" : "Create branch"}
           </DialogTitle>
           <DialogDescription>
@@ -117,7 +119,7 @@ export function BranchFormModal({
             />
           </div>
 
-          <div className="flex items-start gap-3 rounded-lg border border-[var(--table-row-border)] bg-[var(--form-line-bg)] p-3">
+          <div className={formContextBannerClassName("flex items-start gap-3 p-3")}>
             <Checkbox
               id="branch-central-kitchen"
               checked={isCentralKitchen}

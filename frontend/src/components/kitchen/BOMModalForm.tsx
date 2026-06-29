@@ -35,6 +35,7 @@ import {
   formSectionClassName,
   formSelectContentClassName,
   hubCtaClassName,
+  hubModalIconClassName,
   kitchenDialogContentClassName,
   text,
   typeHeadingClassName,
@@ -143,7 +144,7 @@ export function BOMModalForm({ isOpen, onClose, ingredients }: BOMModalFormProps
       <DialogContent className={kitchenDialogContentClassName("sm:max-w-2xl")}>
         <DialogHeader>
           <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <ListTree className="w-5 h-5 text-[var(--hub-kitchen)]" aria-hidden />
+            <ListTree className={hubModalIconClassName("kitchen")} aria-hidden />
             Create / Update Production BOM
           </DialogTitle>
           <DialogDescription>

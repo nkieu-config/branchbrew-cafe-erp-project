@@ -12,6 +12,8 @@ import { useSidebarPinnedItems } from "@/hooks/useSidebarPinnedItems";
 import { FLAT_SIDEBAR_ITEMS, SIDEBAR_GROUPS } from "@/lib/navigation";
 import {
   sidebarBrandTitleClassName,
+  sidebarBrandMarkClassName,
+  sidebarBrandMarkIconClassName,
   sidebarGroupButtonClassName,
   sidebarIconButtonClassName,
   sidebarPinnedLabelClassName,
@@ -49,11 +51,8 @@ export function Sidebar({ onNavigate, onCollapse, className }: SidebarProps) {
     <div className={sidebarRootClassName(className)}>
       <div className={cn("shrink-0 border-b", shell.sidebarDivider, shellHeaderInsetClassName())}>
         <div className="h-14 md:h-16 flex items-center px-4">
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center mr-3 shadow-sm bg-[var(--sidebar-brand-mark-bg)]"
-            aria-hidden
-          >
-            <Coffee className="w-5 h-5 text-[var(--sidebar-brand-mark-fg)]" />
+          <div className={cn(sidebarBrandMarkClassName(), "mr-3")} aria-hidden>
+            <Coffee className={sidebarBrandMarkIconClassName()} />
           </div>
           <span className={cn(sidebarBrandTitleClassName(), "flex-1 min-w-0 truncate")}>QafaCafe</span>
           {onCollapse && (

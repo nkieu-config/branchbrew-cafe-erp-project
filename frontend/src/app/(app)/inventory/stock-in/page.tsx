@@ -48,6 +48,7 @@ import {
   formLineQtyFieldClassName,
   formLineRowClassName,
   formRemoveButtonClassName,
+  formValidationHintClassName,
   hubCtaClassName,
   text,
 } from "@/lib/theme";
@@ -332,12 +333,12 @@ export default function StockInPage() {
                 {validLineCount} line{validLineCount === 1 ? "" : "s"} ready to receive
               </p>
               {ingredientsError ? (
-                <p className="text-[var(--status-warning-fg)]">
+                <p className={formValidationHintClassName()}>
                   Fix the ingredient load error above before confirming.
                 </p>
               ) : null}
               {duplicateIds.size > 0 ? (
-                <p className="text-[var(--status-warning-fg)]">
+                <p className={formValidationHintClassName()}>
                   Remove duplicate ingredients before confirming.
                 </p>
               ) : null}

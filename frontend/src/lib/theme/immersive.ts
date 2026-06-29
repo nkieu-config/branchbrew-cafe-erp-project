@@ -128,6 +128,49 @@ export function posSummaryTotalRowClassName(className?: string) {
   );
 }
 
+export function posSummaryDiscountClassName(className?: string) {
+  return cn("text-sm text-[var(--pos-summary-discount)]", className);
+}
+
+export function posSummaryRewardClassName(className?: string) {
+  return cn("text-xs text-[var(--pos-summary-reward)]", className);
+}
+
+export function posStickyFilterBarClassName(className?: string) {
+  return cn(
+    "sticky top-0 z-10 space-y-3 rounded-xl border p-3 shadow-sm",
+    "border-[var(--pos-panel-border)] bg-[var(--pos-panel-bg)]",
+    className,
+  );
+}
+
+export function posCartLineDividerClassName(className?: string) {
+  return cn("border-b border-[var(--pos-panel-border)]/50 pb-3", className);
+}
+
+export function posPanelTopDividerClassName(className?: string) {
+  return cn("border-t border-[var(--pos-panel-border)]", className);
+}
+
+export function posQtyStepperShellClassName(className?: string) {
+  return cn(
+    "flex items-center rounded-lg border border-[var(--pos-panel-border)] overflow-hidden",
+    className,
+  );
+}
+
+export function posNativeCheckboxClassName(className?: string) {
+  return cn("rounded border-[var(--pos-input-border)] w-4 h-4", className);
+}
+
+export function posCheckoutMutedPanelClassName(className?: string) {
+  return cn(
+    "space-y-3 p-3 rounded-lg border",
+    "bg-[var(--pos-panel-muted-bg)] border-[var(--pos-panel-border)]",
+    className,
+  );
+}
+
 export function posPrimaryActionClassName(className?: string) {
   return cn(
     "font-bold bg-[var(--brand-solid)] text-[var(--on-brand-solid-fg)] hover:opacity-90 shadow-lg",
@@ -360,6 +403,14 @@ export function kdsEmptyStateClassName(className?: string) {
   );
 }
 
+export function kdsEmptyIconClassName(className?: string) {
+  return cn("text-[var(--kds-empty-icon)]", className);
+}
+
+export function kdsPageHeaderDividerClassName(className?: string) {
+  return cn("space-y-1 pb-3 border-b border-[var(--kds-ticket-divider)]", className);
+}
+
 export function kdsTicketGridClassName(className?: string) {
   return cn(
     "grid gap-4 auto-rows-min",
@@ -473,7 +524,7 @@ export function posCategoryChipClassName(isActive: boolean, className?: string) 
 }
 
 export function posCartEmptyIconClassName(className?: string) {
-  return cn("opacity-40 dark:opacity-50", className);
+  return cn("text-[var(--state-empty-icon)]", className);
 }
 
 export function posImmersiveHeaderClassName(className?: string) {

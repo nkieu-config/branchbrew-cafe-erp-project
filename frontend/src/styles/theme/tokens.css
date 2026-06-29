@@ -24,7 +24,7 @@
   --on-brand-solid-fg: var(--accent-foreground);
   --focus-ring: var(--brand-text);
 
-  --semantic-success: #1f8a65;
+  --semantic-success: var(--success);
   --semantic-warning: var(--chart-4);
   --semantic-danger: var(--destructive);
   --on-vivid-surface-fg: var(--accent-foreground);
@@ -50,7 +50,7 @@
   --hub-assets: color-mix(in oklch, var(--metric-slate) 45%, var(--brand) 55%);
   --hub-pos: var(--brand-solid);
   --hub-settings: color-mix(in oklch, var(--metric-slate) 60%, var(--foreground) 40%);
-  --hub-organization: color-mix(in oklch, var(--foreground) 88%, var(--brand) 12%);
+  --hub-organization: var(--hub-finance);
 
   /* Foregrounds on hub CTA surfaces */
   --hub-inventory-fg: var(--on-vivid-surface-fg);
@@ -148,13 +148,26 @@
   --tone-assets-border: color-mix(in oklch, var(--hub-assets) 30%, transparent);
   --tone-assets-fg: color-mix(in oklch, var(--hub-assets) 82%, black);
 
-  --tone-organization-subtle: color-mix(in oklch, var(--hub-organization) 10%, var(--card));
-  --tone-organization-border: color-mix(in oklch, var(--hub-organization) 30%, transparent);
-  --tone-organization-fg: color-mix(in oklch, var(--hub-organization) 82%, black);
+  --tone-organization-subtle: var(--tone-finance-subtle);
+  --tone-organization-border: var(--tone-finance-border);
+  --tone-organization-fg: var(--tone-finance-fg);
 
   --tone-settings-subtle: color-mix(in oklch, var(--hub-settings) 10%, var(--card));
   --tone-settings-border: color-mix(in oklch, var(--hub-settings) 30%, transparent);
   --tone-settings-fg: color-mix(in oklch, var(--hub-settings) 82%, black);
+
+  /* Hub icon accents — readable on light surfaces (CTA fills use --hub-* above) */
+  --hub-inventory-icon: var(--tone-inventory-fg);
+  --hub-procurement-icon: var(--tone-procurement-fg);
+  --hub-hr-icon: var(--tone-hr-fg);
+  --hub-products-icon: var(--tone-products-fg);
+  --hub-kitchen-icon: var(--tone-kitchen-fg);
+  --hub-crm-icon: var(--tone-crm-fg);
+  --hub-finance-icon: var(--tone-finance-fg);
+  --hub-assets-icon: var(--tone-assets-fg);
+  --hub-pos-icon: var(--brand-text);
+  --hub-settings-icon: var(--tone-settings-fg);
+  --hub-organization-icon: var(--tone-organization-fg);
 
   --tone-neutral-border: color-mix(in oklch, var(--border) 80%, transparent);
   --tone-neutral-icon: color-mix(in oklch, var(--muted-foreground) 85%, transparent);
@@ -184,7 +197,8 @@
   --status-blue-fg: var(--tone-blue-fg-strong);
 
   /* Empty / feedback states */
-  --state-empty-icon: var(--brand);
+  --state-healthy-icon: var(--status-success-fg);
+  --state-empty-icon: var(--text-subtle);
   --state-denied-icon: var(--metric-red);
 
   /* Spacing */
@@ -282,11 +296,13 @@
   --widget-alerts-divider: var(--tone-danger-soft);
   --widget-alerts-low-row: color-mix(in oklch, var(--metric-red) 8%, var(--card));
   --widget-alerts-expiry-row: color-mix(in oklch, var(--metric-amber) 8%, var(--card));
+  --widget-alerts-low-row-hover: color-mix(in oklch, var(--metric-red) 11%, var(--card));
+  --widget-alerts-expiry-row-hover: color-mix(in oklch, var(--metric-amber) 11%, var(--card));
   --widget-alerts-low-value: color-mix(in oklch, var(--metric-red) 88%, var(--foreground));
   --widget-alerts-low-meta: color-mix(in oklch, var(--metric-red) 65%, var(--muted-foreground));
   --widget-alerts-expiry-value: var(--tone-amber-fg);
   --widget-alerts-expiry-meta: var(--metric-amber);
-  --widget-alerts-empty-icon: var(--brand);
+  --widget-alerts-empty-icon: var(--state-healthy-icon);
   --widget-alerts-empty-text: var(--status-success-fg);
 
   --widget-products-border: var(--tone-products-border);
@@ -323,12 +339,15 @@
   --chart-cursor: var(--surface-muted);
 
   /* Data tables — elevated panels on cream canvas (light) */
+  --hub-section-bg: color-mix(in oklch, var(--muted) 30%, var(--card));
+  --hub-section-border: color-mix(in oklch, var(--border) 75%, var(--foreground) 8%);
   --table-container-bg: color-mix(in oklch, var(--background) 6%, var(--card));
-  --table-container-border: color-mix(in oklch, var(--border) 75%, var(--foreground) 8%);
+  --table-container-border: var(--hub-section-border);
+  --table-body-bg: var(--card);
   --table-head-bg: color-mix(in oklch, var(--muted) 85%, var(--border));
   --table-head-fg: var(--text-secondary);
   --table-row-border: color-mix(in oklch, var(--border) 70%, var(--foreground) 10%);
-  --table-row-hover: color-mix(in oklch, var(--muted) 55%, var(--table-container-bg));
+  --table-row-hover: color-mix(in oklch, var(--muted) 55%, var(--table-body-bg));
   --table-cell-fg: var(--foreground);
   --table-cell-muted-fg: color-mix(in oklch, var(--foreground) 52%, var(--muted-foreground));
   --table-empty-icon: var(--text-subtle);
@@ -349,8 +368,9 @@
   --expiry-notice-fg: color-mix(in oklch, var(--metric-amber) 78%, var(--foreground));
   --expiry-safe-bg: var(--status-success-bg);
   --expiry-safe-fg: var(--status-success-fg);
-  --expiry-panel-header-bg: var(--status-danger-bg);
-  --expiry-panel-header-fg: var(--status-danger-fg);
+  --expiry-panel-header-bg: var(--table-head-bg);
+  --expiry-panel-header-fg: var(--foreground);
+  --expiry-panel-header-icon: var(--status-danger-fg);
 
   /* Form line rows (GRN, waste, etc.) */
   --form-line-bg: var(--surface-inset);
@@ -359,6 +379,9 @@
   --form-field-border: color-mix(in oklch, var(--border) 70%, var(--foreground) 14%);
   --form-field-bg-hover: color-mix(in oklch, var(--foreground) 4%, var(--form-field-bg));
   --form-field-bg-disabled: color-mix(in oklch, var(--form-line-bg) 55%, var(--muted));
+
+  --form-field-invalid-border: var(--status-danger-fg);
+  --form-field-invalid-ring: color-mix(in oklch, var(--status-danger-fg) 35%, transparent);
 
   /* POS / KDS — high-contrast operational surfaces */
   --pos-accent: var(--brand);
@@ -404,8 +427,8 @@
   --kds-ticket-bg: var(--surface-elevated);
   --kds-ticket-footer-bg: var(--surface-inset);
   --kds-ticket-divider: var(--border);
-  --kds-on-time-border: var(--brand);
-  --kds-on-time-header: var(--brand);
+  --kds-on-time-border: var(--semantic-success);
+  --kds-on-time-header: var(--semantic-success);
   --kds-warning-border: var(--metric-amber);
   --kds-warning-header: var(--metric-amber);
   --kds-late-border: var(--metric-red);
@@ -415,7 +438,7 @@
   --kds-connected-dot: var(--semantic-success);
   --kds-disconnected-bg: var(--status-danger-bg);
   --kds-disconnected-fg: var(--status-danger-fg);
-  --kds-empty-icon: var(--brand);
+  --kds-empty-icon: var(--text-subtle);
   --kds-item-qty: var(--brand);
   --kds-note-bg: var(--status-danger-bg);
   --kds-note-fg: var(--status-danger-fg);
@@ -425,10 +448,17 @@
   --kds-start-btn: var(--metric-amber);
   --kds-done-btn: var(--brand);
   --kds-loading: var(--brand);
+
+  /* Thermal receipt — fixed B&W palette (not synced to app theme; optimized for 80mm printers) */
+  --receipt-bg: #ffffff;
+  --receipt-fg: #000000;
+  --receipt-subtle-fg: #333333;
+  --receipt-muted-fg: #555555;
+  --receipt-divider: #000000;
 }
 
 .dark {
-  --surface-elevated: #3a3830;
+  --surface-elevated: color-mix(in oklch, var(--card) 88%, var(--foreground) 12%);
   --surface-overlay: color-mix(in oklch, var(--card) 90%, transparent);
 
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.35);
@@ -457,6 +487,9 @@
   --hub-kitchen: color-mix(in oklch, var(--chart-4) 42%, var(--card));
   --hub-products: color-mix(in oklch, var(--chart-5) 48%, var(--card));
   --hub-crm: color-mix(in oklch, var(--chart-3) 32%, var(--card));
+  --hub-finance: color-mix(in oklch, var(--foreground) 22%, var(--card));
+  --hub-assets: color-mix(in oklch, var(--metric-slate) 35%, var(--card));
+  --hub-settings: color-mix(in oklch, var(--metric-slate) 38%, var(--foreground) 14%);
 
   --on-pastel-surface-fg: var(--foreground);
   --hub-procurement-fg: var(--foreground);
@@ -464,12 +497,15 @@
   --hub-kitchen-fg: var(--foreground);
   --hub-products-fg: var(--foreground);
   --hub-crm-fg: var(--foreground);
+  --hub-finance-fg: var(--foreground);
+  --hub-assets-fg: var(--foreground);
+  --hub-settings-fg: var(--foreground);
   --on-metric-indigo-fg: var(--foreground);
   --on-metric-amber-fg: var(--foreground);
 
   /* KDS — operational contrast on espresso canvas */
-  --kds-on-time-border: var(--brand-solid);
-  --kds-on-time-header: var(--brand-solid);
+  --kds-on-time-border: color-mix(in oklch, var(--semantic-success) 55%, var(--card));
+  --kds-on-time-header: color-mix(in oklch, var(--semantic-success) 55%, var(--card));
   --kds-warning-border: color-mix(in oklch, var(--metric-amber) 55%, var(--card));
   --kds-warning-header: color-mix(in oklch, var(--metric-amber) 55%, var(--card));
   --kds-late-border: color-mix(in oklch, var(--metric-red) 65%, var(--card));
@@ -488,7 +524,7 @@
   --kds-modifier-bg: color-mix(in oklch, var(--metric-blue) 16%, var(--card));
   --kds-modifier-fg: color-mix(in oklch, var(--metric-blue) 70%, var(--foreground));
   --kds-timer-chip-bg: color-mix(in oklch, var(--foreground) 14%, transparent);
-  --kds-empty-icon: var(--brand-text);
+  --kds-empty-icon: var(--text-subtle);
   --kds-loading: var(--brand-text);
   --kds-connected-dot: var(--semantic-success);
 
@@ -515,13 +551,65 @@
   --tone-hr-fg: color-mix(in oklch, var(--hub-hr) 65%, var(--foreground));
   --tone-finance-fg: color-mix(in oklch, var(--hub-finance) 65%, var(--foreground));
   --tone-assets-fg: color-mix(in oklch, var(--hub-assets) 65%, var(--foreground));
-  --tone-organization-fg: color-mix(in oklch, var(--hub-organization) 65%, var(--foreground));
+  --tone-organization-fg: var(--tone-finance-fg);
   --tone-settings-fg: color-mix(in oklch, var(--hub-settings) 65%, var(--foreground));
+  --tone-inventory-fg: color-mix(in oklch, var(--hub-inventory) 65%, var(--foreground));
+  --tone-pos-fg: color-mix(in oklch, var(--brand-solid) 70%, var(--foreground));
+
+  --tone-success-subtle: color-mix(in oklch, var(--semantic-success) 18%, var(--card));
+  --tone-success-soft: color-mix(in oklch, var(--semantic-success) 22%, var(--card));
+  --tone-success-border: color-mix(in oklch, var(--semantic-success) 38%, transparent);
+  --tone-danger-subtle: color-mix(in oklch, var(--metric-red) 16%, var(--card));
+  --tone-danger-soft: color-mix(in oklch, var(--metric-red) 20%, var(--card));
+  --tone-danger-border: color-mix(in oklch, var(--metric-red) 40%, transparent);
+  --tone-blue-subtle: color-mix(in oklch, var(--metric-blue) 16%, var(--card));
+  --tone-blue-soft: color-mix(in oklch, var(--metric-blue) 22%, var(--card));
+  --tone-blue-border: color-mix(in oklch, var(--metric-blue) 38%, transparent);
+  --tone-purple-subtle: color-mix(in oklch, var(--metric-purple) 18%, var(--card));
+  --tone-purple-border: color-mix(in oklch, var(--metric-purple) 38%, transparent);
+  --tone-inventory-subtle: color-mix(in oklch, var(--semantic-success) 14%, var(--card));
+  --tone-inventory-border: color-mix(in oklch, var(--semantic-success) 38%, transparent);
+  --tone-pos-subtle: color-mix(in oklch, var(--brand) 14%, var(--card));
+  --tone-pos-border: color-mix(in oklch, var(--brand) 32%, transparent);
+  --tone-finance-subtle: color-mix(in oklch, var(--hub-finance) 14%, var(--card));
+  --tone-finance-border: color-mix(in oklch, var(--hub-finance) 32%, transparent);
+  --tone-assets-subtle: color-mix(in oklch, var(--hub-assets) 14%, var(--card));
+  --tone-assets-border: color-mix(in oklch, var(--hub-assets) 32%, transparent);
+  --tone-settings-subtle: color-mix(in oklch, var(--hub-settings) 14%, var(--card));
+  --tone-settings-border: color-mix(in oklch, var(--hub-settings) 32%, transparent);
+  --tone-procurement-subtle: color-mix(in oklch, var(--hub-procurement) 14%, var(--card));
+  --tone-procurement-border: color-mix(in oklch, var(--hub-procurement) 36%, transparent);
+  --tone-kitchen-subtle: color-mix(in oklch, var(--hub-kitchen) 14%, var(--card));
+  --tone-kitchen-border: color-mix(in oklch, var(--hub-kitchen) 36%, transparent);
+  --tone-hr-subtle: color-mix(in oklch, var(--hub-hr) 14%, var(--card));
+  --tone-hr-border: color-mix(in oklch, var(--hub-hr) 36%, transparent);
+  --tone-products-subtle: color-mix(in oklch, var(--chart-5) 16%, var(--card));
+  --tone-products-border: color-mix(in oklch, var(--chart-5) 38%, transparent);
+  --tone-crm-subtle: color-mix(in oklch, var(--hub-crm) 14%, var(--card));
+  --tone-crm-border: color-mix(in oklch, var(--hub-crm) 34%, transparent);
+
+  --state-denied-icon: color-mix(in oklch, var(--metric-red) 75%, var(--foreground));
+
+  /* Hub icon accents — readable on dark surfaces (CTA fills use --hub-* above) */
+  --hub-inventory-icon: var(--tone-inventory-fg);
+  --hub-procurement-icon: var(--tone-procurement-fg);
+  --hub-hr-icon: var(--tone-hr-fg);
+  --hub-products-icon: var(--tone-products-fg);
+  --hub-kitchen-icon: var(--tone-kitchen-fg);
+  --hub-crm-icon: var(--tone-crm-fg);
+  --hub-finance-icon: var(--tone-finance-fg);
+  --hub-assets-icon: var(--tone-assets-fg);
+  --hub-pos-icon: var(--brand-text);
+  --hub-settings-icon: var(--tone-settings-fg);
+  --hub-organization-icon: var(--tone-organization-fg);
 
   --hub-tab-track: color-mix(in oklch, var(--muted) 50%, transparent);
 
   --shell-bg: var(--background);
   --sidebar-panel-bg: var(--card);
+  --sidebar-nav-active-bg: color-mix(in oklch, var(--brand) 16%, var(--card));
+  --sidebar-nav-inactive-hover-bg: color-mix(in oklch, var(--foreground) 6%, var(--card));
+  --sidebar-user-panel-bg: color-mix(in oklch, var(--card) 85%, var(--background));
 
   --sidebar-brand-gradient-from: var(--foreground);
   --sidebar-brand-gradient-to: var(--muted-foreground);
@@ -533,6 +621,8 @@
   --widget-alerts-bg-to: color-mix(in oklch, var(--metric-red) 14%, var(--card));
   --widget-alerts-low-row: color-mix(in oklch, var(--metric-red) 16%, var(--card));
   --widget-alerts-expiry-row: color-mix(in oklch, var(--metric-amber) 16%, var(--card));
+  --widget-alerts-low-row-hover: color-mix(in oklch, var(--metric-red) 22%, var(--card));
+  --widget-alerts-expiry-row-hover: color-mix(in oklch, var(--metric-amber) 22%, var(--card));
   --widget-products-border: color-mix(in oklch, var(--chart-5) 45%, transparent);
   --widget-products-bg-to: color-mix(in oklch, var(--chart-5) 14%, var(--card));
   --widget-chart-border: color-mix(in oklch, var(--metric-purple) 45%, transparent);
@@ -541,13 +631,19 @@
   --widget-alerts-low-value: color-mix(in oklch, var(--metric-red) 75%, var(--foreground));
   --widget-alerts-low-meta: color-mix(in oklch, var(--metric-red) 55%, var(--muted-foreground));
   --widget-alerts-expiry-meta: color-mix(in oklch, var(--metric-amber) 75%, var(--foreground));
+  --widget-alerts-header: color-mix(in oklch, var(--metric-red) 40%, var(--foreground));
 
   --widget-error-border: color-mix(in oklch, var(--metric-red) 35%, transparent);
 
   /* Data tables — elevated body, darker header band, stronger hover/dividers */
+  --hub-section-bg: color-mix(in oklch, var(--background) 78%, var(--surface-elevated));
+  --hub-section-border: color-mix(in oklch, var(--border) 80%, var(--foreground) 8%);
+  --table-container-bg: color-mix(in oklch, var(--background) 62%, var(--card));
+  --table-container-border: var(--hub-section-border);
+  --table-body-bg: var(--card);
   --table-head-bg: color-mix(in oklch, var(--background) 55%, var(--surface-elevated));
   --table-row-border: color-mix(in oklch, var(--border) 80%, var(--foreground) 8%);
-  --table-row-hover: color-mix(in oklch, var(--foreground) 10%, var(--table-container-bg));
+  --table-row-hover: color-mix(in oklch, var(--muted) 48%, var(--table-body-bg));
   --table-cell-muted-fg: color-mix(in oklch, var(--foreground) 58%, var(--muted-foreground));
 
   --chart-grid: color-mix(in oklch, var(--border) 85%, var(--background));
@@ -560,8 +656,10 @@
   --expiry-critical-fg: color-mix(in oklch, var(--metric-red) 85%, var(--foreground));
   --expiry-warning-bg: color-mix(in oklch, var(--metric-amber) 55%, var(--card));
   --expiry-warning-fg: color-mix(in oklch, var(--metric-amber) 80%, var(--foreground));
-  --expiry-panel-header-bg: color-mix(in oklch, var(--metric-red) 18%, var(--card));
-  --expiry-panel-header-fg: color-mix(in oklch, var(--metric-red) 75%, var(--foreground));
+  --expiry-safe-bg: color-mix(in oklch, var(--semantic-success) 20%, var(--card));
+  --expiry-panel-header-bg: var(--table-head-bg);
+  --expiry-panel-header-fg: var(--foreground);
+  --expiry-panel-header-icon: color-mix(in oklch, var(--metric-red) 75%, var(--foreground));
   --form-line-bg: color-mix(in oklch, var(--background) 50%, var(--surface-elevated));
   --form-line-border: color-mix(in oklch, var(--border) 85%, var(--foreground) 8%);
   --form-field-bg: color-mix(in oklch, var(--background) 28%, var(--surface-elevated));

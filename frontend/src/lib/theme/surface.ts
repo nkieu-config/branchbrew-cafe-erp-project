@@ -12,7 +12,7 @@ export const text = {
   secondary: "text-secondary",
   subtle: "text-subtle",
   muted: "text-muted-foreground",
-  brand: "text-[var(--brand-text)]",
+  brand: "text-brand-text",
 } as const;
 
 export function surfaceCardClassName(className?: string) {
@@ -22,8 +22,8 @@ export function surfaceCardClassName(className?: string) {
 /** Solid elevated panel — tables, forms, CRM shell (replaces glass). */
 export function elevatedPanelClassName(className?: string) {
   return cn(
-    "rounded-2xl border shadow-[var(--shadow-sm)]",
-    "bg-[var(--table-container-bg)] border-[var(--table-container-border)]",
+    "hub-section-panel rounded-2xl border shadow-[var(--shadow-sm)]",
+    "bg-[var(--hub-section-bg)] border-[var(--hub-section-border)]",
     className,
   );
 }
@@ -44,6 +44,20 @@ export function hubTabClassName(isActive: boolean, className?: string) {
     isActive
       ? "bg-[var(--hub-tab-active)] text-[var(--hub-tab-active-fg)] shadow-sm"
       : "text-[var(--hub-tab-inactive-fg)] hover:text-[var(--hub-tab-inactive-hover)]",
+    className,
+  );
+}
+
+export function hubTabScrollFadeRightClassName(className?: string) {
+  return cn(
+    "pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-[var(--hub-fade-from)] to-transparent motion-reduce:opacity-0",
+    className,
+  );
+}
+
+export function hubTabScrollFadeLeftClassName(className?: string) {
+  return cn(
+    "pointer-events-none absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-[var(--hub-fade-from)] to-transparent motion-reduce:opacity-0",
     className,
   );
 }

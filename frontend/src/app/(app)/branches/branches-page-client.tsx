@@ -34,6 +34,7 @@ import {
   infoBannerTitleClassName,
   metricValueClassName,
   organizationSectionPanelClassName,
+  tableRowDividerClassName,
   text,
   typeHeadingClassName,
   typeUiLabelClassName,
@@ -231,12 +232,12 @@ export default function BranchesPageClient({ embedded = false }: { embedded?: bo
                       </span>
                     </p>
                   </div>
-                  <StatusBadge tone={branch.isCentralKitchen ? "warning" : "neutral"}>
+                  <StatusBadge tone={branch.isCentralKitchen ? "info" : "neutral"}>
                     {branchTypeLabel(branch.isCentralKitchen)}
                   </StatusBadge>
                 </div>
 
-                <div className="mt-auto pt-4 border-t border-[var(--table-row-border)] flex justify-between items-center gap-2">
+                <div className={tableRowDividerClassName("mt-auto pt-4 border-t flex justify-between items-center gap-2")}>
                   <span className={branchCardMetaClassName()}>ID #{branch.id}</span>
                   <TableActionButton
                     label="Edit"

@@ -33,6 +33,7 @@ import {
   formSelectContentClassName,
   hubCtaClassName,
   productsDialogContentClassName,
+  tableRowDividerClassName,
   text,
   typeHeadingClassName,
 } from "@/lib/theme";
@@ -204,7 +205,7 @@ export function IngredientFormModal({
               </SelectContent>
             </Select>
           </div>
-          <div className="flex items-center justify-between gap-3 pt-2 border-t border-[var(--table-row-border)]">
+          <div className={cn("flex items-center justify-between gap-3 pt-2 border-t", tableRowDividerClassName())}>
             <Label htmlFor="isActiveIngredient" className={cn("cursor-pointer", text.secondary)}>
               Active (available for recipes and POs)
             </Label>

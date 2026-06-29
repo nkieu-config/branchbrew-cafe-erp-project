@@ -198,6 +198,13 @@ export function mobileBottomNavIconClassName(isActive: boolean) {
   );
 }
 
+export function mobileNavBadgePlacementClassName(className?: string) {
+  return cn(
+    "top-0 right-0 translate-x-1/3 -translate-y-1/3 ring-[var(--mobile-nav-bg)]",
+    className,
+  );
+}
+
 export function mainContentWithMobileNavClassName(className?: string) {
   return cn("pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0", className);
 }
@@ -277,6 +284,18 @@ export function sidebarBrandTitleClassName() {
     "font-extrabold text-xl tracking-tight bg-clip-text text-transparent",
     "bg-gradient-to-br from-[var(--sidebar-brand-gradient-from)] to-[var(--sidebar-brand-gradient-to)]",
   );
+}
+
+export function sidebarBrandMarkClassName(className?: string) {
+  return cn(
+    "w-8 h-8 rounded-lg flex items-center justify-center shadow-sm",
+    "bg-[var(--sidebar-brand-mark-bg)]",
+    className,
+  );
+}
+
+export function sidebarBrandMarkIconClassName(className?: string) {
+  return cn("w-5 h-5 text-[var(--sidebar-brand-mark-fg)]", className);
 }
 
 export function sidebarGroupButtonClassName(className?: string) {
@@ -393,6 +412,10 @@ export function breadcrumbCurrentClassName(className?: string) {
 
 export function breadcrumbParentClassName(className?: string) {
   return cn("shrink-0 text-[var(--breadcrumb-parent)]", className);
+}
+
+export function profileMenuHeaderDividerClassName(className?: string) {
+  return cn("px-3 py-2 border-b mb-1 border-[var(--profile-menu-divider)]", className);
 }
 
 export function profileMenuPanelClassName(className?: string) {

@@ -8,13 +8,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { formDialogContentClassName, typeHeadingClassName } from "@/lib/theme";
+import type { HubId } from "@/lib/navigation";
+import {
+  formDialogContentClassName,
+  formModalDefaultIconClassName,
+  hubModalIconClassName,
+  typeHeadingClassName,
+} from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 interface FormModalProps {
   title: string;
   icon?: LucideIcon;
-  /** Optional icon color class (defaults to indigo metric). */
+  /** Hub accent for the title icon (overrides default when set). */
+  accentHub?: HubId;
+  /** Optional icon class override (defaults to accent hub or indigo metric). */
   iconClassName?: string;
   isOpen: boolean;
   onClose: () => void;
@@ -29,12 +37,17 @@ interface FormModalProps {
 export function FormModal({
   title,
   icon: Icon,
-  iconClassName = "text-[var(--metric-indigo)]",
+  accentHub,
+  iconClassName,
   isOpen,
   onClose,
   children,
   width = 800,
 }: FormModalProps) {
+  const resolvedIconClassName =
+    iconClassName ??
+    (accentHub != null ? hubModalIconClassName(accentHub) : formModalDefaultIconClassName());
+
   return (
     <Dialog
       open={isOpen}
@@ -45,7 +58,7 @@ export function FormModal({
       <DialogContent className={formDialogContentClassName(width)} showCloseButton>
         <DialogHeader>
           <DialogTitle className={cn(typeHeadingClassName(), "flex items-center gap-2 text-lg")}>
-            {Icon && <Icon className={cn("w-5 h-5 shrink-0", iconClassName)} aria-hidden />}
+            {Icon && <Icon className={cn("shrink-0", resolvedIconClassName)} aria-hidden />}
             {title}
           </DialogTitle>
         </DialogHeader>

@@ -92,6 +92,46 @@ function walkAppPages(dir: string, acc: string[] = []): string[] {
   return acc;
 }
 
+/** Paths allowed to use inline Tailwind `*- [var(--…)]` color utilities. */
+const INLINE_COLOR_VAR_ALLOWLIST_PREFIXES = [
+  "lib/theme/",
+  "components/ui/",
+  "styles/",
+];
+
+const INLINE_COLOR_VAR_PATTERN =
+  /(?:^|\s)(?:hover:|focus:|active:|disabled:)?(?:text|bg|border(?:-[trblxy])?|from|to|ring|shadow|fill|stroke)-\[var\(--/;
+
+const HEX_COLOR_PATTERN = /#[0-9a-fA-F]{3,8}\b/;
+
+const INLINE_STYLE_COLOR_PATTERN =
+  /style=\{\{[\s\S]*?\b(color|background(?:Color)?|border(?:Color)?|border(?:Top|Bottom|Left|Right)?)\s*:\s*['"]#/;
+
+function isInlineColorVarAllowed(rel: string): boolean {
+  return INLINE_COLOR_VAR_ALLOWLIST_PREFIXES.some((prefix) => rel.startsWith(prefix));
+}
+
+function isHexColorScanAllowed(rel: string): boolean {
+  return (
+    isInlineColorVarAllowed(rel) ||
+    rel.startsWith("lib/theme/defaults.ts")
+  );
+}
+
+function walkAppAndComponents(dir: string, acc: string[] = []): string[] {
+  for (const entry of readdirSync(dir)) {
+    const fullPath = join(dir, entry);
+    const stat = statSync(fullPath);
+    if (stat.isDirectory()) {
+      if (entry === "node_modules" || entry.startsWith(".")) continue;
+      walkAppAndComponents(fullPath, acc);
+    } else if (/\.tsx?$/.test(entry) && !entry.endsWith(".test.ts")) {
+      acc.push(fullPath);
+    }
+  }
+  return acc;
+}
+
 describe("design token guards", () => {
   it("forbids font-black outside the metrics/immersive allowlist", () => {
     const violations: string[] = [];
@@ -160,6 +200,63 @@ describe("design token guards", () => {
 
     expect(violations).toEqual([]);
   });
+
+  it("forbids inline CSS variable color utilities in app and components", () => {
+    const violations: string[] = [];
+    const roots = [join(SRC_ROOT, "app"), join(SRC_ROOT, "components")];
+
+    for (const root of roots) {
+      for (const file of walkAppAndComponents(root)) {
+        const rel = relPath(file);
+        if (isInlineColorVarAllowed(rel)) continue;
+
+        const content = readFileSync(file, "utf8");
+        if (INLINE_COLOR_VAR_PATTERN.test(content)) {
+          violations.push(rel);
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
+  it("forbids hardcoded hex colors in app and components", () => {
+    const violations: string[] = [];
+    const roots = [join(SRC_ROOT, "app"), join(SRC_ROOT, "components")];
+
+    for (const root of roots) {
+      for (const file of walkAppAndComponents(root)) {
+        const rel = relPath(file);
+        if (isHexColorScanAllowed(rel)) continue;
+
+        const content = readFileSync(file, "utf8");
+        if (HEX_COLOR_PATTERN.test(content)) {
+          violations.push(rel);
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
+  it("forbids inline style hex colors in app and components", () => {
+    const violations: string[] = [];
+    const roots = [join(SRC_ROOT, "app"), join(SRC_ROOT, "components")];
+
+    for (const root of roots) {
+      for (const file of walkAppAndComponents(root)) {
+        const rel = relPath(file);
+        if (isHexColorScanAllowed(rel)) continue;
+
+        const content = readFileSync(file, "utf8");
+        if (INLINE_STYLE_COLOR_PATTERN.test(content)) {
+          violations.push(rel);
+        }
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
 });
 
 describe("hub list table defaults", () => {
@@ -180,5 +277,23 @@ describe("hub list table defaults", () => {
 
   it("section panels use rounded-xl", () => {
     expect(hubSectionPanelClassName("hr")).toContain("rounded-xl");
+    expect(hubSectionPanelClassName("hr")).toContain("hub-section-panel");
+  });
+
+  it("defines distinct hub section and table body tokens in tokens.css", () => {
+    const tokensPath = join(import.meta.dirname, "../../styles/theme/tokens.css");
+    const tokens = readFileSync(tokensPath, "utf8");
+    expect(tokens).toContain("--hub-section-bg:");
+    expect(tokens).toContain("--table-body-bg:");
+  });
+
+  it("aliases duplicate hub and panel border tokens", () => {
+    const tokensPath = join(import.meta.dirname, "../../styles/theme/tokens.css");
+    const tokens = readFileSync(tokensPath, "utf8");
+    expect(tokens).toMatch(/--hub-organization:\s*var\(--hub-finance\)/);
+    expect(tokens).toMatch(/--table-container-border:\s*var\(--hub-section-border\)/);
+    expect(tokens).toMatch(/--semantic-success:\s*var\(--success\)/);
+    expect(tokens).toMatch(/--hub-procurement-icon:\s*var\(--tone-procurement-fg\)/);
+    expect(tokens).toMatch(/--form-field-invalid-border:\s*var\(--status-danger-fg\)/);
   });
 });

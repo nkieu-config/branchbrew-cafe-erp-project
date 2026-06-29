@@ -12,6 +12,7 @@ import {
   mobileBottomNavClassName,
   mobileBottomNavIconClassName,
   mobileBottomNavItemClassName,
+  mobileNavBadgePlacementClassName,
 } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types/api";
@@ -53,7 +54,7 @@ export function MobileBottomNav() {
                     tone={badge.tone}
                     label={badge.label}
                     variant="dot"
-                    className="top-0 right-0 translate-x-1/3 -translate-y-1/3 ring-[var(--mobile-nav-bg)]"
+                    className={mobileNavBadgePlacementClassName()}
                   />
                 )}
               </span>
@@ -78,7 +79,7 @@ export function MobileBottomNav() {
                   tone={badge.tone}
                   label={badge.label}
                   variant="dot"
-                  className="top-0 right-0 translate-x-1/3 -translate-y-1/3 ring-[var(--mobile-nav-bg)]"
+                  className={mobileNavBadgePlacementClassName()}
                 />
               )}
             </span>

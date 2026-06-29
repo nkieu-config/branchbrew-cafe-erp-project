@@ -1,5 +1,5 @@
 import { MapPin } from "lucide-react";
-import { surface, text, typeUiLabelClassName } from "@/lib/theme";
+import { surface, text, typeUiLabelClassName, emptyStateIconClassName } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 type BranchEmptyStateProps = {
@@ -13,7 +13,7 @@ export function BranchEmptyState({
 }: BranchEmptyStateProps) {
   return (
     <div className={cn(surface.empty)}>
-      <MapPin className="w-10 h-10 mx-auto mb-4 text-[var(--state-empty-icon)]" aria-hidden />
+      <MapPin className={emptyStateIconClassName("w-10 h-10 mx-auto mb-4")} aria-hidden />
       <p className={typeUiLabelClassName(text.primary)}>{title}</p>
       <p className={cn("text-sm mt-2", text.muted)}>{description}</p>
     </div>

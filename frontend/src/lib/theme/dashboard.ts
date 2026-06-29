@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { typeMetricClassName, typeUiLabelClassName } from "./typography";
+import { typeMetricClassName, typeHeadingClassName, typeUiLabelClassName } from "./typography";
 
 export type DashboardWidgetVariant = "sales" | "branch" | "alerts" | "products" | "chart";
 
@@ -89,8 +89,10 @@ export function dashboardAlertsHeaderClass() {
 
 export function dashboardAlertsRowClass(type: "low" | "expiry") {
   return cn(
-    "p-4 flex justify-between items-center",
-    type === "low" ? "bg-[var(--widget-alerts-low-row)]" : "bg-[var(--widget-alerts-expiry-row)]",
+    "p-4 flex justify-between items-center transition-colors",
+    type === "low"
+      ? "bg-[var(--widget-alerts-low-row)] hover:bg-[var(--widget-alerts-low-row-hover)]"
+      : "bg-[var(--widget-alerts-expiry-row)] hover:bg-[var(--widget-alerts-expiry-row-hover)]",
   );
 }
 
@@ -139,6 +141,40 @@ export function dashboardErrorPanelClass(className?: string) {
     "bg-[var(--widget-error-bg)] border-[var(--widget-error-border)]",
     className,
   );
+}
+
+export function dashboardWidgetErrorIconClassName(className?: string) {
+  return cn("text-[var(--widget-error-icon)]", className);
+}
+
+export function dashboardAlertsLowValueClassName(className?: string) {
+  return cn(typeMetricClassName(), "text-[var(--widget-alerts-low-value)]", className);
+}
+
+export function dashboardAlertsLowMetaClassName(className?: string) {
+  return cn(
+    typeUiLabelClassName("tracking-wider text-[var(--widget-alerts-low-meta)]"),
+    className,
+  );
+}
+
+export function dashboardAlertsExpiryValueClassName(className?: string) {
+  return cn(typeMetricClassName(), "text-[var(--widget-alerts-expiry-value)]", className);
+}
+
+export function dashboardAlertsExpiryMetaClassName(className?: string) {
+  return cn(
+    typeUiLabelClassName("tracking-wider text-[var(--widget-alerts-expiry-meta)]"),
+    className,
+  );
+}
+
+export function dashboardAlertsEmptyIconClassName(className?: string) {
+  return cn("text-[var(--widget-alerts-empty-icon)]", className);
+}
+
+export function dashboardAlertsEmptyTextClassName(className?: string) {
+  return cn(typeHeadingClassName("text-lg text-[var(--widget-alerts-empty-text)]"), className);
 }
 
 export function dashboardDragActiveClass(isDragging: boolean) {

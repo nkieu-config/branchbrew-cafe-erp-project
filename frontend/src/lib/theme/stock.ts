@@ -206,8 +206,8 @@ export function formRemoveButtonClassName(className?: string) {
 
 export function formPanelClassName(className?: string) {
   return cn(
-    "rounded-xl shadow-sm border p-4 sm:p-6 w-full",
-    "bg-[var(--table-container-bg)] border-[var(--table-container-border)]",
+    "hub-section-panel rounded-xl shadow-sm border p-4 sm:p-6 w-full",
+    "bg-[var(--hub-section-bg)] border-[var(--hub-section-border)]",
     className,
   );
 }
@@ -250,6 +250,18 @@ export function expiryHeatmapHeaderClassName(className?: string) {
     "bg-[var(--expiry-panel-header-bg)] text-[var(--expiry-panel-header-fg)]",
     className,
   );
+}
+
+export function expiryHeatmapHeaderIconClassName(className?: string) {
+  return cn("w-5 h-5 text-[var(--expiry-panel-header-icon)]", className);
+}
+
+export function expiryPopoverQtyClassName(className?: string) {
+  return cn("font-mono bg-[var(--form-line-bg)] px-1 rounded", className);
+}
+
+export function expiryCalendarFrameClassName(className?: string) {
+  return cn("rounded-xl border border-[var(--table-row-border)] overflow-hidden", className);
 }
 
 /** Ant Design Calendar shell — CSS-variable bridge for instant light/dark sync (see utilities.css). */

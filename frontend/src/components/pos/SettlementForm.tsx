@@ -7,12 +7,16 @@ import { useSubmitSettlement } from '@/hooks/domains/useFinanceQueries'
 import type { SettlementExpected } from '@/types/api'
 import { getErrorMessage } from '@/lib/errors'
 import {
+  posCheckoutMutedPanelClassName,
   posFormPanelClassName,
   posNativeInputClassName,
+  posPanelTopDividerClassName,
   posPrimaryActionClassName,
   posSettlementHighlightClassName,
   posSettlementIconClassName,
   posSettlementSummaryClassName,
+  statusTextClassName,
+  surfaceInsetSkeletonClassName,
   text,
   typeHeadingClassName,
   typeUiLabelClassName,
@@ -33,9 +37,8 @@ function SettlementSummarySkeleton() {
       {Array.from({ length: 5 }).map((_, index) => (
         <div
           key={index}
-          className={cn(
-            "h-4 rounded-md bg-[var(--surface-inset)] animate-pulse motion-reduce:animate-none",
-            index === 2 && "h-5 mt-2",
+          className={surfaceInsetSkeletonClassName(
+            cn("h-4 rounded-md", index === 2 && "h-5 mt-2"),
           )}
         />
       ))}
@@ -92,7 +95,7 @@ export function SettlementForm({
       {expectedLoading ? (
         <SettlementSummarySkeleton />
       ) : expectedError ? (
-        <p className={cn("text-sm rounded-xl border p-4", text.muted, "border-[var(--pos-panel-border)] bg-[var(--pos-panel-muted-bg)]")}>
+        <p className={cn("text-sm", text.muted, posCheckoutMutedPanelClassName())}>
           Expected totals are unavailable. You can still enter actual counts below.
         </p>
       ) : (
@@ -103,9 +106,9 @@ export function SettlementForm({
           </div>
           <div className={`flex justify-between text-sm ${text.muted}`}>
             <span>Petty Cash Expenses:</span>
-            <span className="font-medium tabular-nums text-[var(--status-danger-fg)]">-฿{expected?.expenses?.toLocaleString() || 0}</span>
+            <span className={cn("font-medium tabular-nums", statusTextClassName("danger"))}>-฿{expected?.expenses?.toLocaleString() || 0}</span>
           </div>
-          <div className={cn("pt-2 mt-2 border-t border-[var(--pos-panel-border)] flex justify-between", typeUiLabelClassName())}>
+          <div className={cn("pt-2 mt-2 flex justify-between", posPanelTopDividerClassName(), typeUiLabelClassName())}>
             <span className={text.primary}>Expected Cash in Drawer:</span>
             <span className={posSettlementHighlightClassName()}>฿{expected?.expectedCash?.toLocaleString() || 0}</span>
           </div>

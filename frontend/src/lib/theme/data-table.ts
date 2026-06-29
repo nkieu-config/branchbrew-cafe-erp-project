@@ -100,6 +100,10 @@ export function listMobileCardClassName(className?: string) {
   );
 }
 
+export function dataTableRowHoverClassName(className?: string) {
+  return cn("hover:bg-[var(--table-row-hover)]", className);
+}
+
 /** Default page-size options for hub list DataTables (Tier A). */
 export const HUB_LIST_PAGE_SIZE_OPTIONS = ["10", "15", "25", "50"] as const;
 
