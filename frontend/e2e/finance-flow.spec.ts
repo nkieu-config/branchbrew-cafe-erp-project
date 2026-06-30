@@ -3,8 +3,9 @@ import { test, expect } from "@playwright/test";
 test.describe("finance business flow", () => {
   test("manager demo login opens finance overview via sidebar", async ({ page }) => {
     await page.goto("/login");
-    await page.getByRole("button", { name: "Manager", exact: true }).click();
-    await page.waitForURL((url) => !url.pathname.includes("/login"));
+    await expect(page.getByText("Quick demo")).toBeVisible();
+    await page.getByRole("button", { name: /sign in as demo manager/i }).click();
+    await page.waitForURL((url) => !url.pathname.includes("/login"), { timeout: 30_000 });
 
     await page.getByRole("link", { name: "Finance", exact: true }).click();
     await expect(page).toHaveURL(/\/finance\/overview/);

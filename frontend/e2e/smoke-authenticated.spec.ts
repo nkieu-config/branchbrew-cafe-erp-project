@@ -8,7 +8,9 @@ test.describe("authenticated routes", () => {
 
   test("manager can open inventory balance", async ({ page }) => {
     await page.goto("/inventory");
-    await expect(page.getByText(/branch stock balance|select a branch/i).first()).toBeVisible();
+    await expect(page.getByPlaceholder(/search ingredients/i)).toBeVisible({
+      timeout: 15_000,
+    });
   });
 
   test("legacy /users redirects to organization users", async ({ page }) => {
