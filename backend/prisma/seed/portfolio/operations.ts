@@ -191,14 +191,14 @@ export async function seedOperationsDemo(ctx: SeedContext): Promise<void> {
       action: 'SETTLEMENT_SUBMITTED',
       targetType: 'ShiftSettlement',
       targetId: pendingSettlement?.id,
-      details: JSON.stringify({ branch: 'Siam Paragon', difference: -150 }),
+      details: JSON.stringify({ branch: 'Downtown', difference: -150 }),
       daysAgo: 0,
     },
     {
       userId: admin.id,
       action: 'SETTLEMENT_APPROVED',
       targetType: 'ShiftSettlement',
-      details: JSON.stringify({ branch: 'Siam Paragon', date: 'yesterday' }),
+      details: JSON.stringify({ branch: 'Downtown', date: 'yesterday' }),
       daysAgo: 1,
     },
     {
@@ -216,7 +216,7 @@ export async function seedOperationsDemo(ctx: SeedContext): Promise<void> {
       targetId: completedTransfer.id,
       details: JSON.stringify({
         from: 'Central Kitchen',
-        to: 'Siam Paragon',
+        to: 'Downtown',
         ingredient: 'Espresso Beans',
         quantity: 2500,
       }),
@@ -226,7 +226,7 @@ export async function seedOperationsDemo(ctx: SeedContext): Promise<void> {
       userId: manager.id,
       action: 'ADD_BATCH',
       targetType: 'InventoryBatch',
-      details: JSON.stringify({ ingredient: 'Whole Milk', quantity: 500, branch: 'Siam Paragon' }),
+      details: JSON.stringify({ ingredient: 'Whole Milk', quantity: 500, branch: 'Downtown' }),
       daysAgo: 6,
     },
     {
@@ -251,7 +251,7 @@ export async function seedOperationsDemo(ctx: SeedContext): Promise<void> {
       userId: manager.id,
       action: 'LEAVE_APPROVED',
       targetType: 'LeaveRequest',
-      details: JSON.stringify({ type: 'SICK', employee: 'Siam Manager' }),
+      details: JSON.stringify({ type: 'SICK', employee: 'Downtown Manager' }),
       daysAgo: 3,
     },
   ];

@@ -8,8 +8,8 @@ import {
 
 describe("branch-filters", () => {
   const branches = [
-    { id: 1, name: "HQ Kitchen", isCentralKitchen: true, location: "Bangkok" },
-    { id: 2, name: "Siam Square", isCentralKitchen: false, location: "Pathum Wan" },
+    { id: 1, name: "HQ Kitchen", isCentralKitchen: true, location: "Metro City" },
+    { id: 2, name: "Downtown", isCentralKitchen: false, location: "Central District" },
   ] as Branch[];
 
   it("labels branch types", () => {
@@ -33,7 +33,7 @@ describe("branch-filters", () => {
 
     const byName = filterBranches(branches, {
       typeFilter: "ALL",
-      search: "siam",
+      search: "downtown",
     });
     expect(byName).toHaveLength(1);
   });

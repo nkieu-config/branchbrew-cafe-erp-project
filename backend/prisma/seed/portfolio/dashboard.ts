@@ -178,7 +178,7 @@ export async function seedDashboardDemo(ctx: SeedContext): Promise<void> {
       createdAt: dateAtDayOffset(0, 13, 10),
       paymentMethod: 'QR_PROMPTPAY',
       lines: [
-        { productName: 'Thai Milk Tea', quantity: 3, unitPrice: 65 },
+        { productName: 'Classic Milk Tea', quantity: 3, unitPrice: 65 },
         { productName: 'Croissant', quantity: 2, unitPrice: 45 },
       ],
     },

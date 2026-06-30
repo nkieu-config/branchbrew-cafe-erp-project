@@ -18,7 +18,7 @@ import {
 } from "@/lib/theme/immersive";
 import { text } from "@/lib/theme/surface";
 import { getErrorMessage } from "@/lib/errors";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/types/api";
 
@@ -112,7 +112,7 @@ export function PosProductCatalog({
                 <CardDescription>{product.category}</CardDescription>
               </CardHeader>
               <CardContent className="p-4 pt-0 flex justify-between items-center">
-                <span className={posPriceClassName()}>{formatBaht(product.price)}</span>
+                <span className={posPriceClassName()}>{formatCurrency(product.price)}</span>
                 <Button
                   variant="secondary"
                   size="sm"

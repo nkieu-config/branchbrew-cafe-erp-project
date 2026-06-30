@@ -32,7 +32,7 @@ test.describe("super admin branch flow", () => {
       page.getByTestId("branch-empty-state").getByText("Select a branch", { exact: true }),
     ).toBeVisible();
 
-    await selectBranchOption(page, /siam paragon/i);
+    await selectBranchOption(page, /downtown/i);
 
     await expect(page.getByPlaceholder(/search ingredients/i)).toBeVisible({
       timeout: 15_000,
@@ -48,7 +48,7 @@ test.describe("super admin branch flow", () => {
   });
 
   test("branch selection persists across navigation", async ({ page }) => {
-    await selectBranchOption(page, /siam paragon/i);
+    await selectBranchOption(page, /downtown/i);
 
     await page.goto("/inventory");
     await expect(page.getByPlaceholder(/search ingredients/i)).toBeVisible({

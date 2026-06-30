@@ -21,7 +21,7 @@ import {
 } from "@/hooks/domains/useHrQueries";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { buildHrEmployeesUrl, buildHrPayrollUrl, parseHrPayrollSearchParams } from "@/lib/hr-hub-url";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import { formatHubListCountWithFetching } from "@/lib/format-hub-list-count";
 import { getErrorMessage } from "@/lib/errors";
 import {
@@ -272,7 +272,7 @@ export default function PayrollPageClient() {
                     ? `${summary.total} run${summary.total === 1 ? "" : "s"} · ${summary.totalPayslips} payslip${summary.totalPayslips === 1 ? "" : "s"}`
                     : "No payroll runs yet";
                 return summary.totalNet > 0 && !hasActiveFilters
-                  ? `${base} · ${formatBaht(summary.totalNet)} total net`
+                  ? `${base} · ${formatCurrency(summary.totalNet)} total net`
                   : base;
               })(),
               isFetching,
@@ -310,7 +310,7 @@ export default function PayrollPageClient() {
         title="Approve this payroll run?"
         description={
           approveTarget
-            ? `${formatPayrollPeriod(approveTarget.month, approveTarget.year)} · ${formatBaht(payrollRunTotalNet(approveTarget))} net · ${payrollRunPayslipCount(approveTarget)} payslip${payrollRunPayslipCount(approveTarget) === 1 ? "" : "s"}`
+            ? `${formatPayrollPeriod(approveTarget.month, approveTarget.year)} · ${formatCurrency(payrollRunTotalNet(approveTarget))} net · ${payrollRunPayslipCount(approveTarget)} payslip${payrollRunPayslipCount(approveTarget) === 1 ? "" : "s"}`
             : undefined
         }
         confirmLabel="Approve"

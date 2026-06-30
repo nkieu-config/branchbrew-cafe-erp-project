@@ -248,7 +248,7 @@ export function UserFormModal({
             </div>
             <div className="space-y-2">
               <Label htmlFor="user-compensation" className={text.secondary}>
-                {employmentType === "PART_TIME" ? "Hourly rate (THB)" : "Monthly base salary (THB)"}
+                {employmentType === "PART_TIME" ? "Hourly rate" : "Monthly base salary"}
               </Label>
               <Input
                 id="user-compensation"

@@ -1,13 +1,13 @@
 import { Prisma } from '@prisma/client';
 
 /** Cafe business day timezone for daily queue reset. */
-export const QUEUE_TIMEZONE = 'Asia/Bangkok';
+export const QUEUE_TIMEZONE = process.env.BUSINESS_TIMEZONE ?? 'UTC';
 
 type DbClient = {
   order: Prisma.TransactionClient['order'];
 };
 
-/** YYYY-MM-DD in Bangkok local calendar. */
+/** YYYY-MM-DD in the configured business-day timezone. */
 export function getQueueBusinessDateString(now = new Date()): string {
   return new Intl.DateTimeFormat('en-CA', {
     timeZone: QUEUE_TIMEZONE,
@@ -27,7 +27,7 @@ export function formatQueueNumberDisplay(
 }
 
 /**
- * Allocates the next queue number for a branch on the current Bangkok business day.
+ * Allocates the next queue number for a branch on the current business day.
  * Must run inside the same transaction as order creation.
  */
 export async function allocateQueueNumber(

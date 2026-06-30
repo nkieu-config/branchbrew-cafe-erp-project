@@ -1,12 +1,15 @@
-import { POINTS_PER_THB, pointsToDiscountBaht } from './loyalty.constants';
+import {
+  POINTS_PER_CURRENCY_UNIT,
+  pointsToDiscountAmount,
+} from './loyalty.constants';
 
 describe('loyalty.constants', () => {
-  it('defines 10 points per baht', () => {
-    expect(POINTS_PER_THB).toBe(10);
+  it('defines 10 points per currency unit', () => {
+    expect(POINTS_PER_CURRENCY_UNIT).toBe(10);
   });
 
-  it('converts points to discount baht', () => {
-    expect(pointsToDiscountBaht(50)).toBe(5);
-    expect(pointsToDiscountBaht(10)).toBe(1);
+  it('converts points to discount amount', () => {
+    expect(pointsToDiscountAmount(50)).toBe(5);
+    expect(pointsToDiscountAmount(10)).toBe(1);
   });
 });

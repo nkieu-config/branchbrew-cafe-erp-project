@@ -70,7 +70,7 @@ export async function seedFinanceDemo(ctx: SeedContext): Promise<void> {
     },
   });
 
-  const settlementAsokRejected = {
+  const settlementRiversideRejected = {
     cash: { expected: 5400, actual: 5100 },
     card: { expected: 1800, actual: 1800 },
     qr: { expected: 900, actual: 750 },
@@ -79,22 +79,22 @@ export async function seedFinanceDemo(ctx: SeedContext): Promise<void> {
     data: {
       branchId: secondBranch.id,
       date: dateDaysAgo(3),
-      expectedCash: settlementAsokRejected.cash.expected,
-      actualCash: settlementAsokRejected.cash.actual,
-      expectedCreditCard: settlementAsokRejected.card.expected,
-      actualCreditCard: settlementAsokRejected.card.actual,
-      expectedQR: settlementAsokRejected.qr.expected,
-      actualQR: settlementAsokRejected.qr.actual,
+      expectedCash: settlementRiversideRejected.cash.expected,
+      actualCash: settlementRiversideRejected.cash.actual,
+      expectedCreditCard: settlementRiversideRejected.card.expected,
+      actualCreditCard: settlementRiversideRejected.card.actual,
+      expectedQR: settlementRiversideRejected.qr.expected,
+      actualQR: settlementRiversideRejected.qr.actual,
       difference: settlementDifference(
         {
-          cash: settlementAsokRejected.cash.expected,
-          card: settlementAsokRejected.card.expected,
-          qr: settlementAsokRejected.qr.expected,
+          cash: settlementRiversideRejected.cash.expected,
+          card: settlementRiversideRejected.card.expected,
+          qr: settlementRiversideRejected.qr.expected,
         },
         {
-          cash: settlementAsokRejected.cash.actual,
-          card: settlementAsokRejected.card.actual,
-          qr: settlementAsokRejected.qr.actual,
+          cash: settlementRiversideRejected.cash.actual,
+          card: settlementRiversideRejected.card.actual,
+          qr: settlementRiversideRejected.qr.actual,
         },
       ),
       status: 'REJECTED',

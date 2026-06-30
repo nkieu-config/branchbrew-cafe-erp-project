@@ -9,7 +9,7 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { useCustomer360 } from "@/hooks/domains/useCrmQueries";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import { formatDate } from "@/lib/intl-date";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { TierIcon } from "@/components/crm/TierIcon";
@@ -101,14 +101,14 @@ function Customer360Profile({ data }: { data: Customer360 }) {
             <div>
               <p className={crmSectionLabelClassName("mb-0")}>Lifetime Spend</p>
               <p className={typeHeadingClassName("text-xl sm:text-2xl mt-1")}>
-                {formatBaht(data.lifetimeSpend)}
+                {formatCurrency(data.lifetimeSpend)}
               </p>
             </div>
             {data.nextTier !== "MAX" && (
               <div className="sm:text-right">
                 <p className={typeSectionLabelClassName()}>Next Tier: {data.nextTier}</p>
                 <p className={typeUiLabelClassName(cn("text-sm", metricValueClassName("emerald")))}>
-                  {formatBaht(data.amountToNextTier)} to go
+                  {formatCurrency(data.amountToNextTier)} to go
                 </p>
               </div>
             )}
@@ -164,7 +164,7 @@ function Customer360Profile({ data }: { data: Customer360 }) {
                   </div>
                 </div>
                 <div className={typeUiLabelClassName(text.primary)}>
-                  {formatBaht(order.netAmount)}
+                  {formatCurrency(order.netAmount)}
                 </div>
               </div>
             ))}

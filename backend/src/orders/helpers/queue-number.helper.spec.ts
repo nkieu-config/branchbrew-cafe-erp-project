@@ -19,7 +19,7 @@ describe('queue-number.helper', () => {
     expect(formatQueueNumberDisplay(null)).toBe('—');
   });
 
-  it('parses Bangkok business date string', () => {
+  it('parses business date string', () => {
     expect(parseQueueBusinessDate('2026-06-27').toISOString()).toBe(
       '2026-06-27T00:00:00.000Z',
     );

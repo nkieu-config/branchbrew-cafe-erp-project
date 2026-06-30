@@ -18,7 +18,7 @@ import { useJournalEntries, useLedger } from "@/hooks/domains/useAccountingQueri
 import { seedAccounts } from "@/lib/api";
 import { getErrorMessage } from "@/lib/errors";
 import { formatHubListCountWithFetching } from "@/lib/format-hub-list-count";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import {
   type JournalStatusFilter,
   type LedgerChartPoint,
@@ -213,7 +213,7 @@ export default function LedgerPageClient() {
                   ? `${entrySummary.total} journal entr${entrySummary.total === 1 ? "y" : "ies"}`
                   : "No journal entries yet";
               return chartSummary.months > 0 && !hasActiveFilters
-                ? `${base} · ${formatBaht(chartSummary.totalRevenue)} revenue · ${formatBaht(chartSummary.totalExpense)} expenses`
+                ? `${base} · ${formatCurrency(chartSummary.totalRevenue)} revenue · ${formatCurrency(chartSummary.totalExpense)} expenses`
                 : base;
             })(),
             isFetching,

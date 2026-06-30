@@ -6,7 +6,7 @@ import { Ban, RotateCcw } from "lucide-react";
 import { DataTable } from "@/components/shared/data-table";
 import { StatusBadge, orderStatusTone } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import { formatQueueNumber } from "@/lib/queue";
 import { isOrderToday, isTerminalOrderStatus } from "@/lib/pos-order-filters";
 import { formatDateTime } from "@/lib/intl-date";
@@ -82,7 +82,7 @@ export function PosOrdersTable({
           align: "right" as const,
           render: (v: number | string) => (
             <span className={typeHeadingClassName("font-mono tabular-nums")}>
-              {formatBaht(v)}
+              {formatCurrency(v)}
             </span>
           ),
         },
@@ -163,7 +163,7 @@ export function PosOrdersTable({
                   ))}
                 </div>
                 <span className="font-mono tabular-nums shrink-0">
-                  {item.quantity} × {formatBaht(item.price)}
+                  {item.quantity} × {formatCurrency(item.price)}
                 </span>
               </li>
             ))}

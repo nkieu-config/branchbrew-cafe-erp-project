@@ -5,7 +5,7 @@ export const E2E_PASSWORD = 'password123';
 
 export async function seedPosFixture(prisma: PrismaService) {
   const branch = await prisma.branch.create({
-    data: { name: 'E2E POS Branch', location: 'Bangkok' },
+    data: { name: 'E2E POS Branch', location: 'Metro City' },
   });
 
   const email = 'pos-staff@e2e.test';

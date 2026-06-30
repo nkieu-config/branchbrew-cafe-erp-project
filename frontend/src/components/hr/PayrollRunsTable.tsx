@@ -15,7 +15,7 @@ import {
   payrollRunTotalNet,
   payrollStatusLabel,
 } from "@/lib/payroll-filters";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import { hubListDataTableProps } from "@/lib/theme/data-table";
 import { tableActionAccentClassName } from "@/lib/theme/hub-primitives";
 import { metricValueClassName } from "@/lib/theme/metric";
@@ -83,7 +83,7 @@ export function PayrollRunsTable({
           align: "right" as const,
           render: (_: unknown, record: PayrollRunWithPayslips) => (
             <span className={typeUiLabelClassName(cn("font-mono tabular-nums", metricValueClassName("emerald")))}>
-              {formatBaht(payrollRunTotalNet(record))}
+              {formatCurrency(payrollRunTotalNet(record))}
             </span>
           ),
         },

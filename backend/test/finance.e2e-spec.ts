@@ -19,7 +19,7 @@ describeIfDatabase('Finance settlement flow (e2e)', () => {
     prisma = app.get(PrismaService);
 
     const branch = await prisma.branch.create({
-      data: { name: 'E2E Finance Branch', location: 'Bangkok' },
+      data: { name: 'E2E Finance Branch', location: 'Metro City' },
     });
     branchId = branch.id;
 

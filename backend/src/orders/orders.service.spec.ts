@@ -223,10 +223,10 @@ describe('OrdersService', () => {
       });
 
       // Total = 2 items * 100 = 200
-      // Points = 50 pts = 5 THB (10 pts = 1 THB)
-      // Promo = 20% of 200 = 40 THB
-      // Total Discount = 5 + 40 = 45 THB
-      // Net Amount = 200 - 45 = 155 THB
+      // Points = 50 pts = 5 currency units (10 pts = 1 unit)
+      // Promo = 20% of 200 = 40 currency units
+      // Total Discount = 5 + 40 = 45
+      // Net Amount = 200 - 45 = 155
 
       expect(prisma.order.create).toHaveBeenCalledWith(
         expect.objectContaining({

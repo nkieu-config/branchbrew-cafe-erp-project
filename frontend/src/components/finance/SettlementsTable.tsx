@@ -5,7 +5,7 @@ import { TableActionButton } from "@/components/shared/table-action-button";
 import { StatusBadge, settlementStatusTone } from "@/components/shared/status-badge";
 import { FinanceTableSkeleton } from "@/components/finance/FinanceTableSkeleton";
 import { formatDate } from "@/lib/intl-date";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import { settlementStatusLabel, type SettlementStatusFilter } from "@/lib/finance-overview-filters";
 import {
   listMobileCardClassName,
@@ -76,18 +76,18 @@ export function SettlementsTable({
               <dl className="grid grid-cols-3 gap-2 text-sm mb-3">
                 <div>
                   <dt className={text.muted}>Expected</dt>
-                  <dd className="tabular-nums font-medium">{formatBaht(settlement.expectedCash)}</dd>
+                  <dd className="tabular-nums font-medium">{formatCurrency(settlement.expectedCash)}</dd>
                 </div>
                 <div>
                   <dt className={text.muted}>Actual</dt>
-                  <dd className="tabular-nums font-medium">{formatBaht(settlement.actualCash)}</dd>
+                  <dd className="tabular-nums font-medium">{formatCurrency(settlement.actualCash)}</dd>
                 </div>
                 <div>
                   <dt className={text.muted}>Diff</dt>
                   <dd className={settlementDifferenceClassName(settlement.difference, "tabular-nums font-medium")}>
                     {settlement.difference === 0
-                      ? formatBaht(0)
-                      : `${settlement.difference > 0 ? "+" : "-"}${formatBaht(Math.abs(settlement.difference))}`}
+                      ? formatCurrency(0)
+                      : `${settlement.difference > 0 ? "+" : "-"}${formatCurrency(Math.abs(settlement.difference))}`}
                   </dd>
                 </div>
               </dl>
@@ -130,15 +130,15 @@ export function SettlementsTable({
                     {settlement.branch?.name ?? "Main"}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">
-                    {formatBaht(settlement.expectedCash)}
+                    {formatCurrency(settlement.expectedCash)}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">
-                    {formatBaht(settlement.actualCash)}
+                    {formatCurrency(settlement.actualCash)}
                   </td>
                   <td className={settlementDifferenceClassName(settlement.difference)}>
                     {settlement.difference === 0
-                      ? formatBaht(0)
-                      : `${settlement.difference > 0 ? "+" : "-"}${formatBaht(Math.abs(settlement.difference))}`}
+                      ? formatCurrency(0)
+                      : `${settlement.difference > 0 ? "+" : "-"}${formatCurrency(Math.abs(settlement.difference))}`}
                   </td>
                   <td className="px-4 py-3 text-center">
                     <StatusBadge tone={settlementStatusTone(settlement.status)}>

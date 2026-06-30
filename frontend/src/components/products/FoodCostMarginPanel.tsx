@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight, TrendingDown, TrendingUp } from "lucide-react";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import { compareFoodCostMargins } from "@/lib/food-cost-margin";
 import { formSectionClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
 import { foodCostStatusClassName } from "@/lib/theme/hub-products";
@@ -63,7 +63,7 @@ export function FoodCostMarginPanel({
             {margin.actualFoodCostPercent.toFixed(1)}%
           </p>
           <p className={cn("text-xs mt-1 tabular-nums", text.muted)}>
-            COGS {formatBaht(margin.totalCogs)} / {formatBaht(margin.totalRevenue)}
+            COGS {formatCurrency(margin.totalCogs)} / {formatCurrency(margin.totalRevenue)}
           </p>
         </div>
         <div>

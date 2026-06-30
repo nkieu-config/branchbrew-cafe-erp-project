@@ -8,7 +8,7 @@ import { DataTable } from "@/components/shared/data-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { formatDate } from "@/lib/intl-date";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import { ingredientIsActive } from "@/lib/ingredient-filters";
 import { hubListDataTableProps } from "@/lib/theme/data-table";
 import { tableCellMutedClassName } from "@/lib/theme/feedback";
@@ -64,7 +64,7 @@ export function IngredientsTable({
           ),
         },
         {
-          title: "Cost / Unit (฿)",
+          title: "Cost / Unit",
           dataIndex: "costPerUnit",
           key: "costPerUnit",
           render: (costPerUnit?: number) => {
@@ -75,7 +75,7 @@ export function IngredientsTable({
                   cn("tabular-nums", missing ? metricValueClassName("amber") : text.primary),
                 )}
               >
-                {!missing ? formatBaht(costPerUnit) : "—"}
+                {!missing ? formatCurrency(costPerUnit) : "—"}
               </span>
             );
           },

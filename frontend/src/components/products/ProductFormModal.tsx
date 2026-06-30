@@ -207,7 +207,7 @@ export function ProductFormModal({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="product-price" className={text.secondary}>
-                  Selling Price (฿)
+                  Selling Price
                 </Label>
                 <Input
                   id="product-price"

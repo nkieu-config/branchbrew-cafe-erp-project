@@ -6,7 +6,7 @@ import { Table } from "antd";
 import Link from "next/link";
 import { DataTable } from "@/components/shared/data-table";
 import type { Payslip } from "@/types/api";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import { antTableSummaryRowClassName } from "@/lib/theme/data-table";
 import { tableCellMutedClassName } from "@/lib/theme/feedback";
 import { payrollDeductionClassName, payrollExpandedPanelClassName, payrollNetPayClassName, payrollOtMetricClassName } from "@/lib/theme/hub-hr";
@@ -75,7 +75,7 @@ export function PayrollPayslipPanel({
           width: 120,
           align: "right" as const,
           render: (val: number) => (
-            <span className="font-mono tabular-nums">{formatBaht(val)}</span>
+            <span className="font-mono tabular-nums">{formatCurrency(val)}</span>
           ),
         },
         {
@@ -85,7 +85,7 @@ export function PayrollPayslipPanel({
           width: 120,
           align: "right" as const,
           render: (val: number) => (
-            <span className={payrollOtMetricClassName()}>{formatBaht(val)}</span>
+            <span className={payrollOtMetricClassName()}>{formatCurrency(val)}</span>
           ),
         },
         {
@@ -96,7 +96,7 @@ export function PayrollPayslipPanel({
           align: "right" as const,
           render: (val: number) => (
             <span className={typeUiLabelClassName(cn("font-mono tabular-nums", text.primary))}>
-              {formatBaht(val)}
+              {formatCurrency(val)}
             </span>
           ),
         },
@@ -107,7 +107,7 @@ export function PayrollPayslipPanel({
           width: 120,
           align: "right" as const,
           render: (val: number) => (
-            <span className={payrollDeductionClassName()}>-{formatBaht(val)}</span>
+            <span className={payrollDeductionClassName()}>-{formatCurrency(val)}</span>
           ),
         },
         {
@@ -117,7 +117,7 @@ export function PayrollPayslipPanel({
           width: 120,
           align: "right" as const,
           render: (val: number) => (
-            <span className={payrollDeductionClassName()}>-{formatBaht(val)}</span>
+            <span className={payrollDeductionClassName()}>-{formatCurrency(val)}</span>
           ),
         },
         {
@@ -129,7 +129,7 @@ export function PayrollPayslipPanel({
           align: "right" as const,
           render: (val: number) => (
             <span className={typeUiLabelClassName(payrollNetPayClassName())}>
-              {formatBaht(val)}
+              {formatCurrency(val)}
             </span>
           ),
         },
@@ -180,18 +180,18 @@ export function PayrollPayslipPanel({
               </Table.Summary.Cell>
               <Table.Summary.Cell index={1} align="right">
                 <span className={typeUiLabelClassName(cn("font-mono tabular-nums", text.primary))}>
-                  {formatBaht(totalGross)}
+                  {formatCurrency(totalGross)}
                 </span>
               </Table.Summary.Cell>
               <Table.Summary.Cell index={2} align="right">
-                <span className={payrollDeductionClassName()}>-{formatBaht(totalSso)}</span>
+                <span className={payrollDeductionClassName()}>-{formatCurrency(totalSso)}</span>
               </Table.Summary.Cell>
               <Table.Summary.Cell index={3} align="right">
-                <span className={payrollDeductionClassName()}>-{formatBaht(totalTax)}</span>
+                <span className={payrollDeductionClassName()}>-{formatCurrency(totalTax)}</span>
               </Table.Summary.Cell>
               <Table.Summary.Cell index={4} align="right">
                 <span className={typeUiLabelClassName(payrollNetPayClassName())}>
-                  {formatBaht(totalNet)}
+                  {formatCurrency(totalNet)}
                 </span>
               </Table.Summary.Cell>
             </Table.Summary.Row>

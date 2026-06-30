@@ -38,7 +38,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import type { ModifierGroup, ModifierOption, Product } from "@/types/api";
 import { getErrorMessage } from "@/lib/errors";
 import { formatHubListCountWithFetching } from "@/lib/format-hub-list-count";
-import { formatBaht, toNumber } from "@/lib/money";
+import { formatCurrency, toNumber } from "@/lib/money";
 import {
   buildModifierCategoryOptions,
   countModifierOptions,
@@ -323,7 +323,7 @@ export default function ModifiersPageClient() {
               cn("tabular-nums", metricValueClassName("emerald")),
             )}
           >
-            {formatBaht(toNumber(record.priceDelta))}
+            {formatCurrency(toNumber(record.priceDelta))}
           </span>
         ),
       },

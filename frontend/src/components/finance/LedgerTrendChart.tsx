@@ -12,6 +12,7 @@ import {
   Legend,
 } from "recharts";
 import { LineChart as LineChartIcon } from "lucide-react";
+import { formatCurrency } from "@/lib/money";
 import { decorativeIconClassName, surfaceInsetSkeletonClassName } from "@/lib/theme/color-helpers";
 import { readCssVar } from "@/lib/theme/css-var";
 import { dashboardChartEmptyClass } from "@/lib/theme/dashboard";
@@ -73,7 +74,7 @@ export function LedgerTrendChart({ data, loading = false }: LedgerTrendChartProp
             tick={{ fill: chartTheme.axis, fontWeight: "bold" }}
             axisLine={false}
             tickLine={false}
-            tickFormatter={(val) => `฿${Number(val).toLocaleString()}`}
+            tickFormatter={(val) => formatCurrency(Number(val))}
           />
           <Tooltip
             contentStyle={{
@@ -85,7 +86,7 @@ export function LedgerTrendChart({ data, loading = false }: LedgerTrendChartProp
               fontWeight: "bold",
             }}
             formatter={(value, name) => [
-              `฿${Number(value ?? 0).toLocaleString()}`,
+              formatCurrency(Number(value ?? 0)),
               String(name ?? ""),
             ]}
           />

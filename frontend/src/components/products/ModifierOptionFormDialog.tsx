@@ -83,7 +83,7 @@ export function ModifierOptionFormDialog({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="modifier-option-price-delta" className={text.secondary}>
-                Price delta (฿)
+                Price delta
               </Label>
               <Input
                 id="modifier-option-price-delta"

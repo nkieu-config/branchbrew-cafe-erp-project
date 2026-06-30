@@ -281,7 +281,7 @@ export class AccountingService {
       { code: '1020', name: 'Accounts Receivable', type: 'ASSET' as const },
       { code: '1030', name: 'Inventory', type: 'ASSET' as const },
       { code: '1040', name: 'Card Clearing', type: 'ASSET' as const },
-      { code: '1050', name: 'PromptPay Clearing', type: 'ASSET' as const },
+      { code: '1050', name: 'QR Payment Clearing', type: 'ASSET' as const },
       { code: '2010', name: 'Accounts Payable', type: 'LIABILITY' as const },
       { code: '3010', name: 'Owner Equity', type: 'EQUITY' as const },
       { code: '4010', name: 'Sales Revenue', type: 'REVENUE' as const },

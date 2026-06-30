@@ -70,7 +70,7 @@ describeIfDatabase('Branch inventory auto-provision (e2e)', () => {
 
     const branchRes = await agent
       .post('/branches')
-      .send({ name: 'E2E Provision Branch', location: 'Bangkok' })
+      .send({ name: 'E2E Provision Branch', location: 'Metro City' })
       .expect(201);
 
     const branchId = branchRes.body.id as number;

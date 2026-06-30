@@ -13,7 +13,7 @@ import {
   ProgressTrack,
   ProgressValue,
 } from "@/components/ui/progress";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import { calcProductFoodCost, foodCostStatus } from "@/lib/food-cost";
 import {
   TARGET_FOOD_COST_PERCENT,
@@ -93,7 +93,7 @@ export function FoodCostTable({
           align: "right" as const,
           render: (price: number) => (
             <span className={typeHeadingClassName("tabular-nums")}>
-              {formatBaht(price)}
+              {formatCurrency(price)}
             </span>
           ),
         },
@@ -109,7 +109,7 @@ export function FoodCostTable({
             const { cost } = calcProductFoodCost(record);
             return (
               <span className={typeHeadingClassName(cn("tabular-nums", metricValueClassName("red")))}>
-                {formatBaht(cost)}
+                {formatCurrency(cost)}
               </span>
             );
           },

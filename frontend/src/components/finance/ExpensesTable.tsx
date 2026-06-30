@@ -3,7 +3,7 @@
 import { DollarSign } from "lucide-react";
 import { FinanceTableSkeleton } from "@/components/finance/FinanceTableSkeleton";
 import { formatDateTime } from "@/lib/intl-date";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import {
   listMobileCardClassName,
   nativeTableBodyClassName,
@@ -60,7 +60,7 @@ export function ExpensesTable({ expenses, loading, expenseSearch }: ExpensesTabl
                   </time>
                 </div>
                 <span className={financeExpenseAmountClassName("shrink-0 text-base")}>
-                  -{formatBaht(expense.amount)}
+                  -{formatCurrency(expense.amount)}
                 </span>
               </div>
               {expense.description?.trim() ? (
@@ -99,7 +99,7 @@ export function ExpensesTable({ expenses, loading, expenseSearch }: ExpensesTabl
                     {expense.description?.trim() || "—"}
                   </td>
                   <td className={financeExpenseAmountClassName()}>
-                    -{formatBaht(expense.amount)}
+                    -{formatCurrency(expense.amount)}
                   </td>
                   <td className={nativeTableCellMutedClassName()}>
                     {expense.recordedBy?.name ?? "—"}

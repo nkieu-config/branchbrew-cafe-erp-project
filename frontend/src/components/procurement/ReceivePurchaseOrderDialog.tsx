@@ -16,7 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { DataTable } from "@/components/shared/data-table";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import { expandedRowPanelClassName, hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
 import { receiveLineClassName, procurementDialogContentClassName } from "@/lib/theme/hub-procurement";
 import { formLineDateFieldClassName } from "@/lib/theme/stock";
@@ -61,7 +61,7 @@ export function PurchaseOrderExpandedPanel({ record }: { record: PurchaseOrder }
       key: "price",
       align: "right" as const,
       responsive: ["md"],
-      render: (val: number) => <span className="tabular-nums">{formatBaht(val)}</span>,
+      render: (val: number) => <span className="tabular-nums">{formatCurrency(val)}</span>,
     },
     {
       title: "Line Total",
@@ -69,7 +69,7 @@ export function PurchaseOrderExpandedPanel({ record }: { record: PurchaseOrder }
       align: "right" as const,
       render: (_: unknown, item: PurchaseOrderItem) => (
         <span className={typeUiLabelClassName(cn("tabular-nums", text.primary))}>
-          {formatBaht(item.quantityRequested * item.unitPrice)}
+          {formatCurrency(item.quantityRequested * item.unitPrice)}
         </span>
       ),
     },

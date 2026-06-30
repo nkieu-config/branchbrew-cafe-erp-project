@@ -24,7 +24,7 @@ const EMPTY_FORM: Record<string, string> = {
   companyName: "",
   taxId: "",
   vatRate: "7",
-  currency: "THB",
+  currency: "USD",
   receiptFooter: "Thank you for your business!",
 };
 
@@ -33,7 +33,7 @@ function settingsToForm(settings: Record<string, string | undefined>): Record<st
     companyName: settings.companyName || "",
     taxId: settings.taxId || "",
     vatRate: settings.vatRate || "7",
-    currency: settings.currency || "THB",
+    currency: settings.currency || "USD",
     receiptFooter: settings.receiptFooter || "Thank you for your business!",
   };
 }
@@ -194,7 +194,7 @@ export default function SettingsPageClient() {
                         className={formFieldInsetClassName("pl-9")}
                         value={formData.currency}
                         onChange={(event) => handleChange("currency", event.target.value)}
-                        placeholder="e.g. THB"
+                        placeholder="e.g. USD"
                       />
                     </div>
                   </div>

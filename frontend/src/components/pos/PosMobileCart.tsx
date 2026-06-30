@@ -5,6 +5,7 @@ import { ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { PosCartSidebar, type PosCartSidebarProps } from "@/components/pos/PosCartSidebar";
+import { formatCurrency } from "@/lib/money";
 import {
   posMobileCartBarClassName,
   posMobileCartButtonClassName,
@@ -33,14 +34,14 @@ export function PosMobileCart(props: PosCartSidebarProps) {
           type="button"
           onClick={() => setOpen(true)}
           className={posMobileCartButtonClassName()}
-          aria-label={`View cart, ${itemCount} items, total ฿${props.netTotal.toLocaleString()}`}
+          aria-label={`View cart, ${itemCount} items, total ${formatCurrency(props.netTotal)}`}
         >
           <ShoppingBag className={posMobileCartIconClassName("h-4 w-4 shrink-0")} aria-hidden />
           <span className={cn(typeUiLabelClassName("text-sm"), text.secondary)}>
             {itemCount} {itemCount === 1 ? "item" : "items"}
           </span>
           <span className={posMobileCartTotalClassName()}>
-            ฿{props.netTotal.toLocaleString()}
+            {formatCurrency(props.netTotal)}
           </span>
         </button>
         <Button

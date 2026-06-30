@@ -159,7 +159,7 @@ export function IngredientFormModal({
             </div>
             <div className="space-y-2">
               <Label htmlFor="ingredient-cost" className={text.secondary}>
-                Estimated Cost per Unit (฿)
+                Estimated Cost per Unit
               </Label>
               <Input
                 id="ingredient-cost"

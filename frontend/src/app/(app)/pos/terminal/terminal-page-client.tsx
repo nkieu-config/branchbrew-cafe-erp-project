@@ -23,7 +23,7 @@ import { PosOrderSuccessDialog } from "@/components/pos/PosOrderSuccessDialog";
 import { PosProductCatalog } from "@/components/pos/PosProductCatalog";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { filterActive } from "@/lib/form";
-import { pointsToDiscountBaht } from "@/lib/loyalty";
+import { pointsToDiscountAmount } from "@/lib/loyalty";
 import { toNumber } from "@/lib/money";
 import type { PosCartItem } from "@/lib/pos-cart";
 import {
@@ -200,7 +200,7 @@ export default function PosTerminalPageClient() {
       ? subtotal * (appliedPromo.value / 100)
       : appliedPromo.value
     : 0;
-  const pointsDiscount = pointsToDiscountBaht(pointsToRedeem);
+  const pointsDiscount = pointsToDiscountAmount(pointsToRedeem);
   const totalDiscount = Math.min(promoDiscount + pointsDiscount, subtotal);
   const netTotal = subtotal - totalDiscount;
   const pointsEarned = customer ? Math.floor(netTotal / 100) : 0;

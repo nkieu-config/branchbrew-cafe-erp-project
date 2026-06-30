@@ -15,7 +15,7 @@ import {
   assertBranchAccess,
   BranchScopedUser,
 } from '../auth/branch-scope.util';
-import { pointsToDiscountBaht } from '../customers/loyalty.constants';
+import { pointsToDiscountAmount } from '../customers/loyalty.constants';
 import {
   productRequiresKitchen,
   resolveInitialOrderStatus,
@@ -229,7 +229,7 @@ export class OrdersService {
           if (pointsRedeemed > 0) {
             if (customer.points < pointsRedeemed)
               throw new BadRequestException('Not enough points to redeem');
-            discountAmount += pointsToDiscountBaht(pointsRedeemed);
+            discountAmount += pointsToDiscountAmount(pointsRedeemed);
             await tx.customer.update({
               where: { id: customer.id },
               data: { points: { decrement: pointsRedeemed } },

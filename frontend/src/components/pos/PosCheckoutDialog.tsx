@@ -3,6 +3,7 @@
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,7 @@ import {
   posNativeCheckboxClassName,
   posPrimaryActionClassName,
 } from "@/lib/theme/immersive";
+import { formatCurrency } from "@/lib/money";
 
 export function PosCheckoutDialog({
   open,
@@ -56,32 +58,38 @@ export function PosCheckoutDialog({
       <DialogContent className={posDialogContentClassName("sm:max-w-[425px]")}>
         <DialogHeader>
           <DialogTitle>Complete Payment</DialogTitle>
-          <DialogDescription>Total to pay: ฿{netTotal.toLocaleString()}</DialogDescription>
+          <DialogDescription>Total to pay: {formatCurrency(netTotal)}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Payment Method</label>
-            <div className="grid grid-cols-3 gap-2">
+            <p className="text-sm font-medium" id="payment-method-label">Payment Method</p>
+            <div className="grid grid-cols-3 gap-2" role="group" aria-labelledby="payment-method-label">
               <Button
+                type="button"
                 variant={paymentMethod === "CASH" ? "default" : "outline"}
                 className="min-h-[44px]"
                 onClick={() => onPaymentMethodChange("CASH")}
+                aria-pressed={paymentMethod === "CASH"}
               >
                 Cash
               </Button>
               <Button
+                type="button"
                 variant={paymentMethod === "CREDIT_CARD" ? "default" : "outline"}
                 className="min-h-[44px]"
                 onClick={() => onPaymentMethodChange("CREDIT_CARD")}
+                aria-pressed={paymentMethod === "CREDIT_CARD"}
               >
                 Card
               </Button>
               <Button
+                type="button"
                 variant={paymentMethod === "QR_PROMPTPAY" ? "default" : "outline"}
                 className="min-h-[44px]"
                 onClick={() => onPaymentMethodChange("QR_PROMPTPAY")}
+                aria-pressed={paymentMethod === "QR_PROMPTPAY"}
               >
-                QR
+                QR Payment
               </Button>
             </div>
           </div>
@@ -101,21 +109,40 @@ export function PosCheckoutDialog({
 
           {isTaxInvoiceRequested && (
             <div className={posCheckoutMutedPanelClassName()}>
-              <Input
-                placeholder="Company / Individual Name"
-                value={taxInvoiceName}
-                onChange={(e) => onTaxInvoiceNameChange(e.target.value)}
-              />
-              <Input
-                placeholder="Tax ID (13 digits)"
-                value={taxInvoiceTaxId}
-                onChange={(e) => onTaxInvoiceTaxIdChange(e.target.value)}
-              />
-              <Input
-                placeholder="Full Address"
-                value={taxInvoiceAddress}
-                onChange={(e) => onTaxInvoiceAddressChange(e.target.value)}
-              />
+              <div className="space-y-1.5">
+                <Label htmlFor="tax-invoice-name">Invoice name</Label>
+                <Input
+                  id="tax-invoice-name"
+                  name="taxInvoiceName"
+                  autoComplete="organization"
+                  placeholder="Company or individual name…"
+                  value={taxInvoiceName}
+                  onChange={(e) => onTaxInvoiceNameChange(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="tax-invoice-tax-id">Tax ID</Label>
+                <Input
+                  id="tax-invoice-tax-id"
+                  name="taxInvoiceTaxId"
+                  autoComplete="off"
+                  inputMode="numeric"
+                  placeholder="13-digit tax ID…"
+                  value={taxInvoiceTaxId}
+                  onChange={(e) => onTaxInvoiceTaxIdChange(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="tax-invoice-address">Invoice address</Label>
+                <Input
+                  id="tax-invoice-address"
+                  name="taxInvoiceAddress"
+                  autoComplete="street-address"
+                  placeholder="Full billing address…"
+                  value={taxInvoiceAddress}
+                  onChange={(e) => onTaxInvoiceAddressChange(e.target.value)}
+                />
+              </div>
             </div>
           )}
         </div>
@@ -131,7 +158,7 @@ export function PosCheckoutDialog({
                 Processing…
               </>
             ) : (
-              <>Pay ฿{netTotal.toLocaleString()}</>
+              <>Pay {formatCurrency(netTotal)}</>
             )}
           </Button>
         </DialogFooter>

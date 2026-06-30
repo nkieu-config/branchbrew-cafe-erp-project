@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { formatBaht, toNumber } from "@/lib/money";
+import { formatCurrency, toNumber } from "@/lib/money";
 import { getModifierExtra } from "@/lib/pos-modifiers";
 import {
   posAccentIconClassName,
@@ -65,7 +65,7 @@ export function PosModifierDialog({
                     onClick={() => onSelectModifier(group.id, opt.id)}
                   >
                     {opt.name}
-                    {toNumber(opt.priceDelta) > 0 ? ` +${formatBaht(opt.priceDelta)}` : ""}
+                    {toNumber(opt.priceDelta) > 0 ? ` +${formatCurrency(opt.priceDelta)}` : ""}
                   </Button>
                 ))}
               </div>
@@ -80,7 +80,7 @@ export function PosModifierDialog({
             className={posPrimaryActionClassName("w-full h-12 text-lg")}
             onClick={onAddToCart}
           >
-            Add to Order · {formatBaht(basePrice + extra)}
+            Add to Order · {formatCurrency(basePrice + extra)}
           </Button>
         </DialogFooter>
       </DialogContent>

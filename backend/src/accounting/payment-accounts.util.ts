@@ -15,7 +15,7 @@ export function paymentAccountLabel(method: PaymentMethod): string {
     case 'CREDIT_CARD':
       return 'Card payment received';
     case 'QR_PROMPTPAY':
-      return 'PromptPay payment received';
+      return 'QR payment received';
     default:
       return 'Cash received';
   }

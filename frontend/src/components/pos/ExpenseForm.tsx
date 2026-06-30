@@ -40,7 +40,7 @@ export function ExpenseForm({ branchIdNum }: { branchIdNum: number | undefined }
       </div>
       <form onSubmit={handleExpense} className="flex flex-col gap-4">
         <div>
-          <label className={`text-sm font-medium mb-1.5 block ${text.secondary}`}>Amount (THB)</label>
+          <label className={`text-sm font-medium mb-1.5 block ${text.secondary}`}>Amount</label>
           <input 
             type="number"
             step="0.01"

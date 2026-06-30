@@ -13,8 +13,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { pointsToDiscountBaht } from "@/lib/loyalty";
-import { formatBaht } from "@/lib/money";
+import { pointsToDiscountAmount } from "@/lib/loyalty";
+import { formatCurrency } from "@/lib/money";
 import type { PosCartItem } from "@/lib/pos-cart";
 import {
   posAccentIconClassName,
@@ -120,7 +120,7 @@ export function PosCartSidebar({
                 </div>
               )}
               <div className={`text-sm tabular-nums ${text.muted}`}>
-                {formatBaht(item.unitPrice)} each
+                {formatCurrency(item.unitPrice)} each
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -148,7 +148,7 @@ export function PosCartSidebar({
                 </Button>
               </div>
               <span className={posCartLineTotalClassName()}>
-                {formatBaht(item.unitPrice * item.quantity)}
+                {formatCurrency(item.unitPrice * item.quantity)}
               </span>
               <Button
                 aria-label={`Remove ${item.product.name}`}
@@ -198,7 +198,7 @@ export function PosCartSidebar({
                 </Badge>
               </div>
               <div className={`${posCrmMutedClassName()} mb-2`}>
-                Available: {customer.points} pts (฿{pointsToDiscountBaht(customer.points)})
+                Available: {customer.points} pts ({formatCurrency(pointsToDiscountAmount(customer.points))})
               </div>
               {customer.points > 0 && (
                 <div className="flex gap-2 items-center">
@@ -218,7 +218,9 @@ export function PosCartSidebar({
                     }}
                     className={posInputClassName("h-8")}
                   />
-                  <span className={`text-xs whitespace-nowrap ${text.muted}`}>10 pts = ฿1</span>
+                  <span className={`text-xs whitespace-nowrap ${text.muted}`}>
+                    10 pts = {formatCurrency(1)}
+                  </span>
                 </div>
               )}
             </div>
@@ -260,17 +262,17 @@ export function PosCartSidebar({
       <div className={posSummaryPanelClassName()}>
         <div className={`flex justify-between ${posSummaryMutedClassName()}`}>
           <span>Subtotal</span>
-          <span className="tabular-nums">฿{subtotal.toLocaleString()}</span>
+          <span className="tabular-nums">{formatCurrency(subtotal)}</span>
         </div>
         {totalDiscount > 0 && (
           <div className={posSummaryDiscountClassName("flex justify-between")}>
             <span>Discount</span>
-            <span className="tabular-nums">- ฿{totalDiscount.toLocaleString()}</span>
+            <span className="tabular-nums">- {formatCurrency(totalDiscount)}</span>
           </div>
         )}
         <div className={posSummaryTotalRowClassName()}>
           <span>Total</span>
-          <span className={posSummaryTotalClassName()}>฿{netTotal.toLocaleString()}</span>
+          <span className={posSummaryTotalClassName()}>{formatCurrency(netTotal)}</span>
         </div>
         {pointsEarned > 0 && (
           <div className={posSummaryRewardClassName("flex justify-end pt-1")}>

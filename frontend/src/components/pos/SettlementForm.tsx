@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { useSubmitSettlement } from '@/hooks/domains/useFinanceQueries'
 import type { SettlementExpected } from '@/types/api'
 import { getErrorMessage } from '@/lib/errors'
+import { formatCurrency } from "@/lib/money";
 import { statusTextClassName, surfaceInsetSkeletonClassName } from "@/lib/theme/color-helpers";
 import { posCheckoutMutedPanelClassName, posFormPanelClassName, posNativeInputClassName, posPanelTopDividerClassName, posPrimaryActionClassName, posSettlementHighlightClassName, posSettlementIconClassName, posSettlementSummaryClassName } from "@/lib/theme/immersive";
 import { text } from "@/lib/theme/surface";
@@ -91,23 +92,29 @@ export function SettlementForm({
         <div className={posSettlementSummaryClassName()}>
           <div className={`flex justify-between text-sm ${text.muted}`}>
             <span>Total Sales (Cash):</span>
-            <span className="font-medium tabular-nums">฿{expected?.sales?.toLocaleString() || 0}</span>
+            <span className="font-medium tabular-nums">{formatCurrency(expected?.sales)}</span>
           </div>
           <div className={`flex justify-between text-sm ${text.muted}`}>
             <span>Petty Cash Expenses:</span>
-            <span className={cn("font-medium tabular-nums", statusTextClassName("danger"))}>-฿{expected?.expenses?.toLocaleString() || 0}</span>
+            <span className={cn("font-medium tabular-nums", statusTextClassName("danger"))}>
+              -{formatCurrency(expected?.expenses)}
+            </span>
           </div>
           <div className={cn("pt-2 mt-2 flex justify-between", posPanelTopDividerClassName(), typeUiLabelClassName())}>
             <span className={text.primary}>Expected Cash in Drawer:</span>
-            <span className={posSettlementHighlightClassName()}>฿{expected?.expectedCash?.toLocaleString() || 0}</span>
+            <span className={posSettlementHighlightClassName()}>
+              {formatCurrency(expected?.expectedCash)}
+            </span>
           </div>
           <div className={`flex justify-between text-sm ${text.muted} pt-2`}>
             <span>Expected Credit Card:</span>
-            <span className="font-medium tabular-nums">฿{expected?.expectedCreditCard?.toLocaleString() || 0}</span>
+            <span className="font-medium tabular-nums">
+              {formatCurrency(expected?.expectedCreditCard)}
+            </span>
           </div>
           <div className={`flex justify-between text-sm ${text.muted}`}>
-            <span>Expected QR PromptPay:</span>
-            <span className="font-medium tabular-nums">฿{expected?.expectedQR?.toLocaleString() || 0}</span>
+            <span>Expected QR Payment:</span>
+            <span className="font-medium tabular-nums">{formatCurrency(expected?.expectedQR)}</span>
           </div>
         </div>
       )}

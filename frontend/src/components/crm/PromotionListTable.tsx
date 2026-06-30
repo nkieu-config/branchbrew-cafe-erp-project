@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { useTogglePromotion } from "@/hooks/domains/useCrmQueries";
 import { getErrorMessage } from "@/lib/errors";
 import { formatDate } from "@/lib/intl-date";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import {
   formatPromoValidityRange,
   getPromoValidity,
@@ -112,7 +112,7 @@ export function PromotionListTable({
             <span className={typeUiLabelClassName(metricValueClassName("emerald"))}>
               {record.discountType === "PERCENTAGE"
                 ? `${record.discountValue}%`
-                : formatBaht(record.discountValue)}
+                : formatCurrency(record.discountValue)}
             </span>
           ),
         },
@@ -122,7 +122,7 @@ export function PromotionListTable({
           key: "minPurchase",
           responsive: ["lg"],
           render: (min: number | null) => (
-            <span className={text.muted}>{min != null ? formatBaht(min) : "—"}</span>
+            <span className={text.muted}>{min != null ? formatCurrency(min) : "—"}</span>
           ),
         },
         {

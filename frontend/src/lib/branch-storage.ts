@@ -20,16 +20,16 @@ export function setStoredBranchId(id: number | null): void {
   localStorage.setItem(ACTIVE_BRANCH_KEY, String(id));
 }
 
-/** Prefer saved branch, then Siam Paragon demo branch, then first available. */
+/** Prefer saved branch, then the primary demo branch, then first available. */
 export function resolveDefaultBranchId(
   branches: { id: number; name: string }[],
 ): number | null {
   if (branches.length === 0) return null;
 
-  const siam = branches.find((b) =>
-    b.name.toLowerCase().includes('siam paragon'),
+  const primaryDemoBranch = branches.find((b) =>
+    b.name.toLowerCase().includes('downtown'),
   );
-  if (siam) return siam.id;
+  if (primaryDemoBranch) return primaryDemoBranch.id;
 
   return branches[0].id;
 }

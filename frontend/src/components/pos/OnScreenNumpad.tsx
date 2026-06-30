@@ -28,8 +28,14 @@ export function OnScreenNumpad({ value, onChange, onSubmit, onClose }: OnScreenN
     <div className={posNumpadShellClassName()}>
       <div className="flex justify-between items-center mb-4">
         <h3 className={typeHeadingClassName(cn("text-lg", text.secondary))}>Member Phone</h3>
-        <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full">
-          <X className={`w-5 h-5 ${text.muted}`} />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="rounded-full"
+          aria-label="Close member lookup"
+        >
+          <X className={`w-5 h-5 ${text.muted}`} aria-hidden />
         </Button>
       </div>
 

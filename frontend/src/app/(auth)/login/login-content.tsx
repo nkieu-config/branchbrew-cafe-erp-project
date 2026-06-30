@@ -29,6 +29,7 @@ import {
   authLoadingClassName,
   authPageShellClassName,
   authPrimaryButtonClassName,
+  authSandboxNoticeClassName,
 } from "@/lib/theme/auth";
 import { LoginHeroCard } from "./login-hero";
 import { text } from "@/lib/theme/surface";
@@ -206,6 +207,10 @@ export default function LoginContent() {
           </form>
 
           <div className={authDemoPanelClassName()}>
+            <div className={authSandboxNoticeClassName()} role="note">
+              Public sandbox with demo-only data. Shared credentials are intentional for portfolio
+              review; do not enter real customer or production data.
+            </div>
             <p className={cn("mb-3 text-center text-xs", text.muted)}>Quick demo</p>
             <div className="flex gap-2" role="group" aria-label="Demo accounts">
               {demoAccounts.map((account) => {

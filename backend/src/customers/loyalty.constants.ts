@@ -1,6 +1,6 @@
-/** Loyalty program: 10 points redeem for ฿1 discount. */
-export const POINTS_PER_THB = 10;
+/** Loyalty program: 10 points redeem for one currency unit discount. */
+export const POINTS_PER_CURRENCY_UNIT = 10;
 
-export function pointsToDiscountBaht(points: number): number {
-  return points / POINTS_PER_THB;
+export function pointsToDiscountAmount(points: number): number {
+  return points / POINTS_PER_CURRENCY_UNIT;
 }

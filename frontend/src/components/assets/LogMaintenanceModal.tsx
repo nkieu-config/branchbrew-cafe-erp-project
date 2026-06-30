@@ -145,7 +145,7 @@ export function LogMaintenanceModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="maintenance-cost" className={text.secondary}>
-                Cost (THB)
+                Cost
               </Label>
               <Input
                 id="maintenance-cost"

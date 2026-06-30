@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "Enterprise ERP Root",
   "private": true,
+  "engines": {
+    "node": "22.x",
+    "npm": ">=10"
+  },
   "scripts": {
     "prepare": "husky",
     "dev:backend": "npm run start:dev --workspace=backend",

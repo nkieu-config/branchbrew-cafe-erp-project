@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import type { ColumnsType } from "antd/es/table";
 import Link from "next/link";
 import { DataTable } from "@/components/shared/data-table";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import { buildProductsCostingUrl, buildProductsIngredientsUrl } from "@/lib/products-hub-url";
 import { hubListDataTableProps } from "@/lib/theme/data-table";
 import { inlineLinkClassName } from "@/lib/theme/hub-primitives";
@@ -67,7 +67,7 @@ export function ProductionBomTable({ groups, loading }: ProductionBomTableProps)
                 <span
                   className={typeHeadingClassName(cn("tabular-nums", metricValueClassName("red")))}
                 >
-                  {formatBaht(total)}
+                  {formatCurrency(total)}
                 </span>
                 {hasMissingCost && (
                   <Link
@@ -81,7 +81,7 @@ export function ProductionBomTable({ groups, loading }: ProductionBomTableProps)
             );
           }
           return (
-            <span className={cn(text.subtle, "tabular-nums")}>{formatBaht(record.totalCost)}</span>
+            <span className={cn(text.subtle, "tabular-nums")}>{formatCurrency(record.totalCost)}</span>
           );
         },
       },

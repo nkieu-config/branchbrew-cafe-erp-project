@@ -12,15 +12,15 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
   const hashedPassword = await bcrypt.hash('password123', 10);
 
   const mainBranch = await prisma.branch.create({
-    data: { name: 'Siam Paragon Branch', location: 'Bangkok' },
+    data: { name: 'Downtown Branch', location: 'Metro City' },
   });
   const secondBranch = await prisma.branch.create({
-    data: { name: 'Asok Branch', location: 'Bangkok' },
+    data: { name: 'Riverside Branch', location: 'Metro City' },
   });
   const centralKitchen = await prisma.branch.create({
     data: {
       name: 'BranchBrew Central Kitchen',
-      location: 'Bangkok',
+      location: 'Metro City',
       isCentralKitchen: true,
     },
   });
@@ -37,7 +37,7 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
   const manager = await prisma.user.create({
     data: {
       email: 'manager@branchbrew.dev',
-      name: 'Siam Manager',
+      name: 'Downtown Manager',
       password: hashedPassword,
       role: 'MANAGER',
       branchId: mainBranch.id,
@@ -47,7 +47,7 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
   const staff = await prisma.user.create({
     data: {
       email: 'staff.siam@branchbrew.dev',
-      name: 'Siam Cashier',
+      name: 'Downtown Cashier',
       password: hashedPassword,
       role: 'STAFF',
       branchId: mainBranch.id,
@@ -57,7 +57,7 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
   const asokManager = await prisma.user.create({
     data: {
       email: 'manager.asok@branchbrew.dev',
-      name: 'Asok Manager',
+      name: 'Riverside Manager',
       password: hashedPassword,
       role: 'MANAGER',
       branchId: secondBranch.id,
@@ -67,7 +67,7 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
   const asokStaff = await prisma.user.create({
     data: {
       email: 'staff.asok@branchbrew.dev',
-      name: 'Asok Barista',
+      name: 'Riverside Barista',
       password: hashedPassword,
       role: 'STAFF',
       branchId: secondBranch.id,
@@ -78,7 +78,7 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
     data: { name: 'Global Coffee Beans Roaster', contactEmail: 'sales@gcr.com', phone: '0812345678' },
   });
   const supplier2 = await prisma.supplier.create({
-    data: { name: 'Thai Dairy Farm', contactEmail: 'order@thaidairy.com', phone: '0898765432' },
+    data: { name: 'Fresh Dairy Co.', contactEmail: 'orders@freshdairy.example', phone: '0898765432' },
   });
 
   const coffeeBeans = await prisma.ingredient.create({
@@ -344,7 +344,7 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
       { key: 'company_name', value: 'BranchBrew Demo' },
       { key: 'tax_id', value: '0105560000000' },
       { key: 'vat_rate', value: '7' },
-      { key: 'currency', value: 'THB' },
+      { key: 'currency', value: 'USD' },
       { key: 'receipt_footer', value: 'Thank you for visiting BranchBrew!' },
     ],
   });
@@ -354,7 +354,7 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
     { code: '1020', name: 'Accounts Receivable', type: 'ASSET' as const },
     { code: '1030', name: 'Inventory', type: 'ASSET' as const },
     { code: '1040', name: 'Card Clearing', type: 'ASSET' as const },
-    { code: '1050', name: 'PromptPay Clearing', type: 'ASSET' as const },
+    { code: '1050', name: 'QR Payment Clearing', type: 'ASSET' as const },
     { code: '2010', name: 'Accounts Payable', type: 'LIABILITY' as const },
     { code: '3010', name: 'Owner Equity', type: 'EQUITY' as const },
     { code: '4010', name: 'Sales Revenue', type: 'REVENUE' as const },

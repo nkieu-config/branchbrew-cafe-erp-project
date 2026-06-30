@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:15-alpine
@@ -27,6 +25,8 @@ services:
       - DATABASE_URL=postgresql://erp_user:erp_password@db:5432/erp_db?schema=public
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set}
       - CORS_ORIGIN=http://localhost:3001
+      # Local compose uses localhost CORS; deployed Docker images default to production.
+      - NODE_ENV=development
       - PORT=3000
     depends_on:
       db:
@@ -44,7 +44,10 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:3000
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+    environment:
+      # Server-side Next.js fetches run inside this container, so use the Compose service name.
+      - INTERNAL_API_URL=http://backend:3000
     ports:
       - "3001:3001"
     depends_on:

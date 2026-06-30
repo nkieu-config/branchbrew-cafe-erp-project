@@ -22,10 +22,10 @@ describe("branch-storage", () => {
     expect(getStoredBranchSelection()).toBe(null);
   });
 
-  it("prefers Siam Paragon as demo default", () => {
+  it("prefers Downtown as demo default", () => {
     const id = resolveDefaultBranchId([
       { id: 1, name: "BranchBrew Central Kitchen" },
-      { id: 2, name: "Siam Paragon Branch" },
+      { id: 2, name: "Downtown Branch" },
     ]);
     expect(id).toBe(2);
   });

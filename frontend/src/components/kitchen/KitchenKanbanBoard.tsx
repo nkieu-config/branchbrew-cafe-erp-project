@@ -17,7 +17,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import type { ProductionOrder, Ingredient } from "@/types/api";
 import { formatDate } from "@/lib/intl-date";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import { hubAccentIconClass } from "@/lib/theme/hub-accent";
 import { kanbanCardClassName, kanbanCompletedCardClassName, kanbanColumnClassName, kanbanColumnHeaderClassName, kanbanMetaChipClassName, kanbanOrderBadgeClassName, kitchenKanbanBoardClassName, productionColumnTone } from "@/lib/theme/hub-kitchen";
 import { metricValueClassName } from "@/lib/theme/metric";
@@ -114,7 +114,7 @@ function KanbanCard({ order, isOverlay = false }: { order: ProductionOrderWithTa
       )}
       {isCompleted && order.actualCost != null && (
         <div className={typeUiLabelClassName(cn("mt-2 text-xs tabular-nums", metricValueClassName("emerald")))}>
-          Actual cost {formatBaht(order.actualCost)}
+          Actual cost {formatCurrency(order.actualCost)}
         </div>
       )}
     </div>

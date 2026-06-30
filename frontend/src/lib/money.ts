@@ -15,6 +15,12 @@ export function formatMoney(
   });
 }
 
-export function formatBaht(value: number | string | null | undefined): string {
-  return `฿${formatMoney(value)}`;
+export function formatCurrency(value: number | string | null | undefined): string {
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(toNumber(value));
 }
+

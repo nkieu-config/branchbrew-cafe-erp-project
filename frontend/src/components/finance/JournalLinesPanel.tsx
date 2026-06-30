@@ -3,7 +3,7 @@
 import { Table } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import type { JournalEntry, JournalLine } from "@/types/api";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import { antTableShellClassName, antTableSummaryRowClassName } from "@/lib/theme/data-table";
 import { ledgerCreditClassName, ledgerDebitClassName } from "@/lib/theme/finance";
 import { payrollExpandedPanelClassName } from "@/lib/theme/hub-hr";
@@ -51,7 +51,7 @@ export function JournalLinesPanel({ entry }: JournalLinesPanelProps) {
       render: (val: number) =>
         val > 0 ? (
           <span className={cn("font-mono tabular-nums", ledgerDebitClassName())}>
-            {formatBaht(val)}
+            {formatCurrency(val)}
           </span>
         ) : (
           <span className={text.muted}>—</span>
@@ -65,7 +65,7 @@ export function JournalLinesPanel({ entry }: JournalLinesPanelProps) {
       render: (val: number) =>
         val > 0 ? (
           <span className={cn("font-mono tabular-nums", ledgerCreditClassName())}>
-            {formatBaht(val)}
+            {formatCurrency(val)}
           </span>
         ) : (
           <span className={text.muted}>—</span>
@@ -106,12 +106,12 @@ export function JournalLinesPanel({ entry }: JournalLinesPanelProps) {
               </Table.Summary.Cell>
               <Table.Summary.Cell index={1} align="right">
                 <span className={cn("font-mono tabular-nums", ledgerDebitClassName())}>
-                  {formatBaht(totalDebit)}
+                  {formatCurrency(totalDebit)}
                 </span>
               </Table.Summary.Cell>
               <Table.Summary.Cell index={2} align="right">
                 <span className={cn("font-mono tabular-nums", ledgerCreditClassName())}>
-                  {formatBaht(totalCredit)}
+                  {formatCurrency(totalCredit)}
                 </span>
               </Table.Summary.Cell>
             </Table.Summary.Row>

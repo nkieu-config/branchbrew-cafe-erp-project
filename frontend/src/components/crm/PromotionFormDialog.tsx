@@ -245,7 +245,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotion }: Promotion
                 </SelectTrigger>
                 <SelectContent className={formSelectContentClassName()}>
                   <SelectItem value="PERCENTAGE">Percentage (%)</SelectItem>
-                  <SelectItem value="FIXED_AMOUNT">Fixed Amount (THB)</SelectItem>
+                  <SelectItem value="FIXED_AMOUNT">Fixed Amount</SelectItem>
                 </SelectContent>
               </Select>
             </div>

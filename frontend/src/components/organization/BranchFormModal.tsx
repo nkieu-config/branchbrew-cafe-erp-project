@@ -97,7 +97,7 @@ export function BranchFormModal({
               id="branch-name"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="e.g. BranchBrew Siam Square"
+              placeholder="e.g. BranchBrew Downtown"
               className={formFieldInsetClassName()}
               required
             />

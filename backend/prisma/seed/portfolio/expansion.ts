@@ -52,8 +52,8 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
   await prisma.promotion.createMany({
     data: [
       {
-        code: 'BAHT20OFF',
-        description: '฿20 off orders over ฿150',
+        code: 'SAVE20',
+        description: '$20 off orders over $150',
         discountType: 'FIXED_AMOUNT',
         discountValue: 20,
         minPurchase: 150,
@@ -306,7 +306,7 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
     });
   }
 
-  // Historical orders — Asok branch, mixed statuses
+  // Historical orders — Riverside branch, mixed statuses
   for (let daysAgo = 5; daysAgo >= 1; daysAgo--) {
     const createdAt = dateDaysAgo(daysAgo);
     createdAt.setHours(14, 30, 0, 0);
@@ -491,7 +491,7 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
         branchId: mainBranch.id,
         date: dateDaysAgo(2),
         reference: 'PAY-SEED-001',
-        description: 'Payroll accrual — Siam branch',
+        description: 'Payroll accrual — Downtown branch',
         status: 'POSTED',
       },
     ],
@@ -702,14 +702,14 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
         equipmentId: asokEspresso.id,
         description: 'Steam boiler descale',
         cost: 2200,
-        performedBy: 'Asok service vendor',
+        performedBy: 'Riverside service vendor',
         date: dateDaysAgo(20),
       },
       {
         equipmentId: asokEspresso.id,
         description: 'Portafilter gasket kit',
         cost: 650,
-        performedBy: 'Asok Manager',
+        performedBy: 'Riverside Manager',
         date: dateDaysAgo(3),
       },
     ],
@@ -719,14 +719,14 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
   const extraAudit = [
     { userId: asokManager.id, action: 'CREATE_PO', targetType: 'PurchaseOrder', targetId: poPending?.id, details: { poNumber: 'PO-DEMO-002' }, daysAgo: 2 },
     { userId: admin.id, action: 'RECEIVE_PO', targetType: 'PurchaseOrder', targetId: poReceived?.id, details: { poNumber: 'PO-DEMO-003', qty: 500 }, daysAgo: 4 },
-    { userId: manager.id, action: 'ORDER_CREATED', targetType: 'Order', details: { branch: 'Siam', paymentMethod: 'QR' }, daysAgo: 0 },
-    { userId: asokStaff.id, action: 'ORDER_CREATED', targetType: 'Order', details: { branch: 'Asok', items: 2 }, daysAgo: 1 },
-    { userId: admin.id, action: 'SETTLEMENT_APPROVED', targetType: 'ShiftSettlement', details: { branch: 'Asok' }, daysAgo: 1 },
+    { userId: manager.id, action: 'ORDER_CREATED', targetType: 'Order', details: { branch: 'Downtown', paymentMethod: 'QR' }, daysAgo: 0 },
+    { userId: asokStaff.id, action: 'ORDER_CREATED', targetType: 'Order', details: { branch: 'Riverside', items: 2 }, daysAgo: 1 },
+    { userId: admin.id, action: 'SETTLEMENT_APPROVED', targetType: 'ShiftSettlement', details: { branch: 'Riverside' }, daysAgo: 1 },
     { userId: manager.id, action: 'WASTE_RECORDED', targetType: 'WasteLog', details: { ingredient: 'Oat Milk', quantity: 120 }, daysAgo: 5 },
     { userId: asokManager.id, action: 'LEAVE_REJECTED', targetType: 'LeaveRequest', details: { type: 'UNPAID' }, daysAgo: 1 },
-    { userId: admin.id, action: 'PAYROLL_APPROVED', targetType: 'PayrollRun', details: { branch: 'Siam', status: 'DRAFT skipped' }, daysAgo: 0 },
+    { userId: admin.id, action: 'PAYROLL_APPROVED', targetType: 'PayrollRun', details: { branch: 'Downtown', status: 'DRAFT skipped' }, daysAgo: 0 },
     { userId: manager.id, action: 'ADD_BATCH', targetType: 'InventoryBatch', details: { ingredient: 'Whole Milk', expiry: '3 days' }, daysAgo: 0 },
-    { userId: admin.id, action: 'ACCEPT_TRANSFER', targetType: 'StockTransfer', details: { status: 'SHIPPED', to: 'Asok' }, daysAgo: 1 },
+    { userId: admin.id, action: 'ACCEPT_TRANSFER', targetType: 'StockTransfer', details: { status: 'SHIPPED', to: 'Riverside' }, daysAgo: 1 },
   ];
 
   for (const row of extraAudit) {

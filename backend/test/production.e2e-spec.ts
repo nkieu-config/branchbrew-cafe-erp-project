@@ -23,7 +23,7 @@ describeIfDatabase('Central kitchen production flow (e2e)', () => {
     const kitchenBranch = await prisma.branch.create({
       data: {
         name: 'E2E Central Kitchen',
-        location: 'Bangkok',
+        location: 'Metro City',
         isCentralKitchen: true,
       },
     });

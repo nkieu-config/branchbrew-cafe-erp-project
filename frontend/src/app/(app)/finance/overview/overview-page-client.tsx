@@ -23,7 +23,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { exportSales } from "@/lib/api";
 import { getErrorMessage } from "@/lib/errors";
 import { formatHubListCountWithFetching } from "@/lib/format-hub-list-count";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import { formatDate } from "@/lib/intl-date";
 import {
   type SettlementStatusFilter,
@@ -250,7 +250,7 @@ export default function OverviewPageClient() {
                   ? `${summary.settlements} settlement${summary.settlements === 1 ? "" : "s"} · ${summary.expenses} expense${summary.expenses === 1 ? "" : "s"}`
                   : "No finance activity yet";
               return summary.totalExpenseAmount > 0 && !hasActiveFilters
-                ? `${base} · -${formatBaht(summary.totalExpenseAmount)} expenses`
+                ? `${base} · -${formatCurrency(summary.totalExpenseAmount)} expenses`
                 : base;
             })(),
             isFetching,
@@ -281,7 +281,7 @@ export default function OverviewPageClient() {
         title="Approve this settlement?"
         description={
           approveTarget
-            ? `${approveTarget.branch?.name ?? "Branch"} · ${formatDate(approveTarget.date)} · expected ${formatBaht(approveTarget.expectedCash)}, actual ${formatBaht(approveTarget.actualCash)}, diff ${approveTarget.difference >= 0 ? "+" : "-"}${formatBaht(Math.abs(approveTarget.difference))}.`
+            ? `${approveTarget.branch?.name ?? "Branch"} · ${formatDate(approveTarget.date)} · expected ${formatCurrency(approveTarget.expectedCash)}, actual ${formatCurrency(approveTarget.actualCash)}, diff ${approveTarget.difference >= 0 ? "+" : "-"}${formatCurrency(Math.abs(approveTarget.difference))}.`
             : undefined
         }
         confirmLabel="Approve settlement"

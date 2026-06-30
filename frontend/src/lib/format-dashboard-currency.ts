@@ -1,3 +1,5 @@
+import { formatCurrency } from "./money";
+
 export function formatDashboardCurrency(value: number) {
-  return `฿${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return formatCurrency(value);
 }

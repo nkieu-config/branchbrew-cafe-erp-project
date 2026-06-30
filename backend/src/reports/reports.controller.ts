@@ -1,12 +1,15 @@
 import { Controller, Get, Query, UseGuards, Request } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
 import type { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
 import { resolveOptionalBranchId } from '../auth/branch-scope.util';
 import { parseOptionalPositiveInt } from '../common/query-params.util';
 
 @Controller('reports')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('SUPER_ADMIN', 'MANAGER')
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 

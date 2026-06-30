@@ -2,7 +2,10 @@ import "server-only";
 
 import { cookies } from "next/headers";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+const SERVER_API_URL =
+  process.env.INTERNAL_API_URL ??
+  process.env.NEXT_PUBLIC_API_URL ??
+  "http://localhost:3000";
 
 function buildCookieHeader(cookieStore: Awaited<ReturnType<typeof cookies>>) {
   return cookieStore
@@ -20,7 +23,7 @@ export async function serverFetchAPI<T = unknown>(
 
   let response: Response;
   try {
-    response = await fetch(`${API_URL}${endpoint}`, {
+    response = await fetch(`${SERVER_API_URL}${endpoint}`, {
       ...options,
       headers: {
         "Content-Type": "application/json",

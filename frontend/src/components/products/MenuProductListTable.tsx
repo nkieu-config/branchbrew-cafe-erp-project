@@ -8,7 +8,7 @@ import { DataTable } from "@/components/shared/data-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { formatDate } from "@/lib/intl-date";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import { calcProductFoodCost, foodCostStatus } from "@/lib/food-cost";
 import { productFoodCostBucket } from "@/lib/food-cost-filters";
 import { productHasRecipe, productIsActive } from "@/lib/menu-product-filters";
@@ -67,12 +67,12 @@ export function MenuProductListTable({
           ),
         },
         {
-          title: "Price (฿)",
+          title: "Price",
           dataIndex: "price",
           key: "price",
           render: (price: number) => (
             <span className={typeUiLabelClassName(cn("tabular-nums", text.primary))}>
-              {formatBaht(price)}
+              {formatCurrency(price)}
             </span>
           ),
         },
@@ -109,7 +109,7 @@ export function MenuProductListTable({
                   {foodCostPercent.toFixed(1)}%
                 </Link>
                 <div className={cn("text-xs", tableCellMutedClassName())}>
-                  COGS {formatBaht(cost)}
+                  COGS {formatCurrency(cost)}
                 </div>
               </div>
             );

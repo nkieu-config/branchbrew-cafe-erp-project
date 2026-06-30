@@ -44,7 +44,7 @@ import { formatDateTime } from "@/lib/intl-date";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { getErrorMessage } from "@/lib/errors";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import {
   buildProcurementOrdersUrl,
   parseProcurementOrdersSearchParams,
@@ -281,7 +281,7 @@ export default function ProcurementOrdersPageClient() {
           responsive: ["md"],
           render: (_: unknown, record: PurchaseOrder) => (
             <span className={typeUiLabelClassName(cn("tabular-nums", metricValueClassName("emerald")))}>
-              {formatBaht(computePurchaseOrderTotal(record))}
+              {formatCurrency(computePurchaseOrderTotal(record))}
             </span>
           ),
         },

@@ -1,6 +1,6 @@
 import { roundMoney } from './decimal.util';
 
-/** VAT/tax embedded in an inclusive net total (e.g. 7% VAT in 107 THB → 7 THB). */
+/** VAT/tax embedded in an inclusive net total (e.g. 7% VAT in 107 → 7). */
 export function inclusiveTaxAmount(
   netInclusive: number,
   ratePercent: number,

@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -18,17 +18,25 @@ RUN npx prisma generate --schema=backend/prisma/schema.prisma
 RUN npm run build --workspace=backend
 
 # Production image
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
+ENV NODE_ENV=production
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nestjs
 
 # We only need the node_modules and the built backend
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/backend/package*.json ./backend/
-COPY --from=builder /app/backend/dist ./backend/dist
-COPY --from=builder /app/backend/prisma ./backend/prisma
-COPY --from=builder /app/backend/prisma.config.ts ./backend/prisma.config.ts
+COPY --from=builder --chown=nestjs:nodejs /app/package*.json ./
+COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nestjs:nodejs /app/backend/package*.json ./backend/
+COPY --from=builder --chown=nestjs:nodejs /app/backend/dist ./backend/dist
+COPY --from=builder --chown=nestjs:nodejs /app/backend/prisma ./backend/prisma
+COPY --from=builder --chown=nestjs:nodejs /app/backend/prisma.config.ts ./backend/prisma.config.ts
+
+RUN chown nestjs:nodejs /app
+
+USER nestjs
 
 EXPOSE 3000
 

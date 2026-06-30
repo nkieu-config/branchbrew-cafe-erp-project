@@ -104,7 +104,7 @@ export async function seedPosMenu(ctx: SeedContext): Promise<void> {
 
   const teaItems = [
     {
-      name: 'Thai Milk Tea',
+      name: 'Classic Milk Tea',
       price: 65,
       recipe: [
         { ingredientId: milk.id, quantity: 200 },

@@ -154,7 +154,7 @@ export async function seedHrAssetsDemo(ctx: SeedContext): Promise<void> {
         equipmentId: espressoMachine.id,
         description: 'Quarterly boiler inspection',
         cost: 1500,
-        performedBy: 'Siam Manager',
+        performedBy: 'Downtown Manager',
         date: dateDaysAgo(10),
       },
     ],

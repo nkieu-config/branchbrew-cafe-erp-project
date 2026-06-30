@@ -60,6 +60,14 @@ export function authDemoPanelClassName(className?: string) {
   );
 }
 
+export function authSandboxNoticeClassName(className?: string) {
+  return cn(
+    "mb-4 rounded-lg border px-3 py-2 text-xs leading-relaxed",
+    "border-[var(--status-warning-border)] bg-[var(--status-warning-bg)] text-[var(--status-warning-fg)]",
+    className,
+  );
+}
+
 export function authDemoChipClassName(active?: boolean, className?: string) {
   return cn(
     "inline-flex flex-1 items-center justify-center gap-1 rounded-lg border px-2 py-2 text-xs font-medium transition-colors",

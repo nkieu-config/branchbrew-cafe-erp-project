@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar } from "@/components/ui/avatar";
 import type { User } from "@/types/api";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import { hubModalIconClassName } from "@/lib/theme/color-helpers";
 import { hrAvatarClassName } from "@/lib/theme/hub-hr";
 import { hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
@@ -94,7 +94,7 @@ export function EditCompensationModal({
                     Base salary
                   </p>
                   <p className={typeUiLabelClassName(cn("text-sm tabular-nums", metricValueClassName("blue")))}>
-                    {formatBaht(user.baseSalary)}
+                    {formatCurrency(user.baseSalary)}
                   </p>
                 </div>
               )}
@@ -102,7 +102,7 @@ export function EditCompensationModal({
 
             <div className="space-y-2">
               <Label htmlFor="hourly-rate" className={text.secondary}>
-                Hourly rate (฿)
+                Hourly rate
               </Label>
               <Input
                 id="hourly-rate"

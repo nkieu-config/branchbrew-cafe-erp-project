@@ -13,6 +13,7 @@ import {
 import type { SalesTrendPoint } from "@/types/api";
 import { format, parseISO } from "date-fns";
 import { BarChart3 } from "lucide-react";
+import { formatCurrency } from "@/lib/money";
 import { decorativeIconClassName } from "@/lib/theme/color-helpers";
 import { dashboardChartEmptyClass, dashboardSkeletonClass } from "@/lib/theme/dashboard";
 import { text } from "@/lib/theme/surface";
@@ -26,9 +27,8 @@ interface SalesChartProps {
 }
 
 function formatRevenueAxis(value: number) {
-  if (value >= 1000) return `฿${value / 1000}k`;
-  if (value > 0) return `฿${Math.round(value)}`;
-  return "฿0";
+  if (value >= 1000) return `${formatCurrency(value / 1000)}k`;
+  return formatCurrency(Math.round(value));
 }
 
 export function SalesChart({ data = [], loading }: SalesChartProps) {
@@ -104,7 +104,7 @@ export function SalesChart({ data = [], loading }: SalesChartProps) {
             itemStyle={{ color: chartTheme.revenue, fontWeight: "bold" }}
             formatter={(value, name) => {
               const num = Number(value ?? 0);
-              if (name === "revenue") return [`฿${num.toLocaleString()}`, "Revenue"];
+              if (name === "revenue") return [formatCurrency(num), "Revenue"];
               return [num, "Orders"];
             }}
           />

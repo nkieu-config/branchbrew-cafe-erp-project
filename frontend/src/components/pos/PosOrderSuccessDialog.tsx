@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Receipt } from "@/components/pos/Receipt";
+import { formatCurrency } from "@/lib/money";
 import { formatQueueNumber } from "@/lib/queue";
 import { parseVatRatePercent } from "@/lib/vat";
 import {
@@ -88,7 +89,7 @@ export function PosOrderSuccessDialog({
             <p className={posReceiptCaptionClassName()}>
               {completedOrder?.queueNumber ? "Your Queue Number" : "Receipt Preview"}
             </p>
-            <p>Total: ฿{completedOrder?.netTotal?.toFixed(2)}</p>
+            <p>Total: {formatCurrency(completedOrder?.netTotal)}</p>
             <p className={`text-xs ${text.muted}`}>Order ref #{completedOrder?.id}</p>
           </div>
         </div>

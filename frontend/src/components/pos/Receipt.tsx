@@ -2,7 +2,7 @@ import React, { forwardRef } from "react";
 import { Coffee } from "lucide-react";
 import type { ReceiptOrder } from "@/types/api";
 import { formatDateTime } from "@/lib/intl-date";
-import { formatMoney } from "@/lib/money";
+import { formatCurrency, formatMoney } from "@/lib/money";
 import { formatQueueNumber } from "@/lib/queue";
 import { inclusiveTaxAmount } from "@/lib/vat";
 import { receiptBarcodeBoxClassName, receiptFooterClassName, receiptHeaderClassName, receiptBranchClassName, receiptDocTypeClassName, receiptEmphasisClassName, receiptIconClassName, receiptItemNameClassName, receiptItemNoteClassName, receiptMutedClassName, receiptPaymentSectionClassName, receiptQueueBoxClassName, receiptRootClassName, receiptRowClassName, receiptSectionDividerClassName, receiptSubtleClassName, receiptTableClassName, receiptTableHeadRowClassName, receiptTitleClassName, receiptTotalRowClassName, receiptTotalsClassName, receiptVatRowClassName } from "@/lib/theme/print-receipt";
@@ -97,7 +97,7 @@ export const Receipt = forwardRef<
         {order.discount != null && order.discount > 0 && (
           <div className={receiptRowClassName()}>
             <span>Discount</span>
-            <span>-฿{(order.discount || 0).toFixed(2)}</span>
+            <span>-{formatCurrency(order.discount || 0)}</span>
           </div>
         )}
         <div className={receiptVatRowClassName()}>
@@ -106,7 +106,7 @@ export const Receipt = forwardRef<
         </div>
         <div className={receiptTotalRowClassName()}>
           <span>NET TOTAL</span>
-          <span>{order.netTotal?.toFixed(2)} THB</span>
+          <span>{formatCurrency(order.netTotal)}</span>
         </div>
       </div>
 

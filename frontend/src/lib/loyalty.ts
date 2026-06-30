@@ -1,6 +1,6 @@
-/** Must match backend `POINTS_PER_THB` in customers/loyalty.constants.ts */
-export const POINTS_PER_THB = 10;
+/** Must match backend loyalty redemption ratio. */
+export const POINTS_PER_CURRENCY_UNIT = 10;
 
-export function pointsToDiscountBaht(points: number): number {
-  return points / POINTS_PER_THB;
+export function pointsToDiscountAmount(points: number): number {
+  return points / POINTS_PER_CURRENCY_UNIT;
 }

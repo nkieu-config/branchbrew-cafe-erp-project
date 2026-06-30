@@ -12,7 +12,7 @@ import {
   employeeHasMissingRate,
 } from "@/lib/employee-filters";
 import { buildHrPayrollUrl } from "@/lib/hr-hub-url";
-import { formatBaht } from "@/lib/money";
+import { formatCurrency } from "@/lib/money";
 import { hubListDataTableProps } from "@/lib/theme/data-table";
 import { tableCellMutedClassName } from "@/lib/theme/feedback";
 import { expandedRowPanelClassName, inlineLinkClassName, tableActionAccentClassName } from "@/lib/theme/hub-primitives";
@@ -110,7 +110,7 @@ export function EmployeeDirectoryTable({
               </StatusBadge>
             ) : (
               <span className={typeUiLabelClassName(cn("tabular-nums", metricValueClassName("emerald")))}>
-                {formatBaht(record.hourlyRate)} / hr
+                {formatCurrency(record.hourlyRate)} / hr
               </span>
             ),
         },
@@ -155,7 +155,7 @@ export function EmployeeDirectoryTable({
           </dt>
           <dd className={typeUiLabelClassName(cn("mt-1 tabular-nums", metricValueClassName("blue")))}>
             {record.baseSalary != null && record.baseSalary > 0
-              ? formatBaht(record.baseSalary)
+              ? formatCurrency(record.baseSalary)
               : "—"}
           </dd>
         </div>
