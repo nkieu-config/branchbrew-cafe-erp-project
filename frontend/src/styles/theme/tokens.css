@@ -245,6 +245,10 @@
 
   --mobile-nav-bg: var(--card);
   --mobile-nav-border: var(--border);
+  --mobile-nav-shadow: 0 8px 32px -10px color-mix(in oklch, var(--foreground) 12%, transparent);
+  --mobile-nav-offset: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+
+  --topbar-shadow: 0 1px 0 color-mix(in oklch, var(--border) 60%, transparent);
   --sidebar-nav-inactive-fg: var(--muted-foreground);
   --sidebar-nav-inactive-hover-bg: color-mix(in oklch, var(--card) 60%, transparent);
   --sidebar-nav-inactive-hover-fg: var(--foreground);
@@ -252,10 +256,15 @@
   --sidebar-logout-bg: color-mix(in oklch, var(--card) 50%, transparent);
   --sidebar-logout-border: var(--tone-danger-border);
 
-  --topbar-picker-bg: var(--card);
-  --topbar-picker-border: var(--border);
-  --topbar-picker-icon: var(--brand);
-  --topbar-bg: color-mix(in oklch, var(--card) 85%, transparent);
+  --topbar-picker-bg: color-mix(in oklch, var(--foreground) 3.5%, var(--card));
+  --topbar-picker-border: color-mix(in oklch, var(--border) 65%, var(--foreground) 12%);
+  --topbar-picker-fg: var(--foreground);
+  --topbar-picker-fg-muted: var(--text-secondary);
+  --topbar-picker-icon: var(--tone-brand-fg-strong);
+  --topbar-picker-bg-active: var(--tone-brand-subtle);
+  --topbar-picker-border-active: var(--tone-brand-border);
+  --topbar-picker-fg-active: var(--tone-brand-fg-strong);
+  --topbar-bg: var(--card);
   --topbar-action-hover: var(--sidebar-nav-inactive-hover-bg);
   --topbar-action-fg: var(--sidebar-nav-inactive-fg);
   --topbar-action-active-bg: var(--sidebar-nav-active-bg);
@@ -422,6 +431,15 @@
   --pos-category-inactive-bg: var(--surface-elevated);
   --pos-category-inactive-fg: var(--foreground);
   --pos-category-inactive-border: var(--border);
+  --pos-product-tile-bg: var(--surface-elevated);
+  --pos-product-tile-hover: color-mix(in oklch, var(--brand) 6%, var(--surface-elevated));
+  --pos-product-tile-active: color-mix(in oklch, var(--brand) 12%, var(--surface-elevated));
+  --pos-product-category-bg: color-mix(in oklch, var(--brand) 10%, var(--surface-inset));
+  --pos-product-category-fg: var(--tone-brand-fg-strong);
+  --pos-product-add-bg: var(--brand-solid);
+  --pos-product-add-fg: var(--on-brand-solid-fg);
+  --pos-cart-line-bg: color-mix(in oklch, var(--foreground) 3%, var(--surface-elevated));
+  --pos-filter-bar-bg: color-mix(in oklch, var(--surface-elevated) 88%, transparent);
 
   /* KDS immersive */
   --kds-ticket-bg: var(--surface-elevated);
@@ -607,7 +625,15 @@
 
   --shell-bg: var(--background);
   --sidebar-panel-bg: var(--card);
+  --topbar-bg: var(--card);
+  --topbar-picker-bg: color-mix(in oklch, var(--foreground) 6%, var(--card));
+  --topbar-picker-border: color-mix(in oklch, var(--border) 75%, var(--foreground) 10%);
+  --topbar-picker-bg-active: color-mix(in oklch, var(--brand) 14%, var(--card));
+  --topbar-picker-border-active: color-mix(in oklch, var(--brand) 28%, transparent);
+  --topbar-picker-fg-active: var(--brand-text);
   --sidebar-nav-active-bg: color-mix(in oklch, var(--brand) 16%, var(--card));
+  --mobile-nav-shadow: 0 8px 40px -8px color-mix(in oklch, var(--background) 40%, transparent);
+  --topbar-shadow: 0 1px 0 color-mix(in oklch, var(--border) 35%, transparent);
   --sidebar-nav-inactive-hover-bg: color-mix(in oklch, var(--foreground) 6%, var(--card));
   --sidebar-user-panel-bg: color-mix(in oklch, var(--card) 85%, var(--background));
 
@@ -699,4 +725,13 @@
   --pos-category-inactive-bg: var(--surface-elevated);
   --pos-category-inactive-fg: var(--foreground);
   --pos-category-inactive-border: var(--border);
+  --pos-product-tile-bg: var(--card);
+  --pos-product-tile-hover: color-mix(in oklch, var(--brand) 10%, var(--card));
+  --pos-product-tile-active: color-mix(in oklch, var(--brand) 16%, var(--card));
+  --pos-product-category-bg: color-mix(in oklch, var(--brand) 14%, var(--surface-inset));
+  --pos-product-category-fg: color-mix(in oklch, var(--brand) 70%, var(--foreground));
+  --pos-product-add-bg: var(--brand-solid);
+  --pos-product-add-fg: var(--on-brand-solid-fg);
+  --pos-cart-line-bg: color-mix(in oklch, var(--foreground) 5%, var(--card));
+  --pos-filter-bar-bg: color-mix(in oklch, var(--card) 90%, transparent);
 }

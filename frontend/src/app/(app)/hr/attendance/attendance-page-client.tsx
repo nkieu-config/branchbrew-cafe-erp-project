@@ -1,14 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
-import {
-  CalendarDays,
-  Clock,
-  Loader2,
-  PlayCircle,
-  StopCircle,
-} from "lucide-react";
+import { Loader2, PlayCircle, StopCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -18,9 +11,7 @@ import {
   useClockOut,
   useMyShifts,
 } from "@/hooks/domains/useHrQueries";
-import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { getErrorMessage } from "@/lib/errors";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterDate, ListFilterRow, ListFilterSelect } from "@/components/shared/list-filters";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
@@ -31,21 +22,16 @@ import {
   type AttendanceRecordRow,
   type AttendanceStatusFilter,
   filterAttendance,
-  summarizeAttendance,
 } from "@/lib/attendance-filters";
-import { formatHubListCountWithFetching } from "@/lib/format-hub-list-count";
-import { hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { hrSectionPanelClassName } from "@/lib/theme/hub-hr";
 import { cn } from "@/lib/utils";
-import type { Branch, Shift } from "@/types/api";
+import type { Shift } from "@/types/api";
 
 export default function AttendancePageClient() {
   const { user, activeBranchId } = useAuth();
   const role = user?.role;
   const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
-
-  const { data: branches = [] } = useBranches();
-  const branchName = (branches as Branch[]).find((b) => b.id === branchIdNum)?.name;
 
   const {
     data: attendanceData,
@@ -74,11 +60,6 @@ export default function AttendancePageClient() {
 
   const startDateObj = startDate ? new Date(`${startDate}T00:00:00`) : null;
   const endDateObj = endDate ? new Date(`${endDate}T00:00:00`) : null;
-
-  const summary = useMemo(
-    () => summarizeAttendance(attendance, shifts),
-    [attendance, shifts],
-  );
 
   const filteredAttendance = useMemo(
     () =>
@@ -126,52 +107,44 @@ export default function AttendancePageClient() {
   }
 
   return (
-    <div className="space-y-6">
-      <HubPageHeader
-        hideTitle
-        icon={Clock}
-        accentHub="hr"
-        branchScope={{ branchName }}
-        actions={
-          isClockedIn ? (
-            <Button
-              variant="destructive"
-              className={cn(hubCtaClassName("hr"), "shadow-sm")}
-              disabled={clockActionPending || loadingActive}
-              onClick={() => void handleClockOut()}
-            >
-              {clockOutMutation.isPending ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin motion-reduce:animate-none" aria-hidden />
-              ) : (
-                <StopCircle className="w-4 h-4 mr-2" aria-hidden />
-              )}
-              Clock out
-            </Button>
-          ) : (
-            <Button
-              className={hubCtaClassName("hr")}
-              disabled={needsBranchForClockIn || clockActionPending || loadingActive}
-              onClick={() => void handleClockIn()}
-            >
-              {clockInMutation.isPending ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin motion-reduce:animate-none" aria-hidden />
-              ) : (
-                <PlayCircle className="w-4 h-4 mr-2" aria-hidden />
-              )}
-              Clock in
-            </Button>
-          )
-        }
-      />
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        {isClockedIn ? (
+          <Button
+            variant="destructive"
+            className={cn(hubCtaClassName("hr"), "shadow-sm")}
+            disabled={clockActionPending || loadingActive}
+            onClick={() => void handleClockOut()}
+          >
+            {clockOutMutation.isPending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin motion-reduce:animate-none" aria-hidden />
+            ) : (
+              <StopCircle className="w-4 h-4 mr-2" aria-hidden />
+            )}
+            Clock out
+          </Button>
+        ) : (
+          <Button
+            className={hubCtaClassName("hr")}
+            disabled={needsBranchForClockIn || clockActionPending || loadingActive}
+            onClick={() => void handleClockIn()}
+          >
+            {clockInMutation.isPending ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin motion-reduce:animate-none" aria-hidden />
+            ) : (
+              <PlayCircle className="w-4 h-4 mr-2" aria-hidden />
+            )}
+            Clock in
+          </Button>
+        )}
+      </div>
 
       <HubListPage className={hrSectionPanelClassName()}>
         {isClockedIn && activeClockIn && (
           <HubListPage.Banner>
             <AttendanceActiveBanner
               clockIn={activeClockIn.clockIn}
-              branchLabel={activeClockIn.branch?.name ?? branchName ?? "this branch"}
-              clockActionPending={clockActionPending}
-              onClockOut={() => void handleClockOut()}
+              branchLabel={activeClockIn.branch?.name ?? "this branch"}
             />
           </HubListPage.Banner>
         )}
@@ -224,31 +197,11 @@ export default function AttendancePageClient() {
           isLoading={isLoading}
           isError={isError}
           isFetching={isFetching || fetchingActive}
-          actions={
-            <Link
-              href="/hr/shifts"
-              className={cn("inline-flex items-center gap-1 text-sm font-medium", inlineLinkClassName())}
-            >
-              <CalendarDays className="w-3.5 h-3.5" aria-hidden />
-              View shifts
-            </Link>
-          }
-        >
-          {formatHubListCountWithFetching(
-            (() => {
-              const base = hasActiveFilters
-                ? `${filteredAttendance.length} of ${attendance.length} records`
-                : summary.total > 0
-                  ? `${summary.total} record${summary.total === 1 ? "" : "s"} · last 30 days`
-                  : "No attendance records yet";
-              return summary.totalHours > 0 && !hasActiveFilters
-                ? `${base} · ${summary.totalHours.toFixed(1)} hrs logged`
-                : base;
-            })(),
-            isFetching || fetchingActive,
-            isLoading,
-          )}
-        </HubListPage.Count>
+          hasActiveFilters={hasActiveFilters}
+          filteredCount={filteredAttendance.length}
+          totalCount={attendance.length}
+          itemLabel="record"
+        />
 
         <AttendanceTable
           attendance={filteredAttendance}

@@ -4,6 +4,7 @@
  */
 import { cn } from "@/lib/utils";
 import { hubIconClassName, hubSectionPanelClassName } from "./hub-panel";
+import { text } from "./surface";
 
 export function settingsSectionPanelClassName(className?: string) {
   return hubSectionPanelClassName("settings", className);
@@ -11,6 +12,10 @@ export function settingsSectionPanelClassName(className?: string) {
 
 export function settingsHubIconClassName(className?: string) {
   return hubIconClassName("settings", className);
+}
+
+export function settingsMutedMetaClassName(className?: string) {
+  return cn("text-sm", text.muted, className);
 }
 
 export function settingsSheetContentClassName(className?: string) {

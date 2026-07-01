@@ -17,7 +17,7 @@ export function ImmersiveBranchToolbar({ className }: ImmersiveBranchToolbarProp
   if (!isSuperAdmin || branches.length === 0) return null;
 
   return (
-    <div className={cn("w-full max-w-md", className)}>
+    <div className={cn("w-full max-w-md lg:hidden", className)}>
       <BranchPicker
         variant="topbar"
         branches={branches}

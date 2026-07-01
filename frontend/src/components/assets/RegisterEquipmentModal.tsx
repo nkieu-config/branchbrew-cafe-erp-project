@@ -1,16 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { FormDialog } from "@/components/shared/form-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,11 +17,9 @@ import {
 import { EQUIPMENT_TYPE_OPTIONS } from "@/lib/equipment-filters";
 import type { EquipmentType } from "@/types/api";
 import { assetsDialogContentClassName } from "@/lib/theme/assets";
-import { hubModalIconClassName } from "@/lib/theme/color-helpers";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { formFieldInsetClassName, formLineDateFieldClassName, formSelectContentClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type RegisterEquipmentModalProps = {
@@ -84,25 +75,15 @@ export function RegisterEquipmentModal({
   };
 
   return (
-    <Dialog
+    <FormDialog
       open={open}
       onOpenChange={(next) => {
         if (!next) onClose();
       }}
+      className={assetsDialogContentClassName()}
     >
-      <DialogContent className={assetsDialogContentClassName()}>
-        <DialogHeader>
-          <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <Plus className={hubModalIconClassName("assets")} aria-hidden />
-            Register equipment
-          </DialogTitle>
-          <DialogDescription>
-            Add a machine or appliance to this branch. Status defaults to active; schedule
-            preventative maintenance when known.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4 pt-2">
+        <FormDialog.Title>Register equipment</FormDialog.Title>
+        <FormDialog.Body className="space-y-4 pt-1">
           <div className="space-y-2">
             <Label htmlFor="equipment-name" className={text.secondary}>
               Name
@@ -140,13 +121,13 @@ export function RegisterEquipmentModal({
 
           <div className="space-y-2">
             <Label htmlFor="equipment-serial" className={text.secondary}>
-              Serial number <span className={text.muted}>(optional)</span>
+              Serial <span className={text.muted}>(optional)</span>
             </Label>
             <Input
               id="equipment-serial"
               value={serialNumber}
               onChange={(event) => setSerialNumber(event.target.value)}
-              placeholder="e.g. SN-12345"
+              placeholder="SN-12345"
               className={formFieldInsetClassName()}
             />
           </div>
@@ -163,9 +144,9 @@ export function RegisterEquipmentModal({
               className={formLineDateFieldClassName()}
             />
           </div>
-        </div>
+        </FormDialog.Body>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <FormDialog.Footer className="gap-2 sm:gap-0">
           <Button type="button" variant="outline" onClick={onClose} className="min-h-[44px]">
             Cancel
           </Button>
@@ -178,8 +159,7 @@ export function RegisterEquipmentModal({
             {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}
             Register
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialog.Footer>
+    </FormDialog>
   );
 }

@@ -45,7 +45,7 @@ export function PosMobileCart(props: PosCartSidebarProps) {
           </span>
         </button>
         <Button
-          className={posPayActionClassName("shrink-0 min-h-[44px] px-4")}
+          className={posPayActionClassName("shrink-0 min-h-[44px] px-5 rounded-xl")}
           disabled={props.cart.length === 0}
           onClick={handleCheckout}
         >

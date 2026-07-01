@@ -3,21 +3,23 @@
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useMemo, type ReactNode } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useSuspenseQueries } from "@tanstack/react-query";
+import { Card, CardContent } from "@/components/ui/card";
+import { DashboardWidgetHeader } from "@/components/dashboard/DashboardWidgetHeader";
 import {
   TrendingUp,
   TrendingDown,
   DollarSign,
   Store,
+  ShoppingBag,
   AlertTriangle,
   CheckCircle2,
   Award,
 } from "lucide-react";
 import { useAnalyticsSummarySuspense, useTopProductsSuspense } from "@/hooks/domains/useReportsQueries";
-import {
-  useBranchDetailsSuspense,
-  useBranchInventorySuspense,
-} from "@/hooks/domains/useInventoryQueries";
+import { API_ENDPOINTS } from "@/lib/endpoints";
+import { fetchAPI } from "@/lib/api";
+import { inventoryKeys } from "@/lib/query-keys";
 import {
   buildExpiryAlerts,
   buildLowStockAlerts,
@@ -29,7 +31,7 @@ import {
 } from "@/lib/inventory-alerts";
 import { formatDashboardCurrency } from "@/lib/format-dashboard-currency";
 import { formatDate } from "@/lib/intl-date";
-import { dashboardAlertsEmptyClass, dashboardAlertsEmptyIconClassName, dashboardAlertsEmptyTextClassName, dashboardAlertsExpiryMetaClassName, dashboardAlertsExpiryValueClassName, dashboardAlertsFooterClass, dashboardAlertsFooterLinkClass, dashboardAlertsHeaderClass, dashboardAlertsLowMetaClassName, dashboardAlertsLowValueClassName, dashboardAlertsRowClass, dashboardSkeletonClass, dashboardTrendBadgeClass, dashboardWidgetCardClass, dashboardWidgetIconSoftClass, dashboardWidgetIconSolidClass, dashboardWidgetLabelClass, dashboardWidgetTitleClass, dashboardWidgetValueClass } from "@/lib/theme/dashboard";
+import { dashboardAlertsEmptyClass, dashboardAlertsEmptyIconClassName, dashboardAlertsEmptyTextClassName, dashboardAlertsExpiryMetaClassName, dashboardAlertsExpiryValueClassName, dashboardAlertsFooterClass, dashboardAlertsFooterLinkClass, dashboardAlertCountBadgeClass, dashboardAlertsLowMetaClassName, dashboardAlertsLowValueClassName, dashboardAlertsRowClass, dashboardKpiBodyClass, dashboardSkeletonClass, dashboardTrendBadgeClass, dashboardWidgetCardClass, dashboardWidgetIconSoftClass, dashboardWidgetIconSolidClass, dashboardWidgetLabelClass, dashboardWidgetValueClass } from "@/lib/theme/dashboard";
 import { text } from "@/lib/theme/surface";
 import { typeHeadingClassName, typeMetricClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
@@ -42,56 +44,56 @@ const TopProductsChart = dynamic(
   },
 );
 
-function hasComparableSalesGrowth(
-  salesGrowth: number | null | undefined,
-  salesYesterday: number | null | undefined,
-): salesGrowth is number {
+function hasComparableGrowth(
+  growth: number | null | undefined,
+  priorValue: number | null | undefined,
+): growth is number {
   return (
-    typeof salesGrowth === "number" &&
-    Number.isFinite(salesGrowth) &&
-    typeof salesYesterday === "number" &&
-    salesYesterday > 0
+    typeof growth === "number" &&
+    Number.isFinite(growth) &&
+    typeof priorValue === "number" &&
+    priorValue > 0
   );
 }
 
 export function SalesWidget({ branchId }: { branchId: string }) {
   const { data: summary } = useAnalyticsSummarySuspense(branchId);
-  const showGrowth = hasComparableSalesGrowth(summary?.salesGrowth, summary?.salesYesterday);
+  const showGrowth = hasComparableGrowth(summary?.salesGrowth, summary?.salesYesterday);
 
   return (
     <Card className={dashboardWidgetCardClass("sales")}>
-      <CardContent className="p-8 h-full flex flex-col justify-center">
-        <div className="flex justify-between items-start">
-          <div>
+      <CardContent className={dashboardKpiBodyClass()}>
+        <div className="flex justify-between items-start gap-3">
+          <div className="min-w-0">
             <p className={dashboardWidgetLabelClass("sales")}>Today&apos;s Sales</p>
-            <p className={cn("text-4xl mt-2 tabular-nums", dashboardWidgetValueClass("sales"))}>
+            <p className={cn("text-3xl mt-1 tabular-nums tracking-tight", dashboardWidgetValueClass("sales"))}>
               {formatDashboardCurrency(summary?.salesToday || 0)}
             </p>
-            <div className="flex items-center gap-2 mt-4 min-h-[1.75rem]">
+            <div className="flex flex-wrap items-center gap-2 mt-2 min-h-[1.5rem]">
               {showGrowth ? (
                 <>
                   <span
                     className={cn(
-                      typeUiLabelClassName("flex items-center text-sm px-2 py-1 rounded tabular-nums"),
+                      typeUiLabelClassName("inline-flex items-center text-xs px-2.5 py-0.5 tabular-nums"),
                       dashboardTrendBadgeClass(summary.salesGrowth >= 0),
                     )}
                   >
                     {summary.salesGrowth >= 0 ? (
-                      <TrendingUp className="w-4 h-4 mr-1" aria-hidden />
+                      <TrendingUp className="w-3.5 h-3.5 mr-1" aria-hidden />
                     ) : (
-                      <TrendingDown className="w-4 h-4 mr-1" aria-hidden />
+                      <TrendingDown className="w-3.5 h-3.5 mr-1" aria-hidden />
                     )}
                     {Math.abs(summary.salesGrowth).toFixed(1)}%
                   </span>
-                  <span className={cn("text-sm font-medium", text.muted)}>vs yesterday</span>
+                  <span className={cn("text-xs font-medium", text.muted)}>vs yesterday</span>
                 </>
               ) : (
-                <span className={cn("text-sm font-medium", text.muted)}>No prior-day comparison</span>
+                <span className={cn("text-xs font-medium", text.muted)}>No prior-day comparison</span>
               )}
             </div>
           </div>
-          <div className={dashboardWidgetIconSolidClass()}>
-            <DollarSign className="w-8 h-8" aria-hidden />
+          <div className={dashboardWidgetIconSolidClass("compact")}>
+            <DollarSign className="w-5 h-5" aria-hidden />
           </div>
         </div>
       </CardContent>
@@ -101,7 +103,6 @@ export function SalesWidget({ branchId }: { branchId: string }) {
 
 export function TopBranchWidget({
   branchId,
-  branchName,
 }: {
   branchId: string;
   branchName?: string;
@@ -109,34 +110,90 @@ export function TopBranchWidget({
   const { data: summary } = useAnalyticsSummarySuspense(branchId);
   const isAllBranches = branchId === "ALL";
 
+  if (!isAllBranches) {
+    const showOrdersGrowth = hasComparableGrowth(
+      summary?.ordersGrowth,
+      summary?.ordersYesterday,
+    );
+
+    return (
+      <Card className={dashboardWidgetCardClass("branch")}>
+        <CardContent className={dashboardKpiBodyClass()}>
+          <div className="flex justify-between items-start gap-3">
+            <div className="min-w-0">
+              <p className={dashboardWidgetLabelClass("branch")}>Orders Today</p>
+              <p
+                className={cn(
+                  "text-3xl mt-1 tabular-nums tracking-tight",
+                  dashboardWidgetValueClass("branch"),
+                )}
+              >
+                {(summary?.ordersToday ?? 0).toLocaleString()}
+              </p>
+              <div className="flex flex-wrap items-center gap-2 mt-2 min-h-[1.5rem]">
+                {showOrdersGrowth ? (
+                  <>
+                    <span
+                      className={cn(
+                        typeUiLabelClassName("inline-flex items-center text-xs px-2.5 py-0.5 tabular-nums"),
+                        dashboardTrendBadgeClass(summary.ordersGrowth >= 0),
+                      )}
+                    >
+                      {summary.ordersGrowth >= 0 ? (
+                        <TrendingUp className="w-3.5 h-3.5 mr-1" aria-hidden />
+                      ) : (
+                        <TrendingDown className="w-3.5 h-3.5 mr-1" aria-hidden />
+                      )}
+                      {Math.abs(summary.ordersGrowth).toFixed(1)}%
+                    </span>
+                    <span className={cn("text-xs font-medium", text.muted)}>vs yesterday</span>
+                  </>
+                ) : (
+                  <span className={cn("text-xs font-medium", text.muted)}>No prior-day comparison</span>
+                )}
+              </div>
+              <p className={cn("text-sm font-semibold mt-2 tabular-nums", text.primary)}>
+                Avg ticket{" "}
+                <span className={dashboardWidgetValueClass("branch")}>
+                  {formatDashboardCurrency(summary?.avgTicketToday ?? 0)}
+                </span>
+              </p>
+            </div>
+            <div className={dashboardWidgetIconSoftClass("branch", "compact")}>
+              <ShoppingBag className="w-5 h-5" aria-hidden />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className={dashboardWidgetCardClass("branch")}>
-      <CardContent className="p-8 h-full flex flex-col justify-center">
-        <div className="flex justify-between items-start">
-          <div>
-            <p className={dashboardWidgetLabelClass("branch")}>
-              {isAllBranches ? "Top Branch Today" : "Branch Sales Today"}
-            </p>
-            <p className={cn("text-3xl mt-2", text.primary)}>
-              {isAllBranches
-                ? summary?.topBranch?.name || "N/A"
-                : branchName || "Current branch"}
+      <CardContent className={dashboardKpiBodyClass()}>
+        <div className="flex justify-between items-start gap-3">
+          <div className="min-w-0">
+            <p className={dashboardWidgetLabelClass("branch")}>Top Branch Today</p>
+            <p className={cn("text-xl mt-1 truncate", text.primary)}>
+              {summary?.topBranch?.name || "N/A"}
             </p>
             <p
               className={cn(
-                typeMetricClassName("text-xl mt-2"),
+                typeMetricClassName("text-2xl mt-1 tracking-tight"),
                 dashboardWidgetValueClass("branch"),
               )}
             >
-              {formatDashboardCurrency(
-                isAllBranches
-                  ? summary?.topBranch?.totalSales || 0
-                  : summary?.salesToday || 0,
-              )}
+              {formatDashboardCurrency(summary?.topBranch?.totalSales || 0)}
+            </p>
+            <p className={cn("text-sm font-medium mt-2 tabular-nums", text.muted)}>
+              {(summary?.ordersToday ?? 0).toLocaleString()} orders network-wide · Avg ticket{" "}
+              <span className={cn("font-semibold", dashboardWidgetValueClass("branch"))}>
+                {formatDashboardCurrency(summary?.avgTicketToday ?? 0)}
+              </span>
             </p>
           </div>
-          <div className={dashboardWidgetIconSoftClass("branch")}>
-            <Store className="w-8 h-8" aria-hidden />
+          <div className={dashboardWidgetIconSoftClass("branch", "compact")}>
+            <Store className="w-5 h-5" aria-hidden />
           </div>
         </div>
       </CardContent>
@@ -218,13 +275,13 @@ function InventoryAlertsList({
             {lowStockAlerts.map((alert) => (
               <AlertRow key={`low-${alert.id}`} href="/inventory?filter=low" type="low">
                 <div>
-                  <div className={typeHeadingClassName("text-lg")}>{alert.ingredientName}</div>
+                  <div className={typeHeadingClassName("text-base")}>{alert.ingredientName}</div>
                   <div className={cn("text-sm font-medium", text.muted)}>
                     {alert.branchName} · Low stock
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className={dashboardAlertsLowValueClassName("text-xl")}>
+                  <div className={dashboardAlertsLowValueClassName("text-lg")}>
                     {alert.stock}
                   </div>
                   <div className={dashboardAlertsLowMetaClassName()}>
@@ -236,14 +293,14 @@ function InventoryAlertsList({
             {expiryAlerts.map((alert) => (
               <AlertRow key={`exp-${alert.id}`} href="/inventory/batches?filter=expiring" type="expiry">
                 <div>
-                  <div className={typeHeadingClassName("text-lg")}>{alert.ingredientName}</div>
+                  <div className={typeHeadingClassName("text-base")}>{alert.ingredientName}</div>
                   <div className={cn("text-sm font-medium", text.muted)}>
                     {alert.branchName} ·{" "}
                     {alert.status === "EXPIRED" ? "Expired batch" : "Expiring soon"}
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className={dashboardAlertsExpiryValueClassName("text-xl")}>
+                  <div className={dashboardAlertsExpiryValueClassName("text-lg")}>
                     {alert.quantity}
                   </div>
                   <div className={dashboardAlertsExpiryMetaClassName()}>
@@ -256,7 +313,7 @@ function InventoryAlertsList({
         ) : (
           <div className={dashboardAlertsEmptyClass()}>
             <CheckCircle2
-              className={dashboardAlertsEmptyIconClassName("w-12 h-12 mb-3")}
+              className={dashboardAlertsEmptyIconClassName("w-10 h-10 mb-2")}
               aria-hidden
             />
             <span className={dashboardAlertsEmptyTextClassName()}>
@@ -306,14 +363,30 @@ function LowStockWidgetShell({
   expiryTotal: number;
   isAllBranches: boolean;
 }) {
+  const alertCount = lowTotal + expiryTotal;
+
   return (
-    <Card className={dashboardWidgetCardClass("alerts", "h-[300px] overflow-hidden flex flex-col")}>
-      <CardHeader className={dashboardAlertsHeaderClass()}>
-        <CardTitle className="flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5" aria-hidden />
-          Inventory Alerts
-        </CardTitle>
-      </CardHeader>
+    <Card className={dashboardWidgetCardClass("alerts", "h-[240px] overflow-hidden flex flex-col")}>
+      <DashboardWidgetHeader
+        variant="alerts"
+        icon={AlertTriangle}
+        title="Inventory Alerts"
+        description={alertCount > 0 ? "Items needing attention today" : "Stock and expiry look healthy"}
+        badge={
+          alertCount > 0 ? (
+            <div className="flex flex-wrap justify-end gap-1">
+              {lowTotal > 0 ? (
+                <span className={dashboardAlertCountBadgeClass("low")}>{lowTotal} low</span>
+              ) : null}
+              {expiryTotal > 0 ? (
+                <span className={dashboardAlertCountBadgeClass("expiry")}>{expiryTotal} expiry</span>
+              ) : null}
+            </div>
+          ) : (
+            <span className={dashboardAlertCountBadgeClass("neutral")}>Clear</span>
+          )
+        }
+      />
       <InventoryAlertsList
         lowStockAlerts={lowStockAlerts}
         expiryAlerts={expiryAlerts}
@@ -348,8 +421,18 @@ function LowStockSingleBranchWidget({
   branchId: number;
   branchName: string;
 }) {
-  const { data: inventory = [] } = useBranchInventorySuspense(branchId);
-  const { data: branchDetails } = useBranchDetailsSuspense(branchId);
+  const [{ data: inventory = [] }, { data: branchDetails }] = useSuspenseQueries({
+    queries: [
+      {
+        queryKey: inventoryKeys.balance(branchId),
+        queryFn: () => fetchAPI(API_ENDPOINTS.inventory.balance(branchId)),
+      },
+      {
+        queryKey: inventoryKeys.branch(branchId),
+        queryFn: () => fetchAPI(API_ENDPOINTS.branches.detail(branchId)),
+      },
+    ],
+  });
 
   const alerts = useMemo(() => {
     const lowStockAlerts = buildLowStockAlerts(inventory, branchName);
@@ -378,16 +461,14 @@ export function TopProductsWidget({ branchId }: { branchId: string }) {
   const { data: topProducts } = useTopProductsSuspense(branchId);
 
   return (
-    <Card className={dashboardWidgetCardClass("products", "h-[400px] flex flex-col")}>
-      <CardHeader className="shrink-0 pb-2">
-        <CardTitle className={cn("flex items-center gap-2 text-2xl", dashboardWidgetTitleClass("products"))}>
-          <Award className="w-6 h-6" aria-hidden /> Top 5 Best Sellers
-        </CardTitle>
-        <CardDescription className={cn("font-medium text-sm", text.muted)}>
-          Highest volume items today
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex-1 min-h-0 pt-4">
+    <Card className={dashboardWidgetCardClass("products", "h-[320px] flex flex-col")}>
+      <DashboardWidgetHeader
+        variant="products"
+        icon={Award}
+        title="Top 3 Best Sellers"
+        description="Highest volume items today"
+      />
+      <CardContent className="flex-1 min-h-0 px-5 pb-4 pt-1">
         <TopProductsChart data={topProducts ?? []} />
       </CardContent>
     </Card>

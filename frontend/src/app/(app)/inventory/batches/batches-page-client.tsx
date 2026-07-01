@@ -2,16 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { PackageOpen, ArrowDownToLine, LayoutGrid } from "lucide-react";
+import { ArrowDownToLine } from "lucide-react";
 import { toast } from "sonner";
 import { useBranchDetails, useReportWaste } from "@/hooks/domains/useInventoryQueries";
-import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { useAuth } from "@/context/AuthContext";
 import { ButtonLink } from "@/components/ui/button-link";
 import { BatchInventoryPanel } from "@/components/inventory/BatchInventoryPanel";
 import { BatchWasteDialog } from "@/components/inventory/BatchWasteDialog";
 import { ExpiryHeatmapPanel } from "@/components/inventory/ExpiryHeatmapPanel";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
@@ -24,7 +22,7 @@ import {
 } from "@/lib/batch-filters";
 import { isTrackableBatch } from "@/lib/inventory-alerts";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
-import type { Branch, Role } from "@/types/api";
+import type { Role } from "@/types/api";
 
 function canReceiveStock(role: Role | undefined) {
   return role === "SUPER_ADMIN" || role === "MANAGER";
@@ -32,12 +30,11 @@ function canReceiveStock(role: Role | undefined) {
 
 export default function BatchesPageClient() {
   const searchParams = useSearchParams();
-  const expiringFromUrl = searchParams.get("filter") === "expiring";
+  const batchFilterParam = searchParams.get("filter");
+  const expiringFromUrl = batchFilterParam === "expiring";
   const { activeBranchId, user } = useAuth();
   const role = user?.role as Role | undefined;
   const showGrnAction = canReceiveStock(role);
-  const { data: branches = [] } = useBranches();
-  const branchName = (branches as Branch[]).find((b) => b.id === activeBranchId)?.name;
 
   const {
     data: branchDetails,
@@ -60,8 +57,8 @@ export default function BatchesPageClient() {
   );
 
   useEffect(() => {
-    if (searchParams.get("filter") === "expiring") setExpiryFilter("expiring");
-  }, [searchParams]);
+    if (batchFilterParam === "expiring") setExpiryFilter("expiring");
+  }, [batchFilterParam]);
 
   const [wasteTarget, setWasteTarget] = useState<{
     batchId: number;
@@ -140,27 +137,15 @@ export default function BatchesPageClient() {
   }
 
   return (
-    <div className="w-full space-y-6">
-      <HubPageHeader
-        hideTitle
-        icon={PackageOpen}
-        accentHub="inventory"
-        branchScope={{ branchName }}
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <ButtonLink href="/inventory" variant="outline" className="font-medium">
-              <LayoutGrid className="w-4 h-4 mr-2" aria-hidden />
-              Stock overview
-            </ButtonLink>
-            {showGrnAction && (
-              <ButtonLink href="/inventory/stock-in" className={hubCtaClassName("inventory")}>
-                <ArrowDownToLine className="w-4 h-4 mr-2" aria-hidden />
-                Receive stock
-              </ButtonLink>
-            )}
-          </div>
-        }
-      />
+    <div className="w-full space-y-5">
+      {showGrnAction && (
+        <div className="flex justify-end">
+          <ButtonLink href="/inventory/stock-in" className={hubCtaClassName("inventory")}>
+            <ArrowDownToLine className="w-4 h-4 mr-2" aria-hidden />
+            Receive stock
+          </ButtonLink>
+        </div>
+      )}
 
       <BatchWasteDialog
         open={isWasteOpen}
@@ -175,7 +160,7 @@ export default function BatchesPageClient() {
         isPending={reportWasteMutation.isPending}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-1">
           <ExpiryHeatmapPanel batches={batches} />
         </div>

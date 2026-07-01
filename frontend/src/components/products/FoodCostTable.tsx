@@ -3,16 +3,15 @@
 import { useMemo } from "react";
 import type { ColumnsType } from "antd/es/table";
 import Link from "next/link";
-import { Edit, AlertTriangle } from "lucide-react";
+import { Edit } from "lucide-react";
 import { DataTable } from "@/components/shared/data-table";
+import {
+  ListMobileCard,
+  PaginatedMobileList,
+  ResponsiveDataTableLayout,
+} from "@/components/shared/responsive-data-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
-import {
-  Progress,
-  ProgressIndicator,
-  ProgressTrack,
-  ProgressValue,
-} from "@/components/ui/progress";
 import { formatCurrency } from "@/lib/money";
 import { calcProductFoodCost, foodCostStatus } from "@/lib/food-cost";
 import {
@@ -23,17 +22,13 @@ import {
   productHasMissingIngredientCost,
 } from "@/lib/food-cost-filters";
 import { productHasRecipe } from "@/lib/menu-product-filters";
-import { hubListDataTableProps } from "@/lib/theme/data-table";
-import { tableCellMutedClassName } from "@/lib/theme/feedback";
+import { useHubListPagination } from "@/hooks/useHubListPagination";
 import { inlineLinkClassName } from "@/lib/theme/hub-primitives";
 import {
-  foodCostProgressIndicatorClassName,
   foodCostStatusClassName,
-  productsCategoryBadgeClassName,
+  productsCategoryTextClassName,
 } from "@/lib/theme/hub-products";
-import { metricValueClassName } from "@/lib/theme/metric";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/types/api";
 
@@ -44,32 +39,50 @@ type FoodCostTableProps = {
   onEdit: (product: Product) => void;
 };
 
+function foodCostMobileLabel(record: Product) {
+  const bucket = productFoodCostBucket(record);
+  if (bucket === "no-recipe") {
+    return (
+      <Link href="/products" className={inlineLinkClassName("text-sm")}>
+        Add recipe
+      </Link>
+    );
+  }
+  if (bucket === "no-price") {
+    return <span className={text.muted}>—</span>;
+  }
+  const { foodCostPercent } = calcProductFoodCost(record);
+  const status = foodCostStatus(foodCostPercent);
+  return <span className={foodCostStatusClassName(status)}>{foodCostPercent.toFixed(1)}%</span>;
+}
+
 export function FoodCostTable({
   products,
   isLoading,
   hasActiveFilters,
   onEdit,
 }: FoodCostTableProps) {
+  const emptyDescription = hasActiveFilters
+    ? "No items match your filters."
+    : "No menu items yet.";
+
+  const listPagination = useHubListPagination(
+    { pageSize: 15 },
+    `${products.length}-${hasActiveFilters}`,
+  );
+
   const columns = useMemo(
     () =>
       [
         {
-          title: "Menu Item",
+          title: "Item",
           dataIndex: "name",
           key: "name",
           render: (name: string, record: Product) => (
             <div>
-              <span className={typeHeadingClassName()}>{name}</span>
+              <span className={cn("font-medium", text.primary)}>{name}</span>
               {productHasMissingIngredientCost(record) && (
-                <div
-                  className={cn(
-                    "mt-1 inline-flex items-center gap-1 text-xs font-medium",
-                    metricValueClassName("amber"),
-                  )}
-                >
-                  <AlertTriangle className="w-3 h-3" aria-hidden />
-                  Missing ingredient cost
-                </div>
+                <p className={cn("mt-0.5 text-xs", text.muted)}>Missing ingredient cost</p>
               )}
             </div>
           ),
@@ -81,24 +94,24 @@ export function FoodCostTable({
           responsive: ["md"],
           render: (category: string) =>
             category ? (
-              <span className={productsCategoryBadgeClassName()}>{category}</span>
+              <span className={productsCategoryTextClassName()}>{category}</span>
             ) : (
               <span className={text.muted}>—</span>
             ),
         },
         {
-          title: "Sale Price",
+          title: "Price",
           dataIndex: "price",
           key: "price",
           align: "right" as const,
           render: (price: number) => (
-            <span className={typeHeadingClassName("tabular-nums")}>
+            <span className={cn("tabular-nums font-medium", text.primary)}>
               {formatCurrency(price)}
             </span>
           ),
         },
         {
-          title: "Recipe Cost",
+          title: "COGS",
           key: "recipeCost",
           align: "right" as const,
           responsive: ["md"],
@@ -108,61 +121,22 @@ export function FoodCostTable({
             }
             const { cost } = calcProductFoodCost(record);
             return (
-              <span className={typeHeadingClassName(cn("tabular-nums", metricValueClassName("red")))}>
+              <span className={cn("tabular-nums", text.secondary)}>
                 {formatCurrency(cost)}
               </span>
             );
           },
         },
         {
-          title: `Food Cost % (target ≤ ${TARGET_FOOD_COST_PERCENT}%)`,
+          title: `Cost % (≤${TARGET_FOOD_COST_PERCENT}%)`,
           key: "foodCostPercent",
-          render: (_: unknown, record: Product) => {
-            const bucket = productFoodCostBucket(record);
-            if (bucket === "no-recipe") {
-              return (
-                <Link href="/products" className={inlineLinkClassName()}>
-                  Add recipe
-                </Link>
-              );
-            }
-            if (bucket === "no-price") {
-              return <span className={text.muted}>Set sale price</span>;
-            }
-
-            const { foodCostPercent } = calcProductFoodCost(record);
-            const status = foodCostStatus(foodCostPercent);
-            const isWarning = status !== "good";
-            const percent = parseFloat(foodCostPercent.toFixed(1));
-
-            return (
-              <div className="flex flex-wrap items-center gap-3 min-w-[8rem]">
-                <Progress value={Math.min(percent, 100)} className="w-28 gap-1">
-                  <ProgressTrack className="h-2">
-                    <ProgressIndicator
-                      className={foodCostProgressIndicatorClassName(isWarning)}
-                    />
-                  </ProgressTrack>
-                  <ProgressValue
-                    className={typeHeadingClassName(
-                      cn("text-xs tabular-nums", foodCostStatusClassName(status)),
-                    )}
-                  />
-                </Progress>
-                {status === "bad" && (
-                  <StatusBadge tone="danger" className={typeUiLabelClassName("gap-1")}>
-                    <AlertTriangle className="w-3 h-3" aria-hidden />
-                    High
-                  </StatusBadge>
-                )}
-              </div>
-            );
-          },
+          render: (_: unknown, record: Product) => foodCostMobileLabel(record),
         },
         {
           title: "Status",
           key: "status",
           responsive: ["lg"],
+          width: 120,
           render: (_: unknown, record: Product) => {
             const bucket = productFoodCostBucket(record);
             return (
@@ -173,28 +147,14 @@ export function FoodCostTable({
           },
         },
         {
-          title: "Recipe",
-          key: "recipe",
-          responsive: ["lg"],
-          render: (_: unknown, record: Product) =>
-            productHasRecipe(record) ? (
-              <span className={tableCellMutedClassName()}>
-                {record.recipeItems!.length} ingredient
-                {record.recipeItems!.length === 1 ? "" : "s"}
-              </span>
-            ) : (
-              <span className={text.muted}>—</span>
-            ),
-        },
-        {
           title: "",
           key: "actions",
-          width: 72,
+          width: 48,
           align: "right" as const,
           render: (_: unknown, record: Product) => (
             <TableActionButton
               icon={Edit}
-              label={`Edit recipe for ${record.name}`}
+              label={`Edit ${record.name}`}
               iconOnly
               tone="purple"
               onClick={() => onEdit(record)}
@@ -206,16 +166,73 @@ export function FoodCostTable({
   );
 
   return (
-    <DataTable
-      {...hubListDataTableProps()}
-      loading={isLoading}
-      columns={columns}
-      dataSource={products}
-      rowKey="id"
-      emptyDescription={
-        hasActiveFilters
-          ? "No menu items match your food cost filters."
-          : "No menu items yet. Add recipes on Menu Items to track food cost."
+    <ResponsiveDataTableLayout
+      mobile={
+        isLoading ? (
+          <ResponsiveDataTableLayout.Skeleton />
+        ) : products.length === 0 ? (
+          <ResponsiveDataTableLayout.Empty message={emptyDescription} />
+        ) : (
+          <PaginatedMobileList
+            items={products}
+            pageSize={listPagination.pageSize}
+            page={listPagination.currentPage}
+            onPageChange={listPagination.setCurrentPage}
+          >
+            {(record) => {
+              const bucket = productFoodCostBucket(record);
+              const cogs = productHasRecipe(record) ? calcProductFoodCost(record).cost : null;
+
+              return (
+                <ListMobileCard>
+                  <div className="mb-2 flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className={cn("font-medium", text.primary)}>{record.name}</p>
+                      {record.category ? <p className={productsCategoryTextClassName()}>{record.category}</p> : null}
+                      {productHasMissingIngredientCost(record) ? (
+                        <p className={cn("mt-0.5 text-xs", text.muted)}>Missing ingredient cost</p>
+                      ) : null}
+                    </div>
+                    <span className={cn("shrink-0 tabular-nums font-medium", text.primary)}>
+                      {formatCurrency(record.price)}
+                    </span>
+                  </div>
+                  <div className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+                    {foodCostMobileLabel(record)}
+                    {cogs != null ? (
+                      <span className={cn("tabular-nums", text.secondary)}>
+                        COGS {formatCurrency(cogs)}
+                      </span>
+                    ) : null}
+                    <StatusBadge tone={foodCostStatusTone(bucket)} className="shrink-0">
+                      {foodCostStatusLabel(bucket)}
+                    </StatusBadge>
+                  </div>
+                  <div className="flex justify-end">
+                    <TableActionButton
+                      icon={Edit}
+                      label={`Edit ${record.name}`}
+                      iconOnly
+                      tone="purple"
+                      onClick={() => onEdit(record)}
+                    />
+                  </div>
+                </ListMobileCard>
+              );
+            }}
+          </PaginatedMobileList>
+        )
+      }
+      desktop={
+        <DataTable
+          hideBorders
+          pagination={listPagination.tablePagination}
+          loading={isLoading}
+          columns={columns}
+          dataSource={products}
+          rowKey="id"
+          emptyDescription={emptyDescription}
+        />
       }
     />
   );

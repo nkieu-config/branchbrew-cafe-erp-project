@@ -1,111 +1,123 @@
 "use client";
 
-import Link from "next/link";
 import { Loader2 } from "lucide-react";
-import { Steps } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { FormDialog } from "@/components/shared/form-modal";
 import { DataTable } from "@/components/shared/data-table";
+import {
+  ListMobileCard,
+  PaginatedMobileList,
+  ResponsiveDataTableLayout,
+} from "@/components/shared/responsive-data-table";
 import { formatCurrency } from "@/lib/money";
-import { expandedRowPanelClassName, hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
-import { receiveLineClassName, procurementDialogContentClassName } from "@/lib/theme/hub-procurement";
+import { expandedRowPanelClassName, hubCtaClassName } from "@/lib/theme/hub-primitives";
+import { procurementDialogContentClassName } from "@/lib/theme/hub-procurement";
 import { formLineDateFieldClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { PurchaseOrder, PurchaseOrderItem } from "@/types/api";
 
-export function getPurchaseOrderStepCurrent(status: string): number {
-  switch (status) {
-    case "DRAFT":
-      return 0;
-    case "PENDING":
-      return 1;
-    case "APPROVED":
-      return 2;
-    case "RECEIVED":
-      return 3;
-    default:
-      return 0;
-  }
+const poItemColumns: ColumnsType<PurchaseOrderItem> = [
+  {
+    title: "Ingredient",
+    key: "name",
+    render: (_: unknown, item: PurchaseOrderItem) => (
+      <span className={text.primary}>{item.ingredient?.name ?? "—"}</span>
+    ),
+  },
+  {
+    title: "Qty",
+    dataIndex: "quantityRequested",
+    key: "qty",
+    width: 96,
+    render: (val: number, item: PurchaseOrderItem) => (
+      <span className={cn("tabular-nums", text.secondary)}>
+        {val} {item.ingredient?.unit ?? ""}
+      </span>
+    ),
+  },
+  {
+    title: "Unit",
+    dataIndex: "unitPrice",
+    key: "price",
+    align: "right" as const,
+    responsive: ["md"],
+    render: (val: number) => (
+      <span className={cn("tabular-nums", text.secondary)}>{formatCurrency(val)}</span>
+    ),
+  },
+  {
+    title: "Total",
+    key: "total",
+    align: "right" as const,
+    render: (_: unknown, item: PurchaseOrderItem) => (
+      <span className={cn("tabular-nums font-medium", text.primary)}>
+        {formatCurrency(item.quantityRequested * item.unitPrice)}
+      </span>
+    ),
+  },
+];
+
+function PoLineItemsTable({ items }: { items: PurchaseOrderItem[] }) {
+  return (
+    <ResponsiveDataTableLayout
+      mobile={
+        items.length === 0 ? (
+          <ResponsiveDataTableLayout.Empty message="No line items." />
+        ) : (
+          <PaginatedMobileList items={items} pageSize={0}>
+            {(item) => (
+              <ListMobileCard>
+                <p className={cn("font-medium", text.primary)}>{item.ingredient?.name ?? "—"}</p>
+                <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <dt className={text.muted}>Qty</dt>
+                    <dd className={cn("tabular-nums", text.secondary)}>
+                      {item.quantityRequested} {item.ingredient?.unit ?? ""}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className={text.muted}>Unit</dt>
+                    <dd className={cn("tabular-nums", text.secondary)}>
+                      {formatCurrency(item.unitPrice)}
+                    </dd>
+                  </div>
+                  <div className="col-span-2">
+                    <dt className={text.muted}>Total</dt>
+                    <dd className={cn("tabular-nums font-medium", text.primary)}>
+                      {formatCurrency(item.quantityRequested * item.unitPrice)}
+                    </dd>
+                  </div>
+                </dl>
+              </ListMobileCard>
+            )}
+          </PaginatedMobileList>
+        )
+      }
+      desktop={
+        <DataTable
+          columns={poItemColumns}
+          dataSource={items}
+          rowKey="id"
+          pagination={false}
+          size="small"
+          hideBorders
+          emptyDescription="No line items."
+        />
+      }
+    />
+  );
 }
 
 export function PurchaseOrderExpandedPanel({ record }: { record: PurchaseOrder }) {
-  const itemColumns: ColumnsType<PurchaseOrderItem> = [
-    {
-      title: "Ingredient",
-      key: "name",
-      render: (_: unknown, item: PurchaseOrderItem) => item.ingredient?.name ?? "—",
-    },
-    {
-      title: "Quantity",
-      dataIndex: "quantityRequested",
-      key: "qty",
-      responsive: ["md"],
-      render: (val: number, item: PurchaseOrderItem) =>
-        `${val} ${item.ingredient?.unit ?? ""}`,
-    },
-    {
-      title: "Unit Price",
-      dataIndex: "unitPrice",
-      key: "price",
-      align: "right" as const,
-      responsive: ["md"],
-      render: (val: number) => <span className="tabular-nums">{formatCurrency(val)}</span>,
-    },
-    {
-      title: "Line Total",
-      key: "total",
-      align: "right" as const,
-      render: (_: unknown, item: PurchaseOrderItem) => (
-        <span className={typeUiLabelClassName(cn("tabular-nums", text.primary))}>
-          {formatCurrency(item.quantityRequested * item.unitPrice)}
-        </span>
-      ),
-    },
-  ];
-
-  const stepItems = [
-    { title: "Draft", description: "Prepared" },
-    { title: "Pending", description: "Approval" },
-    { title: "Approved", description: "Waiting delivery" },
-    { title: "Received", description: "In stock" },
-  ];
+  const items = record.items ?? [];
 
   return (
     <div className={expandedRowPanelClassName()}>
-      <div className="mb-6 px-2 sm:px-6">
-        <Steps
-          current={getPurchaseOrderStepCurrent(record.status)}
-          size="small"
-          status={
-            record.status === "DRAFT" &&
-            !record.isAutoGenerated &&
-            (record.items?.length ?? 0) === 0
-              ? "error"
-              : "process"
-          }
-          items={stepItems}
-        />
-      </div>
-      <DataTable
-        columns={itemColumns}
-        dataSource={record.items ?? []}
-        rowKey="id"
-        pagination={false}
-        size="small"
-        hideBorders
-      />
+      <PoLineItemsTable items={items} />
     </div>
   );
 }
@@ -125,47 +137,50 @@ export function ReceivePurchaseOrderDialog({
   onConfirm: () => void;
   isSubmitting: boolean;
 }) {
+  const items = purchaseOrder?.items ?? [];
+
   return (
-    <Dialog open={purchaseOrder != null} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className={procurementDialogContentClassName("sm:max-w-lg")}>
-        <DialogHeader>
-          <DialogTitle className={typeHeadingClassName("text-xl")}>
-            Receive {purchaseOrder?.poNumber ?? "PO"}
-          </DialogTitle>
-          <DialogDescription>
-            Receiving updates inventory batches for this order. For deliveries not linked to a PO,
-            use{" "}
-            <Link href="/inventory/stock-in" className={inlineLinkClassName()}>
-              Receive Stock (GRN)
-            </Link>
-            .
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4">
-          <p className={cn("text-sm", text.muted)}>
-            Set expiry dates for incoming batches (optional per line).
-          </p>
-          {(purchaseOrder?.items ?? []).map((item) => (
-            <div key={item.id} className={receiveLineClassName()}>
-              <div>
-                <div className={cn("font-medium", text.primary)}>{item.ingredient?.name}</div>
-                <div className={cn("text-xs", text.muted)}>
-                  {item.quantityRequested} {item.ingredient?.unit}
-                </div>
-              </div>
-              <div className="w-full sm:w-44">
-                <Label className={cn("text-xs", text.secondary)}>Expiry date</Label>
-                <Input
-                  type="date"
-                  value={expiryByIngredient[item.ingredientId] ?? ""}
-                  onChange={(e) => onExpiryChange(item.ingredientId, e.target.value)}
-                  className={formLineDateFieldClassName()}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-        <DialogFooter className="gap-2 sm:gap-0">
+    <FormDialog
+      open={purchaseOrder != null}
+      onOpenChange={(open) => !open && onClose()}
+      className={procurementDialogContentClassName("sm:max-w-lg")}
+    >
+        <FormDialog.Title>Receive {purchaseOrder?.poNumber ?? "PO"}</FormDialog.Title>
+        <FormDialog.Body className="space-y-3 pt-1">
+          {items.length === 0 ? (
+            <p className={cn("py-4 text-center text-sm", text.muted)}>No line items.</p>
+          ) : (
+            <PaginatedMobileList
+              items={items}
+              pageSize={0}
+              getItemKey={(item) => item.id}
+            >
+              {(item) => (
+                <ListMobileCard>
+                  <div className="mb-3">
+                    <p className={cn("font-medium", text.primary)}>{item.ingredient?.name}</p>
+                    <p className={cn("text-xs tabular-nums", text.muted)}>
+                      {item.quantityRequested} {item.ingredient?.unit}
+                    </p>
+                  </div>
+                  <div>
+                    <Label className={cn("text-xs", text.secondary)} htmlFor={`expiry-${item.ingredientId}`}>
+                      Expiry
+                    </Label>
+                    <Input
+                      id={`expiry-${item.ingredientId}`}
+                      type="date"
+                      value={expiryByIngredient[item.ingredientId] ?? ""}
+                      onChange={(e) => onExpiryChange(item.ingredientId, e.target.value)}
+                      className={cn("mt-1", formLineDateFieldClassName())}
+                    />
+                  </div>
+                </ListMobileCard>
+              )}
+            </PaginatedMobileList>
+          )}
+        </FormDialog.Body>
+        <FormDialog.Footer className="gap-2 sm:gap-0">
           <Button type="button" variant="outline" onClick={onClose} className="min-h-[44px]">
             Cancel
           </Button>
@@ -176,10 +191,9 @@ export function ReceivePurchaseOrderDialog({
             onClick={onConfirm}
           >
             {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}
-            Confirm Receive
+            Receive
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialog.Footer>
+    </FormDialog>
   );
 }

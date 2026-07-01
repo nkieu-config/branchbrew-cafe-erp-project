@@ -1,17 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Building2, Loader2, MapPin, Pencil, Plus } from "lucide-react";
+import { Loader2, MapPin, Pencil, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useBranches, useCreateBranch, useUpdateBranch } from "@/hooks/domains/useGeneralQueries";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { AnimatedPage } from "@/components/layout/animated-page";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
-import { StatusBadge } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
-import { BranchFormModal } from "@/components/organization/BranchFormModal";
+import {
+  BranchFormModal,
+  type BranchFormValues,
+} from "@/components/organization/BranchFormModal";
 import { Button } from "@/components/ui/button";
 import {
   type BranchTypeFilter,
@@ -21,13 +21,14 @@ import {
 } from "@/lib/branch-filters";
 import { getErrorMessage } from "@/lib/errors";
 import type { Branch } from "@/types/api";
-import { tableRowDividerClassName } from "@/lib/theme/color-helpers";
-import { infoBannerClassName, infoBannerIconClassName, infoBannerTextClassName, infoBannerTitleClassName } from "@/lib/theme/hub-banners";
+import { infoBannerClassName, infoBannerTextClassName } from "@/lib/theme/hub-banners";
 import { branchCardClassName, emptyStatePanelClassName, hubCtaClassName, hubLoadingSpinnerClassName } from "@/lib/theme/hub-primitives";
-import { metricValueClassName } from "@/lib/theme/metric";
-import { branchCardAccentClassName, branchCardMetaClassName, organizationSectionPanelClassName } from "@/lib/theme/organization";
+import {
+  organizationMutedMetaClassName,
+  organizationSectionPanelClassName,
+} from "@/lib/theme/organization";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
+import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 export default function BranchesPageClient({ embedded = false }: { embedded?: boolean }) {
@@ -77,11 +78,7 @@ export default function BranchesPageClient({ embedded = false }: { embedded?: bo
     setIsModalOpen(true);
   };
 
-  const handleSave = async (payload: {
-    name: string;
-    location?: string;
-    isCentralKitchen?: boolean;
-  }) => {
+  const handleSave = async (payload: BranchFormValues) => {
     try {
       if (editingBranch) {
         await updateMutation.mutateAsync({ id: editingBranch.id, ...payload });
@@ -99,35 +96,24 @@ export default function BranchesPageClient({ embedded = false }: { embedded?: bo
   };
 
   const content = (
-    <div className={cn("space-y-6 w-full", embedded ? "max-w-5xl" : "max-w-5xl mx-auto")}>
-      <HubPageHeader
-        hideTitle
-        accentHub="organization"
-        actions={
-          <Button
-            className={hubCtaClassName("organization", "min-h-[44px]")}
-            onClick={handleAddNew}
-          >
-            <Plus className="w-4 h-4 mr-2" aria-hidden />
-            Add branch
-          </Button>
-        }
-      />
+    <div className={cn("space-y-4 w-full", embedded ? "max-w-5xl" : "max-w-5xl mx-auto")}>
+      <div className="flex justify-end">
+        <Button
+          className={hubCtaClassName("organization", "min-h-[44px]")}
+          onClick={handleAddNew}
+        >
+          <Plus className="w-4 h-4 mr-2" aria-hidden />
+          Add branch
+        </Button>
+      </div>
 
       <HubListPage className={organizationSectionPanelClassName()}>
         {!isLoading && !isError && summary.total === 0 && (
           <HubListPage.Banner>
-            <div className={infoBannerClassName()}>
-              <div className="flex items-start gap-3">
-                <Building2 className={infoBannerIconClassName()} aria-hidden />
-                <div>
-                  <p className={infoBannerTitleClassName()}>No branches yet</p>
-                  <p className={infoBannerTextClassName()}>
-                    Create your first branch or central kitchen, then assign users in{" "}
-                    <span className="font-medium">Users &amp; Roles</span> and stock in Inventory.
-                  </p>
-                </div>
-              </div>
+            <div className={infoBannerClassName("py-3")}>
+              <p className={infoBannerTextClassName()}>
+                No branches yet — create your first location to assign staff and inventory.
+              </p>
             </div>
           </HubListPage.Banner>
         )}
@@ -141,7 +127,7 @@ export default function BranchesPageClient({ embedded = false }: { embedded?: bo
         <HubListPage.Toolbar
           search={search}
           onSearchChange={setSearch}
-          searchPlaceholder="Search name, location, ID…"
+          searchPlaceholder="Search name or location…"
           showReset={hasActiveFilters}
           onReset={resetFilters}
           filters={
@@ -177,57 +163,46 @@ export default function BranchesPageClient({ embedded = false }: { embedded?: bo
           </div>
         ) : filteredBranches.length === 0 ? (
           <div className={emptyStatePanelClassName()}>
-            <Building2
-              className={cn("w-12 h-12 mx-auto mb-4", metricValueClassName("slate"))}
-              aria-hidden
-            />
-            <p className={typeUiLabelClassName(text.primary)}>
+            <p className={typeHeadingClassName("text-base")}>
               {hasActiveFilters ? "No branches match your filters" : "No branches yet"}
             </p>
-            <p className={cn("text-sm mt-2 max-w-md mx-auto", text.muted)}>
+            <p className={cn("text-sm mt-1", text.muted)}>
               {hasActiveFilters
                 ? "Try clearing search or type filters."
-                : "Create your first branch or central kitchen to start assigning staff and inventory."}
+                : "Add a franchise location or central kitchen to get started."}
             </p>
             {!hasActiveFilters && (
               <Button
-                className={hubCtaClassName("organization", "mt-6 min-h-[44px]")}
+                className={hubCtaClassName("organization", "mt-4 min-h-[44px]")}
                 onClick={handleAddNew}
               >
                 <Plus className="w-4 h-4 mr-2" aria-hidden />
-                Add first branch
+                Add branch
               </Button>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {filteredBranches.map((branch) => (
               <article
                 key={branch.id}
-                className={branchCardClassName(
-                  "organization",
-                  branchCardAccentClassName(branch.isCentralKitchen),
-                )}
+                className={branchCardClassName("organization", "p-4")}
               >
-                <div className="flex justify-between items-start gap-3 mb-4">
-                  <div className="min-w-0">
-                    <h3 className={typeHeadingClassName("text-lg truncate")}>
+                <div className="flex justify-between items-start gap-2">
+                  <div className="min-w-0 flex-1">
+                    <h3 className={typeHeadingClassName("text-base truncate")}>
                       {branch.name}
                     </h3>
-                    <p className={cn("text-sm flex items-center gap-1 mt-1", text.muted)}>
+                    <p className={organizationMutedMetaClassName("mt-0.5")}>
+                      {branchTypeLabel(branch.isCentralKitchen)}
+                    </p>
+                    <p className={cn("text-sm flex items-center gap-1 mt-2", text.muted)}>
                       <MapPin className="w-3.5 h-3.5 shrink-0" aria-hidden />
                       <span className="truncate">
-                        {branch.location?.trim() || "No location specified"}
+                        {branch.location?.trim() || "No location"}
                       </span>
                     </p>
                   </div>
-                  <StatusBadge tone={branch.isCentralKitchen ? "info" : "neutral"}>
-                    {branchTypeLabel(branch.isCentralKitchen)}
-                  </StatusBadge>
-                </div>
-
-                <div className={tableRowDividerClassName("mt-auto pt-4 border-t flex justify-between items-center gap-2")}>
-                  <span className={branchCardMetaClassName()}>ID #{branch.id}</span>
                   <TableActionButton
                     label="Edit"
                     icon={Pencil}
@@ -244,12 +219,13 @@ export default function BranchesPageClient({ embedded = false }: { embedded?: bo
 
       <BranchFormModal
         open={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
+        onOpenChange={(next) => {
+          setIsModalOpen(next);
+          if (next) return;
           setEditingBranch(null);
         }}
-        branch={editingBranch}
-        onSubmit={handleSave}
+        initialValues={editingBranch}
+        onSave={handleSave}
         isSubmitting={createMutation.isPending || updateMutation.isPending}
       />
     </div>
@@ -257,5 +233,5 @@ export default function BranchesPageClient({ embedded = false }: { embedded?: bo
 
   if (embedded) return content;
 
-  return <AnimatedPage className="space-y-6 max-w-5xl mx-auto w-full">{content}</AnimatedPage>;
+  return <div className="mx-auto w-full max-w-5xl space-y-4">{content}</div>;
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AlertTriangle, Loader2, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -9,9 +9,7 @@ import {
   useEquipment,
   useLogMaintenance,
 } from "@/hooks/domains/useProcurementQueries";
-import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
@@ -28,23 +26,14 @@ import {
   summarizeEquipment,
 } from "@/lib/equipment-filters";
 import { getErrorMessage } from "@/lib/errors";
-import type { Branch, Equipment, EquipmentStatus, EquipmentType } from "@/types/api";
+import type { Equipment, EquipmentStatus, EquipmentType } from "@/types/api";
 import { assetsSectionPanelClassName } from "@/lib/theme/assets";
-import {
-  infoBannerClassName,
-  infoBannerIconClassName,
-  infoBannerTextClassName,
-  infoBannerTitleClassName,
-} from "@/lib/theme/hub-banners";
-import { hubCtaClassName, hubLoadingSpinnerClassName } from "@/lib/theme/hub-primitives";
-import { cn } from "@/lib/utils";
+import { infoBannerClassName, infoBannerTextClassName } from "@/lib/theme/hub-banners";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 
 export default function AssetsPageClient() {
   const { user, activeBranchId } = useAuth();
   const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
-
-  const { data: branches = [] } = useBranches();
-  const branchName = (branches as Branch[]).find((branch) => branch.id === branchIdNum)?.name;
 
   const {
     data: equipmentData,
@@ -138,36 +127,25 @@ export default function AssetsPageClient() {
   }
 
   return (
-    <div className="space-y-6">
-      <HubPageHeader
-        hideTitle
-        accentHub="assets"
-        branchScope={{ branchName }}
-        actions={
-          <Button
-            className={hubCtaClassName("assets", "min-h-[44px]")}
-            onClick={() => setRegisterOpen(true)}
-          >
-            <Plus className="w-4 h-4 mr-2" aria-hidden />
-            Register equipment
-          </Button>
-        }
-      />
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button
+          className={hubCtaClassName("assets", "min-h-[44px]")}
+          onClick={() => setRegisterOpen(true)}
+        >
+          <Plus className="w-4 h-4 mr-2" aria-hidden />
+          Register equipment
+        </Button>
+      </div>
 
       <HubListPage className={assetsSectionPanelClassName()}>
         {!isLoading && !isError && summary.dueSoon > 0 && (
           <HubListPage.Banner>
-            <div className={infoBannerClassName()}>
-              <div className="flex items-start gap-3">
-                <AlertTriangle className={infoBannerIconClassName()} aria-hidden />
-                <div>
-                  <p className={infoBannerTitleClassName()}>Maintenance attention needed</p>
-                  <p className={infoBannerTextClassName()}>
-                    {summary.dueSoon} active asset{summary.dueSoon === 1 ? " is" : "s are"} overdue
-                    or due within 7 days. Schedule service to avoid downtime.
-                  </p>
-                </div>
-              </div>
+            <div className={infoBannerClassName("py-3")}>
+              <p className={infoBannerTextClassName()}>
+                {summary.dueSoon} asset{summary.dueSoon === 1 ? "" : "s"} due for maintenance within
+                7 days
+              </p>
             </div>
           </HubListPage.Banner>
         )}
@@ -237,21 +215,12 @@ export default function AssetsPageClient() {
           emptyLabel="No equipment yet"
         />
 
-        <HubListPage.Body>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className={cn("w-8 h-8", hubLoadingSpinnerClassName())} aria-hidden />
-              <span className="sr-only">Loading equipment</span>
-            </div>
-          ) : (
-            <EquipmentTable
-              equipment={filteredEquipment}
-              loading={isLoading}
-              hasActiveFilters={hasActiveFilters}
-              onLogMaintenance={setMaintenanceTarget}
-            />
-          )}
-        </HubListPage.Body>
+        <EquipmentTable
+          equipment={filteredEquipment}
+          loading={isLoading}
+          hasActiveFilters={hasActiveFilters}
+          onLogMaintenance={setMaintenanceTarget}
+        />
       </HubListPage>
 
       <RegisterEquipmentModal

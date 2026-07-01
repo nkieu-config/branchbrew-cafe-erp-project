@@ -3,13 +3,26 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { Calendar, Popover } from "antd";
-import { CalendarDays, AlertCircle } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import { differenceInDays } from "date-fns";
 import { formatIsoDate } from "@/lib/intl-date";
 import { isTrackableBatch } from "@/lib/inventory-alerts";
-import { expiryCalendarShellClassName, expiryCalendarFrameClassName, expiryCellClassName, expiryHeatmapHeaderClassName, expiryHeatmapHeaderIconClassName, expiryHeatmapPanelClassName, expiryHeatmapPopoverClassName, expiryLegendDotClassName, expiryPopoverQtyClassName, expiryUrgency } from "@/lib/theme/stock";
+import {
+  expiryCalendarShellClassName,
+  expiryCalendarFrameClassName,
+  expiryCellClassName,
+  expiryHeatmapHeaderClassName,
+  expiryHeatmapHeaderIconClassName,
+  expiryHeatmapPanelClassName,
+  expiryHeatmapPopoverClassName,
+  expiryLegendDotClassName,
+  expiryLegendItemClassName,
+  expiryLegendRowClassName,
+  expiryPopoverQtyClassName,
+  expiryUrgency,
+} from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName, typeMicroClassName, typeSectionLabelClassName, typeUiLabelClassName } from "@/lib/theme/typography";
+import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { Dayjs } from "dayjs";
 import type { InventoryBatch, Ingredient, PurchaseOrder, Supplier } from "@/types/api";
@@ -26,6 +39,14 @@ type ExpiryHeatmapPanelProps = {
 function batchIngredientLabel(batch: BatchWithSupplier) {
   return batch.ingredient?.name ?? `#${batch.ingredientId}`;
 }
+
+const LEGEND_ITEMS = [
+  { urgency: "expired" as const, label: "Expired" },
+  { urgency: "critical" as const, label: "0–1d" },
+  { urgency: "warning" as const, label: "2–3d" },
+  { urgency: "notice" as const, label: "4–7d" },
+  { urgency: "safe" as const, label: "8d+" },
+];
 
 export function ExpiryHeatmapPanel({ batches }: ExpiryHeatmapPanelProps) {
   const { resolvedTheme } = useTheme();
@@ -60,12 +81,9 @@ export function ExpiryHeatmapPanel({ batches }: ExpiryHeatmapPanelProps) {
     const label = `${expiringBatches.length} item${expiringBatches.length === 1 ? "" : "s"} expiring`;
 
     const popoverContent = (
-      <div className="max-w-xs space-y-2">
-        <div className={cn(typeUiLabelClassName(), "border-b pb-1 mb-2", text.primary)}>
-          Expiring Items
-        </div>
+      <div className="max-w-xs space-y-1.5">
         {expiringBatches.map((b) => (
-          <div key={b.id} className="flex justify-between items-center text-sm gap-4">
+          <div key={b.id} className="flex justify-between items-center gap-4 text-sm">
             <span className={typeUiLabelClassName(text.secondary)}>{batchIngredientLabel(b)}</span>
             <span className={expiryPopoverQtyClassName()}>
               {b.quantity} {b.ingredient?.unit ?? ""}
@@ -88,13 +106,10 @@ export function ExpiryHeatmapPanel({ batches }: ExpiryHeatmapPanelProps) {
       >
         <button
           type="button"
-          className={cn(expiryCellClassName(urgency), "border-0 cursor-pointer w-full")}
+          className={cn(expiryCellClassName(urgency), "border-0 w-full")}
           aria-label={label}
         >
-          <AlertCircle className="w-4 h-4 mb-1" aria-hidden />
-          <span className={typeUiLabelClassName(typeMicroClassName("leading-none"))}>
-            {expiringBatches.length} Items
-          </span>
+          {expiringBatches.length}
         </button>
       </Popover>
     );
@@ -104,9 +119,9 @@ export function ExpiryHeatmapPanel({ batches }: ExpiryHeatmapPanelProps) {
     <div className={expiryHeatmapPanelClassName()}>
       <div className={expiryHeatmapHeaderClassName()}>
         <CalendarDays className={expiryHeatmapHeaderIconClassName()} aria-hidden />
-        Expiry Heatmap
+        Expiry calendar
       </div>
-      <div className="p-4">
+      <div className="px-4 pb-4">
         <Calendar
           key={themeKey}
           fullscreen={false}
@@ -120,37 +135,13 @@ export function ExpiryHeatmapPanel({ batches }: ExpiryHeatmapPanelProps) {
           }}
           className={expiryCalendarShellClassName(expiryCalendarFrameClassName())}
         />
-        <p className={`mt-3 text-xs ${text.muted}`}>
-          Day view only — use month navigation to browse expiry dates. Only batches with remaining
-          quantity are shown.
-        </p>
-        <div className="mt-6 space-y-2">
-          <div className={typeSectionLabelClassName("mb-3")}>
-            Legend
-          </div>
-          <div className={`flex items-center gap-2 text-sm font-medium ${text.secondary}`}>
-            <div className={expiryLegendDotClassName("expired")} aria-hidden />
-            Expired
-          </div>
-          <div className={`flex items-center gap-2 text-sm font-medium ${text.secondary}`}>
-            <div className={expiryLegendDotClassName("critical")} aria-hidden />
-            Critical (0–1 days)
-          </div>
-          <div className={`flex items-center gap-2 text-sm font-medium ${text.secondary}`}>
-            <div className={expiryLegendDotClassName("warning")} aria-hidden />
-            Warning (2–3 days)
-          </div>
-          <div className={`flex items-center gap-2 text-sm font-medium ${text.secondary}`}>
-            <div className={expiryLegendDotClassName("notice")} aria-hidden />
-            Notice (4–7 days)
-          </div>
-          <div className={`flex items-center gap-2 text-sm font-medium ${text.secondary}`}>
-            <div className={expiryLegendDotClassName("safe")} aria-hidden />
-            Safe (8+ days)
-          </div>
-          <p className={`pt-2 text-xs ${text.muted}`}>
-            Safe appears on dates with batches expiring 8+ days out — empty days have no cell.
-          </p>
+        <div className={expiryLegendRowClassName("mt-3 pt-3 border-t border-[var(--table-row-border)]")}>
+          {LEGEND_ITEMS.map(({ urgency, label }) => (
+            <span key={urgency} className={expiryLegendItemClassName()}>
+              <span className={expiryLegendDotClassName(urgency)} aria-hidden />
+              {label}
+            </span>
+          ))}
         </div>
       </div>
     </div>

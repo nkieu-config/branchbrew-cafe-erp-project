@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { typeMetricClassName, typeHeadingClassName, typeUiLabelClassName } from "./typography";
+import { typeMetricClassName, typeHeadingClassName, typeUiLabelClassName, typeMicroClassName } from "./typography";
 
 export type DashboardWidgetVariant = "sales" | "branch" | "alerts" | "products" | "chart";
 
@@ -40,10 +40,54 @@ export function dashboardWidgetCardClass(
   className?: string,
 ) {
   return cn(
-    "dashboard-widget glass-card h-full ring-0 shadow-none",
+    "dashboard-widget glass-card h-full ring-0 shadow-none rounded-2xl",
     widgetBorder[variant],
     widgetGradient[variant],
     variant === "sales" && "shadow-[var(--widget-sales-shadow)]",
+    className,
+  );
+}
+
+export function dashboardKpiBodyClass(className?: string) {
+  return cn("p-5 h-full flex flex-col justify-center", className);
+}
+
+export function dashboardWidgetHeaderClass(className?: string) {
+  return cn("shrink-0 space-y-0 px-5 pt-4 pb-2", className);
+}
+
+export function dashboardAlertCountBadgeClass(tone: "low" | "expiry" | "neutral") {
+  return cn(
+    "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums",
+    tone === "low" && "bg-[var(--widget-alerts-low-row)] text-[var(--widget-alerts-low-value)]",
+    tone === "expiry" &&
+      "bg-[var(--widget-alerts-expiry-row)] text-[var(--widget-alerts-expiry-value)]",
+    tone === "neutral" &&
+      "bg-[var(--surface-muted)] text-[var(--widget-alerts-header)]",
+  );
+}
+
+export function dashboardCustomizeHintClass(className?: string) {
+  return cn(
+    "flex items-center gap-2 rounded-xl border px-3 py-2 text-xs",
+    "border-[var(--dashboard-header-border)] bg-[var(--surface-elevated)] text-[var(--text-subtle)]",
+    className,
+  );
+}
+
+export function dashboardGridClass(className?: string) {
+  return cn(
+    "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 auto-rows-[minmax(128px,auto)]",
+    className,
+  );
+}
+
+export function dashboardSortableShellClass(isDragging: boolean, className?: string) {
+  return cn(
+    "group flex flex-col overflow-hidden rounded-2xl",
+    "ring-1 ring-[var(--glass-card-border)] bg-[var(--surface-elevated)]/40",
+    "transition-[box-shadow,ring-color] duration-200 motion-reduce:transition-none",
+    isDragging && dashboardDragActiveClass(true),
     className,
   );
 }
@@ -60,36 +104,42 @@ export function dashboardWidgetValueClass(variant: DashboardWidgetVariant, class
   return cn(typeMetricClassName(), widgetValue[variant], className);
 }
 
-export function dashboardWidgetIconSolidClass() {
+export function dashboardWidgetIconSolidClass(size: "default" | "compact" = "default") {
   return cn(
-    "p-4 rounded-2xl shadow-lg",
+    size === "compact" ? "p-3 rounded-xl shadow-md" : "p-4 rounded-2xl shadow-lg",
     "bg-[var(--brand-solid)] text-[var(--on-brand-solid-fg)]",
   );
 }
 
-export function dashboardWidgetIconSoftClass(variant: "branch") {
+export function dashboardWidgetIconSoftClass(
+  variant: "branch",
+  size: "default" | "compact" = "default",
+) {
   return cn(
-    "p-4 rounded-2xl shadow-inner",
+    size === "compact" ? "p-3 rounded-xl shadow-inner" : "p-4 rounded-2xl shadow-inner",
     "bg-[var(--widget-branch-icon-bg)] text-[var(--widget-branch-icon-fg)]",
   );
 }
 
 export function dashboardTrendBadgeClass(positive: boolean) {
-  return positive
-    ? "bg-[var(--status-success-bg)] text-[var(--status-success-fg)]"
-    : "bg-[var(--status-danger-bg)] text-[var(--status-danger-fg)]";
+  return cn(
+    "rounded-full",
+    positive
+      ? "bg-[var(--status-success-bg)] text-[var(--status-success-fg)]"
+      : "bg-[var(--status-danger-bg)] text-[var(--status-danger-fg)]",
+  );
 }
 
 export function dashboardAlertsHeaderClass() {
   return cn(
-    "pb-3 border-b shrink-0 border-[var(--widget-alerts-divider)]",
+    "pb-2 border-b shrink-0 border-[var(--widget-alerts-divider)]",
     "text-[var(--widget-alerts-header)]",
   );
 }
 
 export function dashboardAlertsRowClass(type: "low" | "expiry") {
   return cn(
-    "p-4 flex justify-between items-center transition-colors",
+    "p-3 flex justify-between items-center transition-colors",
     type === "low"
       ? "bg-[var(--widget-alerts-low-row)] hover:bg-[var(--widget-alerts-low-row-hover)]"
       : "bg-[var(--widget-alerts-expiry-row)] hover:bg-[var(--widget-alerts-expiry-row-hover)]",
@@ -179,18 +229,19 @@ export function dashboardAlertsEmptyTextClassName(className?: string) {
 
 export function dashboardDragActiveClass(isDragging: boolean) {
   return isDragging
-    ? "shadow-2xl ring-2 ring-[var(--widget-drag-ring)] rounded-xl opacity-80"
+    ? "shadow-2xl ring-2 ring-[var(--widget-drag-ring)] rounded-2xl opacity-90"
     : "";
 }
 
 export function dashboardDragHandleBarClass() {
   return cn(
-    "dashboard-drag-handle flex shrink-0 items-center justify-center",
-    "h-7 w-full cursor-grab active:cursor-grabbing touch-manipulation",
-    "rounded-t-xl border-b border-border/50",
+    "dashboard-drag-handle flex shrink-0 items-center justify-center gap-1.5",
+    "h-6 w-full cursor-grab active:cursor-grabbing touch-manipulation",
+    "rounded-t-2xl border-b border-border/40",
     "text-[var(--widget-drag-handle-fg)] bg-[var(--widget-drag-handle-bg)]",
     "hover:bg-[var(--widget-drag-handle-hover)]",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--widget-drag-ring)]",
+    typeMicroClassName("uppercase tracking-wider font-medium"),
   );
 }
 

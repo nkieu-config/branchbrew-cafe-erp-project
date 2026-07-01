@@ -43,11 +43,11 @@ export function stockLevelStatusTone(level: StockLevel): StatusTone {
 export function stockLevelLabel(level: StockLevel): string {
   switch (level) {
     case "out":
-      return "Out of Stock";
+      return "Out";
     case "low":
-      return "Low Stock";
+      return "Low";
     default:
-      return "In Stock";
+      return "OK";
   }
 }
 
@@ -79,7 +79,7 @@ const expiryCellClass: Record<ExpiryUrgency, string> = {
 
 export function expiryCellClassName(urgency: ExpiryUrgency, className?: string) {
   return cn(
-    "w-full h-full flex flex-col items-center justify-center rounded-lg p-1 mt-1 cursor-pointer transition-transform hover:scale-110 motion-reduce:hover:scale-100",
+    "w-full h-full flex items-center justify-center rounded-md mt-0.5 min-h-[1.5rem] text-xs font-medium tabular-nums cursor-pointer",
     expiryCellClass[urgency],
     className,
   );
@@ -158,8 +158,8 @@ export function expiryDateTextClassName(urgency: ExpiryUrgency | null, className
 
 export function formLineRowClassName(className?: string) {
   return cn(
-    "flex flex-col sm:flex-row sm:items-end gap-4 p-4 rounded-lg border",
-    "bg-[var(--form-line-bg)] border-[var(--form-line-border)]",
+    "flex flex-col sm:flex-row sm:items-end gap-3 py-4 border-b",
+    "border-[var(--table-row-border)] last:border-0",
     className,
   );
 }
@@ -206,17 +206,14 @@ export function formRemoveButtonClassName(className?: string) {
 
 export function formPanelClassName(className?: string) {
   return cn(
-    "hub-section-panel rounded-xl shadow-sm border p-4 sm:p-6 w-full",
+    "hub-section-panel rounded-xl border w-full p-4 sm:p-5",
     "bg-[var(--hub-section-bg)] border-[var(--hub-section-border)]",
     className,
   );
 }
 
 export function formPanelHeaderClassName(className?: string) {
-  return cn(
-    "mb-6 border-b pb-4 border-[var(--table-row-border)]",
-    className,
-  );
+  return cn("mb-4", className);
 }
 
 export function formFieldInsetClassName(className?: string) {
@@ -238,22 +235,22 @@ export function formSourceBannerClassName(className?: string) {
 
 export function expiryHeatmapPanelClassName(className?: string) {
   return cn(
-    "rounded-2xl shadow-sm border p-1 h-full",
-    "bg-[var(--table-container-bg)] border-[var(--table-container-border)]",
+    "rounded-xl h-full",
+    "bg-[var(--table-container-bg)]",
     className,
   );
 }
 
 export function expiryHeatmapHeaderClassName(className?: string) {
   return cn(
-    "p-4 rounded-t-xl font-bold flex items-center gap-2",
-    "bg-[var(--expiry-panel-header-bg)] text-[var(--expiry-panel-header-fg)]",
+    "px-4 pt-4 pb-2 text-base font-semibold flex items-center gap-2",
+    text.primary,
     className,
   );
 }
 
 export function expiryHeatmapHeaderIconClassName(className?: string) {
-  return cn("w-5 h-5 text-[var(--expiry-panel-header-icon)]", className);
+  return cn("w-4 h-4", text.muted, className);
 }
 
 export function expiryPopoverQtyClassName(className?: string) {
@@ -261,7 +258,15 @@ export function expiryPopoverQtyClassName(className?: string) {
 }
 
 export function expiryCalendarFrameClassName(className?: string) {
-  return cn("rounded-xl border border-[var(--table-row-border)] overflow-hidden", className);
+  return cn("rounded-lg overflow-hidden", className);
+}
+
+export function expiryLegendRowClassName(className?: string) {
+  return cn("flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs", text.muted, className);
+}
+
+export function expiryLegendItemClassName(className?: string) {
+  return cn("inline-flex items-center gap-1.5", className);
 }
 
 /** Ant Design Calendar shell — CSS-variable bridge for instant light/dark sync (see utilities.css). */

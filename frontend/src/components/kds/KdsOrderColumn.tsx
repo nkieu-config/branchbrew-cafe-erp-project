@@ -13,12 +13,12 @@ import type { Order } from "@/types/api";
 
 type KdsOrderColumnProps = {
   title: string;
-  description: string;
   orders: Order[];
   now: number;
   pendingAction: KdsPendingAction | null;
   confirmDoneId: number | null;
   emptyMessage: string;
+  className?: string;
   onStart: (orderId: number) => void;
   onRequestDone: (orderId: number) => void;
   onCancelDone: () => void;
@@ -27,25 +27,24 @@ type KdsOrderColumnProps = {
 
 export function KdsOrderColumn({
   title,
-  description,
   orders,
   now,
   pendingAction,
   confirmDoneId,
   emptyMessage,
+  className,
   onStart,
   onRequestDone,
   onCancelDone,
   onConfirmDone,
 }: KdsOrderColumnProps) {
   return (
-    <section className={kdsColumnClassName()} aria-label={title}>
-      <header className={kdsColumnHeaderClassName()}>
+    <section className={kdsColumnClassName(className)} aria-label={title}>
+      <header className={cn(kdsColumnHeaderClassName(), "max-lg:hidden")}>
         <div className="flex items-center justify-between gap-2">
           <h2 className={typeUiLabelClassName(text.primary)}>{title}</h2>
           <span className={cn("text-sm tabular-nums", text.muted)}>{orders.length}</span>
         </div>
-        <p className={cn("mt-0.5 text-xs sm:text-sm", text.muted)}>{description}</p>
       </header>
 
       <div className={kdsColumnScrollClassName()}>

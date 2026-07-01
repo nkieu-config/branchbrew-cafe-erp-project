@@ -32,7 +32,7 @@ export function TopProductsChart({ data }: { data: TopProduct[] }) {
 
   if (data.length === 0) {
     return (
-      <div className={dashboardChartEmptyClass("h-full min-h-[280px]")}>
+      <div className={dashboardChartEmptyClass("h-full min-h-[220px]")}>
         <Award className={decorativeIconClassName("w-10 h-10")} aria-hidden />
         <p className={cn(typeUiLabelClassName("text-sm"), text.primary)}>No sales recorded today</p>
         <p className={cn("text-sm", text.muted)}>Best sellers will appear once items are sold.</p>
@@ -50,8 +50,8 @@ export function TopProductsChart({ data }: { data: TopProduct[] }) {
           type="category"
           axisLine={false}
           tickLine={false}
-          tick={{ fontSize: 13, fill: chartTheme.axis, fontWeight: 700 }}
-          width={120}
+          tick={{ fontSize: 12, fill: chartTheme.axis, fontWeight: 600 }}
+          width={110}
         />
         <Tooltip
           cursor={{ fill: chartTheme.cursor, opacity: 0.5 }}
@@ -65,7 +65,7 @@ export function TopProductsChart({ data }: { data: TopProduct[] }) {
           formatter={(value) => [`${Number(value ?? 0)} units`, "Sold"]}
           labelStyle={{ fontWeight: "bold", color: chartTheme.tooltipFg, marginBottom: "4px" }}
         />
-        <Bar dataKey="totalQuantity" radius={[0, 6, 6, 0]} barSize={32}>
+        <Bar dataKey="totalQuantity" radius={[0, 8, 8, 0]} barSize={26}>
           {data.map((_, index) => (
             <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
           ))}

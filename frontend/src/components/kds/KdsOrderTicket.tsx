@@ -10,20 +10,17 @@ import {
   kdsConfirmCancelButtonClassName,
   kdsDoneButtonClassName,
   kdsItemDividerClassName,
+  kdsItemModifiersClassName,
   kdsItemNameClassName,
-  kdsItemModifierClassName,
-  kdsItemModifiersWrapClassName,
   kdsItemNoteClassName,
-  kdsItemNoteLabelClassName,
-  kdsItemNoteTextClassName,
   kdsItemQtyClassName,
   kdsStartButtonClassName,
+  kdsTicketBodyClassName,
   kdsTicketClassName,
   kdsTicketFooterClassName,
   kdsTicketHeaderClassName,
   kdsTicketQueueClassName,
-  kdsTicketStatusBadgeClassName,
-  kdsTimerChipClassName,
+  kdsTimerClassName,
 } from "@/lib/theme/immersive";
 import type { Order, OrderItem, OrderStatus } from "@/types/api";
 
@@ -44,7 +41,7 @@ type KdsOrderTicketProps = {
 };
 
 function KdsTicketItem({ item }: { item: OrderItem }) {
-  const hasModifiers = (item.modifiers?.length ?? 0) > 0;
+  const modifiers = item.modifiers?.map((modifier) => modifier.optionName) ?? [];
 
   return (
     <div className={kdsItemDividerClassName()}>
@@ -52,24 +49,17 @@ function KdsTicketItem({ item }: { item: OrderItem }) {
         <span className={kdsItemQtyClassName()} aria-hidden>
           {item.quantity}x
         </span>
-        <div className="min-w-0 flex flex-col gap-1">
+        <div className="min-w-0 flex flex-col">
           <span className={kdsItemNameClassName()}>
             {item.product?.name ?? "Item"}
           </span>
-          {hasModifiers && (
-            <div className={kdsItemModifiersWrapClassName()} role="list" aria-label="Modifiers">
-              {item.modifiers!.map((modifier) => (
-                <span key={modifier.id} className={kdsItemModifierClassName()} role="listitem">
-                  {modifier.optionName}
-                </span>
-              ))}
-            </div>
+          {modifiers.length > 0 && (
+            <p className={kdsItemModifiersClassName()}>
+              {modifiers.join(" · ")}
+            </p>
           )}
           {item.notes?.trim() && (
-            <p className={kdsItemNoteClassName()}>
-              <span className={kdsItemNoteLabelClassName()}>Note</span>
-              <span className={kdsItemNoteTextClassName()}>{item.notes.trim()}</span>
-            </p>
+            <p className={kdsItemNoteClassName()}>{item.notes.trim()}</p>
           )}
         </div>
       </div>
@@ -99,29 +89,17 @@ export function KdsOrderTicket({
 
   return (
     <article className={kdsTicketClassName(urgency)} aria-labelledby={titleId}>
-      <div className={kdsTicketHeaderClassName(urgency)}>
-        <div className="min-w-0">
-          <div
-            id={titleId}
-            className={kdsTicketQueueClassName()}
-          >
-            #{queueLabel}
-          </div>
-          <span
-            className={kdsTicketStatusBadgeClassName(
-              order.status === "PREPARING" ? "PREPARING" : "PENDING",
-            )}
-          >
-            {order.status === "PREPARING" ? "Cooking" : "New"}
-          </span>
+      <div className={kdsTicketHeaderClassName()}>
+        <div id={titleId} className={kdsTicketQueueClassName()}>
+          #{queueLabel}
         </div>
-        <div className={kdsTimerChipClassName()} aria-label={`Waiting ${waitLabel}`}>
-          <Clock className="h-5 w-5 sm:h-6 sm:w-6 shrink-0" aria-hidden />
-          <span className="tabular-nums">{waitLabel}</span>
+        <div className={kdsTimerClassName(urgency)} aria-label={`Waiting ${waitLabel}`}>
+          <Clock className="h-4 w-4 shrink-0" aria-hidden />
+          <span>{waitLabel}</span>
         </div>
       </div>
 
-      <div className="space-y-4 p-4 sm:p-5">
+      <div className={kdsTicketBodyClassName()}>
         {order.items?.map((item) => (
           <KdsTicketItem key={item.id} item={item} />
         ))}
@@ -138,14 +116,14 @@ export function KdsOrderTicket({
             {isStarting ? (
               <>
                 <Loader2
-                  className="mr-2 h-6 w-6 animate-spin motion-reduce:animate-none sm:h-8 sm:w-8"
+                  className="mr-2 h-4 w-4 animate-spin motion-reduce:animate-none"
                   aria-hidden
                 />
                 Starting…
               </>
             ) : (
               <>
-                <Play className="mr-2 h-6 w-6 sm:h-8 sm:w-8" aria-hidden />
+                <Play className="mr-2 h-4 w-4" aria-hidden />
                 Start
               </>
             )}
@@ -172,15 +150,15 @@ export function KdsOrderTicket({
               {isCompleting ? (
                 <>
                   <Loader2
-                    className="mr-2 h-6 w-6 animate-spin motion-reduce:animate-none sm:h-8 sm:w-8"
+                    className="mr-2 h-4 w-4 animate-spin motion-reduce:animate-none"
                     aria-hidden
                   />
                   Completing…
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="mr-2 h-6 w-6 sm:h-8 sm:w-8" aria-hidden />
-                  Confirm Done
+                  <CheckCircle2 className="mr-2 h-4 w-4" aria-hidden />
+                  Confirm
                 </>
               )}
             </Button>
@@ -193,7 +171,7 @@ export function KdsOrderTicket({
             disabled={isUpdating}
             aria-label={`Mark order ${queueLabel} as done`}
           >
-            <CheckCircle2 className="mr-2 h-6 w-6 sm:h-8 sm:w-8" aria-hidden />
+            <CheckCircle2 className="mr-2 h-4 w-4" aria-hidden />
             Done
           </Button>
         )}

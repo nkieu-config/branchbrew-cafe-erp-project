@@ -1,58 +1,52 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Building2, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { FormDialog } from "@/components/shared/form-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Branch } from "@/types/api";
-import { formContextBannerClassName, hubModalIconClassName } from "@/lib/theme/color-helpers";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { organizationDialogContentClassName } from "@/lib/theme/organization";
 import { formFieldInsetClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
+
+export type BranchFormValues = {
+  name: string;
+  location?: string;
+  isCentralKitchen?: boolean;
+};
 
 type BranchFormModalProps = {
   open: boolean;
-  onClose: () => void;
-  branch: Branch | null;
-  onSubmit: (payload: {
-    name: string;
-    location?: string;
-    isCentralKitchen?: boolean;
-  }) => Promise<void>;
+  onOpenChange: (open: boolean) => void;
+  initialValues?: Branch | null;
+  onSave: (payload: BranchFormValues) => Promise<void>;
   isSubmitting?: boolean;
 };
 
 export function BranchFormModal({
   open,
-  onClose,
-  branch,
-  onSubmit,
+  onOpenChange,
+  initialValues,
+  onSave,
   isSubmitting = false,
 }: BranchFormModalProps) {
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [isCentralKitchen, setIsCentralKitchen] = useState(false);
+  const editing = initialValues != null;
 
   useEffect(() => {
     if (!open) return;
-    setName(branch?.name ?? "");
-    setLocation(branch?.location ?? "");
-    setIsCentralKitchen(branch?.isCentralKitchen ?? false);
-  }, [open, branch]);
+    setName(initialValues?.name ?? "");
+    setLocation(initialValues?.location ?? "");
+    setIsCentralKitchen(initialValues?.isCentralKitchen ?? false);
+  }, [open, initialValues]);
 
   const handleSubmit = async () => {
     const trimmedName = name.trim();
@@ -61,7 +55,7 @@ export function BranchFormModal({
       return;
     }
 
-    await onSubmit({
+    await onSave({
       name: trimmedName,
       location: location.trim() || undefined,
       isCentralKitchen,
@@ -69,87 +63,73 @@ export function BranchFormModal({
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(next) => {
-        if (!next) onClose();
-      }}
-    >
-      <DialogContent className={organizationDialogContentClassName()}>
-        <DialogHeader>
-          <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <Building2 className={hubModalIconClassName("organization")} aria-hidden />
-            {branch ? "Edit branch" : "Create branch"}
-          </DialogTitle>
-          <DialogDescription>
-            {branch
-              ? "Update location details or mark this site as a central kitchen (HQ)."
-              : "Add a franchise location or central kitchen. Inventory rows are provisioned automatically on create."}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4 pt-2">
-          <div className="space-y-2">
-            <Label htmlFor="branch-name" className={text.secondary}>
-              Branch name
-            </Label>
-            <Input
-              id="branch-name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="e.g. BranchBrew Downtown"
-              className={formFieldInsetClassName()}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="branch-location" className={text.secondary}>
-              Location / address <span className={text.muted}>(optional)</span>
-            </Label>
-            <Input
-              id="branch-location"
-              value={location}
-              onChange={(event) => setLocation(event.target.value)}
-              placeholder="e.g. 1st Floor, Center Point"
-              className={formFieldInsetClassName()}
-            />
-          </div>
-
-          <div className={formContextBannerClassName("flex items-start gap-3 p-3")}>
-            <Checkbox
-              id="branch-central-kitchen"
-              checked={isCentralKitchen}
-              onCheckedChange={(checked) => setIsCentralKitchen(Boolean(checked))}
-              className="mt-0.5"
-            />
-            <div className="space-y-1">
-              <Label htmlFor="branch-central-kitchen" className={cn("font-medium", text.primary)}>
-                Central kitchen (HQ)
-              </Label>
-              <p className={cn("text-sm", text.muted)}>
-                HQ sites can supply other branches via stock transfers and often hold bulk prep
-                inventory.
-              </p>
-            </div>
-          </div>
+    <FormDialog open={open} onOpenChange={onOpenChange} className={organizationDialogContentClassName()}>
+      <FormDialog.Title>{editing ? "Edit branch" : "Add branch"}</FormDialog.Title>
+      <FormDialog.Body className="space-y-4 pt-1">
+        <div className="space-y-2">
+          <Label htmlFor="branch-name" className={text.secondary}>
+            Name
+          </Label>
+          <Input
+            id="branch-name"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="e.g. BranchBrew Downtown"
+            className={formFieldInsetClassName()}
+            required
+          />
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button type="button" variant="outline" onClick={onClose} className="min-h-[44px]">
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            disabled={isSubmitting}
-            className={cn("min-h-[44px]", hubCtaClassName("organization"))}
-            onClick={() => void handleSubmit()}
-          >
-            {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}
-            {branch ? "Save changes" : "Create branch"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <div className="space-y-2">
+          <Label htmlFor="branch-location" className={text.secondary}>
+            Location <span className={text.muted}>(optional)</span>
+          </Label>
+          <Input
+            id="branch-location"
+            value={location}
+            onChange={(event) => setLocation(event.target.value)}
+            placeholder="e.g. 1st Floor, Center Point"
+            className={formFieldInsetClassName()}
+          />
+        </div>
+
+        <div className="flex items-start gap-3 border-t border-[var(--table-row-border)] pt-4">
+          <Checkbox
+            id="branch-central-kitchen"
+            checked={isCentralKitchen}
+            onCheckedChange={(checked) => setIsCentralKitchen(Boolean(checked))}
+            className="mt-0.5"
+          />
+          <div className="space-y-0.5">
+            <Label htmlFor="branch-central-kitchen" className={cn("font-medium", text.primary)}>
+              Central kitchen (HQ)
+            </Label>
+            <p className={cn("text-sm", text.muted)}>
+              Supplies other branches via stock transfers.
+            </p>
+          </div>
+        </div>
+      </FormDialog.Body>
+
+      <FormDialog.Footer className="gap-2 sm:gap-0">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => onOpenChange(false)}
+          className="min-h-[44px]"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="button"
+          disabled={isSubmitting}
+          className={cn("min-h-[44px]", hubCtaClassName("organization"))}
+          onClick={() => void handleSubmit()}
+        >
+          {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}
+          {editing ? "Save" : "Create"}
+        </Button>
+      </FormDialog.Footer>
+    </FormDialog>
   );
 }

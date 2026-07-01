@@ -1,12 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_ENDPOINTS } from '@/lib/endpoints';
 import { fetchAPI } from '@/lib/api';
-import { NAV_COUNTS_QUERY_KEY } from '@/lib/nav-counts';
+import { invalidateTransferSideEffects, transferKeys } from '@/lib/query-keys';
 import type { CreateTransferDTO } from '@/types/schemas';
 
 export const useTransfers = (branchId?: number) => {
   return useQuery({
-    queryKey: ['transfers', branchId ?? 'all'],
+    queryKey: transferKeys.branch(branchId),
     queryFn: () =>
       fetchAPI(
         branchId
@@ -25,11 +25,7 @@ export const useCreateTransfer = () => {
         body: JSON.stringify(data),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transfers'] });
-      queryClient.invalidateQueries({ queryKey: ['branch'] });
-      queryClient.invalidateQueries({ queryKey: ['inventory-balance'] });
-      queryClient.invalidateQueries({ queryKey: ['analyticsSummary'] });
-      queryClient.invalidateQueries({ queryKey: [NAV_COUNTS_QUERY_KEY] });
+      invalidateTransferSideEffects(queryClient);
     },
   });
 };
@@ -42,11 +38,7 @@ export const useAcceptTransfer = () => {
         method: 'POST',
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['transfers'] });
-      queryClient.invalidateQueries({ queryKey: ['branch'] });
-      queryClient.invalidateQueries({ queryKey: ['inventory-balance'] });
-      queryClient.invalidateQueries({ queryKey: ['analyticsSummary'] });
-      queryClient.invalidateQueries({ queryKey: [NAV_COUNTS_QUERY_KEY] });
+      invalidateTransferSideEffects(queryClient);
     },
   });
 };

@@ -2,8 +2,13 @@
 
 import { useMemo } from "react";
 import type { ColumnsType } from "antd/es/table";
-import { CheckCircle, FileText } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { DataTable } from "@/components/shared/data-table";
+import {
+  ListMobileCard,
+  PaginatedMobileList,
+  ResponsiveDataTableLayout,
+} from "@/components/shared/responsive-data-table";
 import { StatusBadge, payrollStatusTone } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { PayrollPayslipPanel } from "@/components/hr/PayrollPayslipPanel";
@@ -16,11 +21,9 @@ import {
   payrollStatusLabel,
 } from "@/lib/payroll-filters";
 import { formatCurrency } from "@/lib/money";
-import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { useHubListPagination } from "@/hooks/useHubListPagination";
 import { tableActionAccentClassName } from "@/lib/theme/hub-primitives";
-import { metricValueClassName } from "@/lib/theme/metric";
 import { text } from "@/lib/theme/surface";
-import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { PayrollRun } from "@/types/api";
 
@@ -47,6 +50,17 @@ export function PayrollRunsTable({
   defaultExpandedRowKeys,
   onApprove,
 }: PayrollRunsTableProps) {
+  const emptyDescription = hasActiveFilters
+    ? "No payroll runs match the current filters."
+    : hasCurrentMonthRun
+      ? "No payroll runs to display."
+      : `Generate payroll for ${currentPeriodLabel} to get started.`;
+
+  const listPagination = useHubListPagination(
+    { pageSize: 10 },
+    `${payrollRuns.length}-${hasActiveFilters}`,
+  );
+
   const columns = useMemo(
     () =>
       [
@@ -54,35 +68,28 @@ export function PayrollRunsTable({
           title: "Period",
           key: "period",
           render: (_: unknown, record: PayrollRunWithPayslips) => (
-            <div className="min-w-0">
-              <div className={typeUiLabelClassName(text.primary)}>
-                {formatPayrollPeriod(record.month, record.year)}
-              </div>
-              <div className={cn("text-xs tabular-nums", text.muted)}>
-                Run #{record.id}
-              </div>
-            </div>
+            <span className={cn("font-medium", text.primary)}>
+              {formatPayrollPeriod(record.month, record.year)}
+            </span>
           ),
         },
         {
           title: "Payslips",
           key: "payslips",
-          render: (_: unknown, record: PayrollRunWithPayslips) => {
-            const count = payrollRunPayslipCount(record);
-            return (
-              <div className={cn("flex items-center gap-2 tabular-nums", text.secondary)}>
-                <FileText className={cn("w-4 h-4 shrink-0", text.muted)} aria-hidden />
-                {count} employee{count === 1 ? "" : "s"}
-              </div>
-            );
-          },
+          width: 96,
+          responsive: ["md"],
+          render: (_: unknown, record: PayrollRunWithPayslips) => (
+            <span className={cn("tabular-nums", text.secondary)}>
+              {payrollRunPayslipCount(record)}
+            </span>
+          ),
         },
         {
-          title: "Total net",
+          title: "Net",
           key: "totalAmount",
           align: "right" as const,
           render: (_: unknown, record: PayrollRunWithPayslips) => (
-            <span className={typeUiLabelClassName(cn("font-mono tabular-nums", metricValueClassName("emerald")))}>
+            <span className={cn("tabular-nums font-medium", text.primary)}>
               {formatCurrency(payrollRunTotalNet(record))}
             </span>
           ),
@@ -92,16 +99,14 @@ export function PayrollRunsTable({
           dataIndex: "status",
           key: "status",
           render: (status: string) => (
-            <StatusBadge tone={payrollStatusTone(status)}>
-              {payrollStatusLabel(status)}
-            </StatusBadge>
+            <StatusBadge tone={payrollStatusTone(status)}>{payrollStatusLabel(status)}</StatusBadge>
           ),
         },
         {
-          title: "Actions",
+          title: "",
           key: "action",
           align: "right" as const,
-          width: 72,
+          width: 56,
           render: (_: unknown, record: PayrollRunWithPayslips) =>
             record.status === "DRAFT" ? (
               <TableActionButton
@@ -118,31 +123,91 @@ export function PayrollRunsTable({
   );
 
   return (
-    <DataTable
-      {...hubListDataTableProps({ pageSize: 10 })}
-      loading={isLoading}
-      columns={columns}
-      dataSource={payrollRuns}
-      rowKey="id"
-      expandable={{
-        expandedRowRender: (record: PayrollRun) => (
-          <PayrollPayslipPanel
-            payslips={filterPayslipsForEmployee(record.payslips, employeeId)}
-            employeeId={employeeId}
-            employeeName={employeeName}
-          />
-        ),
-        defaultExpandedRowKeys,
-        rowExpandable: (record) =>
-          employeeId == null ||
-          filterPayslipsForEmployee(record.payslips, employeeId).length > 0,
-      }}
-      emptyDescription={
-        hasActiveFilters
-          ? "No payroll runs match the current filters."
-          : hasCurrentMonthRun
-            ? "No payroll runs to display."
-            : `Generate payroll for ${currentPeriodLabel} to get started.`
+    <ResponsiveDataTableLayout
+      mobile={
+        isLoading ? (
+          <ResponsiveDataTableLayout.Skeleton />
+        ) : payrollRuns.length === 0 ? (
+          <ResponsiveDataTableLayout.Empty message={emptyDescription} />
+        ) : (
+          <PaginatedMobileList
+            items={payrollRuns}
+            pageSize={listPagination.pageSize}
+            page={listPagination.currentPage}
+            onPageChange={listPagination.setCurrentPage}
+          >
+            {(record) => {
+              const payslips = filterPayslipsForEmployee(record.payslips, employeeId);
+              const showPayslips = employeeId == null || payslips.length > 0;
+
+              return (
+                <ListMobileCard>
+                  <div className="mb-2 flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className={cn("font-medium", text.primary)}>
+                        {formatPayrollPeriod(record.month, record.year)}
+                      </p>
+                      <p className={cn("text-sm tabular-nums", text.muted)}>
+                        {payrollRunPayslipCount(record)} payslip
+                        {payrollRunPayslipCount(record) === 1 ? "" : "s"}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 flex-col items-end gap-1.5">
+                      <StatusBadge tone={payrollStatusTone(record.status)}>
+                        {payrollStatusLabel(record.status)}
+                      </StatusBadge>
+                      <span className={cn("font-medium tabular-nums", text.primary)}>
+                        {formatCurrency(payrollRunTotalNet(record))}
+                      </span>
+                    </div>
+                  </div>
+                  {record.status === "DRAFT" && (
+                    <div className="mb-2 flex justify-end">
+                      <TableActionButton
+                        icon={CheckCircle}
+                        label={`Approve payroll for ${formatPayrollPeriod(record.month, record.year)}`}
+                        tone="emerald"
+                        onClick={() => onApprove(record)}
+                        className={tableActionAccentClassName("emerald")}
+                      />
+                    </div>
+                  )}
+                  {showPayslips && payslips.length > 0 ? (
+                    <PayrollPayslipPanel
+                      payslips={payslips}
+                      employeeId={employeeId}
+                      employeeName={employeeName}
+                    />
+                  ) : null}
+                </ListMobileCard>
+              );
+            }}
+          </PaginatedMobileList>
+        )
+      }
+      desktop={
+        <DataTable
+          hideBorders
+          pagination={listPagination.tablePagination}
+          loading={isLoading}
+          columns={columns}
+          dataSource={payrollRuns}
+          rowKey="id"
+          expandable={{
+            expandedRowRender: (record: PayrollRun) => (
+              <PayrollPayslipPanel
+                payslips={filterPayslipsForEmployee(record.payslips, employeeId)}
+                employeeId={employeeId}
+                employeeName={employeeName}
+              />
+            ),
+            defaultExpandedRowKeys,
+            rowExpandable: (record) =>
+              employeeId == null ||
+              filterPayslipsForEmployee(record.payslips, employeeId).length > 0,
+          }}
+          emptyDescription={emptyDescription}
+        />
       }
     />
   );

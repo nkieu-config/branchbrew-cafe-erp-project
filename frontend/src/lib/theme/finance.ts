@@ -1,28 +1,34 @@
 import { cn } from "@/lib/utils";
 import { dashboardErrorPanelClass } from "./dashboard";
-import { metricValueClassName } from "./metric";
 import { hubIconClassName, hubSectionPanelClassName } from "./hub-panel";
 import { elevatedPanelClassName, text } from "./surface";
 
 export function ledgerDebitClassName(className?: string) {
-  return cn("font-bold text-[var(--ledger-debit-fg)]", className);
+  return cn("tabular-nums text-[var(--ledger-debit-fg)]", className);
 }
 
 export function ledgerCreditClassName(className?: string) {
-  return cn("font-bold text-[var(--ledger-credit-fg)]", className);
+  return cn("tabular-nums text-[var(--ledger-credit-fg)]", className);
 }
 
 export function ledgerPanelClassName(className?: string) {
   return elevatedPanelClassName(cn("p-6", className));
 }
 
-/** Solid elevated panel for finance sections (replaces glass on light). */
 export function financeSectionPanelClassName(className?: string) {
-  return hubSectionPanelClassName("finance", cn("p-4 sm:p-6", className));
+  return hubSectionPanelClassName("finance", className);
+}
+
+export function financeSectionLabelClassName(className?: string) {
+  return cn(
+    "text-sm font-medium mb-3 pb-2 border-b border-[var(--table-row-border)]",
+    text.secondary,
+    className,
+  );
 }
 
 export function financeSectionTitleClassName(className?: string) {
-  return cn("font-semibold text-lg mb-4 flex items-center gap-2", text.primary, className);
+  return cn("text-sm font-medium mb-3", text.secondary, className);
 }
 
 export function financeHubIconClassName(className?: string) {
@@ -30,7 +36,11 @@ export function financeHubIconClassName(className?: string) {
 }
 
 export function financeMetricIconClassName(tone: "emerald" | "amber" | "indigo", className?: string) {
-  return cn(metricValueClassName(tone), className);
+  return cn(className);
+}
+
+export function financeMutedMetaClassName(className?: string) {
+  return cn("text-sm", text.muted, className);
 }
 
 export function financePrimaryActionClassName(className?: string) {
@@ -48,11 +58,11 @@ export function financeErrorBannerClassName(className?: string) {
 
 export function settlementDifferenceClassName(difference: number, className?: string) {
   return cn(
-    "px-4 py-3 text-right tabular-nums font-medium",
+    "tabular-nums",
     difference < 0
-      ? metricValueClassName("red")
+      ? "text-[var(--status-danger-fg)]"
       : difference > 0
-        ? metricValueClassName("emerald")
+        ? "text-[var(--status-success-fg)]"
         : text.muted,
     className,
   );
@@ -66,5 +76,5 @@ export function financeApproveButtonClassName(className?: string) {
 }
 
 export function financeExpenseAmountClassName(className?: string) {
-  return cn("px-4 py-3 text-right font-medium tabular-nums", metricValueClassName("red"), className);
+  return cn("tabular-nums font-medium", text.primary, className);
 }

@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Coffee, ChevronDown, PanelLeftClose } from "lucide-react";
-import { BranchPicker } from "@/components/shared/branch-picker";
 import { SidebarNavItem } from "@/components/layout/SidebarNavItem";
 import { useAuth } from "@/context/AuthContext";
-import { useBranchPickerInit } from "@/hooks/useBranchPickerInit";
 import { useSidebarExpandedGroups } from "@/hooks/useSidebarExpandedGroups";
 import { useSidebarNavBadges } from "@/hooks/useSidebarNavBadges";
 import { SIDEBAR_GROUPS } from "@/lib/navigation";
@@ -29,13 +27,14 @@ export function Sidebar({ onNavigate, onCollapse, className }: SidebarProps) {
   const { user } = useAuth();
   const role = (user?.role ?? "STAFF") as Role;
   const { expandedGroups, toggleGroup } = useSidebarExpandedGroups(user?.role as Role | undefined);
-  const { isSuperAdmin, branches, activeBranchId, setActiveBranchId } = useBranchPickerInit();
   const { badges, childTabBadges } = useSidebarNavBadges();
+
+  let visibleGroupIndex = 0;
 
   return (
     <div className={sidebarRootClassName(className)}>
       <div className={cn("shrink-0 border-b", shell.sidebarDivider, shellHeaderInsetClassName())}>
-        <div className="h-14 md:h-16 flex items-center gap-2 px-4">
+        <div className="h-14 flex items-center gap-1 px-3">
           <Link
             href="/"
             onClick={onNavigate}
@@ -51,7 +50,7 @@ export function Sidebar({ onNavigate, onCollapse, className }: SidebarProps) {
             <button
               type="button"
               onClick={onCollapse}
-              className={cn(sidebarIconButtonClassName(), "ml-2")}
+              className={cn(sidebarIconButtonClassName(), "ml-auto opacity-60 hover:opacity-100")}
               aria-label="Collapse sidebar to icon rail"
               title="Collapse sidebar"
             >
@@ -59,29 +58,43 @@ export function Sidebar({ onNavigate, onCollapse, className }: SidebarProps) {
             </button>
           )}
         </div>
-
-        {isSuperAdmin && branches.length > 0 && (
-          <div className="px-4 pb-4">
-            <BranchPicker
-              variant="sidebar"
-              branches={branches}
-              activeBranchId={activeBranchId}
-              onChange={setActiveBranchId}
-            />
-          </div>
-        )}
       </div>
 
-      <nav className="flex-1 p-4 overflow-y-auto custom-scrollbar" aria-label="Primary navigation">
-        {SIDEBAR_GROUPS.map((group, groupIdx) => {
+      <nav className="flex-1 px-2 py-3 overflow-y-auto custom-scrollbar" aria-label="Primary navigation">
+        {SIDEBAR_GROUPS.map((group) => {
           const visibleItems = group.items.filter((item) => item.roles.includes(role));
           if (visibleItems.length === 0) return null;
+
+          const isSingleItemGroup = visibleItems.length === 1;
+          const showGroupDivider = visibleGroupIndex > 0;
+          visibleGroupIndex += 1;
+
+          if (isSingleItemGroup) {
+            return (
+              <div
+                key={group.group}
+                className={cn(showGroupDivider && "mt-4 pt-4 border-t", shell.sidebarDivider)}
+              >
+                <SidebarNavItem
+                  item={visibleItems[0]}
+                  pathname={pathname}
+                  role={role}
+                  onNavigate={onNavigate}
+                  badges={badges}
+                  childTabBadges={childTabBadges}
+                />
+              </div>
+            );
+          }
 
           const isExpanded = expandedGroups[group.group];
           const groupId = toGroupId(group.group);
 
           return (
-            <div key={group.group} className={cn(groupIdx > 0 && "mt-4")}>
+            <div
+              key={group.group}
+              className={cn(showGroupDivider && "mt-4 pt-4 border-t", shell.sidebarDivider)}
+            >
               <button
                 type="button"
                 aria-expanded={isExpanded}
@@ -92,7 +105,7 @@ export function Sidebar({ onNavigate, onCollapse, className }: SidebarProps) {
                 {group.group}
                 <ChevronDown
                   className={cn(
-                    "w-3.5 h-3.5 transition-transform duration-200 motion-reduce:transition-none motion-reduce:transform-none",
+                    "w-3.5 h-3.5 opacity-60 transition-transform duration-200 motion-reduce:transition-none motion-reduce:transform-none",
                     !isExpanded && "-rotate-90",
                   )}
                   aria-hidden

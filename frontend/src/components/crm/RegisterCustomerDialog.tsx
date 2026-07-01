@@ -47,18 +47,18 @@ export function RegisterCustomerDialog() {
         render={
           <Button className={hubCtaClassName("crm", "font-medium")}>
             <UserPlus className="w-4 h-4 mr-2" aria-hidden />
-            New Member
+            Add member
           </Button>
         }
       />
       <DialogContent className={crmDialogContentClassName()}>
         <DialogHeader>
-          <DialogTitle className={typeHeadingClassName("text-xl")}>Register Customer</DialogTitle>
+          <DialogTitle className={typeHeadingClassName("text-lg")}>Add member</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleCreate} className="space-y-4 pt-4">
+        <form onSubmit={handleCreate} className="space-y-4 pt-2">
           <div className="space-y-2">
             <Label htmlFor="customer-name" className={text.secondary}>
-              Full Name
+              Name
             </Label>
             <Input
               id="customer-name"
@@ -71,7 +71,7 @@ export function RegisterCustomerDialog() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="customer-phone" className={text.secondary}>
-              Phone Number
+              Phone
             </Label>
             <Input
               id="customer-phone"
@@ -87,7 +87,7 @@ export function RegisterCustomerDialog() {
             className={hubCtaClassName("crm", "w-full text-md")}
             disabled={createMutation.isPending}
           >
-            {createMutation.isPending ? "Registering…" : "Register"}
+            {createMutation.isPending ? "Adding…" : "Add member"}
           </Button>
         </form>
       </DialogContent>

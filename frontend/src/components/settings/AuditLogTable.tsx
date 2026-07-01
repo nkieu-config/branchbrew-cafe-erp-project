@@ -1,10 +1,13 @@
 "use client";
 
-import { User, Activity, FileText, ChevronLeft, ChevronRight, Eye } from "lucide-react";
-import { StatusBadge, auditActionTone } from "@/components/shared/status-badge";
+import { ChevronLeft, ChevronRight, Eye } from "lucide-react";
+import {
+  ListMobileCard,
+  ListMobileCardSkeleton,
+  ResponsiveDataTableLayout,
+} from "@/components/shared/responsive-data-table";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -19,16 +22,15 @@ import {
   auditTargetTypeLabel,
   formatAuditDetails,
 } from "@/lib/audit-filters";
-import { roleLabel } from "@/lib/employee-filters";
 import { formatDateTime } from "@/lib/intl-date";
 import {
   dataTableContainerClassName,
-  listMobileCardClassName,
   nativeTableEmptyCellClassName,
   semanticTableClassName,
 } from "@/lib/theme/data-table";
+import { settingsMutedMetaClassName } from "@/lib/theme/settings-hub-chrome";
 import { text } from "@/lib/theme/surface";
-import { typeMicroClassName, typeUiLabelClassName } from "@/lib/theme/typography";
+import { typeMicroClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type AuditLogTableProps = {
@@ -43,6 +45,82 @@ type AuditLogTableProps = {
   onPreviousPage: () => void;
   onNextPage: () => void;
 };
+
+function AuditDesktopTable({
+  pageLogs,
+  loading,
+  emptyMessage,
+  onSelectLog,
+}: {
+  pageLogs: AuditLogRow[];
+  loading: boolean;
+  emptyMessage: string;
+  onSelectLog: (log: AuditLogRow) => void;
+}) {
+  return (
+    <div className={semanticTableClassName()}>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Time</TableHead>
+            <TableHead>User</TableHead>
+            <TableHead>Action</TableHead>
+            <TableHead>Module</TableHead>
+            <TableHead className="w-[56px]" />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {loading ? (
+            <TableRow>
+              <TableCell colSpan={5} className="p-4">
+                <ListMobileCardSkeleton rows={5} />
+              </TableCell>
+            </TableRow>
+          ) : pageLogs.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={5} className={nativeTableEmptyCellClassName("h-24")}>
+                {emptyMessage}
+              </TableCell>
+            </TableRow>
+          ) : (
+            pageLogs.map((log) => (
+              <TableRow key={log.id}>
+                <TableCell className={cn("whitespace-nowrap tabular-nums", text.subtle)}>
+                  {formatDateTime(log.createdAt)}
+                </TableCell>
+                <TableCell>
+                  <span className={cn("block max-w-[200px] truncate", text.primary)}>
+                    {log.user?.name || log.user?.email}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className={text.secondary}>{auditActionLabel(log.action)}</span>
+                </TableCell>
+                <TableCell>
+                  <span className={cn("block max-w-[220px] truncate", text.secondary)}>
+                    {auditTargetTypeLabel(log.targetType)}
+                    {log.targetId != null && (
+                      <span className={text.muted}> #{log.targetId}</span>
+                    )}
+                  </span>
+                </TableCell>
+                <TableCell className="text-right">
+                  <TableActionButton
+                    label="View entry"
+                    icon={Eye}
+                    iconOnly
+                    tone="blue"
+                    onClick={() => onSelectLog(log)}
+                  />
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
 
 export function AuditLogTable({
   pageLogs,
@@ -63,152 +141,53 @@ export function AuditLogTable({
   return (
     <>
       <div className={dataTableContainerClassName()}>
-        <div className="md:hidden space-y-3">
-          {loading ? (
-            Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-28 w-full rounded-xl" />
-            ))
-          ) : pageLogs.length === 0 ? (
-            <p className={cn("text-center py-8 text-sm", text.muted)}>{emptyMessage}</p>
-          ) : (
-            pageLogs.map((log) => {
-              const details = formatAuditDetails(log.details);
-              return (
-                <button
-                  key={log.id}
-                  type="button"
-                  className={listMobileCardClassName()}
-                  onClick={() => onSelectLog(log)}
-                >
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <time
-                      className={cn(typeMicroClassName("tabular-nums"), text.subtle)}
-                      dateTime={log.createdAt}
-                    >
-                      {formatDateTime(log.createdAt)}
-                    </time>
-                    <StatusBadge tone={auditActionTone(log.action)}>
-                      {auditActionLabel(log.action)}
-                    </StatusBadge>
-                  </div>
-                  <div className="flex items-center gap-2 min-w-0 mb-2">
-                    <User className={cn("w-4 h-4 shrink-0", text.muted)} aria-hidden />
-                    <span className={cn("font-medium truncate", text.primary)}>
-                      {log.user?.name || log.user?.email}
-                    </span>
-                  </div>
-                  <div className={cn("flex items-center gap-1.5 text-sm min-w-0 mb-1", text.secondary)}>
-                    <Activity className={cn("w-4 h-4 shrink-0", text.muted)} aria-hidden />
-                    <span className="truncate">{auditTargetTypeLabel(log.targetType)}</span>
-                  </div>
-                  <p className={cn("text-sm line-clamp-2", text.muted)}>{details.preview}</p>
-                  <p className={cn(typeUiLabelClassName("text-xs mt-2"), text.muted)}>
-                    Tap to view details
-                  </p>
-                </button>
-              );
-            })
-          )}
-        </div>
-
-        <div className={cn(semanticTableClassName(), "hidden md:block")}>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Timestamp</TableHead>
-                <TableHead>User</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead className="hidden md:table-cell">Target module</TableHead>
-                <TableHead className="hidden lg:table-cell max-w-md">Details</TableHead>
-                <TableHead className="w-[88px] text-right">View</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                Array.from({ length: 6 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 6 }).map((__, j) => (
-                      <TableCell key={j}>
-                        <Skeleton className="h-5 w-full max-w-[140px]" />
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : pageLogs.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className={nativeTableEmptyCellClassName("h-24")}>
-                    {emptyMessage}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                pageLogs.map((log) => {
-                  const details = formatAuditDetails(log.details);
-                  return (
-                    <TableRow key={log.id}>
-                      <TableCell
-                        className={cn("font-medium whitespace-nowrap tabular-nums", text.subtle)}
+        <ResponsiveDataTableLayout
+          mobile={
+            loading ? (
+              <ResponsiveDataTableLayout.Skeleton />
+            ) : pageLogs.length === 0 ? (
+              <ResponsiveDataTableLayout.Empty message={emptyMessage} />
+            ) : (
+              pageLogs.map((log) => {
+                const details = formatAuditDetails(log.details);
+                return (
+                  <ListMobileCard key={log.id} onClick={() => onSelectLog(log)}>
+                    <div className="mb-1 flex items-center justify-between gap-3">
+                      <time
+                        className={cn(typeMicroClassName("tabular-nums"), text.subtle)}
+                        dateTime={log.createdAt}
                       >
                         {formatDateTime(log.createdAt)}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2 min-w-0">
-                          <User className={cn("w-4 h-4 shrink-0", text.muted)} aria-hidden />
-                          <div className="min-w-0">
-                            <span className={cn("font-medium block truncate", text.primary)}>
-                              {log.user?.name || log.user?.email}
-                            </span>
-                            {log.user?.role && (
-                              <span className={cn("text-xs block truncate", text.muted)}>
-                                {roleLabel(log.user.role)}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <StatusBadge tone={auditActionTone(log.action)}>
-                          {auditActionLabel(log.action)}
-                        </StatusBadge>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        <div className={cn("flex items-center gap-1.5 min-w-0", text.secondary)}>
-                          <Activity className={cn("w-4 h-4 shrink-0", text.muted)} aria-hidden />
-                          <span className="truncate">{auditTargetTypeLabel(log.targetType)}</span>
-                          {log.targetId != null && (
-                            <span className={cn("shrink-0 tabular-nums", text.muted)}>
-                              #{log.targetId}
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden lg:table-cell max-w-md">
-                        <div className={cn("flex items-start gap-1.5 text-sm min-w-0", text.muted)}>
-                          <FileText className="w-4 h-4 mt-0.5 shrink-0" aria-hidden />
-                          <span className="truncate">{details.preview}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <TableActionButton
-                          label="View entry"
-                          icon={Eye}
-                          iconOnly
-                          tone="blue"
-                          onClick={() => onSelectLog(log)}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                      </time>
+                      <span className={text.secondary}>{auditActionLabel(log.action)}</span>
+                    </div>
+                    <p className={cn("truncate font-medium", text.primary)}>
+                      {log.user?.name || log.user?.email}
+                    </p>
+                    <p className={settingsMutedMetaClassName("truncate")}>
+                      {auditTargetTypeLabel(log.targetType)}
+                      {details.preview ? ` · ${details.preview}` : ""}
+                    </p>
+                  </ListMobileCard>
+                );
+              })
+            )
+          }
+          desktop={
+            <AuditDesktopTable
+              pageLogs={pageLogs}
+              loading={loading}
+              emptyMessage={emptyMessage}
+              onSelectLog={onSelectLog}
+            />
+          }
+        />
       </div>
 
       {!loading && filteredCount > pageSize && (
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pt-2">
+        <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center sm:justify-between">
           <p className={cn("text-sm tabular-nums", text.muted)}>
-            Page {currentPage} of {totalPages} ({filteredCount} entries)
+            Page {currentPage} of {totalPages}
           </p>
           <div className="flex gap-2">
             <Button
@@ -220,7 +199,7 @@ export function AuditLogTable({
               aria-label="Previous page"
               onClick={onPreviousPage}
             >
-              <ChevronLeft className="w-4 h-4" aria-hidden />
+              <ChevronLeft className="h-4 w-4" aria-hidden />
             </Button>
             <Button
               type="button"
@@ -231,7 +210,7 @@ export function AuditLogTable({
               aria-label="Next page"
               onClick={onNextPage}
             >
-              <ChevronRight className="w-4 h-4" aria-hidden />
+              <ChevronRight className="h-4 w-4" aria-hidden />
             </Button>
           </div>
         </div>

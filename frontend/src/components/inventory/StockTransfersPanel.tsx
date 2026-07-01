@@ -14,14 +14,12 @@ import {
   CheckCircle2,
   ArrowRightLeft,
   ExternalLink,
-  Building2,
-  ArrowDownLeft,
-  ArrowUpRight,
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateTime } from "@/lib/intl-date";
 import { useAuth } from "@/context/AuthContext";
+import { useHubListPagination } from "@/hooks/useHubListPagination";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { useIngredients } from "@/hooks/domains/useProductionQueries";
 import {
@@ -31,6 +29,11 @@ import {
 } from "@/hooks/domains/useTransferQueries";
 import { FormModal } from "@/components/shared/form-modal";
 import { DataTable } from "@/components/shared/data-table";
+import {
+  ListMobileCard,
+  PaginatedMobileList,
+  ResponsiveDataTableLayout,
+} from "@/components/shared/responsive-data-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { StatusBadge, transferStatusTone } from "@/components/shared/status-badge";
@@ -51,7 +54,7 @@ import { getErrorMessage } from "@/lib/errors";
 import { formatHubListCountWithFetching } from "@/lib/format-hub-list-count";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
-import { compactPanelLinkClassName, formFieldInsetClassName, formSelectContentClassName, formSourceBannerClassName, inventoryHubIconClassName } from "@/lib/theme/stock";
+import { compactPanelLinkClassName, formFieldInsetClassName, formSelectContentClassName, formSourceBannerClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
 import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
@@ -104,12 +107,7 @@ function branchLabel(name: string | undefined) {
 }
 
 function BranchCell({ name }: { name: string | undefined }) {
-  return (
-    <span className={`inline-flex items-center gap-1.5 ${text.secondary}`}>
-      <Building2 className={`w-3.5 h-3.5 shrink-0 ${text.muted}`} aria-hidden />
-      <span className="font-medium">{branchLabel(name)}</span>
-    </span>
-  );
+  return <span className={cn("font-medium", text.secondary)}>{branchLabel(name)}</span>;
 }
 
 function transferMatchesSearch(transfer: StockTransfer, query: string) {
@@ -353,6 +351,33 @@ export const StockTransfersPanel = forwardRef<
     syncUrlFilters("ALL", "ALL");
   }, [syncUrlFilters]);
 
+  const renderTransferDirectionHint = useCallback(
+    (record: StockTransfer, status: string) => {
+      if (status !== "PENDING" || !branchId) return null;
+      if (record.toBranchId === branchId) return "Incoming";
+      if (record.fromBranchId === branchId) {
+        return `To ${record.toBranch?.name ?? "branch"}`;
+      }
+      return null;
+    },
+    [branchId],
+  );
+
+  const renderTransferActions = useCallback(
+    (record: StockTransfer) => {
+      if (!canAccept(record)) return null;
+      return (
+        <TableActionButton
+          icon={CheckCircle2}
+          label="Accept"
+          tone="emerald"
+          onClick={() => setAcceptTarget(record)}
+        />
+      );
+    },
+    [canAccept],
+  );
+
   const columns = useMemo(
     () =>
       [
@@ -404,10 +429,10 @@ export const StockTransfersPanel = forwardRef<
         align: "right" as const,
         width: 88,
         render: (_: unknown, record: StockTransfer) => (
-          <span className={`font-mono tabular-nums text-sm ${text.subtle}`}>
+          <span className={cn("tabular-nums text-sm", text.subtle)}>
             {record.quantity}
             {record.ingredient?.unit ? (
-              <span className={`ml-1 text-xs ${text.muted}`}>{record.ingredient.unit}</span>
+              <span className={cn("ml-1 text-xs", text.muted)}>{record.ingredient.unit}</span>
             ) : null}
           </span>
         ),
@@ -415,7 +440,7 @@ export const StockTransfersPanel = forwardRef<
       ...(variant === "page"
         ? [
             {
-              title: "Requested by",
+              title: "By",
               key: "requestedBy",
               responsive: ["lg"],
               render: (_: unknown, record: StockTransfer) => (
@@ -430,56 +455,44 @@ export const StockTransfersPanel = forwardRef<
         title: "Status",
         dataIndex: "status",
         key: "status",
-        width: variant === "page" ? 148 : 110,
-        render: (status: string, record: StockTransfer) => (
-          <div className="flex flex-col items-start gap-1">
-            <StatusBadge tone={transferStatusTone(status)}>{status}</StatusBadge>
-            {status === "PENDING" && branchId && record.toBranchId === branchId ? (
-              <StatusBadge tone="info" className="inline-flex items-center gap-1">
-                <ArrowDownLeft className="w-3 h-3" aria-hidden />
-                Incoming
-              </StatusBadge>
-            ) : null}
-            {status === "PENDING" && branchId && record.fromBranchId === branchId ? (
-              <StatusBadge tone="warning" className="inline-flex items-center gap-1">
-                <ArrowUpRight className="w-3 h-3" aria-hidden />
-                Awaiting {record.toBranch?.name ?? "destination"}
-              </StatusBadge>
-            ) : null}
-          </div>
-        ),
+        width: variant === "page" ? 132 : 100,
+        render: (status: string, record: StockTransfer) => {
+          const directionHint = renderTransferDirectionHint(record, status);
+
+          return (
+            <div className="flex flex-col items-start gap-0.5">
+              <StatusBadge tone={transferStatusTone(status)}>{status}</StatusBadge>
+              {directionHint ? (
+                <span className={cn("text-xs", text.muted)}>{directionHint}</span>
+              ) : null}
+            </div>
+          );
+        },
       },
       {
         title: "Actions",
         key: "actions",
         align: "right" as const,
         width: 120,
-        render: (_: unknown, record: StockTransfer) => {
-          if (canAccept(record)) {
-            return (
-              <TableActionButton
-                icon={CheckCircle2}
-                label="Accept"
-                tone="emerald"
-                onClick={() => setAcceptTarget(record)}
-              />
-            );
-          }
-          return null;
-        },
+        render: (_: unknown, record: StockTransfer) => renderTransferActions(record),
       },
       ] as ColumnsType<StockTransfer>,
-    [variant, canAccept, branchId],
+    [variant, renderTransferActions, renderTransferDirectionHint],
   );
 
   const emptyDescription = useMemo(() => {
     if (variant === "compact") return "No pending transfers for this branch.";
     if (hasActiveFilters) return "No transfers match your filters.";
     if (transfers.length === 0) {
-      return "No stock transfers yet. Request a transfer to move inventory between branches.";
+      return "No transfers yet.";
     }
     return "No transfers match your filters.";
   }, [variant, hasActiveFilters, transfers.length]);
+
+  const listPagination = useHubListPagination(
+    { pageSize: variant === "page" ? 15 : 5, hideOnSinglePage: variant === "compact" },
+    `${visibleTransfers.length}-${hasActiveFilters}-${variant}`,
+  );
 
   if (variant === "page" && !branchId) {
     return (
@@ -487,23 +500,82 @@ export const StockTransfersPanel = forwardRef<
     );
   }
 
-  const table = (
-    <DataTable
-      columns={columns}
-      dataSource={visibleTransfers}
-      rowKey="id"
-      loading={loadingTransfers}
-      isError={transfersError}
-      errorMessage={getErrorMessage(transfersErr, "Failed to load stock transfers")}
-      onRetry={() => void refetchTransfers()}
-      retryLoading={transfersFetching}
-      hideBorders={variant === "page"}
-      emptyDescription={emptyDescription}
-      scroll={variant === "compact" ? { x: 720 } : { x: undefined }}
-      pagination={
-        variant === "page"
-          ? { pageSize: 15, showSizeChanger: true, pageSizeOptions: ["10", "15", "25", "50"] }
-          : { pageSize: 5, hideOnSinglePage: true }
+  const transferList = (
+    <ResponsiveDataTableLayout
+      mobile={
+        loadingTransfers ? (
+          <ResponsiveDataTableLayout.Skeleton />
+        ) : visibleTransfers.length === 0 ? (
+          <ResponsiveDataTableLayout.Empty message={emptyDescription} />
+        ) : (
+          <PaginatedMobileList
+            items={visibleTransfers}
+            pageSize={listPagination.pageSize}
+            page={listPagination.currentPage}
+            onPageChange={listPagination.setCurrentPage}
+          >
+            {(record) => {
+              const directionHint = renderTransferDirectionHint(record, record.status);
+
+              return (
+                <ListMobileCard>
+                  <div className="mb-2 flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className={cn("font-medium", text.primary)}>
+                        {record.ingredient?.name ?? "—"}
+                      </p>
+                      <p className={cn("text-xs", text.muted)}>
+                        {branchLabel(record.fromBranch?.name)} → {branchLabel(record.toBranch?.name)}
+                      </p>
+                      <time
+                        className={cn("mt-1 block text-xs tabular-nums", text.subtle)}
+                        dateTime={record.createdAt}
+                      >
+                        {formatDateTime(record.createdAt)}
+                      </time>
+                    </div>
+                    <span className={cn("shrink-0 tabular-nums text-sm", text.subtle)}>
+                      {record.quantity}
+                      {record.ingredient?.unit ? (
+                        <span className={cn("ml-1 text-xs", text.muted)}>
+                          {record.ingredient.unit}
+                        </span>
+                      ) : null}
+                    </span>
+                  </div>
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <StatusBadge tone={transferStatusTone(record.status)}>{record.status}</StatusBadge>
+                    {directionHint ? (
+                      <span className={cn("text-xs", text.muted)}>{directionHint}</span>
+                    ) : null}
+                  </div>
+                  {variant === "page" && (record.requestedBy?.name || record.requestedBy?.email) ? (
+                    <p className={cn("mb-2 text-xs", text.muted)}>
+                      {record.requestedBy?.name ?? record.requestedBy?.email}
+                    </p>
+                  ) : null}
+                  {renderTransferActions(record)}
+                </ListMobileCard>
+              );
+            }}
+          </PaginatedMobileList>
+        )
+      }
+      desktop={
+        <DataTable
+          columns={columns}
+          dataSource={visibleTransfers}
+          rowKey="id"
+          loading={loadingTransfers}
+          isError={transfersError}
+          errorMessage={getErrorMessage(transfersErr, "Failed to load stock transfers")}
+          onRetry={() => void refetchTransfers()}
+          retryLoading={transfersFetching}
+          hideBorders={variant === "page"}
+          emptyDescription={emptyDescription}
+          scroll={variant === "compact" ? { x: 720 } : undefined}
+          pagination={listPagination.tablePagination}
+        />
       }
     />
   );
@@ -513,25 +585,19 @@ export const StockTransfersPanel = forwardRef<
       {variant === "compact" && (
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <h2 className={typeUiLabelClassName(cn("text-lg flex items-center gap-2", text.primary))}>
-              <ArrowRightLeft className={inventoryHubIconClassName()} aria-hidden />
-              Pending Transfers
-            </h2>
+            <h2 className={typeUiLabelClassName(text.primary)}>Pending transfers</h2>
             <div className="flex gap-2">
               {branchId && (
                 <Button variant="outline" size="sm" onClick={openCreate}>
-                  New transfer
+                  New
                 </Button>
               )}
-              <Link
-                href="/inventory/transfers"
-                className={compactPanelLinkClassName()}
-              >
-                All transfers <ExternalLink className="w-3.5 h-3.5" aria-hidden />
+              <Link href="/inventory/transfers" className={compactPanelLinkClassName()}>
+                View all <ExternalLink className="w-3.5 h-3.5" aria-hidden />
               </Link>
             </div>
           </div>
-          {table}
+          {transferList}
         </div>
       )}
 
@@ -612,14 +678,13 @@ export const StockTransfersPanel = forwardRef<
             )}
           </HubListPage.Count>
 
-          <HubListPage.Body>{table}</HubListPage.Body>
+          <HubListPage.Body>{transferList}</HubListPage.Body>
         </HubListPage>
       )}
 
       <FormModal
-        title="Request Stock Transfer"
+        title="Request transfer"
         icon={ArrowRightLeft}
-        iconClassName={inventoryHubIconClassName()}
         isOpen={isModalOpen}
         onClose={() => {
           setIsModalOpen(false);
@@ -661,9 +726,9 @@ export const StockTransfersPanel = forwardRef<
           )}
 
           {branchId && (
-            <p className={cn(formSourceBannerClassName(), text.secondary)}>
-              Transferring from{" "}
-              <span className={`font-medium ${text.primary}`}>
+            <p className={cn(formSourceBannerClassName("border-0 px-0 py-0 bg-transparent"), text.muted)}>
+              From{" "}
+              <span className={text.primary}>
                 {branches.find((b: Branch) => b.id === branchId)?.name ?? "selected branch"}
               </span>
             </p>

@@ -1,30 +1,21 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useBranchInventory } from "@/hooks/domains/useInventoryQueries";
 import { useAuth } from "@/context/AuthContext";
-import { useBranches } from "@/hooks/domains/useGeneralQueries";
-import { PackageOpen, AlertTriangle, ArrowDownToLine, ClipboardCheck } from "lucide-react";
-import { DataTable } from "@/components/shared/data-table";
-import { StockTransfersPanel } from "@/components/inventory/StockTransfersPanel";
-import { HubPageHeader } from "@/components/shared/hub-card";
+import { ArrowDownToLine } from "lucide-react";
+import { InventoryOverviewTable } from "@/components/inventory/InventoryOverviewTable";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
-import { StatusBadge } from "@/components/shared/status-badge";
-import { TableActionButton } from "@/components/shared/table-action-button";
 import { ButtonLink } from "@/components/ui/button-link";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { getErrorMessage } from "@/lib/errors";
-import { hubListDataTableProps } from "@/lib/theme/data-table";
-import { tableCellMutedClassName } from "@/lib/theme/feedback";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
-import { inventorySectionPanelClassName, stockLevel, stockLevelLabel, stockLevelStatusTone } from "@/lib/theme/stock";
-import { text } from "@/lib/theme/surface";
-import { cn } from "@/lib/utils";
+import { inventorySectionPanelClassName, stockLevel } from "@/lib/theme/stock";
 
-import type { BranchInventory, Branch, Ingredient, Role } from "@/types/api";
+import type { BranchInventory, Role } from "@/types/api";
 
 type InventoryRow = BranchInventory & { ingredient?: { name: string; unit: string } };
 /** `attention` = low + out (matches dashboard ?filter=low deep link). */
@@ -45,13 +36,9 @@ function matchesStockFilter(level: ReturnType<typeof stockLevel>, filter: StockF
 }
 
 export default function InventoryPageClient() {
-  const router = useRouter();
   const { activeBranchId, user } = useAuth();
   const role = user?.role as Role | undefined;
   const showGrnAction = canReceiveStock(role);
-  const { data: branches = [] } = useBranches();
-  const branchId = activeBranchId ? Number(activeBranchId) : undefined;
-  const branchName = (branches as Branch[]).find((b) => b.id === branchId)?.name;
   const {
     data: inventoryData,
     isLoading,
@@ -63,7 +50,8 @@ export default function InventoryPageClient() {
   const inventory = inventoryData || [];
 
   const searchParams = useSearchParams();
-  const attentionFromUrl = searchParams.get("filter") === "low";
+  const inventoryFilterParam = searchParams.get("filter");
+  const attentionFromUrl = inventoryFilterParam === "low";
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
   const [stockFilter, setStockFilter] = useState<StockFilter>(
@@ -71,8 +59,8 @@ export default function InventoryPageClient() {
   );
 
   useEffect(() => {
-    if (searchParams.get("filter") === "low") setStockFilter("attention");
-  }, [searchParams]);
+    if (inventoryFilterParam === "low") setStockFilter("attention");
+  }, [inventoryFilterParam]);
 
   const stockSummary = useMemo(() => {
     let low = 0;
@@ -97,41 +85,20 @@ export default function InventoryPageClient() {
 
   const hasActiveFilters = search.trim().length > 0 || stockFilter !== "ALL";
 
-  const transferSourceInventories = useMemo(
-    () =>
-      inventory.flatMap((record: InventoryRow) => {
-        if (!record.ingredient) return [];
-        return [{ ingredient: record.ingredient as Ingredient, stock: record.stock }];
-      }),
-    [inventory],
-  );
-
   if (!activeBranchId) {
     return <BranchEmptyState description="Select a branch in the top bar to view stock balances." />;
   }
 
   return (
-    <div className="space-y-6">
-      <HubPageHeader
-        hideTitle
-        icon={PackageOpen}
-        accentHub="inventory"
-        branchScope={{ branchName }}
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <ButtonLink href="/inventory/batches" variant="outline" className="font-medium">
-              <ClipboardCheck className="w-4 h-4 mr-2" aria-hidden />
-              View batches
-            </ButtonLink>
-            {showGrnAction && (
-              <ButtonLink href="/inventory/stock-in" className={hubCtaClassName("inventory")}>
-                <ArrowDownToLine className="w-4 h-4 mr-2" aria-hidden />
-                Receive stock
-              </ButtonLink>
-            )}
-          </div>
-        }
-      />
+    <div className="space-y-5">
+      {showGrnAction && (
+        <div className="flex justify-end">
+          <ButtonLink href="/inventory/stock-in" className={hubCtaClassName("inventory")}>
+            <ArrowDownToLine className="w-4 h-4 mr-2" aria-hidden />
+            Receive stock
+          </ButtonLink>
+        </div>
+      )}
 
       <HubListPage className={inventorySectionPanelClassName()}>
         <HubListPage.Error
@@ -177,115 +144,14 @@ export default function InventoryPageClient() {
           emptyLabel="No inventory records yet"
         />
 
-        <DataTable
-          {...hubListDataTableProps()}
+        <InventoryOverviewTable
+          rows={filteredInventory}
           loading={isLoading}
-          emptyDescription={
-            hasActiveFilters
-              ? "No ingredients match your filters."
-              : "No inventory records for this branch yet."
-          }
-          scroll={{ x: undefined }}
-          columns={[
-            {
-              title: "Ingredient Name",
-              key: "name",
-              sorter: (a: InventoryRow, b: InventoryRow) =>
-                ingredientDisplayName(a).localeCompare(ingredientDisplayName(b)),
-              render: (_: unknown, record: InventoryRow) => (
-                <span className={`font-medium ${text.primary}`}>
-                  {ingredientDisplayName(record)}
-                </span>
-              ),
-            },
-            {
-              title: "Stock Balance",
-              key: "stock",
-              sorter: (a: InventoryRow, b: InventoryRow) => a.stock - b.stock,
-              render: (_: unknown, record: InventoryRow) => (
-                <span className={cn("tabular-nums font-medium", text.primary)}>
-                  {record.stock.toFixed(2)}
-                </span>
-              ),
-            },
-            {
-              title: "Min Stock",
-              key: "minStock",
-              sorter: (a: InventoryRow, b: InventoryRow) => a.minStock - b.minStock,
-              render: (_: unknown, record: InventoryRow) => (
-                <span className={cn("tabular-nums", tableCellMutedClassName())}>
-                  {record.minStock.toFixed(2)}
-                </span>
-              ),
-            },
-            {
-              title: "Unit",
-              key: "unit",
-              render: (_: unknown, record: InventoryRow) => (
-                <span className={tableCellMutedClassName()}>{record.ingredient?.unit ?? "—"}</span>
-              ),
-            },
-            {
-              title: "Status",
-              key: "status",
-              sorter: (a: InventoryRow, b: InventoryRow) => {
-                const order = { out: 0, low: 1, ok: 2 };
-                return (
-                  order[stockLevel(a.stock, a.minStock)] -
-                  order[stockLevel(b.stock, b.minStock)]
-                );
-              },
-              render: (_: unknown, record: InventoryRow) => {
-                const level = stockLevel(record.stock, record.minStock);
-                const tone = stockLevelStatusTone(level);
-                const label = stockLevelLabel(level);
-                return (
-                  <StatusBadge tone={tone} className="flex items-center gap-1 w-fit">
-                    {level !== "ok" ? <AlertTriangle className="w-3 h-3" aria-hidden /> : null}
-                    {label}
-                  </StatusBadge>
-                );
-              },
-            },
-            {
-              title: "Actions",
-              key: "actions",
-              width: 160,
-              render: (_: unknown, record: InventoryRow) => {
-                const level = stockLevel(record.stock, record.minStock);
-                if (level === "ok") return null;
-                return (
-                  <div className="flex flex-wrap items-center gap-1">
-                    <TableActionButton
-                      label="View batches"
-                      icon={ClipboardCheck}
-                      tone="emerald"
-                      onClick={() => router.push("/inventory/batches")}
-                    />
-                    {showGrnAction && (
-                      <TableActionButton
-                        label="Receive stock (GRN)"
-                        icon={ArrowDownToLine}
-                        tone="blue"
-                        onClick={() => router.push("/inventory/stock-in")}
-                      />
-                    )}
-                  </div>
-                );
-              },
-            },
-          ]}
-          dataSource={filteredInventory}
-          rowKey="id"
+          hasActiveFilters={hasActiveFilters}
+          showGrnAction={showGrnAction}
+          ingredientDisplayName={ingredientDisplayName}
         />
-        </HubListPage>
-
-      <div className={inventorySectionPanelClassName()}>
-        <StockTransfersPanel
-          variant="compact"
-          sourceInventories={transferSourceInventories}
-        />
-      </div>
+      </HubListPage>
     </div>
   );
 }

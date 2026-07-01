@@ -2,20 +2,16 @@
 
 import { useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowDownToLine, LayoutGrid, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useStockIn } from "@/hooks/domains/useInventoryQueries";
 import { useIngredients } from "@/hooks/domains/useProductQueries";
-import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { useAuth } from "@/context/AuthContext";
-import { ButtonLink } from "@/components/ui/button-link";
 import { StockInForm, type StockLineRow } from "@/components/inventory/StockInForm";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { useLineItemRows } from "@/hooks/useLineItemRows";
 import { filterActive } from "@/lib/form";
 import { getErrorMessage } from "@/lib/errors";
-import type { Branch, Ingredient } from "@/types/api";
+import type { Ingredient } from "@/types/api";
 
 function emptyLine(): StockLineRow {
   return {
@@ -33,8 +29,6 @@ function isLineDirty(item: StockLineRow) {
 export default function StockInPageClient() {
   const { activeBranchId } = useAuth();
   const router = useRouter();
-  const { data: branches = [] } = useBranches();
-  const branchName = (branches as Branch[]).find((b) => b.id === activeBranchId)?.name;
 
   const {
     data: ingredientsData,
@@ -128,46 +122,24 @@ export default function StockInPageClient() {
   }
 
   return (
-    <div className="space-y-6">
-      <HubPageHeader
-        hideTitle
-        icon={ArrowDownToLine}
-        accentHub="inventory"
-        description="Record ad-hoc receipts not tied to a purchase order."
-        branchScope={{ branchName }}
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <ButtonLink href="/inventory" variant="outline" className="font-medium">
-              <LayoutGrid className="w-4 h-4 mr-2" aria-hidden />
-              Stock overview
-            </ButtonLink>
-            <ButtonLink href="/inventory/batches" variant="outline" className="font-medium">
-              <ClipboardCheck className="w-4 h-4 mr-2" aria-hidden />
-              View batches
-            </ButtonLink>
-          </div>
-        }
-      />
-
-      <StockInForm
-        ingredients={ingredients}
-        ingredientsLoading={ingredientsLoading}
-        ingredientsError={ingredientsError}
-        ingredientsErr={ingredientsErr}
-        ingredientsFetching={ingredientsFetching}
-        onRefetchIngredients={() => void refetchIngredients()}
-        items={items}
-        duplicateIds={duplicateIds}
-        formDisabled={formDisabled}
-        validLineCount={validLineCount}
-        submitDisabled={submitDisabled}
-        isSubmitting={stockInMutation.isPending}
-        onAddRow={handleAddItem}
-        onRemoveRow={handleRemoveItem}
-        onChange={handleChange}
-        onCancel={handleCancel}
-        onSubmit={() => void handleSubmit()}
-      />
-    </div>
+    <StockInForm
+      ingredients={ingredients}
+      ingredientsLoading={ingredientsLoading}
+      ingredientsError={ingredientsError}
+      ingredientsErr={ingredientsErr}
+      ingredientsFetching={ingredientsFetching}
+      onRefetchIngredients={() => void refetchIngredients()}
+      items={items}
+      duplicateIds={duplicateIds}
+      formDisabled={formDisabled}
+      validLineCount={validLineCount}
+      submitDisabled={submitDisabled}
+      isSubmitting={stockInMutation.isPending}
+      onAddRow={handleAddItem}
+      onRemoveRow={handleRemoveItem}
+      onChange={handleChange}
+      onCancel={handleCancel}
+      onSubmit={() => void handleSubmit()}
+    />
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Banknote, CreditCard, Loader2, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,9 +16,19 @@ import {
   posCheckoutMutedPanelClassName,
   posDialogContentClassName,
   posNativeCheckboxClassName,
+  posPaymentMethodTileClassName,
+  posPriceClassName,
   posPrimaryActionClassName,
 } from "@/lib/theme/immersive";
 import { formatCurrency } from "@/lib/money";
+import { typeMetricClassName } from "@/lib/theme/typography";
+import { cn } from "@/lib/utils";
+
+const PAYMENT_METHODS = [
+  { id: "CASH" as const, label: "Cash", icon: Banknote },
+  { id: "CREDIT_CARD" as const, label: "Card", icon: CreditCard },
+  { id: "QR_PROMPTPAY" as const, label: "QR Payment", icon: QrCode },
+];
 
 export function PosCheckoutDialog({
   open,
@@ -55,46 +65,48 @@ export function PosCheckoutDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={posDialogContentClassName("sm:max-w-[425px]")}>
+      <DialogContent className={posDialogContentClassName("sm:max-w-[440px] rounded-2xl")}>
         <DialogHeader>
           <DialogTitle>Complete Payment</DialogTitle>
-          <DialogDescription>Total to pay: {formatCurrency(netTotal)}</DialogDescription>
+          <DialogDescription>
+            Review payment details before completing the sale.
+          </DialogDescription>
+          <p className="flex items-baseline justify-between gap-3 -mt-1">
+            <span className="text-sm text-muted-foreground">Amount due</span>
+            <span className={cn(typeMetricClassName("text-2xl"), posPriceClassName())}>
+              {formatCurrency(netTotal)}
+            </span>
+          </p>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="space-y-2">
-            <p className="text-sm font-medium" id="payment-method-label">Payment Method</p>
-            <div className="grid grid-cols-3 gap-2" role="group" aria-labelledby="payment-method-label">
-              <Button
-                type="button"
-                variant={paymentMethod === "CASH" ? "default" : "outline"}
-                className="min-h-[44px]"
-                onClick={() => onPaymentMethodChange("CASH")}
-                aria-pressed={paymentMethod === "CASH"}
-              >
-                Cash
-              </Button>
-              <Button
-                type="button"
-                variant={paymentMethod === "CREDIT_CARD" ? "default" : "outline"}
-                className="min-h-[44px]"
-                onClick={() => onPaymentMethodChange("CREDIT_CARD")}
-                aria-pressed={paymentMethod === "CREDIT_CARD"}
-              >
-                Card
-              </Button>
-              <Button
-                type="button"
-                variant={paymentMethod === "QR_PROMPTPAY" ? "default" : "outline"}
-                className="min-h-[44px]"
-                onClick={() => onPaymentMethodChange("QR_PROMPTPAY")}
-                aria-pressed={paymentMethod === "QR_PROMPTPAY"}
-              >
-                QR Payment
-              </Button>
+        <div className="grid gap-4 py-2">
+          <div className="space-y-2.5">
+            <p className="text-sm font-medium" id="payment-method-label">
+              Payment Method
+            </p>
+            <div
+              className="grid grid-cols-3 gap-2"
+              role="group"
+              aria-labelledby="payment-method-label"
+            >
+              {PAYMENT_METHODS.map(({ id, label, icon: Icon }) => {
+                const selected = paymentMethod === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    className={posPaymentMethodTileClassName(selected)}
+                    onClick={() => onPaymentMethodChange(id)}
+                    aria-pressed={selected}
+                  >
+                    <Icon className="h-5 w-5 shrink-0" aria-hidden />
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <div className="flex items-center gap-2 mt-2 border-t pt-4">
+          <div className="flex items-center gap-2 border-t pt-4">
             <input
               type="checkbox"
               id="tax-invoice"
@@ -108,7 +120,7 @@ export function PosCheckoutDialog({
           </div>
 
           {isTaxInvoiceRequested && (
-            <div className={posCheckoutMutedPanelClassName()}>
+            <div className={posCheckoutMutedPanelClassName("rounded-xl")}>
               <div className="space-y-1.5">
                 <Label htmlFor="tax-invoice-name">Invoice name</Label>
                 <Input
@@ -118,6 +130,7 @@ export function PosCheckoutDialog({
                   placeholder="Company or individual name…"
                   value={taxInvoiceName}
                   onChange={(e) => onTaxInvoiceNameChange(e.target.value)}
+                  className="rounded-lg"
                 />
               </div>
               <div className="space-y-1.5">
@@ -130,6 +143,7 @@ export function PosCheckoutDialog({
                   placeholder="13-digit tax ID…"
                   value={taxInvoiceTaxId}
                   onChange={(e) => onTaxInvoiceTaxIdChange(e.target.value)}
+                  className="rounded-lg"
                 />
               </div>
               <div className="space-y-1.5">
@@ -141,6 +155,7 @@ export function PosCheckoutDialog({
                   placeholder="Full billing address…"
                   value={taxInvoiceAddress}
                   onChange={(e) => onTaxInvoiceAddressChange(e.target.value)}
+                  className="rounded-lg"
                 />
               </div>
             </div>
@@ -149,7 +164,7 @@ export function PosCheckoutDialog({
         <DialogFooter>
           <Button
             onClick={onConfirm}
-            className={posPrimaryActionClassName("w-full min-h-[44px]")}
+            className={posPrimaryActionClassName("w-full min-h-[48px] rounded-xl")}
             disabled={isProcessing}
           >
             {isProcessing ? (

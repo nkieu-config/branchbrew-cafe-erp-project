@@ -1,9 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { Activity, FileText, History, User } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { StatusBadge, auditActionTone } from "@/components/shared/status-badge";
 import {
   type AuditLogRow,
   auditActionLabel,
@@ -12,9 +10,7 @@ import {
 } from "@/lib/audit-filters";
 import { roleLabel } from "@/lib/employee-filters";
 import { formatDateTime } from "@/lib/intl-date";
-import { decorativeIconClassName, formContextBannerClassName, hubModalIconClassName } from "@/lib/theme/color-helpers";
-import { expandedRowPanelClassName } from "@/lib/theme/hub-primitives";
-import { settingsSheetContentClassName } from "@/lib/theme/settings-hub-chrome";
+import { settingsMutedMetaClassName, settingsSheetContentClassName } from "@/lib/theme/settings-hub-chrome";
 import { text } from "@/lib/theme/surface";
 import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
@@ -33,8 +29,8 @@ function DetailField({
   children: ReactNode;
 }) {
   return (
-    <div className="space-y-1">
-      <dt className={cn("text-xs font-medium uppercase tracking-wide", text.muted)}>{label}</dt>
+    <div className="space-y-0.5">
+      <dt className={settingsMutedMetaClassName("text-xs")}>{label}</dt>
       <dd className={cn("text-sm", text.primary)}>{children}</dd>
     </div>
   );
@@ -53,60 +49,43 @@ export function AuditLogDetailSheet({ log, open, onClose }: AuditLogDetailSheetP
       <SheetContent
         className={settingsSheetContentClassName("w-full sm:max-w-lg overflow-y-auto")}
       >
-        <SheetHeader className="mb-6 text-left">
-          <SheetTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <History className={hubModalIconClassName("settings")} aria-hidden />
-            Audit entry
-          </SheetTitle>
+        <SheetHeader className="mb-4 text-left">
+          <SheetTitle className={typeHeadingClassName("text-lg")}>Audit entry</SheetTitle>
         </SheetHeader>
 
         {log && (
           <div className="space-y-6">
             <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <DetailField label="Timestamp">
-                <span className="font-mono tabular-nums">{formatDateTime(log.createdAt)}</span>
+              <DetailField label="Time">
+                <span className="tabular-nums">{formatDateTime(log.createdAt)}</span>
               </DetailField>
-              <DetailField label="Entry ID">
-                <span className="tabular-nums">#{log.id}</span>
+              <DetailField label="Action">
+                {auditActionLabel(log.action)}
               </DetailField>
               <DetailField label="User">
-                <span className="inline-flex items-center gap-2 min-w-0">
-                  <User className={decorativeIconClassName("w-4 h-4 shrink-0")} aria-hidden />
-                  <span className="truncate">{log.user?.name || log.user?.email || "Unknown"}</span>
+                <span className="truncate block">
+                  {log.user?.name || log.user?.email || "Unknown"}
                 </span>
                 {log.user?.role && (
-                  <span className={cn("block text-xs mt-1", text.muted)}>
+                  <span className={settingsMutedMetaClassName("block text-xs mt-0.5")}>
                     {roleLabel(log.user.role)}
                   </span>
                 )}
               </DetailField>
-              <DetailField label="Action">
-                <StatusBadge tone={auditActionTone(log.action)}>
-                  {auditActionLabel(log.action)}
-                </StatusBadge>
-              </DetailField>
-              <DetailField label="Target module">
-                <span className="inline-flex items-center gap-2 min-w-0">
-                  <Activity className={decorativeIconClassName("w-4 h-4 shrink-0")} aria-hidden />
-                  <span>{auditTargetTypeLabel(log.targetType)}</span>
-                  {log.targetId != null && (
-                    <span className={cn("tabular-nums", text.muted)}>#{log.targetId}</span>
-                  )}
-                </span>
+              <DetailField label="Module">
+                {auditTargetTypeLabel(log.targetType)}
+                {log.targetId != null && (
+                  <span className={text.muted}> #{log.targetId}</span>
+                )}
               </DetailField>
             </dl>
 
-            <div className={expandedRowPanelClassName("space-y-3")}>
-              <div className="flex items-center gap-2">
-                <FileText className={decorativeIconClassName("w-4 h-4")} aria-hidden />
-                <h3 className={typeHeadingClassName()}>Details</h3>
-              </div>
+            <div className="border-t border-[var(--table-row-border)] pt-4 space-y-2">
+              <h3 className={cn("text-sm font-medium", text.secondary)}>Details</h3>
               {details.isStructured ? (
                 <pre
                   className={cn(
-                    formContextBannerClassName(
-                      "overflow-x-auto p-3 text-xs font-mono whitespace-pre-wrap break-words",
-                    ),
+                    "overflow-x-auto rounded-lg border border-[var(--table-row-border)] p-3 text-xs font-mono whitespace-pre-wrap break-words",
                     text.secondary,
                   )}
                 >

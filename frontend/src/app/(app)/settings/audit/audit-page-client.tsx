@@ -1,10 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { History, Loader2 } from "lucide-react";
+import { useEffect, useMemo, useState, useDeferredValue } from "react";
+import { Loader2 } from "lucide-react";
 import { useAuditLogs } from "@/hooks/domains/useReportsQueries";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { AuditLogDetailSheet } from "@/components/settings/AuditLogDetailSheet";
@@ -19,12 +17,7 @@ import {
   uniqueAuditTargetTypes,
 } from "@/lib/audit-filters";
 import { getErrorMessage } from "@/lib/errors";
-import {
-  infoBannerClassName,
-  infoBannerIconClassName,
-  infoBannerTextClassName,
-  infoBannerTitleClassName,
-} from "@/lib/theme/hub-banners";
+import { infoBannerClassName, infoBannerTextClassName } from "@/lib/theme/hub-banners";
 import { hubLoadingSpinnerClassName } from "@/lib/theme/hub-primitives";
 import { settingsSectionPanelClassName } from "@/lib/theme/settings-hub-chrome";
 import { cn } from "@/lib/utils";
@@ -45,7 +38,7 @@ export default function AuditPageClient() {
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [actionFilter, setActionFilter] = useState<AuditActionCategory>("ALL");
   const [targetTypeFilter, setTargetTypeFilter] = useState<AuditTargetTypeFilter>("ALL");
   const [selectedLog, setSelectedLog] = useState<AuditLogRow | null>(null);
@@ -57,11 +50,11 @@ export default function AuditPageClient() {
   const filteredLogs = useMemo(
     () =>
       filterAuditLogs(logs, {
-        search: debouncedSearch,
+        search: deferredSearch,
         actionFilter,
         targetTypeFilter,
       }),
-    [logs, debouncedSearch, actionFilter, targetTypeFilter],
+    [logs, deferredSearch, actionFilter, targetTypeFilter],
   );
 
   const totalPages = Math.max(1, Math.ceil(filteredLogs.length / PAGE_SIZE));
@@ -101,23 +94,14 @@ export default function AuditPageClient() {
   };
 
   return (
-    <div className="space-y-6 max-w-6xl w-full">
-      <HubPageHeader hideTitle accentHub="settings" />
-
+    <div className="space-y-4 max-w-6xl w-full">
       <HubListPage className={settingsSectionPanelClassName()}>
         {!loading && !isError && entryCount === 0 && (
           <HubListPage.Banner>
-            <div className={infoBannerClassName()}>
-              <div className="flex items-start gap-3">
-                <History className={infoBannerIconClassName()} aria-hidden />
-                <div>
-                  <p className={infoBannerTitleClassName()}>No audit entries yet</p>
-                  <p className={infoBannerTextClassName()}>
-                    Critical actions such as purchase orders, stock transfers, settlements, and waste
-                    adjustments appear here once recorded by the system.
-                  </p>
-                </div>
-              </div>
+            <div className={infoBannerClassName("py-3")}>
+              <p className={infoBannerTextClassName()}>
+                No audit entries yet — system actions will appear here once recorded.
+              </p>
             </div>
           </HubListPage.Banner>
         )}
@@ -199,7 +183,7 @@ export default function AuditPageClient() {
                       aria-hidden
                     />
                   ) : null}
-                  Load older entries
+                  Load older
                 </Button>
               ) : undefined
             }

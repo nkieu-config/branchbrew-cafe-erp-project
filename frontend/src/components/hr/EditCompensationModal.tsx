@@ -1,31 +1,19 @@
 "use client";
 
-import Link from "next/link";
-import { Loader2, UserCog } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Loader2 } from "lucide-react";
+import { FormDialog } from "@/components/shared/form-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar } from "@/components/ui/avatar";
 import type { User } from "@/types/api";
 import { formatCurrency } from "@/lib/money";
-import { hubModalIconClassName } from "@/lib/theme/color-helpers";
 import { hrAvatarClassName } from "@/lib/theme/hub-hr";
-import { hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { hrDialogContentClassName } from "@/lib/theme/hub-hr";
-import { metricValueClassName } from "@/lib/theme/metric";
-import { formFieldInsetClassName, formLineRowClassName } from "@/lib/theme/stock";
+import { formFieldInsetClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
-import { buildHrPayrollUrl } from "@/lib/hr-hub-url";
 
 type EditCompensationModalProps = {
   open: boolean;
@@ -35,7 +23,6 @@ type EditCompensationModalProps = {
   onClose: () => void;
   onSubmit: () => void;
   isSubmitting?: boolean;
-  canLinkPayroll?: boolean;
 };
 
 export function EditCompensationModal({
@@ -46,59 +33,34 @@ export function EditCompensationModal({
   onClose,
   onSubmit,
   isSubmitting = false,
-  canLinkPayroll = false,
 }: EditCompensationModalProps) {
   return (
-    <Dialog
+    <FormDialog
       open={open}
       onOpenChange={(next) => {
         if (!next) onClose();
       }}
+      className={hrDialogContentClassName()}
     >
-      <DialogContent className={hrDialogContentClassName()}>
-        <DialogHeader>
-          <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <UserCog className={hubModalIconClassName("hr")} aria-hidden />
-            Edit compensation
-          </DialogTitle>
-          <DialogDescription>
-            Hourly rate drives payroll from clocked hours. Base salary applies to full-time staff
-            separately.
-          </DialogDescription>
-        </DialogHeader>
+        <FormDialog.Title>Edit rate</FormDialog.Title>
 
         {user && (
-          <>
-            <div className={cn("mb-2 flex items-center gap-3", formLineRowClassName("items-center"))}>
+          <FormDialog.Body className="space-y-4 pt-1">
+            <div className="flex items-center gap-3">
               <Avatar size="lg" className={hrAvatarClassName()}>
                 {user.name?.charAt(0) ?? "U"}
               </Avatar>
               <div>
-                <div className={typeHeadingClassName()}>{user.name ?? "Unknown user"}</div>
+                <div className={cn("font-medium", text.primary)}>{user.name ?? "Unknown user"}</div>
                 <div className={cn("text-sm", text.muted)}>{user.role}</div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-              <div className="space-y-1">
-                <p className={cn("text-xs font-medium uppercase tracking-wide", text.muted)}>
-                  Employment type
-                </p>
-                <p className={cn("text-sm font-medium", text.primary)}>
-                  {user.employmentType?.replace("_", " ") ?? "Not set"}
-                </p>
-              </div>
-              {user.employmentType === "FULL_TIME" && user.baseSalary != null && (
-                <div className="space-y-1">
-                  <p className={cn("text-xs font-medium uppercase tracking-wide", text.muted)}>
-                    Base salary
-                  </p>
-                  <p className={typeUiLabelClassName(cn("text-sm tabular-nums", metricValueClassName("blue")))}>
-                    {formatCurrency(user.baseSalary)}
-                  </p>
-                </div>
-              )}
-            </div>
+            {user.employmentType === "FULL_TIME" && user.baseSalary != null && user.baseSalary > 0 && (
+              <p className={cn("text-sm", text.muted)}>
+                Base salary {formatCurrency(user.baseSalary)}
+              </p>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="hourly-rate" className={text.secondary}>
@@ -113,22 +75,11 @@ export function EditCompensationModal({
                 onChange={(event) => onHourlyRateChange(event.target.value)}
                 className={formFieldInsetClassName()}
               />
-              <p className={cn("text-xs", text.muted)}>
-                Used when generating payroll from attendance hours.
-                {canLinkPayroll && (
-                  <>
-                    {" "}
-                    <Link href={buildHrPayrollUrl({ employee: user.id })} className={inlineLinkClassName()}>
-                      View payroll runs
-                    </Link>
-                  </>
-                )}
-              </p>
             </div>
-          </>
+          </FormDialog.Body>
         )}
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <FormDialog.Footer className="gap-2 sm:gap-0">
           <Button type="button" variant="outline" onClick={onClose} className="min-h-[44px]">
             Cancel
           </Button>
@@ -139,10 +90,9 @@ export function EditCompensationModal({
             onClick={onSubmit}
           >
             {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}
-            Save changes
+            Save
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialog.Footer>
+    </FormDialog>
   );
 }

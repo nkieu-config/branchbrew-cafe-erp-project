@@ -6,7 +6,7 @@ import { loginApi } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, ChevronDown, Coffee, Loader2 } from "lucide-react";
+import { ChevronDown, Coffee, Loader2 } from "lucide-react";
 import { GitHubIcon } from "@/components/icons/github-icon";
 import { toast } from "sonner";
 import { motion, useReducedMotion } from "framer-motion";
@@ -20,16 +20,15 @@ import {
   authDemoCredentialsPasswordRowClassName,
   authDemoCredentialsToggleClassName,
   authDemoPanelClassName,
+  authGitHubLinkClassName,
   authHeroGlowClassName,
   authHeroPanelClassName,
-  authGitHubLinkClassName,
   authHeroPanelInnerClassName,
   authInputClassName,
   authLeftPanelClassName,
   authLoadingClassName,
   authPageShellClassName,
   authPrimaryButtonClassName,
-  authSandboxNoticeClassName,
 } from "@/lib/theme/auth";
 import { LoginHeroCard } from "./login-hero";
 import { text } from "@/lib/theme/surface";
@@ -42,7 +41,6 @@ type DemoAccount = {
   id: string;
   label: string;
   email: string;
-  hint: string;
 };
 
 const demoAccounts: DemoAccount[] = [
@@ -50,19 +48,16 @@ const demoAccounts: DemoAccount[] = [
     id: "admin",
     label: "Admin",
     email: "admin@branchbrew.dev",
-    hint: "Full system access — organization, settings, audit",
   },
   {
     id: "manager",
     label: "Manager",
     email: "manager@branchbrew.dev",
-    hint: "Finance, HR, procurement, and reports",
   },
   {
     id: "staff",
     label: "Staff",
     email: "staff.siam@branchbrew.dev",
-    hint: "POS terminal, KDS, and inventory",
   },
 ];
 
@@ -129,37 +124,33 @@ export default function LoginContent() {
           className={authGitHubLinkClassName()}
         >
           <GitHubIcon />
-          Source on GitHub
+          GitHub
         </a>
 
         <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, x: -40 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-[420px]"
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-[400px]"
         >
-          <div className="mb-8 flex items-center gap-3">
+          <div className="mb-6 flex items-center gap-2.5">
             <div className={authBrandMarkClassName()}>
-              <Coffee className="w-5 h-5" />
+              <Coffee className="w-4 h-4" aria-hidden />
             </div>
             <div className="min-w-0">
-              <span className={typeHeadingClassName("text-xl tracking-tight")}>BranchBrew</span>
+              <span className={typeHeadingClassName("text-lg tracking-tight")}>BranchBrew</span>
               <p className={authBrandTaglineClassName()}>Multi-branch cafe ERP</p>
             </div>
           </div>
 
-          <div className="mb-6">
-            <h1 className={typeHeadingClassName("text-3xl tracking-tight mb-2 text-balance lg:text-4xl")}>
-              Sign in
-            </h1>
-            <p className={cn("text-sm", text.muted)}>
-              POS, inventory, kitchen & payroll for cafe chains.
-            </p>
+          <div className="mb-5">
+            <h1 className={typeHeadingClassName("text-2xl tracking-tight mb-1")}>Sign in</h1>
+            <p className={cn("text-sm", text.muted)}>Use your work email and password.</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className={text.secondary}>Work Email</Label>
+              <Label htmlFor="email" className={text.secondary}>Email</Label>
               <Input
                 id="email"
                 name="email"
@@ -198,20 +189,12 @@ export default function LoginContent() {
               className={authPrimaryButtonClassName()}
               disabled={loading || isDemoBusy}
             >
-              {loading && !loadingDemoId ? "Signing in…" : (
-                <span className="flex items-center">
-                  Sign In <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform motion-reduce:transition-none" />
-                </span>
-              )}
+              {loading && !loadingDemoId ? "Signing in…" : "Sign in"}
             </button>
           </form>
 
           <div className={authDemoPanelClassName()}>
-            <div className={authSandboxNoticeClassName()} role="note">
-              Public sandbox with demo-only data. Shared credentials are intentional for portfolio
-              review; do not enter real customer or production data.
-            </div>
-            <p className={cn("mb-3 text-center text-xs", text.muted)}>Quick demo</p>
+            <p className={cn("mb-2.5 text-xs text-center", text.muted)}>Quick demo</p>
             <div className="flex gap-2" role="group" aria-label="Demo accounts">
               {demoAccounts.map((account) => {
                 const isActive = selectedDemoId === account.id;
@@ -224,8 +207,7 @@ export default function LoginContent() {
                     onClick={() => handleDemoLogin(account)}
                     disabled={loading || isDemoBusy}
                     className={authDemoChipClassName(isActive)}
-                    title={account.hint}
-                    aria-label={`Sign in as demo ${account.label}: ${account.hint}`}
+                    aria-label={`Sign in as demo ${account.label}`}
                   >
                     {isLoading ? (
                       <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
@@ -246,12 +228,12 @@ export default function LoginContent() {
             >
               <ChevronDown
                 className={cn(
-                  "h-3 w-3 transition-transform motion-reduce:transition-none",
+                  "h-3.5 w-3.5 transition-transform motion-reduce:transition-none",
                   showCredentials && "rotate-180",
                 )}
                 aria-hidden
               />
-              {showCredentials ? "Hide credentials" : "Credentials"}
+              {showCredentials ? "Hide credentials" : "Show credentials"}
             </button>
 
             {showCredentials ? (
@@ -277,9 +259,9 @@ export default function LoginContent() {
         <div className={authHeroGlowClassName("bottom-[-10%] right-[-10%] w-[60%] h-[60%] blur-[130px]")} />
 
         <motion.div
-          initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.9 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
           className={authHeroPanelInnerClassName()}
         >
           <LoginHeroCard />

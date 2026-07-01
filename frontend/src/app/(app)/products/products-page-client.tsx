@@ -1,15 +1,13 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { Coffee, Plus, ArrowRight } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useDeleteProduct } from "@/hooks/domains/useProductQueries";
 import { useProductsSummary } from "@/hooks/domains/useProductsSummary";
 import { Button } from "@/components/ui/button";
-import { ButtonLink } from "@/components/ui/button-link";
 import { ProductFormModal } from "@/components/products/ProductFormModal";
 import { MenuProductListTable } from "@/components/products/MenuProductListTable";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
@@ -21,7 +19,6 @@ import {
   hasMenuProductFilters,
   type MenuStatusFilter,
 } from "@/lib/menu-product-filters";
-import { buildProductsCostingUrl } from "@/lib/products-hub-url";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { productsSectionPanelClassName } from "@/lib/theme/hub-products";
 import type { Product } from "@/types/api";
@@ -47,14 +44,6 @@ export default function ProductsPageClient() {
   const [statusFilter, setStatusFilter] = useState<MenuStatusFilter>("ALL");
 
   const categories = useMemo(() => extractProductCategories(products), [products]);
-
-  const costingUrl = useMemo(
-    () =>
-      buildProductsCostingUrl(
-        categoryFilter !== "ALL" ? { category: categoryFilter } : undefined,
-      ),
-    [categoryFilter],
-  );
 
   const filteredProducts = useMemo(
     () =>
@@ -95,17 +84,12 @@ export default function ProductsPageClient() {
 
   return (
     <>
-      <HubPageHeader
-        hideTitle
-        icon={Coffee}
-        accentHub="products"
-        actions={
-          <Button onClick={handleAddNew} className={hubCtaClassName("products")}>
-            <Plus className="w-4 h-4 mr-2" aria-hidden />
-            Add Menu Item
-          </Button>
-        }
-      />
+      <div className="mb-4 flex justify-end">
+        <Button onClick={handleAddNew} className={hubCtaClassName("products")}>
+          <Plus className="w-4 h-4 mr-2" aria-hidden />
+          Add item
+        </Button>
+      </div>
 
       <HubListPage className={productsSectionPanelClassName()}>
         <HubListPage.Error
@@ -147,14 +131,6 @@ export default function ProductsPageClient() {
                   { value: "inactive", label: "Inactive" },
                 ]}
               />
-              <ButtonLink
-                href={costingUrl}
-                variant="outline"
-                className="min-h-[44px] font-medium"
-              >
-                Open in Food Cost
-                <ArrowRight className="w-4 h-4 ml-2" aria-hidden />
-              </ButtonLink>
             </>
           }
         />
@@ -166,7 +142,7 @@ export default function ProductsPageClient() {
           hasActiveFilters={hasActiveFilters}
           filteredCount={filteredProducts.length}
           totalCount={summary.total}
-          itemLabel="menu item"
+          itemLabel="item"
           emptyLabel="No menu items yet"
         />
 
@@ -194,7 +170,7 @@ export default function ProductsPageClient() {
         title="Delete menu item?"
         description={
           deleteTarget
-            ? `Remove "${deleteTarget.name}" from the menu? This cannot be undone.`
+            ? `Remove "${deleteTarget.name}"? This cannot be undone.`
             : undefined
         }
         confirmLabel="Delete"

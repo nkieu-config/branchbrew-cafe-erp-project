@@ -1,25 +1,38 @@
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Calculator, Loader2 } from "lucide-react"
-import { toast } from "sonner"
-import { useSubmitSettlement } from '@/hooks/domains/useFinanceQueries'
-import type { SettlementExpected } from '@/types/api'
-import { getErrorMessage } from '@/lib/errors'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Calculator, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { useSubmitSettlement } from "@/hooks/domains/useFinanceQueries";
+import type { SettlementExpected } from "@/types/api";
+import { getErrorMessage } from "@/lib/errors";
 import { formatCurrency } from "@/lib/money";
 import { statusTextClassName, surfaceInsetSkeletonClassName } from "@/lib/theme/color-helpers";
-import { posCheckoutMutedPanelClassName, posFormPanelClassName, posNativeInputClassName, posPanelTopDividerClassName, posPrimaryActionClassName, posSettlementHighlightClassName, posSettlementIconClassName, posSettlementSummaryClassName } from "@/lib/theme/immersive";
+import {
+  posCheckoutMutedPanelClassName,
+  posFormFieldLabelClassName,
+  posFormPanelClassName,
+  posFormPanelHeaderClassName,
+  posFormPanelIconClassName,
+  posNativeInputClassName,
+  posPanelTopDividerClassName,
+  posPrimaryActionClassName,
+  posSettlementChannelRowClassName,
+  posSettlementExpectedHeroClassName,
+  posSettlementHighlightClassName,
+  posSettlementSummaryClassName,
+} from "@/lib/theme/immersive";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
-import { cn } from '@/lib/utils'
+import { typeHeadingClassName } from "@/lib/theme/typography";
+import { cn } from "@/lib/utils";
 
 type SettlementFormProps = {
-  branchIdNum: number | undefined
-  expected: SettlementExpected | undefined
-  expectedLoading?: boolean
-  expectedError?: boolean
-  canViewFinance?: boolean
-}
+  branchIdNum: number | undefined;
+  expected: SettlementExpected | undefined;
+  expectedLoading?: boolean;
+  expectedError?: boolean;
+  canViewFinance?: boolean;
+};
 
 function SettlementSummarySkeleton() {
   return (
@@ -33,7 +46,7 @@ function SettlementSummarySkeleton() {
         />
       ))}
     </div>
-  )
+  );
 }
 
 export function SettlementForm({
@@ -43,125 +56,144 @@ export function SettlementForm({
   expectedError = false,
   canViewFinance = false,
 }: SettlementFormProps) {
-  const router = useRouter()
-  const [actualCash, setActualCash] = useState<string>("")
-  const [actualCreditCard, setActualCreditCard] = useState<string>("")
-  const [actualQR, setActualQR] = useState<string>("")
+  const router = useRouter();
+  const [actualCash, setActualCash] = useState<string>("");
+  const [actualCreditCard, setActualCreditCard] = useState<string>("");
+  const [actualQR, setActualQR] = useState<string>("");
 
   const submitSettlementMutation = useSubmitSettlement();
-  const formDisabled = expectedLoading || submitSettlementMutation.isPending
+  const formDisabled = expectedLoading || submitSettlementMutation.isPending;
 
   const handleSettlement = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!actualCash || !branchIdNum) return
+    e.preventDefault();
+    if (!actualCash || !branchIdNum) return;
     try {
       await submitSettlementMutation.mutateAsync({
         branchId: branchIdNum,
         actualCash: parseFloat(actualCash),
         actualCreditCard: parseFloat(actualCreditCard || "0"),
-        actualQR: parseFloat(actualQR || "0")
+        actualQR: parseFloat(actualQR || "0"),
       });
-      toast.success("Settlement submitted for HQ approval.", canViewFinance ? {
-        action: {
-          label: "Finance Overview",
-          onClick: () => router.push("/finance/overview"),
-        },
-      } : undefined)
-      setActualCash("")
-      setActualCreditCard("")
-      setActualQR("")
+      toast.success(
+        "Settlement submitted for HQ approval.",
+        canViewFinance
+          ? {
+              action: {
+                label: "Finance Overview",
+                onClick: () => router.push("/finance/overview"),
+              },
+            }
+          : undefined,
+      );
+      setActualCash("");
+      setActualCreditCard("");
+      setActualQR("");
     } catch (error: unknown) {
-      toast.error(getErrorMessage(error, "Failed to submit settlement"))
+      toast.error(getErrorMessage(error, "Failed to submit settlement"));
     }
-  }
+  };
 
   return (
     <div className={posFormPanelClassName()}>
-      <div className="flex items-center gap-3">
-        <Calculator className={`w-5 h-5 ${posSettlementIconClassName()}`} />
-        <h2 className={typeHeadingClassName("text-lg")}>Submit Shift Settlement</h2>
+      <div className={posFormPanelHeaderClassName()}>
+        <div className={posFormPanelIconClassName("settlement")}>
+          <Calculator className="h-5 w-5" aria-hidden />
+        </div>
+        <h2 className={typeHeadingClassName("text-lg")}>Shift Settlement</h2>
       </div>
-      
+
       {expectedLoading ? (
         <SettlementSummarySkeleton />
       ) : expectedError ? (
-        <p className={cn("text-sm", text.muted, posCheckoutMutedPanelClassName())}>
-          Expected totals are unavailable. You can still enter actual counts below.
+        <p className={cn("text-sm", text.muted, posCheckoutMutedPanelClassName("rounded-xl"))}>
+          Expected totals unavailable. Enter actual counts below.
         </p>
       ) : (
-        <div className={posSettlementSummaryClassName()}>
-          <div className={`flex justify-between text-sm ${text.muted}`}>
-            <span>Total Sales (Cash):</span>
+        <div className="space-y-0.5">
+          <div className={posSettlementChannelRowClassName()}>
+            <span className={text.muted}>Cash sales</span>
             <span className="font-medium tabular-nums">{formatCurrency(expected?.sales)}</span>
           </div>
-          <div className={`flex justify-between text-sm ${text.muted}`}>
-            <span>Petty Cash Expenses:</span>
+          <div className={posSettlementChannelRowClassName()}>
+            <span className={text.muted}>Petty cash expenses</span>
             <span className={cn("font-medium tabular-nums", statusTextClassName("danger"))}>
               -{formatCurrency(expected?.expenses)}
             </span>
           </div>
-          <div className={cn("pt-2 mt-2 flex justify-between", posPanelTopDividerClassName(), typeUiLabelClassName())}>
-            <span className={text.primary}>Expected Cash in Drawer:</span>
-            <span className={posSettlementHighlightClassName()}>
+          <div className={posSettlementExpectedHeroClassName()}>
+            <span className={cn("font-medium", text.primary)}>Expected cash in drawer</span>
+            <span className={cn(typeHeadingClassName("text-lg"), posSettlementHighlightClassName())}>
               {formatCurrency(expected?.expectedCash)}
             </span>
           </div>
-          <div className={`flex justify-between text-sm ${text.muted} pt-2`}>
-            <span>Expected Credit Card:</span>
+          <div className={posSettlementChannelRowClassName()}>
+            <span className={text.muted}>Expected card</span>
             <span className="font-medium tabular-nums">
               {formatCurrency(expected?.expectedCreditCard)}
             </span>
           </div>
-          <div className={`flex justify-between text-sm ${text.muted}`}>
-            <span>Expected QR Payment:</span>
+          <div className={posSettlementChannelRowClassName()}>
+            <span className={text.muted}>Expected QR</span>
             <span className="font-medium tabular-nums">{formatCurrency(expected?.expectedQR)}</span>
           </div>
         </div>
       )}
 
-      <form onSubmit={handleSettlement} className="flex flex-col gap-4">
+      <form
+        onSubmit={handleSettlement}
+        className={cn("flex flex-col gap-4", posPanelTopDividerClassName(), "pt-4")}
+      >
         <div>
-          <label className={`text-sm font-medium mb-1.5 block ${text.secondary}`}>Actual Cash Counted *</label>
-          <input 
+          <label htmlFor="actual-cash" className={posFormFieldLabelClassName()}>
+            Cash counted *
+          </label>
+          <input
+            id="actual-cash"
             type="number"
             step="0.01"
-            className={posNativeInputClassName("py-3 text-lg font-medium")}
+            className={posNativeInputClassName("py-3 text-lg font-semibold")}
             value={actualCash}
-            onChange={e => setActualCash(e.target.value)}
+            onChange={(e) => setActualCash(e.target.value)}
             required
             disabled={formDisabled}
-            placeholder="e.g. 5500"
+            placeholder="0.00"
           />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className={`text-sm font-medium mb-1.5 block ${text.secondary}`}>Actual Card Sales</label>
-            <input 
+            <label htmlFor="actual-card" className={posFormFieldLabelClassName()}>
+              Card sales
+            </label>
+            <input
+              id="actual-card"
               type="number"
               step="0.01"
-              className={posNativeInputClassName("py-2")}
+              className={posNativeInputClassName("py-2.5")}
               value={actualCreditCard}
-              onChange={e => setActualCreditCard(e.target.value)}
+              onChange={(e) => setActualCreditCard(e.target.value)}
               disabled={formDisabled}
-              placeholder="e.g. 1200"
+              placeholder="0.00"
             />
           </div>
           <div>
-            <label className={`text-sm font-medium mb-1.5 block ${text.secondary}`}>Actual QR Sales</label>
-            <input 
+            <label htmlFor="actual-qr" className={posFormFieldLabelClassName()}>
+              QR sales
+            </label>
+            <input
+              id="actual-qr"
               type="number"
               step="0.01"
-              className={posNativeInputClassName("py-2")}
+              className={posNativeInputClassName("py-2.5")}
               value={actualQR}
-              onChange={e => setActualQR(e.target.value)}
+              onChange={(e) => setActualQR(e.target.value)}
               disabled={formDisabled}
-              placeholder="e.g. 3500"
+              placeholder="0.00"
             />
           </div>
         </div>
         <Button
           type="submit"
-          className={cn(posPrimaryActionClassName(), "w-full min-h-[44px] py-6 mt-2 border-0 shadow-lg")}
+          className={posPrimaryActionClassName("w-full min-h-[48px] rounded-xl border-0")}
           disabled={formDisabled || !actualCash}
         >
           {submitSettlementMutation.isPending ? (
@@ -170,12 +202,12 @@ export function SettlementForm({
               Submitting…
             </>
           ) : expectedLoading ? (
-            "Loading expected totals…"
+            "Loading…"
           ) : (
-            "Submit Shift Settlement"
+            "Submit Settlement"
           )}
         </Button>
       </form>
     </div>
-  )
+  );
 }

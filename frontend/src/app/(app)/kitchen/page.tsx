@@ -11,9 +11,8 @@ import {
 } from "@/hooks/domains/useProductionQueries";
 import { useProductionBOMs } from "@/hooks/domains/useAccountingQueries";
 import { useIngredients } from "@/hooks/domains/useProductQueries";
-import { ChefHat, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { QueryLoadingPanel } from "@/components/shared/query-states";
@@ -29,6 +28,8 @@ import { getBomTargetIds } from "@/lib/bom-filters";
 import { summarizeProductionOrders } from "@/lib/production-order-filters";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { kitchenSectionPanelClassName } from "@/lib/theme/hub-kitchen";
+import { text } from "@/lib/theme/surface";
+import { cn } from "@/lib/utils";
 
 const KitchenKanbanBoard = dynamic(
   () => import("@/components/kitchen/KitchenKanbanBoard").then((m) => m.KitchenKanbanBoard),
@@ -142,59 +143,58 @@ export default function CentralKitchenPage() {
   }
 
   return (
-    <div className="space-y-6 w-full">
-      <HubPageHeader
-        hideTitle
-        icon={ChefHat}
-        accentHub="kitchen"
-        actions={
-          isCentralKitchen ? (
-            <Button
-              className={hubCtaClassName("kitchen")}
-              onClick={() => setIsModalOpen(true)}
-            >
-              <Plus className="w-4 h-4 mr-2" aria-hidden />
-              New order
-            </Button>
-          ) : undefined
-        }
-      />
+    <div className="space-y-4 w-full">
+      {isCentralKitchen ? (
+        <div className="flex justify-end">
+          <Button className={hubCtaClassName("kitchen")} onClick={() => setIsModalOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" aria-hidden />
+            New order
+          </Button>
+        </div>
+      ) : null}
 
       {!isCentralKitchen ? (
         <CentralKitchenBranchNotice mode="blocking" />
       ) : (
         <HubListPage className={kitchenSectionPanelClassName()}>
-        <HubListPage.Error
-          message={isError ? getErrorMessage(error, "Failed to load production orders") : undefined}
-          onRetry={() => void refetch()}
-          loading={isFetching}
-        />
-
-        <HubListPage.Count
-          isLoading={isLoading}
-          isError={isError}
-          isFetching={isFetching}
-        >
-          {summary.total === 0
-            ? "No production orders yet"
-            : `${summary.total} production order${summary.total === 1 ? "" : "s"} · ${summary.planned} planned · ${summary.inProgress} in progress · ${summary.completed} completed`}
-          {isFetching && !isLoading && " · Updating…"}
-        </HubListPage.Count>
-
-        <HubListPage.Body>
-        {isLoading && orders.length === 0 ? (
-          <QueryLoadingPanel message="Loading production board…" minHeightClassName="py-20" />
-        ) : !isError ? (
-          <KitchenKanbanBoard
-            plannedOrders={plannedOrders}
-            inProgressOrders={inProgressOrders}
-            completedOrders={completedOrders}
-            activeOrder={activeOrder}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
+          <HubListPage.Error
+            message={isError ? getErrorMessage(error, "Failed to load production orders") : undefined}
+            onRetry={() => void refetch()}
+            loading={isFetching}
           />
-        ) : null}
-        </HubListPage.Body>
+
+          <HubListPage.Count
+            isLoading={isLoading}
+            isError={isError}
+            isFetching={isFetching}
+          >
+            {summary.total === 0 ? (
+              <span className={text.muted}>No production orders yet</span>
+            ) : (
+              <span className={cn("tabular-nums", text.secondary)}>
+                {summary.planned} planned · {summary.inProgress} in progress · {summary.completed}{" "}
+                done
+              </span>
+            )}
+            {isFetching && !isLoading && (
+              <span className={cn("ml-1", text.muted)}>· Updating…</span>
+            )}
+          </HubListPage.Count>
+
+          <HubListPage.Body>
+            {isLoading && orders.length === 0 ? (
+              <QueryLoadingPanel message="Loading production board…" minHeightClassName="py-20" />
+            ) : !isError ? (
+              <KitchenKanbanBoard
+                plannedOrders={plannedOrders}
+                inProgressOrders={inProgressOrders}
+                completedOrders={completedOrders}
+                activeOrder={activeOrder}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+              />
+            ) : null}
+          </HubListPage.Body>
         </HubListPage>
       )}
 

@@ -5,33 +5,63 @@ import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import { BranchScopeIndicator } from "@/components/shared/branch-scope-indicator";
 import { ImmersiveBranchToolbar } from "@/components/shared/immersive-branch-toolbar";
+import {
+  MobileBottomNavLink,
+  MobileBottomNavMenuButton,
+  MobileBottomNavShell,
+} from "@/components/layout/mobile-bottom-nav-primitives";
 import { useAuth } from "@/context/AuthContext";
 import { useMobileNav } from "@/context/MobileNavContext";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
-import { getVisibleHubTabs, isTabActive } from "@/lib/navigation";
-import { posImmersiveHeaderClassName } from "@/lib/theme/immersive";
-import { mobileBottomNavClassName, mobileBottomNavIconClassName, mobileBottomNavItemClassName, shellPageTitleClassName } from "@/lib/theme/shell";
-import { text } from "@/lib/theme/surface";
+import { getVisibleHubTabs, isTabActive, shouldShowHubSubNav } from "@/lib/navigation";
+import {
+  kdsImmersiveHeaderMetaClassName,
+  kdsImmersiveHeaderRowClassName,
+  posImmersiveHeaderClassName,
+} from "@/lib/theme/immersive";
+import { hubTabClassName, hubTabTrackClassName, text } from "@/lib/theme/surface";
+import { shellPageTitleClassName } from "@/lib/theme/shell";
 import { cn } from "@/lib/utils";
 import type { Branch } from "@/types/api";
 
-const PAGE_TITLES: Record<string, string> = {
-  "/pos/terminal": "Terminal",
-  "/pos/settlement": "End of Day Settlement",
-};
-
 function resolvePosPageTitle(pathname: string) {
-  if (PAGE_TITLES[pathname]) return PAGE_TITLES[pathname];
-  if (pathname.startsWith("/pos/terminal")) return PAGE_TITLES["/pos/terminal"];
-  if (pathname.startsWith("/pos/settlement")) return PAGE_TITLES["/pos/settlement"];
+  if (pathname === "/pos/terminal" || pathname.startsWith("/pos/terminal/")) {
+    return "Terminal";
+  }
   return "Point of Sale";
 }
 
-function resolvePosPageDescription(pathname: string) {
-  if (pathname.startsWith("/pos/settlement")) {
-    return "Reconcile all payment channels and submit to HQ.";
+function PosImmersiveDesktopTabs() {
+  const pathname = usePathname();
+  const { user } = useAuth();
+  const role = user?.role ?? "STAFF";
+  const tabs = getVisibleHubTabs("pos", role);
+
+  if (!shouldShowHubSubNav(tabs, "/pos")) {
+    return null;
   }
-  return "Process sales for the selected branch.";
+
+  return (
+    <nav aria-label="POS sections" className="hidden lg:block">
+      <div className={hubTabTrackClassName()}>
+        {tabs.map((tab) => {
+          const isActive = isTabActive(pathname, tab.path, "/pos");
+          const TabIcon = tab.icon;
+          return (
+            <Link
+              key={tab.path}
+              href={tab.path}
+              aria-current={isActive ? "page" : undefined}
+              className={hubTabClassName(isActive)}
+            >
+              <TabIcon className="h-4 w-4 shrink-0" aria-hidden />
+              {tab.label}
+            </Link>
+          );
+        })}
+      </div>
+    </nav>
+  );
 }
 
 export function PosImmersiveHeader() {
@@ -45,15 +75,24 @@ export function PosImmersiveHeader() {
 
   return (
     <header className={posImmersiveHeaderClassName()}>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className={shellPageTitleClassName()}>{resolvePosPageTitle(pathname)}</h1>
-        <BranchScopeIndicator
-          branchName={branchName}
-          allBranches={activeBranchId == null}
-        />
+      <div className={kdsImmersiveHeaderRowClassName()}>
+        <h1 className={cn(shellPageTitleClassName("text-lg sm:text-xl lg:text-2xl"), "min-w-0")}>
+          {resolvePosPageTitle(pathname)}
+        </h1>
+        <div className={kdsImmersiveHeaderMetaClassName()}>
+          <BranchScopeIndicator
+            branchName={branchName}
+            allBranches={activeBranchId == null}
+          />
+        </div>
       </div>
+
+      <PosImmersiveDesktopTabs />
       <ImmersiveBranchToolbar className="max-w-md" />
-      <p className={cn("text-sm hidden sm:block", text.muted)}>{resolvePosPageDescription(pathname)}</p>
+
+      <p className={cn("hidden text-sm lg:block", text.muted)}>
+        Process sales for the selected branch.
+      </p>
     </header>
   );
 }
@@ -66,34 +105,22 @@ export function PosImmersiveNav() {
   const tabs = getVisibleHubTabs("pos", role);
 
   return (
-    <nav aria-label="POS navigation" className={mobileBottomNavClassName()}>
-      {tabs.map((tab) => {
-        const isActive = isTabActive(pathname, tab.path, "/pos");
-        const TabIcon = tab.icon;
-        return (
-          <Link
-            key={tab.path}
-            href={tab.path}
-            aria-current={isActive ? "page" : undefined}
-            className={mobileBottomNavItemClassName(isActive)}
-          >
-            <TabIcon className={mobileBottomNavIconClassName(isActive)} aria-hidden />
-            <span>{tab.label}</span>
-          </Link>
-        );
-      })}
-      <button
-        type="button"
+    <MobileBottomNavShell ariaLabel="POS navigation">
+      {tabs.map((tab) => (
+        <MobileBottomNavLink
+          key={tab.path}
+          href={tab.path}
+          icon={tab.icon}
+          label={tab.label}
+          isActive={isTabActive(pathname, tab.path, "/pos")}
+        />
+      ))}
+      <MobileBottomNavMenuButton
         onClick={toggle}
-        className={cn(
-          mobileBottomNavItemClassName(false),
-          "border-0 bg-transparent cursor-pointer",
-        )}
-        aria-label="Open full navigation menu"
-      >
-        <Menu className={mobileBottomNavIconClassName(false)} aria-hidden />
-        <span>Menu</span>
-      </button>
-    </nav>
+        icon={Menu}
+        label="Menu"
+        isActive={false}
+      />
+    </MobileBottomNavShell>
   );
 }

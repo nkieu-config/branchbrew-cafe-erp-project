@@ -1,20 +1,13 @@
-import { findHubByPathname } from "@/lib/navigation";
+import { findHubByPathname } from "@/lib/navigation/hub-utils";
 
 /** Routes that use a compact icon rail instead of the full sidebar on desktop. */
 export function isImmersiveRoute(pathname: string) {
-  return (
-    pathname.startsWith("/pos/terminal") ||
-    pathname.startsWith("/pos/settlement") ||
-    pathname === "/kds"
-  );
+  return pathname.startsWith("/pos/terminal") || pathname === "/kds";
 }
 
-/** POS terminal/settlement — mobile uses POS tab bar instead of global bottom nav. */
+/** POS terminal — mobile uses POS tab bar instead of global bottom nav. */
 export function isPosImmersiveRoute(pathname: string) {
-  return (
-    pathname.startsWith("/pos/terminal") ||
-    pathname.startsWith("/pos/settlement")
-  );
+  return pathname.startsWith("/pos/terminal");
 }
 
 /** KDS — mobile uses operational quick nav instead of global bottom nav. */

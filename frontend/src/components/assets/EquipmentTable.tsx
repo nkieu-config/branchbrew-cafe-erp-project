@@ -1,9 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import type { ColumnsType } from "antd/es/table";
 import { Wrench } from "lucide-react";
 import { DataTable } from "@/components/shared/data-table";
+import {
+  ListMobileCard,
+  PaginatedMobileList,
+  ResponsiveDataTableLayout,
+} from "@/components/shared/responsive-data-table";
 import { StatusBadge, equipmentStatusTone } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import {
@@ -13,8 +18,9 @@ import {
   isMaintenanceOverdue,
 } from "@/lib/equipment-filters";
 import { formatDate } from "@/lib/intl-date";
-import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { useHubListPagination } from "@/hooks/useHubListPagination";
 import {
+  assetsMutedMetaClassName,
   equipmentMaintenanceDateClassName,
   equipmentMaintenanceDueRowClassName,
   equipmentMaintenanceOverdueRowClassName,
@@ -31,12 +37,45 @@ type EquipmentTableProps = {
   onLogMaintenance: (equipment: Equipment) => void;
 };
 
+function equipmentRowHighlightClass(record: Equipment) {
+  if (record.status !== "ACTIVE" || !record.nextMaintenanceDate) return undefined;
+  if (isMaintenanceOverdue(record.nextMaintenanceDate)) {
+    return equipmentMaintenanceOverdueRowClassName("cursor-default");
+  }
+  if (isMaintenanceDueSoon(record.nextMaintenanceDate)) {
+    return equipmentMaintenanceDueRowClassName("cursor-default");
+  }
+  return undefined;
+}
+
 export function EquipmentTable({
   equipment,
   loading,
   hasActiveFilters,
   onLogMaintenance,
 }: EquipmentTableProps) {
+  const emptyDescription = hasActiveFilters
+    ? "No equipment matches your filters."
+    : "Register your first asset to start tracking maintenance.";
+
+  const listPagination = useHubListPagination(
+    { pageSize: 15 },
+    `${equipment.length}-${hasActiveFilters}`,
+  );
+
+  const renderMaintenanceDate = useCallback((date: string | null | undefined) => {
+    if (!date) {
+      return <span className={text.muted}>—</span>;
+    }
+    const overdue = isMaintenanceOverdue(date);
+    const dueSoon = isMaintenanceDueSoon(date);
+    return (
+      <span className={equipmentMaintenanceDateClassName(overdue, dueSoon)}>
+        {formatDate(date)}
+      </span>
+    );
+  }, []);
+
   const columns = useMemo(
     () =>
       [
@@ -46,12 +85,12 @@ export function EquipmentTable({
           key: "name",
           render: (name: string, record: Equipment) => (
             <div className="min-w-0">
-              <span className={cn("font-medium block truncate", text.primary)}>{name}</span>
-              {record.serialNumber && (
-                <span className={cn("text-xs block truncate", tableCellMutedClassName())}>
-                  S/N {record.serialNumber}
+              <span className={cn("block truncate font-medium", text.primary)}>{name}</span>
+              {record.serialNumber ? (
+                <span className={cn("block truncate font-mono text-xs", tableCellMutedClassName())}>
+                  {record.serialNumber}
                 </span>
-              )}
+              ) : null}
             </div>
           ),
         },
@@ -59,7 +98,10 @@ export function EquipmentTable({
           title: "Type",
           dataIndex: "type",
           key: "type",
-          render: (type: EquipmentType) => equipmentTypeLabel(type),
+          responsive: ["md"],
+          render: (type: EquipmentType) => (
+            <span className={assetsMutedMetaClassName()}>{equipmentTypeLabel(type)}</span>
+          ),
         },
         {
           title: "Status",
@@ -72,39 +114,29 @@ export function EquipmentTable({
           ),
         },
         {
-          title: "Next maintenance",
+          title: "Maintenance",
           dataIndex: "nextMaintenanceDate",
           key: "nextMaintenanceDate",
-          render: (date: string | null | undefined) => {
-            if (!date) {
-              return <span className={tableCellMutedClassName()}>—</span>;
-            }
-            const overdue = isMaintenanceOverdue(date);
-            const dueSoon = isMaintenanceDueSoon(date);
-            return (
-              <span className={equipmentMaintenanceDateClassName(overdue, dueSoon)}>
-                {formatDate(date)}
-                {overdue && " · overdue"}
-                {!overdue && dueSoon && " · due soon"}
-              </span>
-            );
-          },
+          responsive: ["sm"],
+          render: (date: string | null | undefined) => renderMaintenanceDate(date),
         },
         {
-          title: "Actions",
+          title: "",
           key: "actions",
-          width: 120,
+          width: 56,
+          align: "right" as const,
           render: (_: unknown, record: Equipment) => (
             <TableActionButton
-              label="Log maintenance"
+              label={`Log maintenance for ${record.name}`}
               icon={Wrench}
+              iconOnly
               tone="amber"
               onClick={() => onLogMaintenance(record)}
             />
           ),
         },
       ] satisfies ColumnsType<Equipment>,
-    [onLogMaintenance],
+    [onLogMaintenance, renderMaintenanceDate],
   );
 
   const rowClassName = (record: Equipment) => {
@@ -119,17 +151,66 @@ export function EquipmentTable({
   };
 
   return (
-    <DataTable
-      {...hubListDataTableProps()}
-      loading={loading}
-      columns={columns}
-      dataSource={equipment}
-      rowKey="id"
-      rowClassName={rowClassName}
-      emptyDescription={
-        hasActiveFilters
-          ? "No equipment matches your filters."
-          : "Register your first asset to start tracking maintenance."
+    <ResponsiveDataTableLayout
+      mobile={
+        loading ? (
+          <ResponsiveDataTableLayout.Skeleton />
+        ) : equipment.length === 0 ? (
+          <ResponsiveDataTableLayout.Empty message={emptyDescription} />
+        ) : (
+          <PaginatedMobileList
+            items={equipment}
+            pageSize={listPagination.pageSize}
+            page={listPagination.currentPage}
+            onPageChange={listPagination.setCurrentPage}
+          >
+            {(record) => (
+              <ListMobileCard className={equipmentRowHighlightClass(record)}>
+                <div className="mb-2 flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className={cn("truncate font-medium", text.primary)}>{record.name}</p>
+                    {record.serialNumber ? (
+                      <p className={cn("truncate font-mono text-xs", tableCellMutedClassName())}>
+                        {record.serialNumber}
+                      </p>
+                    ) : null}
+                    <p className={cn("mt-1 text-sm", assetsMutedMetaClassName())}>
+                      {equipmentTypeLabel(record.type)}
+                    </p>
+                  </div>
+                  <StatusBadge tone={equipmentStatusTone(record.status)} className="shrink-0">
+                    {equipmentStatusLabel(record.status)}
+                  </StatusBadge>
+                </div>
+                <p className={cn("mb-3 text-sm", text.muted)}>
+                  Next maintenance{" "}
+                  {record.nextMaintenanceDate ? renderMaintenanceDate(record.nextMaintenanceDate) : <span>—</span>}
+                </p>
+                <div className="flex justify-end">
+                  <TableActionButton
+                    label={`Log maintenance for ${record.name}`}
+                    icon={Wrench}
+                    iconOnly
+                    tone="amber"
+                    onClick={() => onLogMaintenance(record)}
+                  />
+                </div>
+              </ListMobileCard>
+            )}
+          </PaginatedMobileList>
+        )
+      }
+      desktop={
+        <DataTable
+          hideBorders
+          pagination={listPagination.tablePagination}
+          loading={loading}
+          columns={columns}
+          dataSource={equipment}
+          rowKey="id"
+          rowClassName={rowClassName}
+          emptyDescription={emptyDescription}
+        />
       }
     />
   );

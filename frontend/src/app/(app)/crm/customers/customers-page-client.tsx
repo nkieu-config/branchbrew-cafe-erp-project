@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Users } from "lucide-react";
 import { useCustomers } from "@/hooks/domains/useCrmQueries";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { Customer360Sheet } from "@/components/crm/Customer360Sheet";
@@ -9,7 +8,6 @@ import { CustomerListTable } from "@/components/crm/CustomerListTable";
 import { RegisterCustomerDialog } from "@/components/crm/RegisterCustomerDialog";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { getErrorMessage } from "@/lib/errors";
 import type { Customer, Tier } from "@/types/api";
 import { crmSectionPanelClassName } from "@/lib/theme/hub-crm";
@@ -67,12 +65,9 @@ export default function CustomersPageClient() {
 
   return (
     <>
-      <HubPageHeader
-        hideTitle
-        icon={Users}
-        accentHub="crm"
-        actions={<RegisterCustomerDialog />}
-      />
+      <div className="mb-4 flex justify-end">
+        <RegisterCustomerDialog />
+      </div>
 
       <HubListPage className={crmSectionPanelClassName()}>
         <HubListPage.Error
@@ -84,7 +79,7 @@ export default function CustomersPageClient() {
         <HubListPage.Toolbar
           search={search}
           onSearchChange={setSearch}
-          searchPlaceholder="Search by name or phone…"
+          searchPlaceholder="Search name or phone…"
           showReset={hasActiveFilters}
           onReset={() => {
             setSearch("");

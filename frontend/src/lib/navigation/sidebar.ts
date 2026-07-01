@@ -17,7 +17,7 @@ import type { HubId, SidebarGroup, SidebarItem } from "./types";
 
 export const SIDEBAR_GROUPS: SidebarGroup[] = [
   {
-    group: "Overview & Analytics",
+    group: "Overview",
     items: [
       {
         id: "dashboard",
@@ -29,7 +29,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     ],
   },
   {
-    group: "Store Operations",
+    group: "Operations",
     items: [
       {
         id: "pos",
@@ -62,7 +62,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     ],
   },
   {
-    group: "Back Office",
+    group: "Back office",
     items: [
       {
         id: "products",
@@ -109,7 +109,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     ],
   },
   {
-    group: "System Admin",
+    group: "Admin",
     items: [
       {
         id: "organization",

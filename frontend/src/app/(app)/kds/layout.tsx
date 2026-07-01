@@ -1,11 +1,12 @@
 "use client";
 
 import { KdsImmersiveNav } from "@/components/kds/KdsImmersiveChrome";
+import { kdsShellFrameClassName } from "@/lib/theme/immersive";
 
 export default function KdsLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative flex flex-col flex-1 min-h-0 w-full h-full">
-      <div className="flex-1 min-h-0 min-w-0">{children}</div>
+    <div className="relative flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
+      <div className={kdsShellFrameClassName()}>{children}</div>
       <KdsImmersiveNav />
     </div>
   );

@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils";
 import { hubIconClassName, hubMetaBadgeClassName, hubSectionPanelClassName } from "./hub-panel";
-import { metricValueClassName } from "./metric";
 import { text } from "./surface";
 
 export function assetsSectionPanelClassName(className?: string) {
@@ -15,20 +14,24 @@ export function assetsMetaBadgeClassName(className?: string) {
   return hubMetaBadgeClassName("assets", className);
 }
 
+export function assetsMutedMetaClassName(className?: string) {
+  return cn("text-sm", text.muted, className);
+}
+
 export function assetsDialogContentClassName(className?: string) {
   return cn(
-    "sm:max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto",
+    "sm:max-w-lg rounded-xl max-h-[90vh] overflow-y-auto",
     "bg-[var(--table-container-bg)] border-[var(--table-container-border)] text-foreground",
     className,
   );
 }
 
 export function equipmentMaintenanceDueRowClassName(className?: string) {
-  return cn("bg-[var(--status-warning-bg)]/45", className);
+  return cn("bg-[var(--status-warning-bg)]/25", className);
 }
 
 export function equipmentMaintenanceOverdueRowClassName(className?: string) {
-  return cn("bg-[var(--status-danger-bg)]/45", className);
+  return cn("bg-[var(--status-danger-bg)]/25", className);
 }
 
 export function equipmentMaintenanceDateClassName(
@@ -37,10 +40,10 @@ export function equipmentMaintenanceDateClassName(
   className?: string,
 ) {
   if (overdue) {
-    return cn("font-medium tabular-nums", metricValueClassName("red"), className);
+    return cn("tabular-nums text-[var(--status-danger-fg)]", className);
   }
   if (dueSoon) {
-    return cn("font-medium tabular-nums", metricValueClassName("amber"), className);
+    return cn("tabular-nums text-[var(--status-warning-fg)]", className);
   }
   return cn("tabular-nums", text.muted, className);
 }

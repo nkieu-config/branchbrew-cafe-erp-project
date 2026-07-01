@@ -2,14 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { BarChart3 } from "lucide-react";
 import { useOrders } from "@/hooks/domains/useReportsQueries";
 import { useProductsSummary } from "@/hooks/domains/useProductsSummary";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { FoodCostMarginPanel } from "@/components/products/FoodCostMarginPanel";
 import { FoodCostTable } from "@/components/products/FoodCostTable";
 import { ProductFormModal } from "@/components/products/ProductFormModal";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { getErrorMessage } from "@/lib/errors";
@@ -82,8 +80,6 @@ export default function CostingPageClient() {
 
   return (
     <>
-      <HubPageHeader hideTitle icon={BarChart3} accentHub="products" />
-
       <HubListPage className={productsSectionPanelClassName()}>
         <HubListPage.Error
           message={

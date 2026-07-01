@@ -1,6 +1,6 @@
 "use client";
 
-import { Trash2, Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,10 +17,8 @@ import {
   FormPanelFooter,
 } from "@/components/shared/form-panel";
 import { HubListPage } from "@/components/shared/hub-list-page";
-import { StatusBadge } from "@/components/shared/status-badge";
 import { getErrorMessage } from "@/lib/errors";
 import { formValidationHintClassName } from "@/lib/theme/color-helpers";
-import { metricValueClassName } from "@/lib/theme/metric";
 import {
   formFieldInsetClassName,
   formSelectContentClassName,
@@ -28,12 +26,10 @@ import {
   formLineQtyFieldClassName,
   formLineReasonFieldClassName,
   formLineRowClassName,
-  formPanelHeaderClassName,
   formRemoveButtonClassName,
   hubDangerActionClassName,
 } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { Ingredient, WasteLineItem } from "@/types/api";
 
@@ -86,24 +82,15 @@ export function WasteRecordForm({
 }: WasteRecordFormProps) {
   return (
     <FormPanel>
-      <div className={formPanelHeaderClassName()}>
-        <h2 className={typeHeadingClassName("text-lg flex items-center gap-2")}>
-          <Trash2 className={cn("w-5 h-5", metricValueClassName("red"))} aria-hidden />
-          Record Waste
-        </h2>
-        <p className={cn("text-sm mt-1", text.muted)}>
-          One row per item — stock is deducted immediately from branch totals.
-        </p>
-        {ingredientsFetching && !ingredientsLoading && (
-          <span className={cn("inline-flex items-center gap-1.5 text-xs mt-2", text.muted)}>
-            <Loader2
-              className="w-3.5 h-3.5 animate-spin motion-reduce:animate-none"
-              aria-hidden
-            />
-            Updating ingredients…
-          </span>
-        )}
-      </div>
+      {ingredientsFetching && !ingredientsLoading && (
+        <span className={cn("inline-flex items-center gap-1.5 text-xs mb-4", text.muted)}>
+          <Loader2
+            className="w-3.5 h-3.5 animate-spin motion-reduce:animate-none"
+            aria-hidden
+          />
+          Updating ingredients…
+        </span>
+      )}
 
       <HubListPage.Error
         message={
@@ -163,14 +150,14 @@ export function WasteRecordForm({
                   </SelectContent>
                 </Select>
                 {isDuplicate ? (
-                  <StatusBadge tone="warning" className="mt-1 w-fit">
-                    Duplicate ingredient — combine into one row
-                  </StatusBadge>
+                  <p className={cn("text-xs mt-1", formValidationHintClassName())}>
+                    Duplicate — combine into one row
+                  </p>
                 ) : null}
                 {item.ingredientId > 0 && stockOnHand !== undefined ? (
                   <p className={cn("text-xs mt-1", text.muted)}>
-                    Stock on hand:{" "}
-                    <span className={cn("font-medium tabular-nums", text.secondary)}>
+                    On hand:{" "}
+                    <span className={cn("tabular-nums", text.secondary)}>
                       {stockOnHand.toFixed(2)} {selectedIngredient?.unit ?? ""}
                     </span>
                   </p>
@@ -231,10 +218,10 @@ export function WasteRecordForm({
           type="button"
           variant="outline"
           onClick={onAddRow}
-          className="w-full min-h-[44px] border-dashed"
+          className="w-full min-h-[44px]"
           disabled={formDisabled}
         >
-          <Plus className="w-4 h-4 mr-2" aria-hidden /> Add Another Row
+          <Plus className="w-4 h-4 mr-2" aria-hidden /> Add row
         </Button>
       </div>
 
@@ -274,7 +261,7 @@ export function WasteRecordForm({
               Recording…
             </>
           ) : (
-            "Confirm Waste Deduction"
+            "Confirm waste"
           )}
         </Button>
       </FormPanelFooter>

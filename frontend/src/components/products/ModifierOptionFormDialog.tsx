@@ -2,14 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { FormDialog } from "@/components/shared/form-modal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -18,7 +11,6 @@ import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { productsDialogContentClassName } from "@/lib/theme/hub-products";
 import { formFieldInsetClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { ModifierOption } from "@/types/api";
 import { ModifierIngredientSelect } from "./ModifierIngredientSelect";
@@ -57,18 +49,9 @@ export function ModifierOptionFormDialog({
   onSave: () => void;
 }) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={productsDialogContentClassName()}>
-        <DialogHeader>
-          <DialogTitle className={typeHeadingClassName("text-xl")}>
-            {editingOption ? "Edit Option" : "New Option"}
-          </DialogTitle>
-          <DialogDescription>
-            Set swap-to ingredient when this option replaces the group swap target (e.g. Oat →
-            Oat Milk).
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 pt-2">
+    <FormDialog open={open} onOpenChange={onOpenChange} className={productsDialogContentClassName()}>
+        <FormDialog.Title>{editingOption ? "Edit option" : "New option"}</FormDialog.Title>
+        <FormDialog.Body className="space-y-4 pt-1">
           <div className="space-y-2">
             <Label htmlFor="modifier-option-name" className={text.secondary}>
               Name
@@ -135,8 +118,8 @@ export function ModifierOptionFormDialog({
               placeholder="Keep recipe ingredient"
             />
           </div>
-        </div>
-        <DialogFooter>
+        </FormDialog.Body>
+        <FormDialog.Footer>
           <Button
             onClick={onSave}
             disabled={isSaving}
@@ -145,8 +128,7 @@ export function ModifierOptionFormDialog({
             {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}
             {editingOption ? "Save option" : "Add option"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialog.Footer>
+    </FormDialog>
   );
 }

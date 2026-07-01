@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useDeferredValue } from "react";
+import dynamic from "next/dynamic";
 import { useReactToPrint } from "react-to-print";
 import { toast } from "sonner";
 import {
@@ -16,12 +17,20 @@ import { useAuth } from "@/context/AuthContext";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { PosCartSidebar } from "@/components/pos/PosCartSidebar";
 import { PosMobileCart } from "@/components/pos/PosMobileCart";
-import { PosCheckoutDialog } from "@/components/pos/PosCheckoutDialog";
-import { PosCustomerLookupDialog } from "@/components/pos/PosCustomerLookupDialog";
-import { PosModifierDialog } from "@/components/pos/PosModifierDialog";
-import { PosOrderSuccessDialog } from "@/components/pos/PosOrderSuccessDialog";
 import { PosProductCatalog } from "@/components/pos/PosProductCatalog";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+
+const PosCheckoutDialog = dynamic(
+  () => import("@/components/pos/PosCheckoutDialog").then((m) => m.PosCheckoutDialog),
+);
+const PosCustomerLookupDialog = dynamic(
+  () => import("@/components/pos/PosCustomerLookupDialog").then((m) => m.PosCustomerLookupDialog),
+);
+const PosModifierDialog = dynamic(
+  () => import("@/components/pos/PosModifierDialog").then((m) => m.PosModifierDialog),
+);
+const PosOrderSuccessDialog = dynamic(
+  () => import("@/components/pos/PosOrderSuccessDialog").then((m) => m.PosOrderSuccessDialog),
+);
 import { filterActive } from "@/lib/form";
 import { pointsToDiscountAmount } from "@/lib/loyalty";
 import { toNumber } from "@/lib/money";
@@ -59,7 +68,7 @@ export default function PosTerminalPageClient() {
   } = useProducts();
   const products = filterActive<Product>((productsData || []) as Product[]);
   const [productSearch, setProductSearch] = useState("");
-  const debouncedProductSearch = useDebouncedValue(productSearch.trim().toLowerCase(), 200);
+  const deferredProductSearch = useDeferredValue(productSearch.trim().toLowerCase());
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
 
   const categories = useMemo(() => {
@@ -73,14 +82,14 @@ export default function PosTerminalPageClient() {
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
       const matchesCategory = !categoryFilter || p.category === categoryFilter;
-      const q = debouncedProductSearch;
+      const q = deferredProductSearch;
       const matchesSearch =
         !q ||
         p.name.toLowerCase().includes(q) ||
         p.category.toLowerCase().includes(q);
       return matchesCategory && matchesSearch;
     });
-  }, [products, categoryFilter, debouncedProductSearch]);
+  }, [products, categoryFilter, deferredProductSearch]);
 
   const [cart, setCart] = useState<PosCartItem[]>([]);
   const [showModifiers, setShowModifiers] = useState(false);
@@ -333,7 +342,7 @@ export default function PosTerminalPageClient() {
   };
 
   return (
-    <div className="flex h-full flex-col lg:flex-row gap-4 lg:gap-6 w-full min-h-0">
+    <div className="flex h-full flex-col lg:flex-row gap-4 lg:gap-5 w-full min-h-0">
       <PosProductCatalog
         productsError={productsError}
         productsErr={productsErr}
@@ -350,8 +359,8 @@ export default function PosTerminalPageClient() {
         onProductClick={handleProductClick}
       />
 
-      <div className="hidden lg:flex lg:shrink-0">
-        <PosCartSidebar {...cartProps} />
+      <div className="hidden lg:flex lg:h-full lg:min-h-0 lg:max-h-full lg:shrink-0 lg:self-stretch">
+        <PosCartSidebar {...cartProps} className="h-full" />
       </div>
 
       <PosMobileCart {...cartProps} />

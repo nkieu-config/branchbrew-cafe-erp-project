@@ -4,15 +4,15 @@ import { motion, Transition, useReducedMotion } from "framer-motion";
 import { ReactNode } from "react";
 
 const pageVariants = {
-  initial: { opacity: 0, y: 15 },
+  initial: { opacity: 0, y: 6 },
   in: { opacity: 1, y: 0 },
-  out: { opacity: 0, y: -15 },
+  out: { opacity: 0, y: -4 },
 };
 
 const pageTransition: Transition = {
   type: "tween",
   ease: "easeOut",
-  duration: 0.3,
+  duration: 0.18,
 };
 
 export function AnimatedPageInner({ children, className = "" }: { children: ReactNode; className?: string }) {

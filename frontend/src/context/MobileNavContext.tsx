@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, use, useCallback, useMemo, useState } from "react";
 
 type MobileNavContextValue = {
   open: boolean;
@@ -28,7 +28,7 @@ export function MobileNavProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useMobileNav() {
-  const context = useContext(MobileNavContext);
+  const context = use(MobileNavContext);
   if (!context) {
     throw new Error("useMobileNav must be used within MobileNavProvider");
   }

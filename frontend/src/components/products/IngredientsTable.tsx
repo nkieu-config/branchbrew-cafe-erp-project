@@ -5,17 +5,18 @@ import type { ColumnsType } from "antd/es/table";
 import Link from "next/link";
 import { Edit, Trash2 } from "lucide-react";
 import { DataTable } from "@/components/shared/data-table";
+import {
+  ListMobileCard,
+  PaginatedMobileList,
+  ResponsiveDataTableLayout,
+} from "@/components/shared/responsive-data-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
-import { formatDate } from "@/lib/intl-date";
 import { formatCurrency } from "@/lib/money";
 import { ingredientIsActive } from "@/lib/ingredient-filters";
-import { hubListDataTableProps } from "@/lib/theme/data-table";
-import { tableCellMutedClassName } from "@/lib/theme/feedback";
-import { productsCategoryBadgeClassName } from "@/lib/theme/hub-products";
-import { metricValueClassName } from "@/lib/theme/metric";
+import { useHubListPagination } from "@/hooks/useHubListPagination";
+import { productsCategoryTextClassName } from "@/lib/theme/hub-products";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { Ingredient } from "@/types/api";
 
@@ -27,6 +28,64 @@ type IngredientsTableProps = {
   onDelete: (ingredient: Ingredient) => void;
 };
 
+type IngredientActionsProps = {
+  ingredient: Ingredient;
+  onEdit: (ingredient: Ingredient) => void;
+  onDelete: (ingredient: Ingredient) => void;
+};
+
+function IngredientActions({ ingredient, onEdit, onDelete }: IngredientActionsProps) {
+  return (
+    <div className="flex items-center justify-end gap-1">
+      <TableActionButton
+        icon={Edit}
+        label={`Edit ${ingredient.name}`}
+        iconOnly
+        tone="purple"
+        onClick={() => onEdit(ingredient)}
+      />
+      <TableActionButton
+        icon={Trash2}
+        label={`Delete ${ingredient.name}`}
+        iconOnly
+        destructive
+        onClick={() => onDelete(ingredient)}
+      />
+    </div>
+  );
+}
+
+function IngredientMobileCard({ ingredient, onEdit, onDelete }: IngredientActionsProps) {
+  const missingCost = ingredient.costPerUnit == null || ingredient.costPerUnit <= 0;
+
+  return (
+    <ListMobileCard>
+      <div className="mb-2 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className={cn("font-medium", text.primary)}>{ingredient.name}</p>
+          <p className={productsCategoryTextClassName()}>{ingredient.unit}</p>
+        </div>
+        <span className={cn("shrink-0 tabular-nums", missingCost ? text.muted : text.primary)}>
+          {!missingCost ? formatCurrency(ingredient.costPerUnit) : "—"}
+        </span>
+      </div>
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        {ingredientIsActive(ingredient) ? (
+          <StatusBadge tone="success">Active</StatusBadge>
+        ) : (
+          <StatusBadge tone="neutral">Off</StatusBadge>
+        )}
+        {ingredient.primarySupplier?.name ? (
+          <Link href="/procurement/suppliers" className={cn("text-sm", text.secondary)}>
+            {ingredient.primarySupplier.name}
+          </Link>
+        ) : null}
+      </div>
+      <IngredientActions ingredient={ingredient} onEdit={onEdit} onDelete={onDelete} />
+    </ListMobileCard>
+  );
+}
+
 export function IngredientsTable({
   ingredients,
   isLoading,
@@ -34,24 +93,24 @@ export function IngredientsTable({
   onEdit,
   onDelete,
 }: IngredientsTableProps) {
+  const emptyDescription = hasActiveFilters
+    ? "No ingredients match your filters."
+    : "No ingredients yet.";
+
+  const listPagination = useHubListPagination(
+    { pageSize: 15 },
+    `${ingredients.length}-${hasActiveFilters}`,
+  );
+
   const columns = useMemo(
     () =>
       [
         {
-          title: "ID",
-          dataIndex: "id",
-          key: "id",
-          responsive: ["lg"],
-          render: (id: number) => (
-            <span className={tableCellMutedClassName()}>#{id}</span>
-          ),
-        },
-        {
-          title: "Ingredient Name",
+          title: "Name",
           dataIndex: "name",
           key: "name",
           render: (name: string) => (
-            <span className={typeHeadingClassName()}>{name}</span>
+            <span className={cn("font-medium", text.primary)}>{name}</span>
           ),
         },
         {
@@ -59,36 +118,33 @@ export function IngredientsTable({
           dataIndex: "unit",
           key: "unit",
           responsive: ["md"],
+          width: 80,
           render: (unit: string) => (
-            <span className={productsCategoryBadgeClassName()}>{unit}</span>
+            <span className={productsCategoryTextClassName()}>{unit}</span>
           ),
         },
         {
-          title: "Cost / Unit",
+          title: "Cost",
           dataIndex: "costPerUnit",
           key: "costPerUnit",
           render: (costPerUnit?: number) => {
             const missing = costPerUnit == null || costPerUnit <= 0;
             return (
-              <span
-                className={typeUiLabelClassName(
-                  cn("tabular-nums", missing ? metricValueClassName("amber") : text.primary),
-                )}
-              >
+              <span className={cn("tabular-nums", missing ? text.muted : text.primary)}>
                 {!missing ? formatCurrency(costPerUnit) : "—"}
               </span>
             );
           },
         },
         {
-          title: "Primary Supplier",
+          title: "Supplier",
           key: "primarySupplier",
           responsive: ["md"],
           render: (_: unknown, record: Ingredient) =>
             record.primarySupplier?.name ? (
               <Link
                 href="/procurement/suppliers"
-                className={cn("text-sm font-medium hover:opacity-80", text.secondary)}
+                className={cn("text-sm hover:opacity-80", text.secondary)}
               >
                 {record.primarySupplier.name}
               </Link>
@@ -99,64 +155,62 @@ export function IngredientsTable({
         {
           title: "Status",
           key: "isActive",
+          width: 96,
           render: (_: unknown, record: Ingredient) =>
             ingredientIsActive(record) ? (
               <StatusBadge tone="success">Active</StatusBadge>
             ) : (
-              <StatusBadge tone="neutral">Inactive</StatusBadge>
+              <StatusBadge tone="neutral">Off</StatusBadge>
             ),
-        },
-        {
-          title: "Created",
-          dataIndex: "createdAt",
-          key: "createdAt",
-          responsive: ["lg"],
-          render: (createdAt?: string) => (
-            <span className={cn("text-sm font-medium", text.muted)}>
-              {createdAt ? formatDate(createdAt) : "—"}
-            </span>
-          ),
         },
         {
           title: "",
           key: "actions",
-          width: 96,
+          width: 80,
           align: "right" as const,
           render: (_: unknown, record: Ingredient) => (
-            <div className="flex items-center justify-end gap-1">
-              <TableActionButton
-                icon={Edit}
-                label={`Edit ${record.name}`}
-                iconOnly
-                tone="purple"
-                onClick={() => onEdit(record)}
-              />
-              <TableActionButton
-                icon={Trash2}
-                label={`Delete ${record.name}`}
-                iconOnly
-                destructive
-                onClick={() => onDelete(record)}
-              />
-            </div>
+            <IngredientActions ingredient={record} onEdit={onEdit} onDelete={onDelete} />
           ),
         },
       ] as ColumnsType<Ingredient>,
-    [onEdit, onDelete],
+    [onDelete, onEdit],
   );
 
   return (
-    <DataTable
-      {...hubListDataTableProps()}
-      loading={isLoading}
-      emptyDescription={
-        hasActiveFilters
-          ? "No ingredients match your filters."
-          : "No ingredients yet. Add raw materials to build menu recipes and production BOMs."
+    <ResponsiveDataTableLayout
+      mobile={
+        isLoading ? (
+          <ResponsiveDataTableLayout.Skeleton />
+        ) : ingredients.length === 0 ? (
+          <ResponsiveDataTableLayout.Empty message={emptyDescription} />
+        ) : (
+          <PaginatedMobileList
+            items={ingredients}
+            pageSize={listPagination.pageSize}
+            page={listPagination.currentPage}
+            onPageChange={listPagination.setCurrentPage}
+          >
+            {(ingredient) => (
+              <IngredientMobileCard
+                ingredient={ingredient}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            )}
+          </PaginatedMobileList>
+        )
       }
-      columns={columns}
-      dataSource={ingredients}
-      rowKey="id"
+      desktop={
+        <DataTable
+          hideBorders
+          pagination={listPagination.tablePagination}
+          loading={isLoading}
+          emptyDescription={emptyDescription}
+          columns={columns}
+          dataSource={ingredients}
+          rowKey="id"
+        />
+      }
     />
   );
 }

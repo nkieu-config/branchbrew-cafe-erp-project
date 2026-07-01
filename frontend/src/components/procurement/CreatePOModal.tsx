@@ -1,15 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Loader2, Plus, Trash2, Truck } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,15 +17,13 @@ import Link from "next/link";
 import type { Ingredient, Supplier } from "@/types/api";
 import { toNumber } from "@/lib/money";
 import { FormEmptyIngredientsBanner } from "@/components/shared/form-panel";
-import { FormModalFooter } from "@/components/shared/form-modal";
+import { FormDialog, FormModalFooter } from "@/components/shared/form-modal";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { useLineItemRows } from "@/hooks/useLineItemRows";
-import { hubModalIconClassName } from "@/lib/theme/color-helpers";
 import { formSectionClassName, hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
 import { procurementDialogContentClassName } from "@/lib/theme/hub-procurement";
 import { formFieldInsetClassName, formLineQtyFieldClassName, formLineRowClassName, formRemoveButtonClassName, formSelectContentClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type PoLineDraft = {
@@ -149,25 +140,16 @@ export function CreatePOModal({
     isSubmitting || suppliers.length === 0 || formDisabled || duplicateKeys.size > 0;
 
   return (
-    <Dialog
+    <FormDialog
       open={open}
       onOpenChange={(next) => {
         if (!next) onClose();
       }}
+      className={procurementDialogContentClassName("sm:max-w-2xl")}
     >
-      <DialogContent className={procurementDialogContentClassName("sm:max-w-2xl")}>
-        <DialogHeader>
-          <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <Truck className={hubModalIconClassName("procurement")} aria-hidden />
-            Create Purchase Order
-          </DialogTitle>
-          <DialogDescription>
-            Add ingredients and quantities for this branch. Approved POs can be received into
-            inventory batches.
-          </DialogDescription>
-        </DialogHeader>
+        <FormDialog.Title>New PO</FormDialog.Title>
 
-        <div className="space-y-4 pt-2">
+        <FormDialog.Body className="space-y-4 pt-1">
           <div className="space-y-2">
             <Label htmlFor="po-supplier" className={text.secondary}>
               Supplier
@@ -197,8 +179,6 @@ export function CreatePOModal({
           </div>
 
           <div className={formSectionClassName()}>
-            <h3 className={typeUiLabelClassName(cn("text-sm mb-4", text.secondary))}>Order items</h3>
-
             {ingredients.length === 0 ? (
               <FormEmptyIngredientsBanner />
             ) : (
@@ -231,7 +211,7 @@ export function CreatePOModal({
                             </Select>
                             {isDuplicate ? (
                               <StatusBadge tone="warning" className="mt-1 w-fit">
-                                Duplicate ingredient — combine into one row
+                                Duplicate row
                               </StatusBadge>
                             ) : null}
                           </div>
@@ -291,7 +271,7 @@ export function CreatePOModal({
               </>
             )}
           </div>
-        </div>
+        </FormDialog.Body>
 
         <FormModalFooter>
           <Button type="button" variant="outline" onClick={onClose} className="min-h-[44px]">
@@ -307,7 +287,6 @@ export function CreatePOModal({
             Create PO
           </Button>
         </FormModalFooter>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   );
 }

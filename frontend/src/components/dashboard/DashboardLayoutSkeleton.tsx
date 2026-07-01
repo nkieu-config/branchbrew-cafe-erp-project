@@ -1,3 +1,4 @@
+import { dashboardGridClass } from "@/lib/theme/dashboard";
 import { cn } from "@/lib/utils";
 import {
   StatWidgetSkeleton,
@@ -7,12 +8,12 @@ import {
 
 export function DashboardLayoutSkeleton() {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6 auto-rows-[minmax(200px,auto)]">
+    <div className={dashboardGridClass()}>
       <StatWidgetSkeleton />
       <StatWidgetSkeleton />
       <AlertsWidgetSkeleton />
-      <ChartWidgetSkeleton className="lg:col-span-2 2xl:col-span-2" />
-      <ChartWidgetSkeleton className={cn("lg:col-span-2 2xl:col-span-2")} />
+      <ChartWidgetSkeleton className="md:col-span-2 xl:col-span-2" />
+      <ChartWidgetSkeleton className={cn("md:col-span-2 xl:col-span-2")} />
     </div>
   );
 }

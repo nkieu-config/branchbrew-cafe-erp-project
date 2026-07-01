@@ -13,6 +13,8 @@ import {
   shouldShowDesktopBreadcrumb,
   resolveBreadcrumbTrail,
   resolveHubShellTitle,
+  resolveTopbarPageTitle,
+  getPageChromeTitleVisibility,
   resolveSidebarHubId,
   isRedundantPageTitle,
   isSidebarItemActive,
@@ -208,14 +210,6 @@ describe("mobile breadcrumb visibility", () => {
     expect(shouldShowMobileBreadcrumb("/finance/overview", "MANAGER")).toBe(true);
   });
 
-  it("hides mobile breadcrumb when hub tabs are visible", () => {
-    expect(
-      shouldShowMobileBreadcrumb("/finance/overview", "MANAGER", { hubTabsVisible: true }),
-    ).toBe(false);
-    expect(
-      shouldShowMobileBreadcrumb("/finance/overview", "MANAGER", { hubTabsVisible: false }),
-    ).toBe(true);
-  });
 });
 
 describe("desktop breadcrumb visibility", () => {
@@ -304,5 +298,33 @@ describe("isSidebarItemActive legacy paths", () => {
   it("highlights assets for legacy /assets/equipment", () => {
     expect(assetsItem).toBeDefined();
     expect(isSidebarItemActive(assetsItem!, "/assets/equipment")).toBe(true);
+  });
+});
+
+describe("resolveTopbarPageTitle", () => {
+  it("uses hub tab labels for covered mobile routes", () => {
+    expect(resolveTopbarPageTitle("/pos/terminal")).toBe("Terminal");
+    expect(resolveTopbarPageTitle("/inventory/batches")).toBe("Batches & Expiry");
+  });
+
+  it("falls back to breadcrumb labels for non-hub routes", () => {
+    expect(resolveTopbarPageTitle("/kds")).toBe("Kitchen Display");
+    expect(resolveTopbarPageTitle("/")).toBe("Dashboard");
+  });
+});
+
+describe("getPageChromeTitleVisibility", () => {
+  it("hides mobile page title when bottom nav covers the route", () => {
+    const visibility = getPageChromeTitleVisibility("/inventory", "STAFF");
+    expect(visibility.hideOnMobile).toBe(true);
+    expect(visibility.showMobileTopbarTitle).toBe(true);
+    expect(visibility.hideOnDesktop).toBe(false);
+  });
+
+  it("hides desktop page title when breadcrumb trail is shown", () => {
+    const trail = resolveBreadcrumbTrail("/finance/overview");
+    const visibility = getPageChromeTitleVisibility("/finance/overview", "MANAGER", trail);
+    expect(visibility.hideOnDesktop).toBe(true);
+    expect(visibility.hideOnMobile).toBe(false);
   });
 });

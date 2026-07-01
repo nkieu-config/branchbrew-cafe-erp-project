@@ -3,6 +3,11 @@
 import { useMemo } from "react";
 import type { ColumnsType } from "antd/es/table";
 import { DataTable } from "@/components/shared/data-table";
+import {
+  ListMobileCard,
+  PaginatedMobileList,
+  ResponsiveDataTableLayout,
+} from "@/components/shared/responsive-data-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { TierIcon } from "@/components/crm/TierIcon";
 import { formatDate } from "@/lib/intl-date";
@@ -12,9 +17,8 @@ import {
   crmPointsSuffixClassName,
   customerTierTone,
 } from "@/lib/theme/hub-crm";
-import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { useHubListPagination } from "@/hooks/useHubListPagination";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type CustomerListTableProps = {
@@ -24,6 +28,49 @@ type CustomerListTableProps = {
   hasActiveFilters: boolean;
   onSelectCustomer: (id: number) => void;
 };
+
+type CustomerMobileCardProps = {
+  customer: Customer;
+  onSelectCustomer: (id: number) => void;
+};
+
+function CustomerMobileCard({ customer, onSelectCustomer }: CustomerMobileCardProps) {
+  return (
+    <ListMobileCard
+      onClick={() => onSelectCustomer(customer.id)}
+      aria-label={`View profile for ${customer.name}`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className={cn("font-medium", text.primary)}>{customer.name}</p>
+          {customer.phone ? (
+            <p className={cn("text-sm tabular-nums", text.muted)}>{customer.phone}</p>
+          ) : null}
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <StatusBadge tone={customerTierTone(customer.tier)} className="w-fit">
+              <span className="inline-flex items-center gap-1">
+                <TierIcon tier={customer.tier} />
+                {customer.tier}
+              </span>
+            </StatusBadge>
+            <span className={crmPointsClassName()}>
+              {customer.points.toLocaleString()}
+              <span className={crmPointsSuffixClassName()}> pts</span>
+            </span>
+          </div>
+          {customer.createdAt ? (
+            <time
+              className={cn("mt-1 block text-xs tabular-nums", text.muted)}
+              dateTime={customer.createdAt}
+            >
+              Joined {formatDate(customer.createdAt)}
+            </time>
+          ) : null}
+        </div>
+      </div>
+    </ListMobileCard>
+  );
+}
 
 export function CustomerListTable({
   customers,
@@ -36,11 +83,11 @@ export function CustomerListTable({
     () =>
       [
         {
-          title: "Customer",
+          title: "Name",
           dataIndex: "name",
           key: "name",
           render: (name: string) => (
-            <span className={typeUiLabelClassName(cn("text-md", text.primary))}>{name}</span>
+            <span className={cn("font-medium", text.primary)}>{name}</span>
           ),
         },
         {
@@ -49,21 +96,18 @@ export function CustomerListTable({
           key: "phone",
           responsive: ["md"],
           render: (phone: string) => (
-            <span className={cn("font-mono font-medium", text.muted)}>{phone}</span>
+            <span className={cn("tabular-nums", text.muted)}>{phone}</span>
           ),
         },
         {
           title: "Tier",
           key: "tier",
           render: (_: unknown, record: Customer) => (
-            <StatusBadge
-              tone={customerTierTone(record.tier)}
-              className={typeHeadingClassName(
-                "flex w-fit items-center gap-1.5 px-2.5 py-1 text-xs uppercase tracking-wider rounded-lg",
-              )}
-            >
-              <TierIcon tier={record.tier} />
-              {record.tier}
+            <StatusBadge tone={customerTierTone(record.tier)} className="w-fit">
+              <span className="inline-flex items-center gap-1">
+                <TierIcon tier={record.tier} />
+                {record.tier}
+              </span>
             </StatusBadge>
           ),
         },
@@ -73,8 +117,8 @@ export function CustomerListTable({
           key: "points",
           render: (points: number) => (
             <span className={crmPointsClassName()}>
-              {points.toLocaleString()}{" "}
-              <span className={crmPointsSuffixClassName()}>pts</span>
+              {points.toLocaleString()}
+              <span className={crmPointsSuffixClassName()}> pts</span>
             </span>
           ),
         },
@@ -84,7 +128,7 @@ export function CustomerListTable({
           key: "createdAt",
           responsive: ["lg"],
           render: (createdAt: string) => (
-            <span className={cn("font-medium text-sm", text.muted)}>
+            <span className={cn("text-sm tabular-nums", text.muted)}>
               {formatDate(createdAt)}
             </span>
           ),
@@ -93,30 +137,58 @@ export function CustomerListTable({
     [],
   );
 
+  const emptyDescription = hasActiveFilters ? "No members match your filters." : "No members yet.";
+
+  const listPagination = useHubListPagination(
+    { pageSize: 15 },
+    `${customers.length}-${hasActiveFilters}`,
+  );
+
   return (
-    <DataTable
-      {...hubListDataTableProps()}
-      loading={loading && !isError}
-      columns={columns}
-      dataSource={customers}
-      rowKey="id"
-      emptyDescription={
-        hasActiveFilters ? "No members match your filters." : "No members registered yet."
+    <ResponsiveDataTableLayout
+      mobile={
+        loading && !isError ? (
+          <ResponsiveDataTableLayout.Skeleton />
+        ) : !loading && !isError && customers.length === 0 ? (
+          <ResponsiveDataTableLayout.Empty message={emptyDescription} />
+        ) : (
+          <PaginatedMobileList
+            items={customers}
+            pageSize={listPagination.pageSize}
+            page={listPagination.currentPage}
+            onPageChange={listPagination.setCurrentPage}
+          >
+            {(customer) => (
+              <CustomerMobileCard customer={customer} onSelectCustomer={onSelectCustomer} />
+            )}
+          </PaginatedMobileList>
+        )
       }
-      onRow={(record) => ({
-        onClick: () => onSelectCustomer(record.id),
-        onKeyDown: (e: React.KeyboardEvent) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onSelectCustomer(record.id);
-          }
-        },
-        tabIndex: 0,
-        role: "button",
-        "aria-label": `View profile for ${record.name}`,
-        className:
-          "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-      })}
+      desktop={
+        <DataTable
+          hideBorders
+          pagination={listPagination.tablePagination}
+          loading={loading && !isError}
+          columns={columns}
+          dataSource={customers}
+          rowKey="id"
+          emptyDescription={emptyDescription}
+          onRow={(record) => ({
+            onClick: () => onSelectCustomer(record.id),
+            onKeyDown: (e: React.KeyboardEvent) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelectCustomer(record.id);
+              }
+            },
+            tabIndex: 0,
+            role: "button",
+            "aria-label": `View profile for ${record.name}`,
+            className:
+              "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          })}
+        />
+      }
     />
   );
 }

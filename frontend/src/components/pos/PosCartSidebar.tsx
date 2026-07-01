@@ -21,8 +21,10 @@ import {
   posAccentTextClassName,
   posCartBadgeClassName,
   posCartEmptyIconClassName,
+  posCartEmptyStateClassName,
   posCartHeaderClassName,
   posCartItemNameClassName,
+  posCartLineActionsClassName,
   posCartLineDividerClassName,
   posCartLineTotalClassName,
   posCartPanelClassName,
@@ -49,6 +51,7 @@ import {
   posSummaryTotalRowClassName,
 } from "@/lib/theme/immersive";
 import { text } from "@/lib/theme/surface";
+import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { Customer, ValidatedPromotion } from "@/types/api";
 
@@ -98,39 +101,47 @@ export function PosCartSidebar({
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className={posCartPanelClassName(cn("w-full lg:w-[min(420px,100%)] lg:shrink-0 flex flex-col", className))}>
-      <div className={posCartHeaderClassName()}>
+    <div className={posCartPanelClassName(cn("w-full lg:w-[min(400px,100%)] lg:shrink-0 flex flex-col min-h-0 max-h-full", className))}>
+      <div className={posCartHeaderClassName("shrink-0")}>
         <h2 className={posCartTitleClassName()}>
           <ShoppingBag size={20} className={posAccentIconClassName()} /> Current Order
         </h2>
         <span className={posCartBadgeClassName()}>{itemCount} Items</span>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-2">
         {cart.map((item) => (
-          <div
-            key={item.id}
-            className={posCartLineDividerClassName("flex justify-between items-center gap-3")}
-          >
-            <div className="min-w-0 flex-1">
-              <div className={posCartItemNameClassName()}>{item.product.name}</div>
-              {item.notes && (
-                <div className={`text-xs font-medium mb-1 line-clamp-2 ${posAccentTextClassName()}`}>
-                  {item.notes}
+          <div key={item.id} className={posCartLineDividerClassName()}>
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <div className={posCartItemNameClassName()}>{item.product.name}</div>
+                {item.notes ? (
+                  <div className={cn("text-xs font-medium mt-0.5 line-clamp-2", posAccentTextClassName())}>
+                    {item.notes}
+                  </div>
+                ) : null}
+                <div className={cn("text-xs tabular-nums mt-1", text.muted)}>
+                  {formatCurrency(item.unitPrice)} each
                 </div>
-              )}
-              <div className={`text-sm tabular-nums ${text.muted}`}>
-                {formatCurrency(item.unitPrice)} each
               </div>
+              <Button
+                aria-label={`Remove ${item.product.name}`}
+                variant="ghost"
+                size="sm"
+                className={posRemoveItemClassName(posCartTouchButtonClassName("h-9 w-9 min-h-9 min-w-9"))}
+                onClick={() => onRemoveItem(item.id)}
+              >
+                <X className="w-4 h-4" aria-hidden />
+              </Button>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className={posCartLineActionsClassName()}>
               <div className={posQtyStepperShellClassName()}>
                 <Button
                   type="button"
                   aria-label={`Decrease ${item.product.name} quantity`}
                   variant="ghost"
                   size="sm"
-                  className={posCartTouchButtonClassName("rounded-none")}
+                  className={posCartTouchButtonClassName("rounded-none h-10 w-10 min-h-10 min-w-10")}
                   onClick={() => onAdjustQuantity(item.id, -1)}
                 >
                   <Minus className="w-4 h-4" aria-hidden />
@@ -141,7 +152,7 @@ export function PosCartSidebar({
                   aria-label={`Increase ${item.product.name} quantity`}
                   variant="ghost"
                   size="sm"
-                  className={posCartTouchButtonClassName("rounded-none")}
+                  className={posCartTouchButtonClassName("rounded-none h-10 w-10 min-h-10 min-w-10")}
                   onClick={() => onAdjustQuantity(item.id, 1)}
                 >
                   <Plus className="w-4 h-4" aria-hidden />
@@ -150,32 +161,26 @@ export function PosCartSidebar({
               <span className={posCartLineTotalClassName()}>
                 {formatCurrency(item.unitPrice * item.quantity)}
               </span>
-              <Button
-                aria-label={`Remove ${item.product.name}`}
-                variant="ghost"
-                size="sm"
-                className={posRemoveItemClassName(posCartTouchButtonClassName())}
-                onClick={() => onRemoveItem(item.id)}
-              >
-                <X className="w-4 h-4" aria-hidden />
-              </Button>
             </div>
           </div>
         ))}
         {cart.length === 0 && (
-          <div className={`text-center mt-10 flex flex-col items-center gap-2 ${text.muted}`}>
-            <ShoppingBag size={48} className={posCartEmptyIconClassName()} aria-hidden />
-            <span>Cart is empty</span>
+          <div className={posCartEmptyStateClassName()}>
+            <ShoppingBag size={40} className={posCartEmptyIconClassName()} aria-hidden />
+            <p className={cn(typeUiLabelClassName("text-sm font-semibold"), text.primary)}>
+              Cart is empty
+            </p>
+            <p className={cn("text-xs", text.muted)}>Tap a menu item to add.</p>
           </div>
         )}
       </div>
 
-      <div className={posCartSectionClassName()}>
+      <div className={posCartSectionClassName("shrink-0")}>
         <div className="space-y-2">
           {!customer ? (
             <Button
               variant="outline"
-              className={posDashedButtonClassName("h-12")}
+              className={posDashedButtonClassName("h-11 rounded-xl")}
               onClick={onFindMember}
             >
               <Search className="w-4 h-4 mr-2" /> Find Member via Phone
@@ -186,7 +191,7 @@ export function PosCartSidebar({
                 aria-label="Clear customer"
                 variant="ghost"
                 size="sm"
-                className={cn(posCrmMutedClassName(), posCartTouchButtonClassName(), "absolute top-0 right-0")}
+                className={cn(posCrmMutedClassName(), posCartTouchButtonClassName("h-9 w-9 min-h-9 min-w-9 absolute top-1 right-1"))}
                 onClick={onClearCustomer}
               >
                 <X className="w-4 h-4" />
@@ -216,7 +221,7 @@ export function PosCartSidebar({
                       }
                       onPointsToRedeemChange(Math.min(Math.max(0, next), customer.points));
                     }}
-                    className={posInputClassName("h-8")}
+                    className={posInputClassName("h-8 rounded-lg")}
                   />
                   <span className={`text-xs whitespace-nowrap ${text.muted}`}>
                     10 pts = {formatCurrency(1)}
@@ -234,9 +239,9 @@ export function PosCartSidebar({
                 placeholder="Promo Code"
                 value={promoCode}
                 onChange={(e) => onPromoCodeChange(e.target.value.toUpperCase())}
-                className={posInputClassName("uppercase")}
+                className={posInputClassName("uppercase rounded-lg")}
               />
-              <Button variant="secondary" className="min-h-[44px]" onClick={onApplyPromo}>
+              <Button variant="secondary" className="min-h-[44px] rounded-lg shrink-0" onClick={onApplyPromo}>
                 Apply
               </Button>
             </div>
@@ -249,7 +254,7 @@ export function PosCartSidebar({
                 aria-label="Remove promotion"
                 variant="ghost"
                 size="sm"
-                className={cn(posPromoTitleClassName(), posCartTouchButtonClassName())}
+                className={cn(posPromoTitleClassName(), posCartTouchButtonClassName("h-9 w-9 min-h-9 min-w-9"))}
                 onClick={onClearPromo}
               >
                 <X className="w-4 h-4" />
@@ -259,7 +264,7 @@ export function PosCartSidebar({
         </div>
       </div>
 
-      <div className={posSummaryPanelClassName()}>
+      <div className={posSummaryPanelClassName("shrink-0")}>
         <div className={`flex justify-between ${posSummaryMutedClassName()}`}>
           <span>Subtotal</span>
           <span className="tabular-nums">{formatCurrency(subtotal)}</span>
@@ -280,7 +285,7 @@ export function PosCartSidebar({
           </div>
         )}
         <Button
-          className={posPayActionClassName("w-full h-12 text-lg mt-4")}
+          className={posPayActionClassName("w-full h-12 text-lg mt-4 rounded-xl")}
           disabled={cart.length === 0}
           onClick={onCheckout}
         >

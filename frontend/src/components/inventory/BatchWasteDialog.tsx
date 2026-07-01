@@ -1,19 +1,15 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { FormDialog } from "@/components/shared/form-modal";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formFieldInsetClassName, hubDangerActionClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
+import { typeUiLabelClassName } from "@/lib/theme/typography";
 
 type BatchWasteDialogProps = {
   open: boolean;
@@ -41,17 +37,14 @@ export function BatchWasteDialog({
   isPending,
 }: BatchWasteDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="rounded-2xl sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className={typeHeadingClassName("text-xl")}>Report Batch Waste</DialogTitle>
+    <FormDialog open={open} onOpenChange={onOpenChange} className="rounded-xl sm:max-w-md">
+        <FormDialog.Title>Report waste</FormDialog.Title>
           <DialogDescription>
             {ingredientName && maxQty != null
-              ? `Discard from ${ingredientName} (max ${maxQty}). This deducts a specific batch — for aggregate waste by ingredient, use the Waste Logs tab.`
-              : "Record waste for this batch. For aggregate waste by ingredient, use the Waste Logs tab."}
+              ? `${ingredientName} · max ${maxQty}`
+              : "Deduct quantity from this batch."}
           </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 pt-2">
+        <FormDialog.Body className="space-y-4 pt-1">
           <div className="space-y-2">
             <Label className={typeUiLabelClassName(text.secondary)}>Quantity</Label>
             <Input
@@ -70,11 +63,11 @@ export function BatchWasteDialog({
               className={formFieldInsetClassName("h-11")}
               value={reason}
               onChange={(e) => onReasonChange(e.target.value)}
-              placeholder="Expired, Spilled, etc."
+              placeholder="Expired, spilled…"
             />
           </div>
-        </div>
-        <DialogFooter className="gap-2">
+        </FormDialog.Body>
+        <FormDialog.Footer className="gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
@@ -83,10 +76,9 @@ export function BatchWasteDialog({
             onClick={onSubmit}
             disabled={isPending}
           >
-            {isPending ? "Saving…" : "Confirm Waste"}
+            {isPending ? "Saving…" : "Confirm"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialog.Footer>
+    </FormDialog>
   );
 }

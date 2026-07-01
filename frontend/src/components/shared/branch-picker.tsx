@@ -2,7 +2,14 @@
 
 import { useMemo } from "react";
 import { MapPin } from "lucide-react";
-import { selectFocusClassName, sidebarBranchPillClassName, topbarBranchIconClassName, topbarBranchPickerClassName } from "@/lib/theme/shell";
+import {
+  sidebarBranchPillClassName,
+  topbarBranchPickerClassName,
+  topbarBranchSelectContentClassName,
+  topbarBranchSelectItemClassName,
+  topbarBranchSelectTriggerClassName,
+} from "@/lib/theme/shell";
+import { formSelectContentClassName } from "@/lib/theme/stock";
 import {
   Select,
   SelectContent,
@@ -30,9 +37,10 @@ export function BranchPicker({
 }: BranchPickerProps) {
   const value = activeBranchId == null ? "all" : String(activeBranchId);
   const isSidebar = variant === "sidebar";
+  const isScoped = !isSidebar && activeBranchId != null;
 
   const branchItems = useMemo(() => {
-    const items: Record<string, string> = { all: "All Branches (HQ)" };
+    const items: Record<string, string> = { all: "All branches" };
     for (const branch of branches) {
       items[String(branch.id)] = branch.name;
     }
@@ -42,14 +50,14 @@ export function BranchPicker({
   return (
     <div
       className={cn(
-        isSidebar ? sidebarBranchPillClassName() : topbarBranchPickerClassName(),
+        isSidebar ? sidebarBranchPillClassName() : topbarBranchPickerClassName({ scoped: isScoped }),
+        !isSidebar && "w-[5.5rem] max-w-[28vw] sm:w-[11.5rem] sm:max-w-none md:w-[12.5rem]",
         className,
       )}
     >
-      <MapPin
-        className={cn(topbarBranchIconClassName(), isSidebar && "w-3.5 h-3.5")}
-        aria-hidden="true"
-      />
+      {isSidebar && (
+        <MapPin className="w-3.5 h-3.5 shrink-0 text-[var(--topbar-picker-icon)]" aria-hidden="true" />
+      )}
       <Select
         value={value}
         items={branchItems}
@@ -60,18 +68,38 @@ export function BranchPicker({
       >
         <SelectTrigger
           aria-label="Select branch"
-          className={selectFocusClassName(
+          className={
             isSidebar
-              ? "h-11 min-h-[44px] border-0 bg-transparent shadow-none w-full text-xs font-medium"
-              : "h-11 min-h-[44px] border-0 bg-transparent shadow-none max-w-[140px] sm:max-w-[220px]",
-          )}
+              ? "h-11 min-h-[44px] w-full border-0 bg-transparent shadow-none text-xs font-medium focus-visible:ring-0 dark:bg-transparent dark:hover:bg-transparent"
+              : topbarBranchSelectTriggerClassName(
+                  cn(
+                    "h-full",
+                    isScoped &&
+                      "font-semibold text-[var(--topbar-picker-fg-active)] [&_svg]:!text-[var(--topbar-picker-fg-active)] [&_svg]:opacity-90",
+                  ),
+                )
+          }
         >
-          <SelectValue placeholder="Select branch" />
+          <SelectValue placeholder="Branch" className="truncate" />
         </SelectTrigger>
-        <SelectContent align={isSidebar ? "start" : "end"}>
-          <SelectItem value="all">All Branches (HQ)</SelectItem>
+        <SelectContent
+          align={isSidebar ? "start" : "end"}
+          alignItemWithTrigger={false}
+          className={
+            isSidebar
+              ? formSelectContentClassName("min-w-[12rem]")
+              : topbarBranchSelectContentClassName("min-w-[12rem]")
+          }
+        >
+          <SelectItem value="all" className={!isSidebar ? topbarBranchSelectItemClassName() : undefined}>
+            All branches
+          </SelectItem>
           {branches.map((branch) => (
-            <SelectItem key={branch.id} value={String(branch.id)}>
+            <SelectItem
+              key={branch.id}
+              value={String(branch.id)}
+              className={!isSidebar ? topbarBranchSelectItemClassName() : undefined}
+            >
               {branch.name}
             </SelectItem>
           ))}

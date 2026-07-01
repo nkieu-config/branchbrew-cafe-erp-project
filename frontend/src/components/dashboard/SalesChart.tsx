@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useId } from "react";
+import { useState, useEffect, useId, useMemo } from "react";
 import {
   Area,
   AreaChart,
@@ -40,19 +40,23 @@ export function SalesChart({ data = [], loading }: SalesChartProps) {
     setIsMounted(true);
   }, []);
 
-  const chartData = data.map((row) => ({
-    date: format(parseISO(row.date), "EEE"),
-    revenue: Number(row.total),
-    orders: row.orders,
-  }));
+  const chartData = useMemo(
+    () =>
+      data.map((row) => ({
+        date: format(parseISO(row.date), "EEE"),
+        revenue: Number(row.total),
+        orders: row.orders,
+      })),
+    [data],
+  );
 
   if (!isMounted || loading) {
-    return <div className={dashboardSkeletonClass("h-[350px] w-full")} />;
+    return <div className={dashboardSkeletonClass("h-[260px] w-full")} />;
   }
 
   if (chartData.length === 0) {
     return (
-      <div className={dashboardChartEmptyClass("h-[350px]")}>
+      <div className={dashboardChartEmptyClass("h-[260px]")}>
         <BarChart3 className={decorativeIconClassName("w-10 h-10")} aria-hidden />
         <p className={typeUiLabelClassName(cn("text-sm", text.primary))}>No revenue data yet</p>
         <p className={cn("text-sm", text.muted)}>Sales trends will appear once orders are recorded.</p>
@@ -61,8 +65,8 @@ export function SalesChart({ data = [], loading }: SalesChartProps) {
   }
 
   return (
-    <div className="h-[350px] w-full min-h-[350px] min-w-0">
-      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={350}>
+    <div className="h-[260px] w-full min-h-[260px] min-w-0">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={260}>
         <AreaChart
           data={chartData}
           margin={{
@@ -112,7 +116,7 @@ export function SalesChart({ data = [], loading }: SalesChartProps) {
             type="monotone"
             dataKey="revenue"
             stroke={chartTheme.revenue}
-            strokeWidth={3}
+            strokeWidth={2.5}
             fillOpacity={1}
             fill={`url(#${gradientId})`}
           />

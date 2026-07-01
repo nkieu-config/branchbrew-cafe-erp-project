@@ -1,12 +1,17 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import type { ColumnsType } from "antd/es/table";
 import { Trash2 } from "lucide-react";
 import { DataTable } from "@/components/shared/data-table";
+import {
+  ListMobileCard,
+  PaginatedMobileList,
+  ResponsiveDataTableLayout,
+} from "@/components/shared/responsive-data-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
-import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { useHubListPagination } from "@/hooks/useHubListPagination";
 import { tableCellMutedClassName } from "@/lib/theme/feedback";
 import {
   batchExpiryUrgency,
@@ -18,15 +23,15 @@ import {
   stockLevelStatusTone,
 } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName } from "@/lib/theme/typography";
 import { formatDate } from "@/lib/intl-date";
 import {
-  batchesForIngredient,
+  buildIngredientBatchIndex,
+  getIngredientBatchIndexEntry,
   ingredientDisplayName,
   type BatchWithSupplier,
+  type IngredientBatchIndexEntry,
   type InventoryWithIngredient,
 } from "@/lib/batch-filters";
-import { isExpiredBatch, isExpiringBatch } from "@/lib/inventory-alerts";
 import { cn } from "@/lib/utils";
 
 type BatchInventoryTableProps = {
@@ -42,6 +47,111 @@ type BatchInventoryTableProps = {
   ) => void;
 };
 
+function BatchMobileRows({
+  record,
+  batchEntry,
+  onReportWaste,
+}: {
+  record: InventoryWithIngredient;
+  batchEntry: IngredientBatchIndexEntry;
+  onReportWaste: BatchInventoryTableProps["onReportWaste"];
+}) {
+  if (batchEntry.batches.length === 0) {
+    return <p className={cn("text-xs", text.muted)}>No batches for this ingredient.</p>;
+  }
+
+  return (
+    <ul className="mt-3 space-y-2 border-t border-[var(--table-row-border)] pt-3">
+      {batchEntry.batches.map((batch) => {
+        const urgency = batch.expiryDate ? batchExpiryUrgency(batch.expiryDate) : null;
+        const showBadge = urgency && urgency !== "safe";
+        return (
+          <li
+            key={batch.id}
+            className="flex items-start justify-between gap-2 text-sm"
+          >
+            <div className="min-w-0">
+              <p className={cn("tabular-nums", text.primary)}>
+                {Number(batch.quantity).toFixed(2)} {record.ingredient.unit}
+              </p>
+              <p className={cn("text-xs", text.muted)}>
+                {batch.expiryDate ? (
+                  <span className={expiryDateTextClassName(urgency)}>
+                    Exp {formatDate(batch.expiryDate)}
+                  </span>
+                ) : (
+                  "No expiry"
+                )}
+                {showBadge && urgency ? (
+                  <>
+                    {" · "}
+                    <StatusBadge tone={expiryUrgencyStatusTone(urgency)} className="inline-flex">
+                      {expiryUrgencyLabel(urgency)}
+                    </StatusBadge>
+                  </>
+                ) : null}
+              </p>
+            </div>
+            <TableActionButton
+              icon={Trash2}
+              label="Report waste"
+              iconOnly
+              destructive
+              onClick={() =>
+                onReportWaste(
+                  batch.id,
+                  batch.ingredientId,
+                  batch.quantity,
+                  ingredientDisplayName(record),
+                )
+              }
+            />
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+type BatchInventoryMobileCardProps = {
+  record: InventoryWithIngredient;
+  batchEntry: IngredientBatchIndexEntry;
+  onReportWaste: BatchInventoryTableProps["onReportWaste"];
+};
+
+function BatchInventoryMobileCard({
+  record,
+  batchEntry,
+  onReportWaste,
+}: BatchInventoryMobileCardProps) {
+  const level = stockLevel(record.stock, record.minStock);
+  const batchCount = batchEntry.batches.length;
+
+  return (
+    <ListMobileCard>
+      <div className="mb-1 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className={cn("font-medium", text.primary)}>
+            {ingredientDisplayName(record)}
+          </p>
+          <p className={cn("text-sm tabular-nums", text.secondary)}>
+            {Number(record.stock).toFixed(2)} {record.ingredient.unit}
+            <span className={text.muted}>
+              {" "}
+              · {batchCount} batch
+              {batchCount === 1 ? "" : "es"}
+            </span>
+          </p>
+        </div>
+        <StatusBadge tone={stockLevelStatusTone(level)} className="shrink-0">
+          {stockLevelLabel(level)}
+        </StatusBadge>
+      </div>
+      <BatchMobileRows record={record} batchEntry={batchEntry} onReportWaste={onReportWaste} />
+    </ListMobileCard>
+  );
+}
+
 export function BatchInventoryTable({
   inventories,
   batches,
@@ -49,178 +159,218 @@ export function BatchInventoryTable({
   hasActiveFilters,
   onReportWaste,
 }: BatchInventoryTableProps) {
-  const inventoryColumns = useMemo(
-    () => [
-      {
-        title: "Ingredient Name",
-        key: "name",
-        sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) =>
-          ingredientDisplayName(a).localeCompare(ingredientDisplayName(b)),
-        render: (_: unknown, record: InventoryWithIngredient) => (
-          <div className={typeHeadingClassName()}>{ingredientDisplayName(record)}</div>
-        ),
-      },
-      {
-        title: "Current Stock",
-        key: "stock",
-        sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) => a.stock - b.stock,
-        render: (_: unknown, record: InventoryWithIngredient) => (
-          <span className="tabular-nums font-mono">
-            {Number(record.stock).toFixed(2)} {record.ingredient.unit}
-          </span>
-        ),
-      },
-      {
-        title: "Min Stock",
-        key: "minStock",
-        sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) => a.minStock - b.minStock,
-        render: (_: unknown, record: InventoryWithIngredient) => (
-          <span className={cn("tabular-nums font-mono", tableCellMutedClassName())}>
-            {Number(record.minStock).toFixed(2)}
-          </span>
-        ),
-      },
-      {
-        title: "Batches",
-        key: "batches",
-        render: (_: unknown, record: InventoryWithIngredient) => {
-          const ingredientBatches = batchesForIngredient(batches, record.ingredient.id);
-          const expiringCount = ingredientBatches.filter(
-            (batch) => isExpiringBatch(batch) && !isExpiredBatch(batch),
-          ).length;
-          const expiredCount = ingredientBatches.filter(isExpiredBatch).length;
-          return (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className={cn("tabular-nums text-sm", text.secondary)}>
-                {ingredientBatches.length} batch{ingredientBatches.length === 1 ? "" : "es"}
-              </span>
-              {expiringCount > 0 ? (
-                <StatusBadge tone="warning">{expiringCount} expiring</StatusBadge>
-              ) : null}
-              {expiredCount > 0 ? (
-                <StatusBadge tone="danger">{expiredCount} expired</StatusBadge>
-              ) : null}
-            </div>
-          );
-        },
-      },
-      {
-        title: "Status",
-        key: "status",
-        sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) => {
-          const order = { out: 0, low: 1, ok: 2 };
-          return (
-            order[stockLevel(a.stock, a.minStock)] - order[stockLevel(b.stock, b.minStock)]
-          );
-        },
-        render: (_: unknown, record: InventoryWithIngredient) => {
-          const level = stockLevel(record.stock, record.minStock);
-          return (
-            <StatusBadge tone={stockLevelStatusTone(level)}>{stockLevelLabel(level)}</StatusBadge>
-          );
-        },
-      },
-    ],
-    [batches],
+  const emptyDescription = hasActiveFilters
+    ? "No ingredients match your filters."
+    : "No inventory records for this branch yet.";
+
+  const batchIndex = useMemo(() => buildIngredientBatchIndex(batches), [batches]);
+
+  const listPagination = useHubListPagination(
+    { pageSize: 10 },
+    `${inventories.length}-${hasActiveFilters}`,
   );
 
-  const expandedRowRender = (record: InventoryWithIngredient) => {
-    const ingredientId = record.ingredient.id;
-    const ingredientBatches = batchesForIngredient(batches, ingredientId);
-
-    const batchColumns: ColumnsType<BatchWithSupplier> = [
-      {
-        title: "Batch ID",
-        dataIndex: "id",
-        key: "id",
-        responsive: ["md"],
-      },
-      {
-        title: "Supplier",
-        key: "supplier",
-        responsive: ["lg"],
-        render: (_: unknown, b: BatchWithSupplier) => (
-          <span>{b.purchaseOrder?.supplier?.name || "—"}</span>
-        ),
-      },
-      {
-        title: "Qty",
-        key: "quantity",
-        render: (_: unknown, b: BatchWithSupplier) => (
-          <span className="tabular-nums font-mono font-medium">
-            {Number(b.quantity).toFixed(2)} {record.ingredient.unit}
-          </span>
-        ),
-      },
-      {
-        title: "Expiry",
-        key: "expiryDate",
-        render: (_: unknown, b: BatchWithSupplier) => {
-          if (!b.expiryDate) return <span className={`text-xs ${text.muted}`}>No expiry</span>;
-          const urgency = batchExpiryUrgency(b.expiryDate);
-          const showBadge = urgency && urgency !== "safe";
-          return (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={expiryDateTextClassName(urgency)}>{formatDate(b.expiryDate)}</span>
-              {showBadge && urgency ? (
-                <StatusBadge tone={expiryUrgencyStatusTone(urgency)}>
-                  {expiryUrgencyLabel(urgency)}
-                </StatusBadge>
-              ) : null}
-            </div>
-          );
+  const inventoryColumns = useMemo(
+    () =>
+      [
+        {
+          title: "Ingredient",
+          key: "name",
+          sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) =>
+            ingredientDisplayName(a).localeCompare(ingredientDisplayName(b)),
+          render: (_: unknown, record: InventoryWithIngredient) => (
+            <span className={cn("font-medium", text.primary)}>
+              {ingredientDisplayName(record)}
+            </span>
+          ),
         },
-      },
-      {
-        title: "Action",
-        key: "action",
-        render: (_: unknown, b: BatchWithSupplier) => (
-          <TableActionButton
-            icon={Trash2}
-            label="Report waste"
-            iconOnly
-            destructive
-            onClick={() =>
-              onReportWaste(
-                b.id,
-                b.ingredientId,
-                b.quantity,
-                ingredientDisplayName(record),
-              )
-            }
-          />
-        ),
-      },
-    ];
+        {
+          title: "Stock",
+          key: "stock",
+          sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) => a.stock - b.stock,
+          render: (_: unknown, record: InventoryWithIngredient) => (
+            <span className={cn("tabular-nums", text.primary)}>
+              {Number(record.stock).toFixed(2)} {record.ingredient.unit}
+            </span>
+          ),
+        },
+        {
+          title: "Min",
+          key: "minStock",
+          responsive: ["md"],
+          sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) => a.minStock - b.minStock,
+          render: (_: unknown, record: InventoryWithIngredient) => (
+            <span className={cn("tabular-nums", tableCellMutedClassName())}>
+              {Number(record.minStock).toFixed(2)}
+            </span>
+          ),
+        },
+        {
+          title: "Batches",
+          key: "batches",
+          responsive: ["lg"],
+          render: (_: unknown, record: InventoryWithIngredient) => {
+            const { batches: ingredientBatches, expiringCount, expiredCount } =
+              getIngredientBatchIndexEntry(batchIndex, record.ingredient.id);
+            const parts = [`${ingredientBatches.length}`];
+            if (expiringCount > 0) parts.push(`${expiringCount} expiring`);
+            if (expiredCount > 0) parts.push(`${expiredCount} expired`);
+            return (
+              <span className={cn("text-sm tabular-nums", text.secondary)}>
+                {parts.join(" · ")}
+              </span>
+            );
+          },
+        },
+        {
+          title: "Status",
+          key: "status",
+          sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) => {
+            const order = { out: 0, low: 1, ok: 2 };
+            return (
+              order[stockLevel(a.stock, a.minStock)] - order[stockLevel(b.stock, b.minStock)]
+            );
+          },
+          render: (_: unknown, record: InventoryWithIngredient) => {
+            const level = stockLevel(record.stock, record.minStock);
+            return (
+              <StatusBadge tone={stockLevelStatusTone(level)}>{stockLevelLabel(level)}</StatusBadge>
+            );
+          },
+        },
+      ] as ColumnsType<InventoryWithIngredient>,
+    [batchIndex],
+  );
 
-    return (
-      <DataTable
-        columns={batchColumns}
-        dataSource={ingredientBatches}
-        rowKey="id"
-        pagination={false}
-        size="small"
-        hideBorders
-        scroll={{ x: undefined }}
-        emptyDescription="No active batches for this ingredient."
-      />
-    );
-  };
+  const expandedRowRender = useCallback(
+    (record: InventoryWithIngredient) => {
+      const ingredientBatches = getIngredientBatchIndexEntry(
+        batchIndex,
+        record.ingredient.id,
+      ).batches;
+
+      const batchColumns: ColumnsType<BatchWithSupplier> = [
+        {
+          title: "ID",
+          dataIndex: "id",
+          key: "id",
+          responsive: ["md"],
+        },
+        {
+          title: "Supplier",
+          key: "supplier",
+          responsive: ["lg"],
+          render: (_: unknown, b: BatchWithSupplier) => (
+            <span className={text.secondary}>{b.purchaseOrder?.supplier?.name || "—"}</span>
+          ),
+        },
+        {
+          title: "Qty",
+          key: "quantity",
+          render: (_: unknown, b: BatchWithSupplier) => (
+            <span className={cn("tabular-nums", text.primary)}>
+              {Number(b.quantity).toFixed(2)} {record.ingredient.unit}
+            </span>
+          ),
+        },
+        {
+          title: "Expiry",
+          key: "expiryDate",
+          render: (_: unknown, b: BatchWithSupplier) => {
+            if (!b.expiryDate) return <span className={text.muted}>—</span>;
+            const urgency = batchExpiryUrgency(b.expiryDate);
+            const showBadge = urgency && urgency !== "safe";
+            return (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className={expiryDateTextClassName(urgency)}>{formatDate(b.expiryDate)}</span>
+                {showBadge && urgency ? (
+                  <StatusBadge tone={expiryUrgencyStatusTone(urgency)}>
+                    {expiryUrgencyLabel(urgency)}
+                  </StatusBadge>
+                ) : null}
+              </div>
+            );
+          },
+        },
+        {
+          title: "",
+          key: "action",
+          width: 48,
+          render: (_: unknown, b: BatchWithSupplier) => (
+            <TableActionButton
+              icon={Trash2}
+              label="Report waste"
+              iconOnly
+              destructive
+              onClick={() =>
+                onReportWaste(
+                  b.id,
+                  b.ingredientId,
+                  b.quantity,
+                  ingredientDisplayName(record),
+                )
+              }
+            />
+          ),
+        },
+      ];
+
+      return (
+        <DataTable
+          columns={batchColumns}
+          dataSource={ingredientBatches}
+          rowKey="id"
+          pagination={false}
+          size="small"
+          hideBorders
+          emptyDescription="No batches for this ingredient."
+        />
+      );
+    },
+    [batchIndex, onReportWaste],
+  );
+
+  const expandable = useMemo(
+    () => ({ expandedRowRender }),
+    [expandedRowRender],
+  );
 
   return (
-    <DataTable
-      {...hubListDataTableProps({ pageSize: 10 })}
-      loading={loading}
-      emptyDescription={
-        hasActiveFilters
-          ? "No ingredients match your filters."
-          : "No inventory records for this branch yet."
+    <ResponsiveDataTableLayout
+      mobile={
+        loading ? (
+          <ResponsiveDataTableLayout.Skeleton />
+        ) : inventories.length === 0 ? (
+          <ResponsiveDataTableLayout.Empty message={emptyDescription} />
+        ) : (
+          <PaginatedMobileList
+            items={inventories}
+            pageSize={listPagination.pageSize}
+            page={listPagination.currentPage}
+            onPageChange={listPagination.setCurrentPage}
+          >
+            {(record) => (
+              <BatchInventoryMobileCard
+                record={record}
+                batchEntry={getIngredientBatchIndexEntry(batchIndex, record.ingredient.id)}
+                onReportWaste={onReportWaste}
+              />
+            )}
+          </PaginatedMobileList>
+        )
       }
-      scroll={{ x: undefined }}
-      columns={inventoryColumns}
-      dataSource={inventories}
-      rowKey="id"
-      expandable={{ expandedRowRender }}
+      desktop={
+        <DataTable
+          hideBorders
+          pagination={listPagination.tablePagination}
+          loading={loading}
+          emptyDescription={emptyDescription}
+          columns={inventoryColumns}
+          dataSource={inventories}
+          rowKey="id"
+          expandable={expandable}
+        />
+      }
     />
   );
 }

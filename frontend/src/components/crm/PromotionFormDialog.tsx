@@ -16,12 +16,7 @@ import type { Promotion } from "@/types/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { FormDialog } from "@/components/shared/form-modal";
 import {
   Select,
   SelectContent,
@@ -31,14 +26,12 @@ import {
 } from "@/components/ui/select";
 import { crmDialogContentClassName } from "@/lib/theme/hub-crm";
 import {
-  formContextBannerClassName,
   formFieldErrorMessageClassName,
   formFieldInvalidClassName,
 } from "@/lib/theme/color-helpers";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { formFieldInsetClassName, formSelectContentClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type PromotionFormDialogProps = {
@@ -162,20 +155,16 @@ export function PromotionFormDialog({ open, onOpenChange, promotion }: Promotion
   const isSaving = createMutation.isPending || updateMutation.isPending;
 
   return (
-    <Dialog
+    <FormDialog
       open={open}
       onOpenChange={(next) => {
         if (!next) closeDialog();
         else onOpenChange(true);
       }}
+      className={crmDialogContentClassName("sm:max-w-lg")}
     >
-      <DialogContent className={crmDialogContentClassName("sm:max-w-lg")}>
-        <DialogHeader>
-          <DialogTitle className={typeHeadingClassName("text-xl")}>
-            {editing ? "Edit Promotion" : "Create Promotion Code"}
-          </DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+        <FormDialog.Title>{editing ? "Edit promo" : "New promo"}</FormDialog.Title>
+        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           {!editing ? (
             <div className="space-y-2">
               <Label htmlFor="promo-code" className={text.secondary}>
@@ -200,18 +189,9 @@ export function PromotionFormDialog({ open, onOpenChange, promotion }: Promotion
               )}
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1">
               <Label className={text.secondary}>Code</Label>
-              <p
-                className={typeUiLabelClassName(
-                  cn(
-                    formContextBannerClassName("font-mono text-sm px-3 py-2.5 rounded-xl"),
-                    text.primary,
-                  ),
-                )}
-              >
-                {code}
-              </p>
+              <p className={cn("font-mono text-sm font-medium", text.primary)}>{code}</p>
             </div>
           )}
           <div className="space-y-2">
@@ -230,7 +210,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotion }: Promotion
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="promo-discount-type" className={text.secondary}>
-                Discount Type
+                Type
               </Label>
               <Select
                 value={discountType}
@@ -244,8 +224,8 @@ export function PromotionFormDialog({ open, onOpenChange, promotion }: Promotion
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className={formSelectContentClassName()}>
-                  <SelectItem value="PERCENTAGE">Percentage (%)</SelectItem>
-                  <SelectItem value="FIXED_AMOUNT">Fixed Amount</SelectItem>
+                  <SelectItem value="PERCENTAGE">Percentage</SelectItem>
+                  <SelectItem value="FIXED_AMOUNT">Fixed amount</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -269,7 +249,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotion }: Promotion
           </div>
           <div className="space-y-2">
             <Label htmlFor="promo-min-purchase" className={text.secondary}>
-              Minimum Purchase (Optional)
+              Min purchase
             </Label>
             <Input
               id="promo-min-purchase"
@@ -284,7 +264,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotion }: Promotion
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="promo-start-date" className={text.secondary}>
-                Start Date (Optional)
+                Start
               </Label>
               <Input
                 id="promo-start-date"
@@ -296,7 +276,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotion }: Promotion
             </div>
             <div className="space-y-2">
               <Label htmlFor="promo-end-date" className={text.secondary}>
-                End Date (Optional)
+                End
               </Label>
               <Input
                 id="promo-end-date"
@@ -313,10 +293,9 @@ export function PromotionFormDialog({ open, onOpenChange, promotion }: Promotion
             className={hubCtaClassName("crm", "w-full text-md")}
             disabled={isSaving}
           >
-            {isSaving ? "Saving…" : editing ? "Save Changes" : "Create Promotion"}
+            {isSaving ? "Saving…" : editing ? "Save" : "Create"}
           </Button>
         </form>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   );
 }

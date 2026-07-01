@@ -4,27 +4,27 @@ import { SIDEBAR_GROUPS, isSidebarItemActive } from "@/lib/navigation";
 const STORAGE_KEY = "sidebar-expanded-groups";
 
 export const SIDEBAR_GROUP_NAMES = [
-  "Overview & Analytics",
-  "Store Operations",
-  "Back Office",
-  "System Admin",
+  "Overview",
+  "Operations",
+  "Back office",
+  "Admin",
 ] as const;
 
 export type SidebarGroupName = (typeof SIDEBAR_GROUP_NAMES)[number];
 
 export function getDefaultExpandedGroups(role?: Role): Record<SidebarGroupName, boolean> {
   const defaults: Record<SidebarGroupName, boolean> = {
-    "Overview & Analytics": true,
-    "Store Operations": true,
-    "Back Office": false,
-    "System Admin": false,
+    Overview: true,
+    Operations: true,
+    "Back office": false,
+    Admin: false,
   };
 
   if (role === "SUPER_ADMIN") {
-    defaults["Back Office"] = true;
-    defaults["System Admin"] = true;
+    defaults["Back office"] = true;
+    defaults.Admin = true;
   } else if (role === "MANAGER") {
-    defaults["Back Office"] = true;
+    defaults["Back office"] = true;
   }
 
   return defaults;

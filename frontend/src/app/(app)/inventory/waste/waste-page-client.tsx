@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, LayoutGrid, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
 import {
   useBranchInventory,
@@ -10,12 +9,9 @@ import {
   useWasteLogs,
 } from "@/hooks/domains/useInventoryQueries";
 import { useIngredients } from "@/hooks/domains/useProductQueries";
-import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { useAuth } from "@/context/AuthContext";
-import { ButtonLink } from "@/components/ui/button-link";
 import { WasteHistoryPanel } from "@/components/inventory/WasteHistoryPanel";
 import { WasteRecordForm, type WasteLineRow } from "@/components/inventory/WasteRecordForm";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { useLineItemRows } from "@/hooks/useLineItemRows";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
@@ -26,7 +22,7 @@ import {
   filterWasteLogs,
   hasWasteHistoryFilters,
 } from "@/lib/waste-filters";
-import type { Branch, Ingredient } from "@/types/api";
+import type { Ingredient } from "@/types/api";
 
 function emptyLine(): WasteLineRow {
   return {
@@ -68,9 +64,6 @@ export default function WastePageClient() {
     }
     return map;
   }, [inventoryData]);
-
-  const { data: branches = [] } = useBranches();
-  const branchName = (branches as Branch[]).find((b) => b.id === branchId)?.name;
 
   const {
     data: wasteLogs = [],
@@ -209,27 +202,7 @@ export default function WastePageClient() {
   }
 
   return (
-    <div className="space-y-6">
-      <HubPageHeader
-        hideTitle
-        icon={Trash2}
-        accentHub="inventory"
-        description="Record waste deductions and review branch history."
-        branchScope={{ branchName }}
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <ButtonLink href="/inventory" variant="outline" className="font-medium">
-              <LayoutGrid className="w-4 h-4 mr-2" aria-hidden />
-              Stock overview
-            </ButtonLink>
-            <ButtonLink href="/inventory/batches" variant="outline" className="font-medium">
-              <ClipboardCheck className="w-4 h-4 mr-2" aria-hidden />
-              View batches
-            </ButtonLink>
-          </div>
-        }
-      />
-
+    <div className="space-y-5">
       <WasteRecordForm
         ingredients={ingredients}
         ingredientsLoading={ingredientsLoading}

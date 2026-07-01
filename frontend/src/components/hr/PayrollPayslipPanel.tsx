@@ -3,16 +3,20 @@
 import { useMemo } from "react";
 import type { ColumnsType } from "antd/es/table";
 import { Table } from "antd";
-import Link from "next/link";
 import { DataTable } from "@/components/shared/data-table";
+import { ListMobileCard } from "@/components/shared/responsive-data-table";
 import type { Payslip } from "@/types/api";
 import { formatCurrency } from "@/lib/money";
 import { antTableSummaryRowClassName } from "@/lib/theme/data-table";
 import { tableCellMutedClassName } from "@/lib/theme/feedback";
-import { payrollDeductionClassName, payrollExpandedPanelClassName, payrollNetPayClassName, payrollOtMetricClassName } from "@/lib/theme/hub-hr";
-import { inlineLinkClassName } from "@/lib/theme/hub-primitives";
+import {
+  payrollDeductionClassName,
+  payrollExpandedPanelClassName,
+  payrollNetPayClassName,
+  payrollOtMetricClassName,
+  payrollSummaryRowClassName,
+} from "@/lib/theme/hub-hr";
 import { text } from "@/lib/theme/surface";
-import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type PayrollPayslipPanelProps = {
@@ -20,6 +24,43 @@ type PayrollPayslipPanelProps = {
   employeeId: number | null;
   employeeName?: string | null;
 };
+
+function PayslipTotals({ payslips }: { payslips: readonly Payslip[] }) {
+  let totalGross = 0;
+  let totalSso = 0;
+  let totalTax = 0;
+  let totalNet = 0;
+
+  payslips.forEach((row) => {
+    totalGross += row.grossPay ?? 0;
+    totalSso += row.socialSecurity ?? 0;
+    totalTax += row.taxDeduction ?? 0;
+    totalNet += row.netPay ?? 0;
+  });
+
+  return (
+    <div className="space-y-1 rounded-lg border border-[var(--table-row-border)] bg-[var(--table-summary-bg)] px-3 py-2 text-sm">
+      <div className="flex justify-between gap-3">
+        <span className={cn("font-medium", text.primary)}>Total gross</span>
+        <span className={cn("tabular-nums font-medium", text.primary)}>
+          {formatCurrency(totalGross)}
+        </span>
+      </div>
+      <div className="flex justify-between gap-3">
+        <span className={text.muted}>SSO</span>
+        <span className={payrollDeductionClassName()}>-{formatCurrency(totalSso)}</span>
+      </div>
+      <div className="flex justify-between gap-3">
+        <span className={text.muted}>Tax</span>
+        <span className={payrollDeductionClassName()}>-{formatCurrency(totalTax)}</span>
+      </div>
+      <div className="flex justify-between gap-3 border-t border-[var(--table-row-border)] pt-1">
+        <span className={cn("font-medium", text.primary)}>Net pay</span>
+        <span className={payrollNetPayClassName()}>{formatCurrency(totalNet)}</span>
+      </div>
+    </div>
+  );
+}
 
 export function PayrollPayslipPanel({
   payslips,
@@ -33,15 +74,14 @@ export function PayrollPayslipPanel({
           title: "Employee",
           dataIndex: ["user", "name"],
           key: "name",
-          fixed: "left" as const,
-          width: 200,
+          width: 180,
           render: (name: string, record: Payslip) => (
             <div className="min-w-0">
-              <div className={cn("font-medium truncate", text.primary)}>
+              <div className={cn("truncate font-medium", text.primary)}>
                 {name ?? `Employee #${record.userId}`}
               </div>
               {record.user?.email && (
-                <div className={cn("text-xs truncate", tableCellMutedClassName())}>
+                <div className={cn("truncate text-xs", tableCellMutedClassName())}>
                   {record.user.email}
                 </div>
               )}
@@ -49,88 +89,63 @@ export function PayrollPayslipPanel({
           ),
         },
         {
-          title: "Std hrs",
+          title: "Std",
           dataIndex: "standardHours",
           key: "std",
-          width: 96,
+          width: 72,
           align: "right" as const,
           render: (val: number) => (
-            <span className={cn("font-mono tabular-nums", text.muted)}>{val.toFixed(1)}</span>
+            <span className={cn("tabular-nums", text.muted)}>{val.toFixed(1)}</span>
           ),
         },
         {
-          title: "OT hrs",
+          title: "OT",
           dataIndex: "otHours",
           key: "ot",
-          width: 96,
+          width: 72,
           align: "right" as const,
           render: (val: number) => (
             <span className={payrollOtMetricClassName()}>{val.toFixed(1)}</span>
           ),
         },
         {
-          title: "Base pay",
-          dataIndex: "basePay",
-          key: "basePay",
-          width: 120,
-          align: "right" as const,
-          render: (val: number) => (
-            <span className="font-mono tabular-nums">{formatCurrency(val)}</span>
-          ),
-        },
-        {
-          title: "OT pay",
-          dataIndex: "otPay",
-          key: "otPay",
-          width: 120,
-          align: "right" as const,
-          render: (val: number) => (
-            <span className={payrollOtMetricClassName()}>{formatCurrency(val)}</span>
-          ),
-        },
-        {
           title: "Gross",
           dataIndex: "grossPay",
           key: "grossPay",
-          width: 120,
+          width: 100,
           align: "right" as const,
           render: (val: number) => (
-            <span className={typeUiLabelClassName(cn("font-mono tabular-nums", text.primary))}>
-              {formatCurrency(val)}
-            </span>
+            <span className={cn("tabular-nums", text.primary)}>{formatCurrency(val)}</span>
           ),
         },
         {
-          title: "SSO (5%)",
+          title: "SSO",
           dataIndex: "socialSecurity",
           key: "sso",
-          width: 120,
+          width: 100,
           align: "right" as const,
           render: (val: number) => (
             <span className={payrollDeductionClassName()}>-{formatCurrency(val)}</span>
           ),
         },
         {
-          title: "Tax (3%)",
+          title: "Tax",
           dataIndex: "taxDeduction",
           key: "tax",
-          width: 120,
+          width: 100,
           align: "right" as const,
           render: (val: number) => (
             <span className={payrollDeductionClassName()}>-{formatCurrency(val)}</span>
           ),
         },
         {
-          title: "Net pay",
+          title: "Net",
           dataIndex: "netPay",
           key: "netPay",
-          fixed: "right" as const,
-          width: 140,
+          width: 120,
           align: "right" as const,
           render: (val: number) => (
-            <span className={typeUiLabelClassName(payrollNetPayClassName())}>
-              {formatCurrency(val)}
-            </span>
+            <span className={payrollNetPayClassName()}>{formatCurrency(val)}</span>
           ),
         },
       ] as ColumnsType<Payslip>,
@@ -143,61 +158,107 @@ export function PayrollPayslipPanel({
         <p className={text.muted}>
           No payslip for {employeeName ?? `employee #${employeeId}`} in this run.
         </p>
-        <Link href="/hr/employees" className={cn("text-sm", inlineLinkClassName())}>
-          Back to employee directory
-        </Link>
       </div>
     );
   }
 
   return (
     <div className={payrollExpandedPanelClassName()}>
-      <DataTable
-        columns={columns}
-        dataSource={payslips}
-        rowKey="id"
-        pagination={false}
-        size="small"
-        scroll={{ x: 1200 }}
-        hideBorders
-        summary={(pageData: readonly Payslip[]) => {
-          let totalGross = 0;
-          let totalSso = 0;
-          let totalTax = 0;
-          let totalNet = 0;
+      <div className="min-w-0 space-y-2 md:hidden">
+        {payslips.map((record) => (
+          <ListMobileCard key={record.id}>
+            <p className={cn("font-medium", text.primary)}>
+              {record.user?.name ?? `Employee #${record.userId}`}
+            </p>
+            {record.user?.email ? (
+              <p className={cn("mb-2 truncate text-xs", tableCellMutedClassName())}>
+                {record.user.email}
+              </p>
+            ) : null}
+            <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm">
+              <div>
+                <dt className={text.muted}>Std hrs</dt>
+                <dd className={cn("tabular-nums", text.secondary)}>
+                  {record.standardHours.toFixed(1)}
+                </dd>
+              </div>
+              <div>
+                <dt className={text.muted}>OT hrs</dt>
+                <dd className={payrollOtMetricClassName()}>{record.otHours.toFixed(1)}</dd>
+              </div>
+              <div>
+                <dt className={text.muted}>Gross</dt>
+                <dd className={cn("tabular-nums", text.primary)}>
+                  {formatCurrency(record.grossPay)}
+                </dd>
+              </div>
+              <div>
+                <dt className={text.muted}>Net</dt>
+                <dd className={payrollNetPayClassName()}>{formatCurrency(record.netPay)}</dd>
+              </div>
+              <div>
+                <dt className={text.muted}>SSO</dt>
+                <dd className={payrollDeductionClassName()}>
+                  -{formatCurrency(record.socialSecurity)}
+                </dd>
+              </div>
+              <div>
+                <dt className={text.muted}>Tax</dt>
+                <dd className={payrollDeductionClassName()}>
+                  -{formatCurrency(record.taxDeduction)}
+                </dd>
+              </div>
+            </dl>
+          </ListMobileCard>
+        ))}
+        {payslips.length > 1 ? <PayslipTotals payslips={payslips} /> : null}
+      </div>
 
-          pageData.forEach((row) => {
-            totalGross += row.grossPay ?? 0;
-            totalSso += row.socialSecurity ?? 0;
-            totalTax += row.taxDeduction ?? 0;
-            totalNet += row.netPay ?? 0;
-          });
+      <div className="hidden md:block">
+        <DataTable
+          columns={columns}
+          dataSource={payslips}
+          rowKey="id"
+          pagination={false}
+          size="small"
+          hideBorders
+          summary={(pageData: readonly Payslip[]) => {
+            let totalGross = 0;
+            let totalSso = 0;
+            let totalTax = 0;
+            let totalNet = 0;
 
-          return (
-            <Table.Summary.Row className={antTableSummaryRowClassName()}>
-              <Table.Summary.Cell index={0} colSpan={5}>
-                <span className={typeUiLabelClassName(text.primary)}>Total</span>
-              </Table.Summary.Cell>
-              <Table.Summary.Cell index={1} align="right">
-                <span className={typeUiLabelClassName(cn("font-mono tabular-nums", text.primary))}>
-                  {formatCurrency(totalGross)}
-                </span>
-              </Table.Summary.Cell>
-              <Table.Summary.Cell index={2} align="right">
-                <span className={payrollDeductionClassName()}>-{formatCurrency(totalSso)}</span>
-              </Table.Summary.Cell>
-              <Table.Summary.Cell index={3} align="right">
-                <span className={payrollDeductionClassName()}>-{formatCurrency(totalTax)}</span>
-              </Table.Summary.Cell>
-              <Table.Summary.Cell index={4} align="right">
-                <span className={typeUiLabelClassName(payrollNetPayClassName())}>
-                  {formatCurrency(totalNet)}
-                </span>
-              </Table.Summary.Cell>
-            </Table.Summary.Row>
-          );
-        }}
-      />
+            pageData.forEach((row) => {
+              totalGross += row.grossPay ?? 0;
+              totalSso += row.socialSecurity ?? 0;
+              totalTax += row.taxDeduction ?? 0;
+              totalNet += row.netPay ?? 0;
+            });
+
+            return (
+              <Table.Summary.Row className={antTableSummaryRowClassName(payrollSummaryRowClassName())}>
+                <Table.Summary.Cell index={0} colSpan={3}>
+                  <span className={cn("font-medium", text.primary)}>Total</span>
+                </Table.Summary.Cell>
+                <Table.Summary.Cell index={1} align="right">
+                  <span className={cn("tabular-nums font-medium", text.primary)}>
+                    {formatCurrency(totalGross)}
+                  </span>
+                </Table.Summary.Cell>
+                <Table.Summary.Cell index={2} align="right">
+                  <span className={payrollDeductionClassName()}>-{formatCurrency(totalSso)}</span>
+                </Table.Summary.Cell>
+                <Table.Summary.Cell index={3} align="right">
+                  <span className={payrollDeductionClassName()}>-{formatCurrency(totalTax)}</span>
+                </Table.Summary.Cell>
+                <Table.Summary.Cell index={4} align="right">
+                  <span className={payrollNetPayClassName()}>{formatCurrency(totalNet)}</span>
+                </Table.Summary.Cell>
+              </Table.Summary.Row>
+            );
+          }}
+        />
+      </div>
     </div>
   );
 }

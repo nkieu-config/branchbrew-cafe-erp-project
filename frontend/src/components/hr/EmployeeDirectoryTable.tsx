@@ -6,20 +6,21 @@ import Link from "next/link";
 import { Edit3 } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { DataTable } from "@/components/shared/data-table";
+import {
+  ListMobileCard,
+  PaginatedMobileList,
+  ResponsiveDataTableLayout,
+} from "@/components/shared/responsive-data-table";
 import { StatusBadge, employeeRoleTone } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
-import {
-  employeeHasMissingRate,
-} from "@/lib/employee-filters";
+import { employeeHasMissingRate } from "@/lib/employee-filters";
 import { buildHrPayrollUrl } from "@/lib/hr-hub-url";
 import { formatCurrency } from "@/lib/money";
-import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { useHubListPagination } from "@/hooks/useHubListPagination";
 import { tableCellMutedClassName } from "@/lib/theme/feedback";
 import { expandedRowPanelClassName, inlineLinkClassName, tableActionAccentClassName } from "@/lib/theme/hub-primitives";
-import { hrAvatarClassName } from "@/lib/theme/hub-hr";
-import { metricValueClassName } from "@/lib/theme/metric";
+import { hrAvatarClassName, hrMutedMetaClassName } from "@/lib/theme/hub-hr";
 import { text } from "@/lib/theme/surface";
-import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { User } from "@/types/api";
 
@@ -40,6 +41,11 @@ export function EmployeeDirectoryTable({
   canLinkPayroll,
   onEditRate,
 }: EmployeeDirectoryTableProps) {
+  const listPagination = useHubListPagination(
+    { pageSize: 15 },
+    `${employees.length}-${hasActiveFilters}`,
+  );
+
   const columns = useMemo(
     () =>
       [
@@ -50,7 +56,7 @@ export function EmployeeDirectoryTable({
             <div className="flex items-center gap-3">
               <Avatar className={hrAvatarClassName()}>{record.name?.charAt(0) || "U"}</Avatar>
               <div className="min-w-0">
-                <div className={typeUiLabelClassName(cn("truncate", text.primary))}>
+                <div className={cn("truncate font-medium", text.primary)}>
                   {canLinkPayroll ? (
                     <Link href={buildHrPayrollUrl({ employee: record.id })} className={inlineLinkClassName()}>
                       {record.name || "Unknown User"}
@@ -69,9 +75,7 @@ export function EmployeeDirectoryTable({
           dataIndex: "role",
           key: "role",
           render: (roleText: string) => (
-            <StatusBadge tone={employeeRoleTone(roleText)} className={typeUiLabelClassName()}>
-              {roleText}
-            </StatusBadge>
+            <StatusBadge tone={employeeRoleTone(roleText)}>{roleText}</StatusBadge>
           ),
         },
         {
@@ -80,8 +84,8 @@ export function EmployeeDirectoryTable({
           key: "type",
           responsive: ["md"],
           render: (typeText: string) => (
-            <span className={text.subtle}>
-              {typeText ? typeText.replace("_", " ") : "Not set"}
+            <span className={hrMutedMetaClassName()}>
+              {typeText ? typeText.replace("_", " ") : "—"}
             </span>
           ),
         },
@@ -92,25 +96,23 @@ export function EmployeeDirectoryTable({
           responsive: ["lg"],
           render: (name: string) =>
             name ? (
-              <StatusBadge tone="category">{name}</StatusBadge>
+              <span className={text.secondary}>{name}</span>
             ) : (
-              <span className={text.muted}>HQ / All</span>
+              <span className={text.muted}>HQ</span>
             ),
         },
         {
-          title: "Hourly Rate",
+          title: "Rate",
           dataIndex: "hourlyRate",
           key: "rate",
           align: "right" as const,
           responsive: ["md"],
           render: (_: unknown, record: User) =>
             employeeHasMissingRate(record) ? (
-              <StatusBadge tone="warning" className={typeUiLabelClassName("tabular-nums")}>
-                Not set
-              </StatusBadge>
+              <span className={text.muted}>Not set</span>
             ) : (
-              <span className={typeUiLabelClassName(cn("tabular-nums", metricValueClassName("emerald")))}>
-                {formatCurrency(record.hourlyRate)} / hr
+              <span className={cn("tabular-nums", text.primary)}>
+                {formatCurrency(record.hourlyRate)}/hr
               </span>
             ),
         },
@@ -118,7 +120,7 @@ export function EmployeeDirectoryTable({
           title: "",
           key: "action",
           align: "right" as const,
-          width: 72,
+          width: 56,
           render: (_: unknown, record: User) =>
             canEditCompensation ? (
               <TableActionButton
@@ -136,56 +138,122 @@ export function EmployeeDirectoryTable({
 
   const expandedRowRender = (record: User) => (
     <div className={expandedRowPanelClassName()}>
-      <dl className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
+      <div className="flex flex-wrap gap-x-8 gap-y-2 text-sm">
         <div>
-          <dt className={cn("text-xs font-medium uppercase tracking-wide", text.muted)}>Email</dt>
-          <dd className={cn("mt-1", text.primary)}>{record.email}</dd>
+          <span className={hrMutedMetaClassName()}>Type </span>
+          <span className={text.primary}>
+            {record.employmentType?.replace("_", " ") ?? "—"}
+          </span>
         </div>
         <div>
-          <dt className={cn("text-xs font-medium uppercase tracking-wide", text.muted)}>
-            Employment type
-          </dt>
-          <dd className={cn("mt-1", text.primary)}>
-            {record.employmentType?.replace("_", " ") ?? "Not set"}
-          </dd>
-        </div>
-        <div>
-          <dt className={cn("text-xs font-medium uppercase tracking-wide", text.muted)}>
-            Base salary
-          </dt>
-          <dd className={typeUiLabelClassName(cn("mt-1 tabular-nums", metricValueClassName("blue")))}>
+          <span className={hrMutedMetaClassName()}>Base salary </span>
+          <span className={cn("tabular-nums", text.primary)}>
             {record.baseSalary != null && record.baseSalary > 0
               ? formatCurrency(record.baseSalary)
               : "—"}
-          </dd>
+          </span>
         </div>
-      </dl>
-      {canLinkPayroll && (
-        <div className="mt-4">
-          <Link href={buildHrPayrollUrl({ employee: record.id })} className={inlineLinkClassName()}>
-            View payroll for this employee
-          </Link>
-        </div>
-      )}
+      </div>
     </div>
   );
 
   return (
-    <DataTable
-      {...hubListDataTableProps()}
-      columns={columns}
-      dataSource={employees}
-      rowKey="id"
-      loading={isLoading}
-      emptyDescription={
-        hasActiveFilters
-          ? "No employees match your filters."
-          : "No employees found for this branch."
+    <ResponsiveDataTableLayout
+      mobile={
+        isLoading ? (
+          <ResponsiveDataTableLayout.Skeleton />
+        ) : employees.length === 0 ? (
+          <ResponsiveDataTableLayout.Empty
+            message={
+              hasActiveFilters
+                ? "No employees match your filters."
+                : "No employees found for this branch."
+            }
+          />
+        ) : (
+          <PaginatedMobileList
+            items={employees}
+            pageSize={listPagination.pageSize}
+            page={listPagination.currentPage}
+            onPageChange={listPagination.setCurrentPage}
+          >
+            {(record) => (
+              <ListMobileCard>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <Avatar className={hrAvatarClassName()}>{record.name?.charAt(0) || "U"}</Avatar>
+                    <div className="min-w-0">
+                      <p className={cn("truncate font-medium", text.primary)}>
+                        {canLinkPayroll ? (
+                          <Link href={buildHrPayrollUrl({ employee: record.id })} className={inlineLinkClassName()}>
+                            {record.name || "Unknown User"}
+                          </Link>
+                        ) : (
+                          record.name || "Unknown User"
+                        )}
+                      </p>
+                      <p className={cn("truncate text-xs", tableCellMutedClassName())}>{record.email}</p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <StatusBadge tone={employeeRoleTone(record.role)}>{record.role}</StatusBadge>
+                        {record.employmentType ? (
+                          <span className={hrMutedMetaClassName()}>
+                            {record.employmentType.replace("_", " ")}
+                          </span>
+                        ) : null}
+                      </div>
+                      <p className={cn("mt-1 text-sm", text.secondary)}>
+                        {record.branch?.name ?? "HQ"}
+                        {employeeHasMissingRate(record) ? (
+                          <span className={cn("ml-2", text.muted)}>· Rate not set</span>
+                        ) : (
+                          <span className={cn("ml-2 tabular-nums", text.primary)}>
+                            · {formatCurrency(record.hourlyRate)}/hr
+                          </span>
+                        )}
+                      </p>
+                      {record.baseSalary != null && record.baseSalary > 0 ? (
+                        <p className={cn("mt-0.5 text-xs", text.muted)}>
+                          Base {formatCurrency(record.baseSalary)}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                  {canEditCompensation ? (
+                    <TableActionButton
+                      icon={Edit3}
+                      label={`Edit rate for ${record.name ?? record.email}`}
+                      iconOnly
+                      onClick={() => onEditRate(record)}
+                      className={tableActionAccentClassName("indigo")}
+                    />
+                  ) : null}
+                </div>
+              </ListMobileCard>
+            )}
+          </PaginatedMobileList>
+        )
       }
-      expandable={{
-        expandedRowRender,
-        rowExpandable: () => true,
-      }}
+      desktop={
+        <DataTable
+          hideBorders
+          pagination={listPagination.tablePagination}
+          columns={columns}
+          dataSource={employees}
+          rowKey="id"
+          loading={isLoading}
+          emptyDescription={
+            hasActiveFilters
+              ? "No employees match your filters."
+              : "No employees found for this branch."
+          }
+          expandable={{
+            expandedRowRender,
+            rowExpandable: (record) =>
+              Boolean(record.employmentType) ||
+              (record.baseSalary != null && record.baseSalary > 0),
+          }}
+        />
+      }
     />
   );
 }

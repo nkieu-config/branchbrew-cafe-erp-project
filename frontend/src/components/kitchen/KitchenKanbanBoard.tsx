@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { CheckCircle2, Clock, Lock, PackageOpen, PlayCircle } from "lucide-react";
+import { CheckCircle2, Clock, PlayCircle } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
@@ -18,11 +18,17 @@ import { CSS } from "@dnd-kit/utilities";
 import type { ProductionOrder, Ingredient } from "@/types/api";
 import { formatDate } from "@/lib/intl-date";
 import { formatCurrency } from "@/lib/money";
-import { hubAccentIconClass } from "@/lib/theme/hub-accent";
-import { kanbanCardClassName, kanbanCompletedCardClassName, kanbanColumnClassName, kanbanColumnHeaderClassName, kanbanMetaChipClassName, kanbanOrderBadgeClassName, kitchenKanbanBoardClassName, productionColumnTone } from "@/lib/theme/hub-kitchen";
-import { metricValueClassName } from "@/lib/theme/metric";
+import {
+  kanbanCardClassName,
+  kanbanCompletedCardClassName,
+  kanbanColumnClassName,
+  kanbanColumnHeaderClassName,
+  kanbanOrderBadgeClassName,
+  kitchenKanbanBoardClassName,
+  kitchenMutedMetaClassName,
+  productionColumnTone,
+} from "@/lib/theme/hub-kitchen";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName, typeMicroClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { StatusTone } from "@/lib/theme/status";
 import { cn } from "@/lib/utils";
 
@@ -47,14 +53,19 @@ function KanbanColumn({
   const isEmpty = !children || (Array.isArray(children) && children.length === 0);
 
   return (
-    <div ref={setNodeRef} className={kanbanColumnClassName(isOver)} role="region" aria-label={title}>
-      <div className={kanbanColumnHeaderClassName(tone)}>
-        <div className="flex items-center gap-2">
+    <div
+      ref={setNodeRef}
+      className={kanbanColumnClassName(isOver, tone)}
+      role="region"
+      aria-label={title}
+    >
+      <div className={kanbanColumnHeaderClassName()}>
+        <div className="flex items-center gap-1.5">
           {icon}
           <span>{title}</span>
         </div>
       </div>
-      <div className="p-3 flex-1 overflow-y-auto space-y-3 min-h-[280px] sm:min-h-[400px] lg:min-h-[500px]">
+      <div className="p-2.5 flex-1 overflow-y-auto space-y-2 min-h-[240px] sm:min-h-[360px] lg:min-h-[420px]">
         {isEmpty ? (
           <p className={cn("text-sm text-center py-8 px-2", text.muted)}>{emptyHint}</p>
         ) : (
@@ -89,32 +100,21 @@ function KanbanCard({ order, isOverlay = false }: { order: ProductionOrderWithTa
         isCompleted && kanbanCompletedCardClassName(),
       )}
     >
-      <div className="flex justify-between items-start mb-2">
+      <div className="flex justify-between items-start gap-2 mb-1.5">
         <span className={kanbanOrderBadgeClassName()}>{order.orderNumber}</span>
-        {isCompleted ? (
-          <span className={typeUiLabelClassName(cn(typeMicroClassName("uppercase"), text.muted))}>
-            <Lock className="w-3 h-3" aria-hidden />
-            Locked
+        {order.plannedStartDate ? (
+          <span className={kitchenMutedMetaClassName("tabular-nums shrink-0")}>
+            {formatDate(order.plannedStartDate)}
           </span>
         ) : null}
       </div>
-      <div className={typeHeadingClassName("flex items-center gap-2 mb-1")}>
-        <PackageOpen className={hubAccentIconClass("kitchen", "w-4 h-4 shrink-0")} />
-        <span className="truncate">{order.targetIngredient?.name}</span>
+      <div className={cn("font-medium truncate", text.primary)}>{order.targetIngredient?.name}</div>
+      <div className={cn("text-sm tabular-nums mt-0.5", text.secondary)}>
+        {order.quantityToProduce} {order.targetIngredient?.unit}
       </div>
-      <div className={typeHeadingClassName(cn("text-sm", text.secondary))}>
-        {order.quantityToProduce}{" "}
-        <span className={typeHeadingClassName(cn("text-xs", text.muted))}>{order.targetIngredient?.unit}</span>
-      </div>
-      {order.plannedStartDate && (
-        <div className={kanbanMetaChipClassName()}>
-          <Clock className="w-3 h-3" />
-          {formatDate(order.plannedStartDate)}
-        </div>
-      )}
       {isCompleted && order.actualCost != null && (
-        <div className={typeUiLabelClassName(cn("mt-2 text-xs tabular-nums", metricValueClassName("emerald")))}>
-          Actual cost {formatCurrency(order.actualCost)}
+        <div className={cn("mt-2 text-xs tabular-nums", text.muted)}>
+          Cost {formatCurrency(order.actualCost)}
         </div>
       )}
     </div>
@@ -150,9 +150,9 @@ export function KitchenKanbanBoard({
         <KanbanColumn
           id="PLANNED"
           title="Planned"
-          icon={<Clock className="w-5 h-5" />}
+          icon={<Clock className="w-4 h-4 opacity-70" aria-hidden />}
           tone={productionColumnTone("PLANNED")}
-          emptyHint="No planned orders — create one to start production."
+          emptyHint="No planned orders."
         >
           {plannedOrders.map((o) => (
             <KanbanCard key={o.id} order={o} />
@@ -161,10 +161,10 @@ export function KitchenKanbanBoard({
 
         <KanbanColumn
           id="IN_PROGRESS"
-          title="In Progress"
-          icon={<PlayCircle className="w-5 h-5" />}
+          title="In progress"
+          icon={<PlayCircle className="w-4 h-4 opacity-70" aria-hidden />}
           tone={productionColumnTone("IN_PROGRESS")}
-          emptyHint="Drag a planned order here when production starts."
+          emptyHint="Drag here when production starts."
         >
           {inProgressOrders.map((o) => (
             <KanbanCard key={o.id} order={o} />
@@ -174,9 +174,9 @@ export function KitchenKanbanBoard({
         <KanbanColumn
           id="COMPLETED"
           title="Completed"
-          icon={<CheckCircle2 className="w-5 h-5" />}
+          icon={<CheckCircle2 className="w-4 h-4 opacity-70" aria-hidden />}
           tone={productionColumnTone("COMPLETED")}
-          emptyHint="Completed batches appear here with actual cost."
+          emptyHint="Finished batches appear here."
         >
           {completedOrders.map((o) => (
             <KanbanCard key={o.id} order={o} />

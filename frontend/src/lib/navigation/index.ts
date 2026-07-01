@@ -60,3 +60,11 @@ export {
   resolveBreadcrumb,
   resolveBreadcrumbTrail,
 } from "./breadcrumb";
+
+export {
+  resolveTopbarPageTitle,
+  getPageChromeTitleVisibility,
+  type PageChromeTitleVisibility,
+} from "./topbar-chrome";
+
+export { buildBreadcrumbDisplay, type BreadcrumbDisplaySegment } from "./breadcrumb-display";

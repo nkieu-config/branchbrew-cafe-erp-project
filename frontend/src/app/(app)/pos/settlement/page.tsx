@@ -35,10 +35,10 @@ export default function SettlementPage() {
     : undefined;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {canViewFinance && (
         <div className="flex justify-end">
-          <ButtonLink variant="outline" href="/finance/overview">
+          <ButtonLink variant="outline" href="/finance/overview" className="rounded-xl">
             <Landmark className="w-4 h-4 mr-2" aria-hidden />
             Finance Overview
           </ButtonLink>
@@ -51,7 +51,7 @@ export default function SettlementPage() {
         loading={expectedFetching}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:gap-6">
         <SettlementForm
           branchIdNum={branchIdNum}
           expected={expected}

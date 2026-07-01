@@ -2,17 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Leaf, Plus, ArrowDownToLine, Building2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import {
   useIngredients,
   useDeleteIngredient,
 } from "@/hooks/domains/useProductQueries";
 import { Button } from "@/components/ui/button";
-import { ButtonLink } from "@/components/ui/button-link";
 import { IngredientFormModal } from "@/components/products/IngredientFormModal";
 import { IngredientsTable } from "@/components/products/IngredientsTable";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
@@ -100,27 +98,12 @@ export default function IngredientsPageClient() {
 
   return (
     <>
-      <HubPageHeader
-        hideTitle
-        icon={Leaf}
-        accentHub="products"
-        actions={
-          <>
-            <ButtonLink href="/inventory/stock-in" variant="outline" className="font-medium">
-              <ArrowDownToLine className="w-4 h-4 mr-2" aria-hidden />
-              Receive Stock
-            </ButtonLink>
-            <ButtonLink href="/procurement/suppliers" variant="outline" className="font-medium">
-              <Building2 className="w-4 h-4 mr-2" aria-hidden />
-              Suppliers
-            </ButtonLink>
-            <Button onClick={handleAddNew} className={hubCtaClassName("products")}>
-              <Plus className="w-4 h-4 mr-2" aria-hidden />
-              Add Ingredient
-            </Button>
-          </>
-        }
-      />
+      <div className="mb-4 flex justify-end">
+        <Button onClick={handleAddNew} className={hubCtaClassName("products")}>
+          <Plus className="w-4 h-4 mr-2" aria-hidden />
+          Add ingredient
+        </Button>
+      </div>
 
       <HubListPage className={productsSectionPanelClassName()}>
         <HubListPage.Error
@@ -156,9 +139,9 @@ export default function IngredientsPageClient() {
                 value={costFilter}
                 onValueChange={(value) => setCostFilter(value as IngredientCostFilter)}
                 ariaLabel="Filter by cost data"
-                widthClassName="w-full sm:w-[200px]"
+                widthClassName="w-full sm:w-[180px]"
                 options={[
-                  { value: "ALL", label: "All cost levels" },
+                  { value: "ALL", label: "All" },
                   { value: "missing-cost", label: "Missing cost" },
                 ]}
               />
@@ -201,7 +184,7 @@ export default function IngredientsPageClient() {
         title="Delete ingredient?"
         description={
           deleteTarget
-            ? `Remove "${deleteTarget.name}" from the catalog? This cannot be undone if it is referenced by recipes.`
+            ? `Remove "${deleteTarget.name}"?`
             : undefined
         }
         confirmLabel="Delete"

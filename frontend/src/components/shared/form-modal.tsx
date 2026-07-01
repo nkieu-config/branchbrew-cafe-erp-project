@@ -5,6 +5,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -12,6 +13,75 @@ import type { HubId } from "@/lib/navigation";
 import { formModalDefaultIconClassName, hubModalIconClassName } from "@/lib/theme/color-helpers";
 import { formDialogContentClassName, typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
+
+type FormDialogRootProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  children: ReactNode;
+  className?: string;
+  width?: number | string;
+};
+
+function FormDialogRoot({
+  open,
+  onOpenChange,
+  children,
+  className,
+  width = 800,
+}: FormDialogRootProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        className={className ?? formDialogContentClassName(width)}
+      >
+        {children}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+type FormDialogTitleProps = {
+  children: ReactNode;
+  icon?: LucideIcon;
+  accentHub?: HubId;
+  iconClassName?: string;
+  className?: string;
+};
+
+function FormDialogTitle({
+  children,
+  icon: Icon,
+  accentHub,
+  iconClassName,
+  className,
+}: FormDialogTitleProps) {
+  const resolvedIconClassName =
+    iconClassName ??
+    (accentHub != null ? hubModalIconClassName(accentHub) : formModalDefaultIconClassName());
+
+  return (
+    <DialogHeader>
+      <DialogTitle className={cn(typeHeadingClassName(), "flex items-center gap-2 text-lg", className)}>
+        {Icon && <Icon className={cn("shrink-0", resolvedIconClassName)} aria-hidden />}
+        {children}
+      </DialogTitle>
+    </DialogHeader>
+  );
+}
+
+function FormDialogBody({ children, className }: { children: ReactNode; className?: string }) {
+  return <div className={cn("mt-4", className)}>{children}</div>;
+}
+
+function FormDialogFooter({ children, className }: { children: ReactNode; className?: string }) {
+  return <DialogFooter className={className}>{children}</DialogFooter>;
+}
+
+export const FormDialog = Object.assign(FormDialogRoot, {
+  Title: FormDialogTitle,
+  Body: FormDialogBody,
+  Footer: FormDialogFooter,
+});
 
 interface FormModalProps {
   title: string;
@@ -24,10 +94,6 @@ interface FormModalProps {
   onClose: () => void;
   children: ReactNode;
   width?: number | string;
-  /** @deprecated No-op — Dialog unmounts content when closed. */
-  destroyOnHidden?: boolean;
-  /** @deprecated No-op — kept for API compatibility. */
-  forceRender?: boolean;
 }
 
 export function FormModal({

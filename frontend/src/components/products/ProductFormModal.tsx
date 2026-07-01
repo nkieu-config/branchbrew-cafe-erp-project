@@ -1,13 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,7 +21,7 @@ import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import type { Product, Ingredient } from "@/types/api";
 import { getErrorMessage } from "@/lib/errors";
-import { FormModalFooter } from "@/components/shared/form-modal";
+import { FormDialog, FormModalFooter } from "@/components/shared/form-modal";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { useLineItemRows } from "@/hooks/useLineItemRows";
 import { formFieldInvalidClassName, tableRowDividerClassName } from "@/lib/theme/color-helpers";
@@ -36,7 +29,6 @@ import { formSectionClassName, hubCtaClassName } from "@/lib/theme/hub-primitive
 import { productsDialogContentClassName } from "@/lib/theme/hub-products";
 import { formFieldInsetClassName, formRemoveButtonClassName, formSelectContentClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type RecipeRow = {
@@ -161,28 +153,20 @@ export function ProductFormModal({
   };
 
   return (
-    <Dialog
+    <FormDialog
       open={isOpen}
       onOpenChange={(open) => {
         if (!open) handleClose();
       }}
+      className={productsDialogContentClassName("max-w-[600px]")}
     >
-      <DialogContent className={productsDialogContentClassName("max-w-[600px]")}>
-        <DialogHeader>
-          <DialogTitle className={typeHeadingClassName("text-xl")}>
-            {product ? "Edit Menu Item" : "New Menu Item"}
-          </DialogTitle>
-          <DialogDescription className={text.muted}>
-            Create a sellable menu item and define its menu recipe for POS inventory deduction.
-          </DialogDescription>
-        </DialogHeader>
+        <FormDialog.Title>{product ? "Edit item" : "New item"}</FormDialog.Title>
 
-        <div className="space-y-6 py-2">
+        <FormDialog.Body className="space-y-6 py-2">
           <div className={formSectionClassName("mb-0 space-y-4")}>
-            <h3 className={typeHeadingClassName()}>1. Basic Info</h3>
             <div className="space-y-2">
               <Label htmlFor="product-name" className={text.secondary}>
-                Product Name
+                Name
               </Label>
               <Input
                 id="product-name"
@@ -207,7 +191,7 @@ export function ProductFormModal({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="product-price" className={text.secondary}>
-                  Selling Price
+                  Price
                 </Label>
                 <Input
                   id="product-price"
@@ -225,7 +209,7 @@ export function ProductFormModal({
             </div>
             <div className={cn("flex items-center justify-between gap-3 pt-2 border-t", tableRowDividerClassName())}>
               <Label htmlFor="isActiveProduct" className={cn("cursor-pointer", text.secondary)}>
-                Active (available for sale on POS)
+                Active on POS
               </Label>
               <Switch
                 id="isActiveProduct"
@@ -238,22 +222,22 @@ export function ProductFormModal({
 
           <div className={formSectionClassName("mb-0 space-y-4")}>
             <div className="flex justify-between items-center">
-              <h3 className={typeHeadingClassName()}>2. Menu Recipe</h3>
+              <h3 className={cn("text-sm font-medium", text.muted)}>Recipe</h3>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={handleAddRecipeItem}
-                className="h-9 font-medium"
+                className="h-9"
               >
                 <Plus className="w-4 h-4 mr-1" aria-hidden />
-                Add Ingredient
+                Add
               </Button>
             </div>
 
             {recipeItems.length === 0 ? (
-              <p className={cn("text-sm italic", text.muted)}>
-                No menu recipe defined. This item will not deduct inventory when sold.
+              <p className={cn("text-sm", text.muted)}>
+                No recipe — inventory won&apos;t deduct on sale.
               </p>
             ) : (
               <div className="space-y-3">
@@ -335,7 +319,7 @@ export function ProductFormModal({
               </div>
             )}
           </div>
-        </div>
+        </FormDialog.Body>
 
         <FormModalFooter>
           <Button type="button" variant="outline" onClick={handleClose} disabled={isSaving}>
@@ -350,7 +334,6 @@ export function ProductFormModal({
             {isSaving ? "Saving…" : "Save Menu Item"}
           </Button>
         </FormModalFooter>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   );
 }

@@ -6,7 +6,6 @@ import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useTogglePromotion } from "@/hooks/domains/useCrmQueries";
 import { getErrorMessage } from "@/lib/errors";
-import { formatDate } from "@/lib/intl-date";
 import { formatCurrency } from "@/lib/money";
 import {
   formatPromoValidityRange,
@@ -16,13 +15,16 @@ import {
 } from "@/lib/promotion-status";
 import type { Promotion } from "@/types/api";
 import { DataTable } from "@/components/shared/data-table";
+import {
+  ListMobileCard,
+  PaginatedMobileList,
+  ResponsiveDataTableLayout,
+} from "@/components/shared/responsive-data-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { Switch } from "@/components/ui/switch";
-import { hubListDataTableProps } from "@/lib/theme/data-table";
-import { metricValueClassName } from "@/lib/theme/metric";
+import { useHubListPagination } from "@/hooks/useHubListPagination";
 import { text } from "@/lib/theme/surface";
-import { typeSectionLabelClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type PromotionListTableProps = {
@@ -34,6 +36,109 @@ type PromotionListTableProps = {
   onDelete: (promotion: Promotion) => void;
 };
 
+type PromotionStatusControlProps = {
+  promotion: Promotion;
+  togglingId: number | null;
+  onToggle: (id: number, currentStatus: boolean) => void;
+};
+
+function PromotionStatusControl({
+  promotion,
+  togglingId,
+  onToggle,
+}: PromotionStatusControlProps) {
+  const validity = getPromoValidity(promotion);
+  const isExpired = validity === "expired";
+  const isToggling = togglingId === promotion.id;
+
+  return (
+    <div className="flex items-center gap-2">
+      <StatusBadge tone={promoValidityTone(validity)} className="shrink-0">
+        {promoValidityLabel(validity)}
+      </StatusBadge>
+      <Switch
+        checked={promotion.isActive}
+        disabled={isExpired || isToggling}
+        onCheckedChange={() => onToggle(promotion.id, promotion.isActive)}
+        aria-label={`Toggle ${promotion.code}`}
+      />
+    </div>
+  );
+}
+
+type PromotionActionsProps = {
+  promotion: Promotion;
+  onEdit: (promotion: Promotion) => void;
+  onDelete: (promotion: Promotion) => void;
+};
+
+function PromotionActions({ promotion, onEdit, onDelete }: PromotionActionsProps) {
+  return (
+    <div className="flex items-center justify-end gap-1">
+      <TableActionButton
+        label={`Edit ${promotion.code}`}
+        icon={Pencil}
+        iconOnly
+        tone="purple"
+        onClick={() => onEdit(promotion)}
+      />
+      <TableActionButton
+        label={`Delete ${promotion.code}`}
+        icon={Trash2}
+        iconOnly
+        destructive
+        onClick={() => onDelete(promotion)}
+      />
+    </div>
+  );
+}
+
+type PromotionMobileCardProps = PromotionActionsProps & PromotionStatusControlProps;
+
+function PromotionMobileCard({
+  promotion,
+  togglingId,
+  onToggle,
+  onEdit,
+  onDelete,
+}: PromotionMobileCardProps) {
+  return (
+    <ListMobileCard>
+      <div className="mb-2 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className={cn("font-mono font-medium", text.primary)}>{promotion.code}</p>
+          {promotion.description ? (
+            <p className={cn("line-clamp-2 text-sm", text.secondary)}>
+              {promotion.description}
+            </p>
+          ) : null}
+        </div>
+        <span className={cn("shrink-0 tabular-nums font-medium", text.primary)}>
+          {promotion.discountType === "PERCENTAGE"
+            ? `${promotion.discountValue}%`
+            : formatCurrency(promotion.discountValue)}
+        </span>
+      </div>
+      <p className={cn("mb-1 text-sm tabular-nums", text.muted)}>
+        {formatPromoValidityRange(promotion)}
+      </p>
+      {promotion.minPurchase != null ? (
+        <p className={cn("mb-2 text-xs tabular-nums", text.muted)}>
+          Min {formatCurrency(promotion.minPurchase)}
+        </p>
+      ) : null}
+      <div className="mb-3">
+        <PromotionStatusControl
+          promotion={promotion}
+          togglingId={togglingId}
+          onToggle={onToggle}
+        />
+      </div>
+      <PromotionActions promotion={promotion} onEdit={onEdit} onDelete={onDelete} />
+    </ListMobileCard>
+  );
+}
+
 export function PromotionListTable({
   promotions,
   loading,
@@ -42,6 +147,13 @@ export function PromotionListTable({
   onEdit,
   onDelete,
 }: PromotionListTableProps) {
+  const emptyDescription = hasActiveFilters ? "No promos match your filters." : "No promos yet.";
+
+  const listPagination = useHubListPagination(
+    { pageSize: 15 },
+    `${promotions.length}-${hasActiveFilters}`,
+  );
+
   const [togglingId, setTogglingId] = useState<number | null>(null);
   const toggleMutation = useTogglePromotion();
 
@@ -63,39 +175,23 @@ export function PromotionListTable({
     () =>
       [
         {
-          title: "Status",
-          dataIndex: "isActive",
-          key: "status",
-          width: 160,
-          render: (_: boolean, record: Promotion) => {
-            const validity = getPromoValidity(record);
-            const isExpired = validity === "expired";
-            const isToggling = togglingId === record.id;
-
-            return (
-              <div className="flex items-center gap-2">
-                <StatusBadge
-                  tone={promoValidityTone(validity)}
-                  className={typeSectionLabelClassName("tracking-wider")}
-                >
-                  {promoValidityLabel(validity)}
-                </StatusBadge>
-                <Switch
-                  checked={record.isActive}
-                  disabled={isExpired || isToggling}
-                  onCheckedChange={() => handleToggle(record.id, record.isActive)}
-                  aria-label={`Toggle promotion ${record.code}`}
-                />
-              </div>
-            );
-          },
-        },
-        {
           title: "Code",
           dataIndex: "code",
           key: "code",
           render: (code: string) => (
-            <span className={typeUiLabelClassName(cn("font-mono", text.primary))}>{code}</span>
+            <span className={cn("font-mono font-medium", text.primary)}>{code}</span>
+          ),
+        },
+        {
+          title: "Discount",
+          key: "discount",
+          width: 100,
+          render: (_: unknown, record: Promotion) => (
+            <span className={cn("tabular-nums font-medium", text.primary)}>
+              {record.discountType === "PERCENTAGE"
+                ? `${record.discountValue}%`
+                : formatCurrency(record.discountValue)}
+            </span>
           ),
         },
         {
@@ -106,65 +202,46 @@ export function PromotionListTable({
           render: (desc: string) => <span className={text.secondary}>{desc}</span>,
         },
         {
-          title: "Discount",
-          key: "discount",
-          render: (_: unknown, record: Promotion) => (
-            <span className={typeUiLabelClassName(metricValueClassName("emerald"))}>
-              {record.discountType === "PERCENTAGE"
-                ? `${record.discountValue}%`
-                : formatCurrency(record.discountValue)}
-            </span>
-          ),
-        },
-        {
-          title: "Min Purchase",
-          dataIndex: "minPurchase",
-          key: "minPurchase",
-          responsive: ["lg"],
-          render: (min: number | null) => (
-            <span className={text.muted}>{min != null ? formatCurrency(min) : "—"}</span>
-          ),
-        },
-        {
-          title: "Validity",
+          title: "Valid",
           key: "validity",
           responsive: ["lg"],
           render: (_: unknown, record: Promotion) => (
-            <span className={cn("text-sm", text.muted)}>{formatPromoValidityRange(record)}</span>
+            <span className={cn("text-sm tabular-nums", text.muted)}>
+              {formatPromoValidityRange(record)}
+            </span>
           ),
         },
         {
-          title: "Created",
-          dataIndex: "createdAt",
-          key: "createdAt",
+          title: "Min",
+          dataIndex: "minPurchase",
+          key: "minPurchase",
           responsive: ["lg"],
-          render: (createdAt?: string) => (
-            <span className={cn("text-sm font-medium", text.muted)}>
-              {createdAt ? formatDate(createdAt) : "—"}
+          width: 96,
+          render: (min: number | null) => (
+            <span className={cn("tabular-nums text-sm", text.muted)}>
+              {min != null ? formatCurrency(min) : "—"}
             </span>
+          ),
+        },
+        {
+          title: "Status",
+          dataIndex: "isActive",
+          key: "status",
+          width: 120,
+          render: (_: boolean, record: Promotion) => (
+            <PromotionStatusControl
+              promotion={record}
+              togglingId={togglingId}
+              onToggle={handleToggle}
+            />
           ),
         },
         {
           title: "",
           key: "actions",
-          width: 96,
+          width: 80,
           render: (_: unknown, record: Promotion) => (
-            <div className="flex items-center justify-end gap-1">
-              <TableActionButton
-                label={`Edit ${record.code}`}
-                icon={Pencil}
-                iconOnly
-                tone="purple"
-                onClick={() => onEdit(record)}
-              />
-              <TableActionButton
-                label={`Delete ${record.code}`}
-                icon={Trash2}
-                iconOnly
-                destructive
-                onClick={() => onDelete(record)}
-              />
-            </div>
+            <PromotionActions promotion={record} onEdit={onEdit} onDelete={onDelete} />
           ),
         },
       ] as ColumnsType<Promotion>,
@@ -172,16 +249,41 @@ export function PromotionListTable({
   );
 
   return (
-    <DataTable
-      {...hubListDataTableProps()}
-      columns={columns}
-      dataSource={promotions}
-      rowKey="id"
-      loading={loading && !isError}
-      emptyDescription={
-        hasActiveFilters
-          ? "No promotions match your filters."
-          : "No promotion codes yet. Create one to get started."
+    <ResponsiveDataTableLayout
+      mobile={
+        loading && !isError ? (
+          <ResponsiveDataTableLayout.Skeleton />
+        ) : !loading && !isError && promotions.length === 0 ? (
+          <ResponsiveDataTableLayout.Empty message={emptyDescription} />
+        ) : (
+          <PaginatedMobileList
+            items={promotions}
+            pageSize={listPagination.pageSize}
+            page={listPagination.currentPage}
+            onPageChange={listPagination.setCurrentPage}
+          >
+            {(promotion) => (
+              <PromotionMobileCard
+                promotion={promotion}
+                togglingId={togglingId}
+                onToggle={handleToggle}
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
+            )}
+          </PaginatedMobileList>
+        )
+      }
+      desktop={
+        <DataTable
+          hideBorders
+          pagination={listPagination.tablePagination}
+          columns={columns}
+          dataSource={promotions}
+          rowKey="id"
+          loading={loading && !isError}
+          emptyDescription={emptyDescription}
+        />
       }
     />
   );

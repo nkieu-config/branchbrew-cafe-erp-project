@@ -19,14 +19,14 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { dashboardDragActiveClass, dashboardDragHandleBarClass } from "@/lib/theme/dashboard";
+import { dashboardDragHandleBarClass, dashboardGridClass, dashboardSortableShellClass } from "@/lib/theme/dashboard";
 import { cn } from "@/lib/utils";
 
 export const DASHBOARD_WIDGET_LABELS: Record<string, string> = {
   sales: "Today's Sales",
-  topBranch: "Top Branch Today",
+  topBranch: "Branch Performance",
   lowStock: "Inventory Alerts",
-  topProducts: "Top 5 Best Sellers",
+  topProducts: "Top 3 Best Sellers",
   salesChart: "Revenue Overview",
 };
 
@@ -34,13 +34,15 @@ function SortableWidget({
   id,
   children,
   className,
+  label,
 }: {
   id: string;
   children: ReactNode;
   className?: string;
+  label?: string;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
-  const label = DASHBOARD_WIDGET_LABELS[id] ?? "Dashboard widget";
+  const widgetLabel = label ?? DASHBOARD_WIDGET_LABELS[id] ?? "Dashboard widget";
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -52,39 +54,44 @@ function SortableWidget({
     <div
       ref={setNodeRef}
       style={style}
-      className={cn(
-        "group flex flex-col overflow-hidden rounded-xl",
-        className,
-        dashboardDragActiveClass(isDragging),
-      )}
+      className={dashboardSortableShellClass(isDragging, className)}
     >
       <div
         {...attributes}
         {...listeners}
         className={dashboardDragHandleBarClass()}
-        aria-label={`Drag to reorder ${label}`}
+        aria-label={`Drag to reorder ${widgetLabel}`}
       >
-        <GripHorizontal className="w-4 h-4" aria-hidden />
+        <GripHorizontal className="w-3.5 h-3.5" aria-hidden />
+        <span className="hidden sm:inline opacity-0 transition-opacity duration-200 group-hover:opacity-100 motion-reduce:transition-none">
+          Reorder
+        </span>
       </div>
-      <div className="min-w-0 flex-1 [&_.dashboard-widget]:rounded-t-none">
+      <div className="min-w-0 flex-1 [&_.dashboard-widget]:rounded-t-none [&_.dashboard-widget]:border-t-0">
         {children}
       </div>
     </div>
   );
 }
 
+export type DashboardWidgetDefinition = {
+  content: ReactNode;
+  className?: string;
+  label?: string;
+};
+
+export type DashboardWidgetRegistry = Record<string, DashboardWidgetDefinition>;
+
 type DashboardSortableGridProps = {
   widgetOrder: string[];
   onReorder: (order: string[]) => void;
-  renderWidget: (id: string) => ReactNode;
-  getWidgetClassName?: (id: string) => string;
+  widgets: DashboardWidgetRegistry;
 };
 
 export function DashboardSortableGrid({
   widgetOrder,
   onReorder,
-  renderWidget,
-  getWidgetClassName,
+  widgets,
 }: DashboardSortableGridProps) {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -103,12 +110,17 @@ export function DashboardSortableGrid({
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
       <SortableContext items={widgetOrder} strategy={rectSortingStrategy}>
-        <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6 auto-rows-[minmax(200px,auto)]">
-          {widgetOrder.map((id) => (
-            <SortableWidget key={id} id={id} className={getWidgetClassName?.(id)}>
-              {renderWidget(id)}
-            </SortableWidget>
-          ))}
+        <div className={dashboardGridClass()}>
+          {widgetOrder.map((id) => {
+            const widget = widgets[id];
+            if (!widget) return null;
+
+            return (
+              <SortableWidget key={id} id={id} className={widget.className} label={widget.label}>
+                {widget.content}
+              </SortableWidget>
+            );
+          })}
         </div>
       </SortableContext>
     </DndContext>

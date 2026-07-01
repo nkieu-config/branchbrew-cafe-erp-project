@@ -2,18 +2,20 @@
 
 import { useMemo } from "react";
 import type { ColumnsType } from "antd/es/table";
-import { History } from "lucide-react";
 import { DataTable } from "@/components/shared/data-table";
+import {
+  ListMobileCard,
+  PaginatedMobileList,
+  ResponsiveDataTableLayout,
+} from "@/components/shared/responsive-data-table";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterDate, ListFilterRow, ListFilterSelect } from "@/components/shared/list-filters";
 import { getErrorMessage } from "@/lib/errors";
 import { formatDateTime } from "@/lib/intl-date";
-import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { useHubListPagination } from "@/hooks/useHubListPagination";
 import { tableCellMutedClassName } from "@/lib/theme/feedback";
-import { metricValueClassName } from "@/lib/theme/metric";
-import { formPanelHeaderClassName, inventorySectionPanelClassName } from "@/lib/theme/stock";
+import { inventorySectionPanelClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { WasteHistoryIngredient } from "@/lib/waste-filters";
 import type { WasteLog } from "@/types/api";
@@ -38,6 +40,33 @@ type WasteHistoryPanelProps = {
   logsFetching: boolean;
   onRefetchLogs: () => void;
 };
+
+function WasteLogMobileCard({ row }: { row: WasteLog }) {
+  return (
+    <ListMobileCard>
+      <div className="mb-2 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className={cn("font-medium", text.primary)}>
+            {row.ingredient?.name ?? `#${row.ingredientId}`}
+          </p>
+          <time className={cn("text-xs tabular-nums", text.muted)} dateTime={row.createdAt}>
+            {formatDateTime(row.createdAt)}
+          </time>
+        </div>
+        <span className={cn("shrink-0 font-mono text-sm tabular-nums", text.subtle)}>
+          {Number(row.quantity).toFixed(2)}
+          {row.ingredient?.unit ? (
+            <span className={cn("ml-1 text-xs", text.muted)}>{row.ingredient.unit}</span>
+          ) : null}
+        </span>
+      </div>
+      <p className={cn("mb-1 text-sm", text.secondary)}>{row.reason}</p>
+      <p className={cn("text-xs", tableCellMutedClassName())}>
+        {row.recordedBy?.name ?? "—"}
+      </p>
+    </ListMobileCard>
+  );
+}
 
 export function WasteHistoryPanel({
   logs,
@@ -113,7 +142,7 @@ export function WasteHistoryPanel({
           ),
         },
         {
-          title: "Recorded by",
+          title: "By",
           key: "recordedBy",
           responsive: ["lg"],
           render: (_: unknown, row: WasteLog) => (
@@ -126,17 +155,18 @@ export function WasteHistoryPanel({
     [],
   );
 
+  const emptyDescription = hasHistoryFilters
+    ? "No waste logs match your filters."
+    : "No waste entries recorded for this branch yet.";
+
+  const listPagination = useHubListPagination(
+    { pageSize: 15 },
+    `${filteredLogs.length}-${hasHistoryFilters}`,
+  );
+
   return (
     <div className={inventorySectionPanelClassName()}>
-      <div className={formPanelHeaderClassName("mb-4")}>
-        <h2 className={typeHeadingClassName("text-lg flex items-center gap-2")}>
-          <History className={cn("w-5 h-5", metricValueClassName("slate"))} aria-hidden />
-          Waste History
-        </h2>
-        <p className={cn("text-sm mt-1", text.muted)}>
-          Recent waste entries for this branch.
-        </p>
-      </div>
+      <h2 className={cn("mb-4 text-base font-semibold", text.primary)}>History</h2>
 
       <HubListPage>
         <HubListPage.Error
@@ -195,17 +225,33 @@ export function WasteHistoryPanel({
           emptyLabel="No waste recorded yet"
         />
 
-        <DataTable
-          {...hubListDataTableProps()}
-          loading={logsLoading}
-          rowKey="id"
-          dataSource={filteredLogs}
-          columns={historyColumns}
-          scroll={{ x: undefined }}
-          emptyDescription={
-            hasHistoryFilters
-              ? "No waste logs match your filters."
-              : "No waste entries recorded for this branch yet."
+        <ResponsiveDataTableLayout
+          mobile={
+            logsLoading ? (
+              <ResponsiveDataTableLayout.Skeleton />
+            ) : filteredLogs.length === 0 ? (
+              <ResponsiveDataTableLayout.Empty message={emptyDescription} />
+            ) : (
+              <PaginatedMobileList
+                items={filteredLogs}
+                pageSize={listPagination.pageSize}
+                page={listPagination.currentPage}
+                onPageChange={listPagination.setCurrentPage}
+              >
+                {(row) => <WasteLogMobileCard row={row} />}
+              </PaginatedMobileList>
+            )
+          }
+          desktop={
+            <DataTable
+              hideBorders
+              pagination={listPagination.tablePagination}
+              loading={logsLoading}
+              rowKey="id"
+              dataSource={filteredLogs}
+              columns={historyColumns}
+              emptyDescription={emptyDescription}
+            />
           }
         />
       </HubListPage>

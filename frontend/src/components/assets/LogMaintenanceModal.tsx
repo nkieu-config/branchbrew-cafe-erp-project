@@ -1,16 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, Wrench } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { FormDialog } from "@/components/shared/form-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,11 +17,9 @@ import {
 import { equipmentStatusLabel } from "@/lib/equipment-filters";
 import type { Equipment, EquipmentStatus } from "@/types/api";
 import { assetsDialogContentClassName } from "@/lib/theme/assets";
-import { hubModalIconClassName } from "@/lib/theme/color-helpers";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { formFieldInsetClassName, formLineDateFieldClassName, formSelectContentClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 const STATUS_OPTIONS: EquipmentStatus[] = ["ACTIVE", "MAINTENANCE", "BROKEN", "RETIRED"];
@@ -108,26 +99,17 @@ export function LogMaintenanceModal({
   };
 
   return (
-    <Dialog
+    <FormDialog
       open={open}
       onOpenChange={(next) => {
         if (!next) onClose();
       }}
+      className={assetsDialogContentClassName()}
     >
-      <DialogContent className={assetsDialogContentClassName()}>
-        <DialogHeader>
-          <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <Wrench className={hubModalIconClassName("assets")} aria-hidden />
-            Log maintenance
-          </DialogTitle>
-          <DialogDescription>
-            {equipment
-              ? `Record service for ${equipment.name}. Update the next due date and status when applicable.`
-              : "Record a maintenance visit for this asset."}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4 pt-2">
+        <FormDialog.Title>
+          Log maintenance{equipment ? ` · ${equipment.name}` : ""}
+        </FormDialog.Title>
+        <FormDialog.Body className="space-y-4 pt-1">
           <div className="space-y-2">
             <Label htmlFor="maintenance-description" className={text.secondary}>
               Description
@@ -136,7 +118,7 @@ export function LogMaintenanceModal({
               id="maintenance-description"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              placeholder="e.g. Group head gasket replaced"
+              placeholder="What was done?"
               className={formFieldInsetClassName()}
               required
             />
@@ -160,7 +142,7 @@ export function LogMaintenanceModal({
             </div>
             <div className="space-y-2">
               <Label htmlFor="maintenance-next-date" className={text.secondary}>
-                Next maintenance
+                Next due
               </Label>
               <Input
                 id="maintenance-next-date"
@@ -174,7 +156,7 @@ export function LogMaintenanceModal({
 
           <div className="space-y-2">
             <Label htmlFor="maintenance-status" className={text.secondary}>
-              Update status <span className={text.muted}>(optional)</span>
+              Status <span className={text.muted}>(optional)</span>
             </Label>
             <Select
               value={newStatus}
@@ -183,7 +165,7 @@ export function LogMaintenanceModal({
               }
             >
               <SelectTrigger id="maintenance-status" className={formFieldInsetClassName("w-full")}>
-                <SelectValue placeholder="Keep current status" />
+                <SelectValue placeholder="Keep current" />
               </SelectTrigger>
               <SelectContent className={formSelectContentClassName()}>
                 {STATUS_OPTIONS.map((status) => (
@@ -194,9 +176,9 @@ export function LogMaintenanceModal({
               </SelectContent>
             </Select>
           </div>
-        </div>
+        </FormDialog.Body>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <FormDialog.Footer className="gap-2 sm:gap-0">
           <Button type="button" variant="outline" onClick={onClose} className="min-h-[44px]">
             Cancel
           </Button>
@@ -207,10 +189,9 @@ export function LogMaintenanceModal({
             onClick={() => void handleSubmit()}
           >
             {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}
-            Save record
+            Save
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialog.Footer>
+    </FormDialog>
   );
 }

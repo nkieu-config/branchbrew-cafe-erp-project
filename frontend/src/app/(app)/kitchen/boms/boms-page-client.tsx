@@ -4,8 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useProductionBOMs } from "@/hooks/domains/useAccountingQueries";
 import { useIngredients } from "@/hooks/domains/useProductQueries";
-import { ListTree, Loader2, Plus } from "lucide-react";
-import { HubPageHeader } from "@/components/shared/hub-card";
+import { Plus } from "lucide-react";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { BOMFormModal } from "@/components/kitchen/BOMFormModal";
 import { BomListEmptyState } from "@/components/kitchen/BomListEmptyState";
@@ -18,11 +17,9 @@ import { groupProductionBoms } from "@/lib/bom";
 import { buildProductsIngredientsUrl } from "@/lib/products-hub-url";
 import { matchesBomSearch, summarizeProductionBoms } from "@/lib/bom-filters";
 import type { BomGroupRow, ProductionBOM } from "@/types/api";
-import { hubCtaClassName, inlineLinkClassName, summaryChipClassName } from "@/lib/theme/hub-primitives";
+import { hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
 import { kitchenSectionPanelClassName } from "@/lib/theme/hub-kitchen";
-import { metricValueClassName } from "@/lib/theme/metric";
 import { text } from "@/lib/theme/surface";
-import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 export default function BomsPageClient() {
@@ -55,20 +52,15 @@ export default function BomsPageClient() {
   const summary = useMemo(() => summarizeProductionBoms(bomsGrouped), [bomsGrouped]);
 
   return (
-    <div className="space-y-6">
-      <HubPageHeader
-        hideTitle
-        icon={ListTree}
-        accentHub="kitchen"
-        actions={
-          <Button className={hubCtaClassName("kitchen")} onClick={() => setIsModalOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" aria-hidden />
-            Create BOM
-          </Button>
-        }
-      />
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button className={hubCtaClassName("kitchen")} onClick={() => setIsModalOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" aria-hidden />
+          Create BOM
+        </Button>
+      </div>
 
-      <CentralKitchenBanner message="Production BOMs are managed at the central kitchen branch." />
+      <CentralKitchenBanner message="BOMs are managed at the central kitchen branch." />
 
       <HubListPage className={kitchenSectionPanelClassName()}>
         <HubListPage.Error
@@ -80,49 +72,34 @@ export default function BomsPageClient() {
         <HubListPage.Toolbar
           search={search}
           onSearchChange={setSearch}
-          searchPlaceholder="Search target or raw ingredient…"
+          searchPlaceholder="Search target or ingredient…"
           showReset={search.trim().length > 0}
           onReset={() => setSearch("")}
         />
 
-        <HubListPage.Count isLoading={loading} isError={bomsError} isFetching={bomsFetching}>
-          <span className="inline-flex flex-wrap items-center gap-2">
-            <span className={typeUiLabelClassName(cn("tabular-nums", text.primary))}>
-              {summary.targets} BOM target{summary.targets === 1 ? "" : "s"}
-            </span>
-            {summary.rawLines > 0 && (
-              <span className={summaryChipClassName("kitchen", false, text.secondary)}>
-                {summary.rawLines} raw line{summary.rawLines === 1 ? "" : "s"}
-              </span>
-            )}
-            {summary.missingCostLines > 0 && (
+        {summary.missingCostLines > 0 && (
+          <HubListPage.Banner>
+            <p className={cn("text-sm", text.muted)}>
               <Link
                 href={buildProductsIngredientsUrl({ cost: "missing-cost" })}
-                className={summaryChipClassName("kitchen", false, metricValueClassName("amber"))}
+                className={inlineLinkClassName()}
               >
-                {summary.missingCostLines} missing cost
+                {summary.missingCostLines} ingredient{summary.missingCostLines === 1 ? "" : "s"}{" "}
+                missing cost
               </Link>
-            )}
-            {summary.targets === 0 && (
-              <span className={text.muted}>
-                No BOMs yet —{" "}
-                <Link href="/products/ingredients" className={inlineLinkClassName()}>
-                  add ingredients
-                </Link>{" "}
-                then define a BOM
-              </span>
-            )}
-            {bomsFetching && !loading && (
-              <span className={cn("inline-flex items-center gap-1.5", text.muted)}>
-                <Loader2
-                  className="w-3.5 h-3.5 animate-spin motion-reduce:animate-none"
-                  aria-hidden
-                />
-                Updating…
-              </span>
-            )}
-          </span>
-        </HubListPage.Count>
+            </p>
+          </HubListPage.Banner>
+        )}
+
+        <HubListPage.Count
+          isLoading={loading}
+          isError={bomsError}
+          isFetching={bomsFetching}
+          hasActiveFilters={search.trim().length > 0}
+          filteredCount={filteredGroups.length}
+          totalCount={summary.targets}
+          itemLabel="BOM"
+        />
 
         {!loading && !bomsError && filteredGroups.length === 0 ? (
           <BomListEmptyState

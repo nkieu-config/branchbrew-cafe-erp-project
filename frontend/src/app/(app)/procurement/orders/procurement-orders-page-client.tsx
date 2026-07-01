@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useDeferredValue } from "react";
 import type { ColumnsType } from "antd/es/table";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -24,15 +24,17 @@ import {
   CheckCircle2,
   XCircle,
   CheckSquare,
-  Truck,
   Send,
-  AlertTriangle,
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { DataTable } from "@/components/shared/data-table";
+import {
+  ListMobileCard,
+  PaginatedMobileList,
+  ResponsiveDataTableLayout,
+} from "@/components/shared/responsive-data-table";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { CreatePOModal } from "@/components/procurement/CreatePOModal";
@@ -40,9 +42,6 @@ import {
   PurchaseOrderExpandedPanel,
   ReceivePurchaseOrderDialog,
 } from "@/components/procurement/ReceivePurchaseOrderDialog";
-import { formatDateTime } from "@/lib/intl-date";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { getErrorMessage } from "@/lib/errors";
 import { formatCurrency } from "@/lib/money";
 import {
@@ -58,23 +57,21 @@ import {
   type POHighlightFilter,
   type POStatusFilter,
 } from "@/lib/purchase-order-filters";
-import type { Branch, PurchaseOrder, Supplier } from "@/types/api";
-import { hubListDataTableProps } from "@/lib/theme/data-table";
-import { tableCellMutedClassName } from "@/lib/theme/feedback";
-import { infoBannerClassName, infoBannerIconClassName, infoBannerTextClassName, infoBannerTitleClassName } from "@/lib/theme/hub-banners";
+import type { PurchaseOrder, Supplier } from "@/types/api";
+import { useHubListPagination } from "@/hooks/useHubListPagination";
+import { infoBannerClassName, infoBannerTextClassName } from "@/lib/theme/hub-banners";
 import { hubCtaClassName, inlineLinkClassName, tableActionAccentClassName } from "@/lib/theme/hub-primitives";
-import { procurementMetaBadgeClassName, procurementSectionPanelClassName } from "@/lib/theme/hub-procurement";
-import { metricValueClassName } from "@/lib/theme/metric";
+import {
+  procurementMutedMetaClassName,
+  procurementSectionPanelClassName,
+} from "@/lib/theme/hub-procurement";
 import { text } from "@/lib/theme/surface";
-import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 export default function ProcurementOrdersPageClient() {
   const { user, activeBranchId } = useAuth();
   const searchParams = useSearchParams();
-  const { data: branches = [] } = useBranches();
-  const branchId = activeBranchId ? Number(activeBranchId) : undefined;
-  const branchName = (branches as Branch[]).find((b) => b.id === branchId)?.name;
+  const procurementUrlKey = searchParams.toString();
 
   const {
     data: posData = [],
@@ -110,18 +107,20 @@ export default function ProcurementOrdersPageClient() {
     { type: "approve" | "reject"; po: PurchaseOrder } | null
   >(null);
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [statusFilter, setStatusFilter] = useState<POStatusFilter>("ALL");
   const [highlightFilter, setHighlightFilter] = useState<POHighlightFilter>("ALL");
   const [supplierFilter, setSupplierFilter] = useState<number | null>(null);
   const [submittingPoId, setSubmittingPoId] = useState<number | null>(null);
 
   useEffect(() => {
-    const parsed = parseProcurementOrdersSearchParams(searchParams);
+    const parsed = parseProcurementOrdersSearchParams(
+      new URLSearchParams(procurementUrlKey),
+    );
     if (parsed.status !== "ALL") setStatusFilter(parsed.status);
     if (parsed.highlightFilter !== "ALL") setHighlightFilter(parsed.highlightFilter);
     if (parsed.supplierId != null) setSupplierFilter(parsed.supplierId);
-  }, [searchParams]);
+  }, [procurementUrlKey]);
 
   const sortedPos = useMemo(() => {
     return [...branchOrders].sort((a, b) => {
@@ -139,7 +138,7 @@ export default function ProcurementOrdersPageClient() {
       const matchesStatus = matchesPOStatusFilter(po, statusFilter);
       const matchesHighlight = matchesPOHighlightFilter(po, highlightFilter);
       const matchesSupplier = matchesPOSupplierFilter(po, supplierFilter);
-      if (!debouncedSearch) {
+      if (!deferredSearch) {
         return matchesStatus && matchesHighlight && matchesSupplier;
       }
       const haystack = [String(po.id), po.poNumber, po.status, po.supplier?.name ?? ""]
@@ -149,10 +148,10 @@ export default function ProcurementOrdersPageClient() {
         matchesStatus &&
         matchesHighlight &&
         matchesSupplier &&
-        haystack.includes(debouncedSearch)
+        haystack.includes(deferredSearch)
       );
     });
-  }, [sortedPos, debouncedSearch, statusFilter, highlightFilter, supplierFilter]);
+  }, [sortedPos, deferredSearch, statusFilter, highlightFilter, supplierFilter]);
 
   const hasActiveFilters =
     search.trim().length > 0 ||
@@ -242,20 +241,68 @@ export default function ProcurementOrdersPageClient() {
     }
   };
 
+  const renderPoActions = useCallback(
+    (po: PurchaseOrder) => (
+      <div className="flex flex-wrap justify-end gap-1">
+        {po.status === "DRAFT" && (po.items?.length ?? 0) > 0 && (
+          <TableActionButton
+            icon={submittingPoId === po.id ? Loader2 : Send}
+            label={`Submit ${po.poNumber}`}
+            iconOnly
+            onClick={() => {
+              if (submittingPoId === po.id) return;
+              void handleSubmit(po.id);
+            }}
+            className={cn(
+              tableActionAccentClassName("indigo"),
+              submittingPoId === po.id && "[&_svg]:animate-spin",
+            )}
+          />
+        )}
+        {po.status === "PENDING" && canApprove && (
+          <>
+            <TableActionButton
+              icon={CheckSquare}
+              label={`Approve ${po.poNumber}`}
+              iconOnly
+              onClick={() => setConfirmAction({ type: "approve", po })}
+              className={tableActionAccentClassName("blue")}
+            />
+            <TableActionButton
+              icon={XCircle}
+              label={`Reject ${po.poNumber}`}
+              iconOnly
+              destructive
+              onClick={() => setConfirmAction({ type: "reject", po })}
+            />
+          </>
+        )}
+        {po.status === "APPROVED" && (
+          <TableActionButton
+            icon={CheckCircle2}
+            label={`Receive ${po.poNumber}`}
+            iconOnly
+            onClick={() => openReceive(po)}
+            className={tableActionAccentClassName("emerald")}
+          />
+        )}
+      </div>
+    ),
+    [canApprove, handleSubmit, openReceive, submittingPoId],
+  );
+
   const columns = useMemo(
     () =>
       [
         {
-          title: "PO Number",
+          title: "PO #",
           key: "poNumber",
           render: (_: unknown, record: PurchaseOrder) => (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={typeUiLabelClassName(text.primary)}>{record.poNumber}</span>
-              {record.isAutoGenerated && (
-                <StatusBadge tone="info" className={procurementMetaBadgeClassName()}>
-                  AUTO
-                </StatusBadge>
-              )}
+            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+              <span className={cn("font-medium", text.primary)}>{record.poNumber}</span>
+              {record.isAutoGenerated ? (
+                <span className={procurementMutedMetaClassName()}>auto</span>
+              ) : null}
             </div>
           ),
         },
@@ -280,81 +327,38 @@ export default function ProcurementOrdersPageClient() {
           align: "right" as const,
           responsive: ["md"],
           render: (_: unknown, record: PurchaseOrder) => (
-            <span className={typeUiLabelClassName(cn("tabular-nums", metricValueClassName("emerald")))}>
+            <span className={cn("tabular-nums", text.primary)}>
               {formatCurrency(computePurchaseOrderTotal(record))}
             </span>
-          ),
-        },
-        {
-          title: "Created",
-          dataIndex: "createdAt",
-          key: "createdAt",
-          responsive: ["lg"],
-          render: (date: string) => (
-            <span className={cn("text-sm", text.muted)}>{formatDateTime(date)}</span>
           ),
         },
         {
           title: "Status",
           key: "status",
           render: (_: unknown, record: PurchaseOrder) => (
-            <StatusBadge tone={poStatusTone(record.status)} className="tracking-wide">
-              {record.status}
-            </StatusBadge>
+            <StatusBadge tone={poStatusTone(record.status)}>{record.status}</StatusBadge>
           ),
         },
         {
           title: "",
           key: "action",
           align: "right" as const,
-          width: 160,
-          render: (_: unknown, po: PurchaseOrder) => (
-            <div className="flex justify-end gap-1">
-              {po.status === "DRAFT" && (po.items?.length ?? 0) > 0 && (
-                <TableActionButton
-                  icon={submittingPoId === po.id ? Loader2 : Send}
-                  label={`Submit ${po.poNumber}`}
-                  onClick={() => {
-                    if (submittingPoId === po.id) return;
-                    void handleSubmit(po.id);
-                  }}
-                  className={cn(
-                    tableActionAccentClassName("indigo"),
-                    submittingPoId === po.id && "[&_svg]:animate-spin",
-                  )}
-                />
-              )}
-              {po.status === "PENDING" && canApprove && (
-                <>
-                  <TableActionButton
-                    icon={CheckSquare}
-                    label={`Approve ${po.poNumber}`}
-                    iconOnly
-                    onClick={() => setConfirmAction({ type: "approve", po })}
-                    className={tableActionAccentClassName("blue")}
-                  />
-                  <TableActionButton
-                    icon={XCircle}
-                    label={`Reject ${po.poNumber}`}
-                    iconOnly
-                    destructive
-                    onClick={() => setConfirmAction({ type: "reject", po })}
-                  />
-                </>
-              )}
-              {po.status === "APPROVED" && (
-                <TableActionButton
-                  icon={CheckCircle2}
-                  label={`Receive ${po.poNumber}`}
-                  onClick={() => openReceive(po)}
-                  className={tableActionAccentClassName("emerald")}
-                />
-              )}
-            </div>
-          ),
+          width: 140,
+          render: (_: unknown, po: PurchaseOrder) => renderPoActions(po),
         },
       ] as ColumnsType<PurchaseOrder>,
-    [canApprove, openReceive, submittingPoId],
+    [renderPoActions],
+  );
+
+  const poEmptyDescription = hasActiveFilters
+    ? "No purchase orders match your filters."
+    : suppliers.length === 0
+      ? "No suppliers yet — add vendors before creating purchase orders."
+      : "No purchase orders yet.";
+
+  const listPagination = useHubListPagination(
+    { pageSize: 15 },
+    `${filteredPos.length}-${hasActiveFilters}`,
   );
 
   const expandedRowRender = (record: PurchaseOrder) => (
@@ -369,37 +373,21 @@ export default function ProcurementOrdersPageClient() {
 
   return (
     <>
-      <HubPageHeader
-        hideTitle
-        icon={Truck}
-        accentHub="procurement"
-        branchScope={{ branchName }}
-        actions={
-          <Button
-            className={hubCtaClassName("procurement")}
-            onClick={() => setIsModalOpen(true)}
-          >
-            <Plus className="w-4 h-4 mr-2" aria-hidden />
-            Create PO
-          </Button>
-        }
-      />
+      <div className="mb-4 flex justify-end">
+        <Button className={hubCtaClassName("procurement")} onClick={() => setIsModalOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" aria-hidden />
+          Create PO
+        </Button>
+      </div>
 
       <HubListPage className={procurementSectionPanelClassName()}>
         {summary.autoDraft > 0 && (
           <HubListPage.Banner>
-            <div className={infoBannerClassName()}>
-              <div className="flex items-start gap-3">
-                <AlertTriangle className={infoBannerIconClassName()} aria-hidden />
-                <div>
-                  <p className={infoBannerTitleClassName()}>
-                    {summary.autoDraft} auto-reorder draft{summary.autoDraft > 1 ? "s" : ""} ready
-                  </p>
-                  <p className={infoBannerTextClassName()}>
-                    Created when stock fell below minimum. Review and submit for manager approval.
-                  </p>
-                </div>
-              </div>
+            <div className={infoBannerClassName("py-3")}>
+              <p className={infoBannerTextClassName()}>
+                {summary.autoDraft} auto-reorder draft{summary.autoDraft > 1 ? "s" : ""} — review
+                and submit for approval.
+              </p>
             </div>
           </HubListPage.Banner>
         )}
@@ -413,7 +401,7 @@ export default function ProcurementOrdersPageClient() {
         <HubListPage.Toolbar
           search={search}
           onSearchChange={setSearch}
-          searchPlaceholder="Search PO #, supplier, status…"
+          searchPlaceholder="Search PO #, supplier…"
           showReset={hasActiveFilters}
           onReset={() => {
             setSearch("");
@@ -443,7 +431,7 @@ export default function ProcurementOrdersPageClient() {
                 widthClassName="w-full sm:w-[180px]"
                 options={[
                   { value: "ALL", label: "All types" },
-                  { value: "auto-draft", label: "Auto-reorder drafts" },
+                  { value: "auto-draft", label: "Auto drafts" },
                 ]}
               />
               {suppliers.length > 0 && (
@@ -477,20 +465,61 @@ export default function ProcurementOrdersPageClient() {
           itemLabel="purchase order"
         />
 
-        <DataTable
-          {...hubListDataTableProps()}
-          columns={columns}
-          dataSource={filteredPos}
-          rowKey="id"
-          loading={loading}
-          emptyDescription={
-            hasActiveFilters
-              ? "No purchase orders match your filters."
-              : suppliers.length === 0
-                ? "No suppliers yet — add vendors before creating purchase orders."
-                : "No purchase orders yet."
+        <ResponsiveDataTableLayout
+          mobile={
+            loading ? (
+              <ResponsiveDataTableLayout.Skeleton />
+            ) : filteredPos.length === 0 ? (
+              <ResponsiveDataTableLayout.Empty message={poEmptyDescription} />
+            ) : (
+              <PaginatedMobileList
+                items={filteredPos}
+                pageSize={listPagination.pageSize}
+                page={listPagination.currentPage}
+                onPageChange={listPagination.setCurrentPage}
+              >
+                {(po) => (
+                  <ListMobileCard>
+                    <div className="mb-2 flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                          <p className={cn("font-medium", text.primary)}>{po.poNumber}</p>
+                          {po.isAutoGenerated ? (
+                            <span className={procurementMutedMetaClassName()}>auto</span>
+                          ) : null}
+                        </div>
+                        <p className={cn("text-sm", text.secondary)}>
+                          {po.supplier?.name ?? "—"}
+                        </p>
+                      </div>
+                      <StatusBadge tone={poStatusTone(po.status)}>{po.status}</StatusBadge>
+                    </div>
+                    <p className={cn("mb-2 tabular-nums text-sm font-medium", text.primary)}>
+                      {formatCurrency(computePurchaseOrderTotal(po))}
+                    </p>
+                    {(po.items?.length ?? 0) > 0 ? (
+                      <p className={cn("mb-2 text-xs", text.muted)}>
+                        {po.items!.length} line item{po.items!.length === 1 ? "" : "s"}
+                      </p>
+                    ) : null}
+                    {renderPoActions(po)}
+                  </ListMobileCard>
+                )}
+              </PaginatedMobileList>
+            )
           }
-          expandable={{ expandedRowRender }}
+          desktop={
+            <DataTable
+              hideBorders
+              pagination={listPagination.tablePagination}
+              columns={columns}
+              dataSource={filteredPos}
+              rowKey="id"
+              loading={loading}
+              emptyDescription={poEmptyDescription}
+              expandable={{ expandedRowRender }}
+            />
+          }
         />
       </HubListPage>
 
@@ -517,11 +546,11 @@ export default function ProcurementOrdersPageClient() {
       <ConfirmDialog
         open={confirmAction !== null}
         onOpenChange={(open) => !open && setConfirmAction(null)}
-        title={confirmAction?.type === "approve" ? "Approve this PO?" : "Reject this PO?"}
+        title={confirmAction?.type === "approve" ? "Approve PO?" : "Reject PO?"}
         description={
           confirmAction?.type === "reject"
-            ? "The purchase order will return to draft so it can be edited and resubmitted."
-            : "This will allow the branch to receive the order into inventory."
+            ? "Returns to draft for editing."
+            : "Allows receiving into inventory."
         }
         confirmLabel={confirmAction?.type === "approve" ? "Approve" : "Reject"}
         destructive={confirmAction?.type === "reject"}

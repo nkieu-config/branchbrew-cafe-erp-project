@@ -7,14 +7,23 @@ import { Clock, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/lib/errors";
 import { surfaceInsetSkeletonClassName } from "@/lib/theme/color-helpers";
-import { topbarActionButtonClassName, topbarClockWidgetClassName, topbarPrimaryActionClassName } from "@/lib/theme/shell";
-import { typeUiLabelClassName } from "@/lib/theme/typography";
+import {
+  topbarActionButtonClassName,
+  topbarClockActiveClassName,
+  topbarClockSlotClassName,
+  topbarClockWidgetClassName,
+  topbarPrimaryActionClassName,
+} from "@/lib/theme/shell";
 import { cn } from "@/lib/utils";
 
 type ClockInOutWidgetProps = {
   /** `toolbar` — standalone control in topbar; `standalone` — bordered pill. */
   variant?: "toolbar" | "standalone";
 };
+
+function formatCompactElapsed(elapsed: string) {
+  return elapsed.startsWith("00:") ? elapsed.slice(3) : elapsed;
+}
 
 export function ClockInOutWidget({ variant = "toolbar" }: ClockInOutWidgetProps) {
   const { user, activeBranchId } = useAuth();
@@ -39,8 +48,8 @@ export function ClockInOutWidget({ variant = "toolbar" }: ClockInOutWidgetProps)
 
     const start = new Date(activeRecord.clockIn).getTime();
 
-    const interval = setInterval(() => {
-      const now = new Date().getTime();
+    const updateElapsed = () => {
+      const now = Date.now();
       const diff = now - start;
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -48,13 +57,19 @@ export function ClockInOutWidget({ variant = "toolbar" }: ClockInOutWidgetProps)
       setElapsed(
         `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`,
       );
-    }, 1000);
+    };
 
+    updateElapsed();
+    const interval = setInterval(updateElapsed, 1000);
     return () => clearInterval(interval);
   }, [activeRecord]);
 
-  const wrap = (node: ReactNode) =>
-    isToolbar ? node : <div className={topbarClockWidgetClassName()}>{node}</div>;
+  const wrap = (node: ReactNode, slotClassName?: string) => {
+    if (!isToolbar) {
+      return <div className={topbarClockWidgetClassName()}>{node}</div>;
+    }
+    return <div className={topbarClockSlotClassName(slotClassName)}>{node}</div>;
+  };
 
   const handleClockIn = async () => {
     if (!activeBranchId) {
@@ -83,9 +98,13 @@ export function ClockInOutWidget({ variant = "toolbar" }: ClockInOutWidgetProps)
   if (isLoading) {
     return wrap(
       <div
-        className={cn(topbarActionButtonClassName(), surfaceInsetSkeletonClassName("w-[4.5rem]"))}
+        className={cn(
+          topbarActionButtonClassName(),
+          surfaceInsetSkeletonClassName("w-10 lg:w-9"),
+        )}
         aria-hidden
       />,
+      "w-10 lg:w-9",
     );
   }
 
@@ -99,30 +118,27 @@ export function ClockInOutWidget({ variant = "toolbar" }: ClockInOutWidgetProps)
       >
         <RefreshCw className="w-4 h-4" aria-hidden />
       </button>,
+      "w-10 lg:w-9",
     );
   }
 
   const needsBranch = user.role === "SUPER_ADMIN" && !activeBranchId;
 
   if (activeRecord) {
+    const compactElapsed = formatCompactElapsed(elapsed);
     return wrap(
       <button
         type="button"
-        className={cn(
-          topbarActionButtonClassName({ active: true }),
-          "gap-1.5 px-2.5 w-auto min-w-[4.5rem] font-mono text-xs tabular-nums",
-          typeUiLabelClassName(),
-        )}
+        className={topbarClockActiveClassName()}
         onClick={() => void handleClockOut()}
         disabled={clockOutMutation.isPending}
         aria-label={elapsed ? `Clock out — active shift ${elapsed}` : "Clock out"}
         title="Tap to clock out"
       >
-        <Clock className="w-4 h-4 shrink-0" aria-hidden />
-        <span className="hidden sm:inline" aria-hidden>
-          {elapsed}
-        </span>
+        <span className="sm:hidden">{compactElapsed || "00:00"}</span>
+        <span className="hidden sm:inline">{elapsed || "00:00:00"}</span>
       </button>,
+      "min-w-[5rem] sm:min-w-[5.75rem]",
     );
   }
 
@@ -137,6 +153,7 @@ export function ClockInOutWidget({ variant = "toolbar" }: ClockInOutWidgetProps)
       >
         <Clock className="w-4 h-4" aria-hidden />
       </button>,
+      "w-10 lg:w-9",
     );
   }
 
@@ -149,7 +166,8 @@ export function ClockInOutWidget({ variant = "toolbar" }: ClockInOutWidgetProps)
       aria-label="Clock in"
     >
       <Clock className="w-4 h-4 shrink-0" aria-hidden />
-      <span className="hidden sm:inline">Clock In</span>
+      <span className="hidden sm:inline">Clock in</span>
     </button>,
+    "w-auto",
   );
 }

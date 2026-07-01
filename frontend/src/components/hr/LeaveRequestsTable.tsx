@@ -1,9 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import type { ColumnsType } from "antd/es/table";
 import { CheckCircle, XCircle } from "lucide-react";
 import { DataTable } from "@/components/shared/data-table";
+import {
+  ListMobileCard,
+  PaginatedMobileList,
+  ResponsiveDataTableLayout,
+} from "@/components/shared/responsive-data-table";
 import { StatusBadge, leaveStatusTone } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import {
@@ -11,13 +16,12 @@ import {
   leaveStatusLabel,
   leaveTypeLabel,
 } from "@/lib/leave-filters";
-import { formatDate, formatDateRange } from "@/lib/intl-date";
-import { hubListDataTableProps } from "@/lib/theme/data-table";
+import { formatDateRange } from "@/lib/intl-date";
+import { useHubListPagination } from "@/hooks/useHubListPagination";
 import { tableCellMutedClassName } from "@/lib/theme/feedback";
-import { expandedRowPanelClassName, tableActionAccentClassName } from "@/lib/theme/hub-primitives";
-import { hrMetaBadgeClassName } from "@/lib/theme/hub-hr";
+import { tableActionAccentClassName } from "@/lib/theme/hub-primitives";
+import { hrMutedMetaClassName } from "@/lib/theme/hub-hr";
 import { text } from "@/lib/theme/surface";
-import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { LeaveRequest, LeaveType } from "@/types/api";
 
@@ -43,6 +47,57 @@ export function LeaveRequestsTable({
   hasActiveFilters,
   onConfirmAction,
 }: LeaveRequestsTableProps) {
+  const emptyDescription = hasActiveFilters
+    ? "No leave requests match the current filters."
+    : isManagerOrAdmin
+      ? "No leave requests for this branch yet."
+      : "Submit a leave request to get started.";
+
+  const listPagination = useHubListPagination(
+    { pageSize: 10 },
+    `${leaveRequests.length}-${hasActiveFilters}`,
+  );
+
+  const renderLeaveActions = useCallback(
+    (req: LeaveRequest) => {
+      if (!isManagerOrAdmin || req.status !== "PENDING") return null;
+
+      return (
+        <div className="flex justify-end gap-1">
+          <TableActionButton
+            icon={CheckCircle}
+            label={`Approve leave for ${req.user?.name ?? "employee"}`}
+            iconOnly
+            onClick={() =>
+              onConfirmAction({
+                id: req.id,
+                type: "approve",
+                staffName: req.user?.name ?? "Employee",
+                dateRange: formatDateRange(req.startDate, req.endDate),
+              })
+            }
+            className={tableActionAccentClassName("emerald")}
+          />
+          <TableActionButton
+            icon={XCircle}
+            label={`Reject leave for ${req.user?.name ?? "employee"}`}
+            iconOnly
+            onClick={() =>
+              onConfirmAction({
+                id: req.id,
+                type: "reject",
+                staffName: req.user?.name ?? "Employee",
+                dateRange: formatDateRange(req.startDate, req.endDate),
+              })
+            }
+            destructive
+          />
+        </div>
+      );
+    },
+    [isManagerOrAdmin, onConfirmAction],
+  );
+
   const columns = useMemo(
     () =>
       [
@@ -53,7 +108,7 @@ export function LeaveRequestsTable({
                 key: "staff",
                 render: (_: unknown, req: LeaveRequest) => (
                   <div className="min-w-0">
-                    <div className={typeUiLabelClassName(cn("truncate", text.primary))}>
+                    <div className={cn("truncate font-medium", text.primary)}>
                       {req.user?.name ?? `Employee #${req.userId}`}
                     </div>
                     {req.user?.email && (
@@ -71,7 +126,7 @@ export function LeaveRequestsTable({
           dataIndex: "type",
           key: "type",
           render: (type: LeaveType) => (
-            <span className={hrMetaBadgeClassName()}>{leaveTypeLabel(type)}</span>
+            <span className={hrMutedMetaClassName()}>{leaveTypeLabel(type)}</span>
           ),
         },
         {
@@ -98,7 +153,7 @@ export function LeaveRequestsTable({
           responsive: ["lg"],
           render: (reason: string | null | undefined) =>
             reason?.trim() ? (
-              <span className={cn("line-clamp-2 text-sm", text.subtle)}>{reason}</span>
+              <span className={cn("line-clamp-2 text-sm", text.secondary)}>{reason}</span>
             ) : (
               <span className={text.muted}>—</span>
             ),
@@ -111,103 +166,91 @@ export function LeaveRequestsTable({
             <StatusBadge tone={leaveStatusTone(status)}>{leaveStatusLabel(status)}</StatusBadge>
           ),
         },
-        {
-          title: "Submitted",
-          dataIndex: "createdAt",
-          key: "submitted",
-          responsive: ["md"],
-          render: (createdAt: string | undefined) =>
-            createdAt ? (
-              <span className={cn("text-sm", text.muted)}>{formatDate(createdAt)}</span>
-            ) : (
-              <span className={text.muted}>—</span>
-            ),
-        },
         ...(isManagerOrAdmin
           ? [
               {
-                title: "Actions",
+                title: "",
                 key: "actions",
                 align: "right" as const,
-                width: 96,
-                render: (_: unknown, req: LeaveRequest) =>
-                  req.status === "PENDING" ? (
-                    <div className="flex justify-end gap-1">
-                      <TableActionButton
-                        icon={CheckCircle}
-                        label={`Approve leave for ${req.user?.name ?? "employee"}`}
-                        iconOnly
-                        onClick={() =>
-                          onConfirmAction({
-                            id: req.id,
-                            type: "approve",
-                            staffName: req.user?.name ?? "Employee",
-                            dateRange: formatDateRange(req.startDate, req.endDate),
-                          })
-                        }
-                        className={tableActionAccentClassName("emerald")}
-                      />
-                      <TableActionButton
-                        icon={XCircle}
-                        label={`Reject leave for ${req.user?.name ?? "employee"}`}
-                        iconOnly
-                        onClick={() =>
-                          onConfirmAction({
-                            id: req.id,
-                            type: "reject",
-                            staffName: req.user?.name ?? "Employee",
-                            dateRange: formatDateRange(req.startDate, req.endDate),
-                          })
-                        }
-                        destructive
-                      />
-                    </div>
-                  ) : null,
+                width: 80,
+                render: (_: unknown, req: LeaveRequest) => renderLeaveActions(req),
               },
             ]
           : []),
       ] as ColumnsType<LeaveRequest>,
-    [isManagerOrAdmin, onConfirmAction],
-  );
-
-  const expandedRowRender = (record: LeaveRequest) => (
-    <div className={expandedRowPanelClassName()}>
-      <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-        <div>
-          <dt className={cn("text-xs font-medium uppercase tracking-wide", text.muted)}>Reason</dt>
-          <dd className={cn("mt-1", text.primary)}>{record.reason?.trim() || "—"}</dd>
-        </div>
-        <div>
-          <dt className={cn("text-xs font-medium uppercase tracking-wide", text.muted)}>
-            Duration
-          </dt>
-          <dd className={cn("mt-1 tabular-nums font-medium", text.primary)}>
-            {leaveDurationDays(record.startDate, record.endDate)} day
-            {leaveDurationDays(record.startDate, record.endDate) === 1 ? "" : "s"}
-          </dd>
-        </div>
-      </dl>
-    </div>
+    [isManagerOrAdmin, renderLeaveActions],
   );
 
   return (
-    <DataTable
-      {...hubListDataTableProps({ pageSize: 10 })}
-      columns={columns}
-      dataSource={leaveRequests}
-      rowKey="id"
-      loading={isLoading}
-      emptyDescription={
-        hasActiveFilters
-          ? "No leave requests match the current filters."
-          : isManagerOrAdmin
-            ? "No leave requests for this branch yet."
-            : "Submit a leave request to get started."
+    <ResponsiveDataTableLayout
+      mobile={
+        isLoading ? (
+          <ResponsiveDataTableLayout.Skeleton />
+        ) : leaveRequests.length === 0 ? (
+          <ResponsiveDataTableLayout.Empty message={emptyDescription} />
+        ) : (
+          <PaginatedMobileList
+            items={leaveRequests}
+            pageSize={listPagination.pageSize}
+            page={listPagination.currentPage}
+            onPageChange={listPagination.setCurrentPage}
+          >
+            {(req) => {
+              const days = leaveDurationDays(req.startDate, req.endDate);
+
+              return (
+                <ListMobileCard>
+                  <div className="mb-2 flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      {isManagerOrAdmin ? (
+                        <>
+                          <p className={cn("truncate font-medium", text.primary)}>
+                            {req.user?.name ?? `Employee #${req.userId}`}
+                          </p>
+                          {req.user?.email ? (
+                            <p className={cn("truncate text-xs", tableCellMutedClassName())}>
+                              {req.user.email}
+                            </p>
+                          ) : null}
+                          <p className={cn("mt-1 text-sm", hrMutedMetaClassName())}>
+                            {leaveTypeLabel(req.type)}
+                          </p>
+                        </>
+                      ) : (
+                        <p className={cn("font-medium", text.primary)}>{leaveTypeLabel(req.type)}</p>
+                      )}
+                    </div>
+                    <StatusBadge tone={leaveStatusTone(req.status)} className="shrink-0">
+                      {leaveStatusLabel(req.status)}
+                    </StatusBadge>
+                  </div>
+                  <p className={cn("font-medium", text.primary)}>
+                    {formatDateRange(req.startDate, req.endDate)}
+                  </p>
+                  <p className={cn("mb-2 text-xs tabular-nums", text.muted)}>
+                    {days} day{days === 1 ? "" : "s"}
+                  </p>
+                  {req.reason?.trim() ? (
+                    <p className={cn("mb-2 line-clamp-2 text-sm", text.secondary)}>{req.reason}</p>
+                  ) : null}
+                  {renderLeaveActions(req)}
+                </ListMobileCard>
+              );
+            }}
+          </PaginatedMobileList>
+        )
       }
-      expandable={{
-        expandedRowRender,
-        rowExpandable: (record) => Boolean(record.reason?.trim()),
-      }}
+      desktop={
+        <DataTable
+          hideBorders
+          pagination={listPagination.tablePagination}
+          columns={columns}
+          dataSource={leaveRequests}
+          rowKey="id"
+          loading={isLoading}
+          emptyDescription={emptyDescription}
+        />
+      }
     />
   );
 }

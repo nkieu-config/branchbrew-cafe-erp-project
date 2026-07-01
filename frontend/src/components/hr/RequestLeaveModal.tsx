@@ -1,15 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Briefcase, Loader2 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Loader2 } from "lucide-react";
+import { FormDialog } from "@/components/shared/form-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,12 +13,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { hubModalIconClassName } from "@/lib/theme/color-helpers";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { hrDialogContentClassName } from "@/lib/theme/hub-hr";
 import { formFieldInsetClassName, formLineDateFieldClassName, formSelectContentClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 const LEAVE_TYPES = [
@@ -85,27 +76,21 @@ export function RequestLeaveModal({
     startDate <= endDate;
 
   return (
-    <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
-      <DialogContent className={hrDialogContentClassName()}>
-        <DialogHeader>
-          <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <Briefcase className={hubModalIconClassName("hr")} aria-hidden />
-            Request leave
-          </DialogTitle>
-          <DialogDescription>
-            Submit a leave request for manager approval. Approved leave is reflected in scheduling
-            and payroll.
-          </DialogDescription>
-        </DialogHeader>
+    <FormDialog
+      open={open}
+      onOpenChange={(next) => !next && onClose()}
+      className={hrDialogContentClassName()}
+    >
+        <FormDialog.Title>Request leave</FormDialog.Title>
 
-        <div className="space-y-4 pt-2">
+        <FormDialog.Body className="space-y-4 pt-1">
           <div className="space-y-2">
             <Label htmlFor="leave-type" className={text.secondary}>
-              Leave type
+              Type
             </Label>
             <Select value={leaveType} onValueChange={(value) => value && setLeaveType(value)}>
               <SelectTrigger id="leave-type" className={formFieldInsetClassName("w-full")}>
-                <SelectValue placeholder="Select leave type" />
+                <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent className={formSelectContentClassName()}>
                 {LEAVE_TYPES.map((option) => (
@@ -120,7 +105,7 @@ export function RequestLeaveModal({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="leave-start" className={text.secondary}>
-                Start date
+                Start
               </Label>
               <Input
                 id="leave-start"
@@ -132,7 +117,7 @@ export function RequestLeaveModal({
             </div>
             <div className="space-y-2">
               <Label htmlFor="leave-end" className={text.secondary}>
-                End date
+                End
               </Label>
               <Input
                 id="leave-end"
@@ -151,19 +136,19 @@ export function RequestLeaveModal({
             </Label>
             <textarea
               id="leave-reason"
-              rows={4}
+              rows={3}
               value={reason}
               onChange={(event) => setReason(event.target.value)}
-              placeholder="Briefly explain your reason…"
+              placeholder="Brief reason…"
               className={cn(
-                formFieldInsetClassName("min-h-[96px] resize-y py-2"),
+                formFieldInsetClassName("min-h-[80px] resize-y py-2"),
                 "placeholder:text-muted-foreground",
               )}
             />
           </div>
-        </div>
+        </FormDialog.Body>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <FormDialog.Footer className="gap-2 sm:gap-0">
           <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancel
           </Button>
@@ -173,17 +158,10 @@ export function RequestLeaveModal({
             disabled={!canSubmit || isSubmitting}
             onClick={() => void handleSubmit()}
           >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin motion-reduce:animate-none" aria-hidden />
-                Submitting…
-              </>
-            ) : (
-              "Submit request"
-            )}
+            {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin motion-reduce:animate-none" aria-hidden />}
+            Submit
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialog.Footer>
+    </FormDialog>
   );
 }

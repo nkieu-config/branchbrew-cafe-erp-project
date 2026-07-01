@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { TicketPercent, Plus, Users } from "lucide-react";
+import { Plus } from "lucide-react";
 import { usePromotions } from "@/hooks/domains/useCrmQueries";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { DeletePromotionDialog } from "@/components/crm/DeletePromotionDialog";
@@ -9,7 +9,6 @@ import { PromotionFormDialog } from "@/components/crm/PromotionFormDialog";
 import { PromotionListTable } from "@/components/crm/PromotionListTable";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { getErrorMessage } from "@/lib/errors";
 import {
   getPromoValidity,
@@ -18,7 +17,6 @@ import {
 } from "@/lib/promotion-status";
 import type { Promotion } from "@/types/api";
 import { Button } from "@/components/ui/button";
-import { ButtonLink } from "@/components/ui/button-link";
 import { crmSectionPanelClassName } from "@/lib/theme/hub-crm";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 
@@ -76,23 +74,12 @@ export default function PromotionsPageClient() {
 
   return (
     <>
-      <HubPageHeader
-        hideTitle
-        icon={TicketPercent}
-        accentHub="crm"
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <ButtonLink href="/crm/customers" variant="outline" className="font-medium">
-              <Users className="w-4 h-4 mr-2" aria-hidden />
-              View customers
-            </ButtonLink>
-            <Button className={hubCtaClassName("crm")} onClick={openCreate}>
-              <Plus className="w-4 h-4 mr-2" aria-hidden />
-              New Promo Code
-            </Button>
-          </div>
-        }
-      />
+      <div className="mb-4 flex justify-end">
+        <Button className={hubCtaClassName("crm")} onClick={openCreate}>
+          <Plus className="w-4 h-4 mr-2" aria-hidden />
+          New promo
+        </Button>
+      </div>
 
       <HubListPage className={crmSectionPanelClassName()}>
         <HubListPage.Error
@@ -104,7 +91,7 @@ export default function PromotionsPageClient() {
         <HubListPage.Toolbar
           search={search}
           onSearchChange={setSearch}
-          searchPlaceholder="Search by code or description…"
+          searchPlaceholder="Search code or description…"
           showReset={hasActiveFilters}
           onReset={() => {
             setSearch("");
@@ -130,9 +117,9 @@ export default function PromotionsPageClient() {
                 value={discountFilter}
                 onValueChange={(value) => setDiscountFilter(value as PromoDiscountFilter)}
                 ariaLabel="Filter by discount type"
-                widthClassName="w-full sm:w-[200px]"
+                widthClassName="w-full sm:w-[180px]"
                 options={[
-                  { value: "ALL", label: "All discount types" },
+                  { value: "ALL", label: "All types" },
                   { value: "PERCENTAGE", label: "Percentage" },
                   { value: "FIXED_AMOUNT", label: "Fixed amount" },
                 ]}
@@ -148,9 +135,9 @@ export default function PromotionsPageClient() {
           hasActiveFilters={hasActiveFilters}
           filteredCount={filteredPromotions.length}
           totalCount={summary.total}
-          itemLabel="promo code"
-          itemLabelPlural="promo codes"
-          emptyLabel="No promotion codes yet"
+          itemLabel="promo"
+          itemLabelPlural="promos"
+          emptyLabel="No promos yet"
         />
 
         <PromotionListTable

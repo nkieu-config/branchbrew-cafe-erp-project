@@ -1,16 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { FormDialog } from "@/components/shared/form-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,38 +15,38 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Branch, EmploymentType, Role, User } from "@/types/api";
-import { hubModalIconClassName } from "@/lib/theme/color-helpers";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { organizationDialogWideClassName } from "@/lib/theme/organization";
 import { formFieldInsetClassName, formSelectContentClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
+
+export type UserFormValues = {
+  name: string;
+  email: string;
+  password?: string;
+  role: Role;
+  branchId: number | null;
+  employmentType: EmploymentType;
+  hourlyRate: number;
+  baseSalary: number;
+};
 
 type UserFormModalProps = {
   open: boolean;
-  onClose: () => void;
-  user: User | null;
+  onOpenChange: (open: boolean) => void;
+  initialValues?: User | null;
   branches: Branch[];
-  onSubmit: (payload: {
-    name: string;
-    email: string;
-    password?: string;
-    role: Role;
-    branchId: number | null;
-    employmentType: EmploymentType;
-    hourlyRate: number;
-    baseSalary: number;
-  }) => Promise<void>;
+  onSave: (payload: UserFormValues) => Promise<void>;
   isSubmitting?: boolean;
 };
 
 export function UserFormModal({
   open,
-  onClose,
-  user,
+  onOpenChange,
+  initialValues,
   branches,
-  onSubmit,
+  onSave,
   isSubmitting = false,
 }: UserFormModalProps) {
   const [name, setName] = useState("");
@@ -67,28 +60,28 @@ export function UserFormModal({
 
   useEffect(() => {
     if (!open) return;
-    setName(user?.name ?? "");
-    setEmail(user?.email ?? "");
+    setName(initialValues?.name ?? "");
+    setEmail(initialValues?.email ?? "");
     setPassword("");
-    setRole((user?.role as Role) ?? "STAFF");
-    setBranchId(user?.branchId ? String(user.branchId) : "0");
-    setEmploymentType((user?.employmentType as EmploymentType) ?? "PART_TIME");
+    setRole((initialValues?.role as Role) ?? "STAFF");
+    setBranchId(initialValues?.branchId ? String(initialValues.branchId) : "0");
+    setEmploymentType((initialValues?.employmentType as EmploymentType) ?? "PART_TIME");
     setHourlyRate(
-      user?.hourlyRate != null && user.hourlyRate > 0 ? String(user.hourlyRate) : "50",
+      initialValues?.hourlyRate != null && initialValues.hourlyRate > 0 ? String(initialValues.hourlyRate) : "50",
     );
     setBaseSalary(
-      user?.baseSalary != null && user.baseSalary > 0 ? String(user.baseSalary) : "0",
+      initialValues?.baseSalary != null && initialValues.baseSalary > 0 ? String(initialValues.baseSalary) : "0",
     );
-  }, [open, user]);
+  }, [open, initialValues]);
 
   const handleSubmit = async () => {
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
-    if (!trimmedName || !trimmedEmail || (!user && !password.trim())) {
+    if (!trimmedName || !trimmedEmail || (!initialValues && !password.trim())) {
       toast.error("Name, email, and password are required for new users");
       return;
     }
-    if (!user && password.trim().length < 6) {
+    if (!initialValues && password.trim().length < 6) {
       toast.error("Password must be at least 6 characters");
       return;
     }
@@ -105,7 +98,7 @@ export function UserFormModal({
       return;
     }
 
-    await onSubmit({
+    await onSave({
       name: trimmedName,
       email: trimmedEmail,
       password: password.trim() || undefined,
@@ -118,30 +111,13 @@ export function UserFormModal({
   };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(next) => {
-        if (!next) onClose();
-      }}
-    >
-      <DialogContent className={organizationDialogWideClassName()}>
-        <DialogHeader>
-          <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <ShieldCheck className={hubModalIconClassName("organization")} aria-hidden />
-            {user ? "Edit user account" : "Create user account"}
-          </DialogTitle>
-          <DialogDescription>
-            {user
-              ? "Update access role, branch assignment, or reset the password. Leave password blank to keep the current one."
-              : "Provision login credentials and assign a branch. Compensation defaults can be refined later in HR."}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4 pt-2">
+    <FormDialog open={open} onOpenChange={onOpenChange} className={organizationDialogWideClassName()}>
+      <FormDialog.Title>{initialValues ? "Edit user" : "Add user"}</FormDialog.Title>
+      <FormDialog.Body className="space-y-4 pt-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="user-full-name" className={text.secondary}>
-                Full name
+                Name
               </Label>
               <Input
                 id="user-full-name"
@@ -172,45 +148,45 @@ export function UserFormModal({
           <div className="space-y-2">
             <Label htmlFor="user-password" className={text.secondary}>
               Password{" "}
-              {user && <span className={text.muted}>(leave blank to keep current)</span>}
+              {initialValues && <span className={text.muted}>(leave blank to keep)</span>}
             </Label>
             <Input
               id="user-password"
               type="password"
-              autoComplete={user ? "new-password" : "new-password"}
+              autoComplete="new-password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder={user ? "••••••••" : "Minimum 6 characters"}
+              placeholder={initialValues ? "••••••••" : "Minimum 6 characters"}
               className={formFieldInsetClassName()}
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-[var(--table-row-border)] pt-4">
             <div className="space-y-2">
               <Label htmlFor="user-role" className={text.secondary}>
-                System role
+                Role
               </Label>
               <Select value={role} onValueChange={(value) => value && setRole(value as Role)}>
                 <SelectTrigger id="user-role" className={formFieldInsetClassName("w-full")}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className={formSelectContentClassName()}>
-                  <SelectItem value="STAFF">Staff — POS &amp; basic apps</SelectItem>
-                  <SelectItem value="MANAGER">Manager — approvals &amp; reports</SelectItem>
-                  <SelectItem value="SUPER_ADMIN">Super Admin — full access</SelectItem>
+                  <SelectItem value="STAFF">Staff</SelectItem>
+                  <SelectItem value="MANAGER">Manager</SelectItem>
+                  <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="user-branch" className={text.secondary}>
-                Assigned branch
+                Branch
               </Label>
               <Select value={branchId} onValueChange={(value) => value != null && setBranchId(value)}>
                 <SelectTrigger id="user-branch" className={formFieldInsetClassName("w-full")}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className={formSelectContentClassName()}>
-                  <SelectItem value="0">All branches (HQ / Admin)</SelectItem>
+                  <SelectItem value="0">All branches (HQ)</SelectItem>
                   {branches.map((branch) => (
                     <SelectItem key={branch.id} value={String(branch.id)}>
                       {branch.name}
@@ -221,10 +197,10 @@ export function UserFormModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-[var(--table-row-border)] pt-4">
             <div className="space-y-2">
               <Label htmlFor="user-employment-type" className={text.secondary}>
-                Employment type
+                Employment
               </Label>
               <Select
                 value={employmentType}
@@ -241,14 +217,14 @@ export function UserFormModal({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className={formSelectContentClassName()}>
-                  <SelectItem value="PART_TIME">Part-time (hourly)</SelectItem>
-                  <SelectItem value="FULL_TIME">Full-time (salaried)</SelectItem>
+                  <SelectItem value="PART_TIME">Part-time</SelectItem>
+                  <SelectItem value="FULL_TIME">Full-time</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="user-compensation" className={text.secondary}>
-                {employmentType === "PART_TIME" ? "Hourly rate" : "Monthly base salary"}
+                {employmentType === "PART_TIME" ? "Hourly rate" : "Monthly salary"}
               </Label>
               <Input
                 id="user-compensation"
@@ -267,10 +243,10 @@ export function UserFormModal({
               />
             </div>
           </div>
-        </div>
+      </FormDialog.Body>
 
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button type="button" variant="outline" onClick={onClose} className="min-h-[44px]">
+      <FormDialog.Footer className="gap-2 sm:gap-0">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="min-h-[44px]">
             Cancel
           </Button>
           <Button
@@ -280,10 +256,9 @@ export function UserFormModal({
             onClick={() => void handleSubmit()}
           >
             {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}
-            {user ? "Save changes" : "Create user"}
+            {initialValues ? "Save" : "Create"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </FormDialog.Footer>
+    </FormDialog>
   );
 }

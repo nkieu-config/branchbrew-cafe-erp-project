@@ -85,12 +85,7 @@ export function isMobileBottomNavPathCovered(pathname: string, role: string): bo
 }
 
 /** Whether the topbar should show the mobile breadcrumb trail. */
-export function shouldShowMobileBreadcrumb(
-  pathname: string,
-  role: string,
-  options: { hubTabsVisible?: boolean } = {},
-): boolean {
-  if (options.hubTabsVisible) return false;
+export function shouldShowMobileBreadcrumb(pathname: string, role: string): boolean {
   if (isMobileBottomNavPathCovered(pathname, role)) return false;
   return true;
 }

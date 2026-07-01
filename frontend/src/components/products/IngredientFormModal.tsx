@@ -1,14 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { FormDialog } from "@/components/shared/form-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,7 +26,6 @@ import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { productsDialogContentClassName } from "@/lib/theme/hub-products";
 import { formFieldInsetClassName, formSelectContentClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 export function IngredientFormModal({
@@ -115,26 +107,19 @@ export function IngredientFormModal({
   };
 
   return (
-    <Dialog
+    <FormDialog
       open={isOpen}
       onOpenChange={(open) => {
         if (!open) handleClose();
       }}
+      className={productsDialogContentClassName()}
     >
-      <DialogContent className={productsDialogContentClassName()}>
-        <DialogHeader>
-          <DialogTitle className={typeHeadingClassName("text-xl")}>
-            {ingredient ? "Edit Ingredient" : "New Raw Ingredient"}
-          </DialogTitle>
-          <DialogDescription className={text.muted}>
-            Add raw materials that will be used to build menu recipes and production BOMs.
-          </DialogDescription>
-        </DialogHeader>
+        <FormDialog.Title>{ingredient ? "Edit ingredient" : "New ingredient"}</FormDialog.Title>
 
-        <div className="space-y-4 py-2">
+        <FormDialog.Body className="space-y-4 py-2">
           <div className="space-y-2">
             <Label htmlFor="ingredient-name" className={text.secondary}>
-              Ingredient Name
+              Name
             </Label>
             <Input
               id="ingredient-name"
@@ -213,9 +198,9 @@ export function IngredientFormModal({
               aria-label="Toggle ingredient active status"
             />
           </div>
-        </div>
+        </FormDialog.Body>
 
-        <DialogFooter className="gap-2">
+        <FormDialog.Footer className="gap-2">
           <Button type="button" variant="outline" onClick={handleClose} disabled={isSaving}>
             Cancel
           </Button>
@@ -227,8 +212,7 @@ export function IngredientFormModal({
           >
             {isSaving ? "Saving…" : "Save Ingredient"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialog.Footer>
+    </FormDialog>
   );
 }

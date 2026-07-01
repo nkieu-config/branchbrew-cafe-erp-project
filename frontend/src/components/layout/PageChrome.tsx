@@ -1,23 +1,21 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   createContext,
+  use,
   useCallback,
-  useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
 import type { LucideIcon } from "lucide-react";
-import { useReducedMotion } from "framer-motion";
 import { BranchScopeIndicator } from "@/components/shared/branch-scope-indicator";
-import { isTabActive } from "@/lib/navigation";
-import { shellPageTitleClassName } from "@/lib/theme/shell";
-import { hubTabClassName, hubTabTrackClassName, hubTabScrollFadeRightClassName, hubTabScrollFadeLeftClassName, text } from "@/lib/theme/surface";
+import { useAuth } from "@/context/AuthContext";
+import { getPageChromeTitleVisibility } from "@/lib/navigation";
+import { pageChromeStickyBarClassName, shellPageTitleClassName } from "@/lib/theme/shell";
+import { text } from "@/lib/theme/surface";
 import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
@@ -69,7 +67,7 @@ const PageChromeExtensionContext = createContext<PageChromeExtension>({});
 
 /** Register page-level chrome (description, actions, branch scope) from hub child pages. */
 export function usePageChromeExtension(extension: PageChromeExtension) {
-  const ctx = useContext(PageChromeContext);
+  const ctx = use(PageChromeContext);
   const pathname = usePathname();
 
   useEffect(() => {
@@ -90,7 +88,7 @@ export function usePageChromeExtension(extension: PageChromeExtension) {
 }
 
 export function usePageChromeContext() {
-  return useContext(PageChromeContext);
+  return use(PageChromeContext);
 }
 
 type PageChromeProps = {
@@ -100,12 +98,11 @@ type PageChromeProps = {
   description?: string;
   actions?: ReactNode;
   branchScope?: PageChromeBranchScope;
-  tabs?: ReactNode;
   children: ReactNode;
   className?: string;
 };
 
-/** Unified shell page header — h1, optional scope, description, hub tabs, then content. */
+/** Unified shell page header — h1, optional scope, description, then content. */
 export function PageChrome({
   title,
   icon: Icon,
@@ -113,11 +110,14 @@ export function PageChrome({
   description,
   actions,
   branchScope,
-  tabs,
   children,
   className,
 }: PageChromeProps) {
-  const extension = useContext(PageChromeExtensionContext);
+  const pathname = usePathname();
+  const { user } = useAuth();
+  const role = user?.role ?? "STAFF";
+  const { hideOnDesktop, hideOnMobile } = getPageChromeTitleVisibility(pathname, role);
+  const extension = use(PageChromeExtensionContext);
 
   const mergedDescription = extension.description ?? description;
   const mergedActions = extension.actions ?? actions;
@@ -126,32 +126,49 @@ export function PageChrome({
     extension.hideTitle || !extension.title ? undefined : extension.title;
   const SectionIcon = extension.icon;
 
-  const actionSlot =
-    mergedScope || mergedActions ? (
-      <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto">
-        {mergedScope && (
-          <BranchScopeIndicator
-            branchName={mergedScope.branchName}
-            allBranches={mergedScope.allBranches}
-          />
-        )}
-        {mergedActions}
-      </div>
-    ) : null;
+  const hasStickyBar = Boolean(mergedScope || mergedActions);
 
   return (
     <div className={cn("w-full space-y-4 lg:space-y-5 h-full flex flex-col", className)}>
-      <div className="space-y-1">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-w-0">
-          <h1 className={cn(shellPageTitleClassName(), "min-w-0 flex-1")}>
+      <div className={cn("space-y-1", (hideOnDesktop || hideOnMobile) && "max-lg:space-y-1")}>
+        <h1
+          className={cn(
+            shellPageTitleClassName(),
+            "min-w-0",
+            hideOnDesktop && "lg:sr-only",
+            hideOnMobile && "max-lg:sr-only",
+          )}
+        >
             <Icon className={cn("w-6 h-6 shrink-0", iconClassName)} aria-hidden />
             <span className="truncate">{title}</span>
-          </h1>
-          {actionSlot}
-        </div>
+        </h1>
+
         {mergedDescription && (
           <p className={cn("text-sm", text.muted)}>{mergedDescription}</p>
         )}
+
+        {hasStickyBar && (
+          <div
+            className={cn(
+              pageChromeStickyBarClassName(),
+              mergedScope ? "justify-between" : "justify-end",
+            )}
+          >
+            {mergedScope && (
+              <BranchScopeIndicator
+                branchName={mergedScope.branchName}
+                allBranches={mergedScope.allBranches}
+                className="mr-auto"
+              />
+            )}
+            {mergedActions && (
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                {mergedActions}
+              </div>
+            )}
+          </div>
+        )}
+
         {sectionTitle && (
           <h2 className={typeHeadingClassName("text-lg flex items-center gap-2 pt-2")}>
             {SectionIcon && <SectionIcon className="w-5 h-5 shrink-0" aria-hidden />}
@@ -160,64 +177,7 @@ export function PageChrome({
         )}
       </div>
 
-      {tabs}
-
       <div className="min-h-0 flex-1 flex flex-col">{children}</div>
     </div>
-  );
-}
-
-type HubTabsNavProps = {
-  hubLabel: string;
-  tabs: Array<{ path: string; label: string; icon: LucideIcon }>;
-  basePath: string;
-  pathname: string;
-  className?: string;
-};
-
-export function HubTabsNav({
-  hubLabel,
-  tabs,
-  basePath,
-  pathname,
-  className,
-}: HubTabsNavProps) {
-  const tabsRef = useRef<HTMLDivElement>(null);
-  const prefersReducedMotion = useReducedMotion();
-
-  useEffect(() => {
-    const container = tabsRef.current;
-    if (!container) return;
-    const activeTab = container.querySelector<HTMLElement>('[data-active="true"]');
-    activeTab?.scrollIntoView({
-      behavior: prefersReducedMotion ? "auto" : "smooth",
-      inline: "center",
-      block: "nearest",
-    });
-  }, [pathname, tabs.length, prefersReducedMotion]);
-
-  return (
-    <nav aria-label={`${hubLabel} sections`} className={cn("relative shrink-0 w-fit max-w-full", className)}>
-      <div ref={tabsRef} className={hubTabTrackClassName()}>
-        {tabs.map((tab) => {
-          const isActive = isTabActive(pathname, tab.path, basePath);
-          const TabIcon = tab.icon;
-          return (
-            <Link
-              key={tab.path}
-              href={tab.path}
-              aria-current={isActive ? "page" : undefined}
-              data-active={isActive ? "true" : undefined}
-              className={hubTabClassName(isActive)}
-            >
-              <TabIcon className="w-4 h-4 shrink-0" aria-hidden="true" />
-              {tab.label}
-            </Link>
-          );
-        })}
-      </div>
-      <div className={hubTabScrollFadeRightClassName()} aria-hidden="true" />
-      <div className={hubTabScrollFadeLeftClassName()} aria-hidden="true" />
-    </nav>
   );
 }

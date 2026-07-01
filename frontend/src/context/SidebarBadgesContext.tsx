@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { createContext, use, useMemo, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { API_ENDPOINTS } from "@/lib/endpoints";
@@ -92,7 +92,7 @@ export function SidebarBadgesProvider({ children }: { children: ReactNode }) {
 }
 
 export function useSidebarNavBadges() {
-  const context = useContext(SidebarBadgesContext);
+  const context = use(SidebarBadgesContext);
   if (!context) {
     throw new Error("useSidebarNavBadges must be used within SidebarBadgesProvider");
   }

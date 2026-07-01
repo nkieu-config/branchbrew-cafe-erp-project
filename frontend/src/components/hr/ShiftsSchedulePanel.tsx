@@ -1,12 +1,11 @@
 "use client";
 
-import { CalendarDays, Loader2, Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ShiftGanttTimeline } from "@/components/hr/ShiftGanttTimeline";
 import { ganttPanelClassName } from "@/lib/theme/hub-hr";
-import { hubCardIconFor, hubCtaClassName, hubLoadingSpinnerClassName } from "@/lib/theme/hub-primitives";
+import { hubCtaClassName, hubLoadingSpinnerClassName } from "@/lib/theme/hub-primitives";
 import { text } from "@/lib/theme/surface";
-import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { ShiftUserRow } from "@/lib/shift-filters";
 
@@ -30,23 +29,22 @@ export function ShiftsSchedulePanel({
   return (
     <div className={ganttPanelClassName()}>
       {isLoading ? (
-        <div className="flex h-64 items-center justify-center">
-          <Loader2 className={hubLoadingSpinnerClassName("w-8 h-8")} aria-hidden />
+        <div className="flex h-56 items-center justify-center">
+          <Loader2 className={hubLoadingSpinnerClassName("w-7 h-7")} aria-hidden />
           <span className="sr-only">Loading shift schedule…</span>
         </div>
       ) : !isError && ganttRows.length === 0 ? (
-        <div className="py-16 text-center px-4">
-          <CalendarDays className={hubCardIconFor("hr", "w-12 h-12 mx-auto mb-4")} />
-          <p className={typeUiLabelClassName(text.primary)}>
+        <div className="py-14 text-center px-4">
+          <p className={cn("font-medium", text.primary)}>
             {hasActiveFilters ? "No shifts match your filters" : "No shifts scheduled"}
           </p>
-          <p className={cn("text-sm mt-2 max-w-md mx-auto", text.muted)}>
+          <p className={cn("text-sm mt-1.5", text.muted)}>
             {hasActiveFilters
-              ? "Try another date, status, or employee filter."
-              : `No shifts on ${shiftDateLabel}. Schedule a block to populate the timeline.`}
+              ? "Try another date or filter."
+              : `Nothing on ${shiftDateLabel}.`}
           </p>
           {!hasActiveFilters && (
-            <Button className={cn("mt-6", hubCtaClassName("hr"))} onClick={onScheduleShift}>
+            <Button className={cn("mt-5", hubCtaClassName("hr"))} onClick={onScheduleShift}>
               <Plus className="w-4 h-4 mr-2" aria-hidden />
               Schedule shift
             </Button>

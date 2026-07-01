@@ -2,16 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, ChefHat, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { FormDialog } from "@/components/shared/form-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,13 +16,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Ingredient } from "@/types/api";
-import { hubModalIconClassName } from "@/lib/theme/color-helpers";
-import { infoBannerClassName, infoBannerIconClassName, infoBannerTextClassName, infoBannerTitleClassName } from "@/lib/theme/hub-banners";
+import { infoBannerClassName, infoBannerTextClassName } from "@/lib/theme/hub-banners";
 import { hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
 import { kitchenDialogContentClassName } from "@/lib/theme/hub-kitchen";
 import { formFieldInsetClassName, formLineDateFieldClassName, formSelectContentClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type CreateProductionOrderModalProps = {
@@ -90,24 +81,16 @@ export function CreateProductionOrderModal({
   };
 
   return (
-    <Dialog
+    <FormDialog
       open={open}
       onOpenChange={(next) => {
         if (!next) onClose();
       }}
+      className={kitchenDialogContentClassName()}
     >
-      <DialogContent className={kitchenDialogContentClassName()}>
-        <DialogHeader>
-          <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <ChefHat className={hubModalIconClassName("kitchen")} aria-hidden />
-            Create Production Order
-          </DialogTitle>
-          <DialogDescription>
-            Schedule a batch at the central kitchen. Drag orders on the board to update status.
-          </DialogDescription>
-        </DialogHeader>
+        <FormDialog.Title>New order</FormDialog.Title>
 
-        <div className="space-y-4 pt-2">
+        <FormDialog.Body className="space-y-4 pt-1">
           <div className="space-y-2">
             <Label htmlFor="po-target" className={text.secondary}>
               Target product
@@ -116,14 +99,13 @@ export function CreateProductionOrderModal({
               <p className={cn("text-sm", text.muted)}>
                 No ingredients yet —{" "}
                 <Link href="/products/ingredients" className={inlineLinkClassName()}>
-                  add raw ingredients
-                </Link>{" "}
-                first.
+                  add ingredients
+                </Link>
               </p>
             ) : (
               <Select value={targetId} onValueChange={(value) => value != null && setTargetId(value)}>
                 <SelectTrigger id="po-target" className={formFieldInsetClassName("w-full")}>
-                  <SelectValue placeholder="Select target product" />
+                  <SelectValue placeholder="Select product" />
                 </SelectTrigger>
                 <SelectContent className={formSelectContentClassName()}>
                   {ingredients.map((ingredient) => (
@@ -137,20 +119,14 @@ export function CreateProductionOrderModal({
           </div>
 
           {missingBom && (
-            <div className={infoBannerClassName()}>
-              <div className="flex items-start gap-3">
-                <AlertTriangle className={infoBannerIconClassName()} aria-hidden />
-                <div>
-                  <p className={infoBannerTitleClassName()}>No production BOM for this target</p>
-                  <p className={infoBannerTextClassName()}>
-                    You can still create the order, but completion may fail without raw lines.{" "}
-                    <Link href="/kitchen/boms" className={inlineLinkClassName()}>
-                      Define a BOM
-                    </Link>{" "}
-                    first.
-                  </p>
-                </div>
-              </div>
+            <div className={infoBannerClassName("py-3")}>
+              <p className={infoBannerTextClassName()}>
+                No BOM for this target —{" "}
+                <Link href="/kitchen/boms" className={inlineLinkClassName()}>
+                  define one
+                </Link>{" "}
+                before completing.
+              </p>
             </div>
           )}
 
@@ -182,9 +158,9 @@ export function CreateProductionOrderModal({
               />
             </div>
           </div>
-        </div>
+        </FormDialog.Body>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <FormDialog.Footer className="gap-2 sm:gap-0">
           <Button type="button" variant="outline" onClick={onClose} className="min-h-[44px]">
             Cancel
           </Button>
@@ -195,10 +171,9 @@ export function CreateProductionOrderModal({
             onClick={() => void handleSubmit()}
           >
             {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}
-            Create order
+            Create
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialog.Footer>
+    </FormDialog>
   );
 }

@@ -3,18 +3,16 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSettings, useUpdateSettings } from "@/hooks/domains/useSettingsQueries";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
-import { Store, Receipt, Calculator, Banknote, Loader2, Save } from "lucide-react";
+import { Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { getErrorMessage } from "@/lib/errors";
 import { parseVatRatePercent } from "@/lib/vat";
-import { hubCtaClassName, hubCardIconFor, hubLoadingSpinnerClassName, statusInlineAlertClassName } from "@/lib/theme/hub-primitives";
-import { metricValueClassName } from "@/lib/theme/metric";
-import { settingsSectionClassName, settingsSectionHeaderClassName, settingsSectionTitleClassName } from "@/lib/theme/settings-form-section";
+import { hubCtaClassName, hubLoadingSpinnerClassName, statusInlineAlertClassName } from "@/lib/theme/hub-primitives";
+import { settingsSectionLabelClassName } from "@/lib/theme/settings-form-section";
 import { settingsSectionPanelClassName } from "@/lib/theme/settings-hub-chrome";
 import { formFieldInsetClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
@@ -81,25 +79,21 @@ export default function SettingsPageClient() {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl w-full">
-      <HubPageHeader
-        hideTitle
-        accentHub="settings"
-        actions={
-          <Button
-            className={hubCtaClassName("settings", "min-h-[44px]")}
-            onClick={handleSave}
-            disabled={isLoading || isError || updateSettingsMutation.isPending || !isDirty}
-          >
-            <Save className="w-4 h-4 mr-2" aria-hidden />
-            {updateSettingsMutation.isPending ? "Saving…" : "Save settings"}
-          </Button>
-        }
-      />
+    <div className="space-y-4 max-w-2xl w-full">
+      <div className="flex justify-end">
+        <Button
+          className={hubCtaClassName("settings", "min-h-[44px]")}
+          onClick={handleSave}
+          disabled={isLoading || isError || updateSettingsMutation.isPending || !isDirty}
+        >
+          <Save className="w-4 h-4 mr-2" aria-hidden />
+          {updateSettingsMutation.isPending ? "Saving…" : "Save"}
+        </Button>
+      </div>
 
       {isDirty && (
         <div role="status" className={statusInlineAlertClassName("warning")}>
-          You have unsaved changes. Save before leaving this page.
+          Unsaved changes — save before leaving.
         </div>
       )}
 
@@ -116,17 +110,13 @@ export default function SettingsPageClient() {
             <span className="sr-only">Loading settings</span>
           </div>
         ) : !isError ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            <div className={settingsSectionClassName()}>
-              <div className={settingsSectionHeaderClassName()}>
-                <Store className={cn("w-5 h-5", metricValueClassName("blue"))} aria-hidden />
-                <h3 className={settingsSectionTitleClassName()}>Company information</h3>
-              </div>
-
+          <div className="space-y-8">
+            <section>
+              <h2 className={settingsSectionLabelClassName()}>Company</h2>
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="settings-company-name" className={text.secondary}>
-                    Company name (legal)
+                    Company name
                   </Label>
                   <Input
                     id="settings-company-name"
@@ -150,82 +140,58 @@ export default function SettingsPageClient() {
                   />
                 </div>
               </div>
-            </div>
+            </section>
 
-            <div className={settingsSectionClassName()}>
-              <div className={settingsSectionHeaderClassName()}>
-                <Calculator className={hubCardIconFor("finance")} aria-hidden />
-                <h3 className={settingsSectionTitleClassName()}>Finance &amp; tax</h3>
-              </div>
-
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="settings-vat-rate" className={text.secondary}>
-                      VAT rate (%)
-                    </Label>
-                    <Input
-                      id="settings-vat-rate"
-                      type="number"
-                      min={0}
-                      max={100}
-                      step="0.01"
-                      value={formData.vatRate}
-                      onChange={(event) => handleChange("vatRate", event.target.value)}
-                      placeholder="e.g. 7"
-                      className={formFieldInsetClassName()}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="settings-currency" className={text.secondary}>
-                      Default currency
-                    </Label>
-                    <div className="relative">
-                      <Banknote
-                        className={cn(
-                          "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none",
-                          text.muted,
-                        )}
-                        aria-hidden
-                      />
-                      <Input
-                        id="settings-currency"
-                        className={formFieldInsetClassName("pl-9")}
-                        value={formData.currency}
-                        onChange={(event) => handleChange("currency", event.target.value)}
-                        placeholder="e.g. USD"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className={settingsSectionClassName("md:col-span-2")}>
-              <div className={settingsSectionHeaderClassName()}>
-                <Receipt className={hubCardIconFor("pos")} aria-hidden />
-                <h3 className={settingsSectionTitleClassName()}>Point of Sale (POS)</h3>
-              </div>
-
-              <div className="space-y-4">
+            <section>
+              <h2 className={settingsSectionLabelClassName()}>Finance &amp; tax</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="settings-receipt-footer" className={text.secondary}>
-                    Receipt footer message
+                  <Label htmlFor="settings-vat-rate" className={text.secondary}>
+                    VAT rate (%)
                   </Label>
                   <Input
-                    id="settings-receipt-footer"
-                    value={formData.receiptFooter}
-                    onChange={(event) => handleChange("receiptFooter", event.target.value)}
-                    placeholder="e.g. Thank you for your business!"
+                    id="settings-vat-rate"
+                    type="number"
+                    min={0}
+                    max={100}
+                    step="0.01"
+                    value={formData.vatRate}
+                    onChange={(event) => handleChange("vatRate", event.target.value)}
+                    placeholder="e.g. 7"
                     className={formFieldInsetClassName()}
                   />
-                  <p className={cn("text-xs", text.muted)}>
-                    Printed at the bottom of customer receipts from the POS terminal.
-                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="settings-currency" className={text.secondary}>
+                    Default currency
+                  </Label>
+                  <Input
+                    id="settings-currency"
+                    value={formData.currency}
+                    onChange={(event) => handleChange("currency", event.target.value)}
+                    placeholder="e.g. USD"
+                    className={formFieldInsetClassName()}
+                  />
                 </div>
               </div>
-            </div>
+            </section>
+
+            <section>
+              <h2 className={settingsSectionLabelClassName()}>POS</h2>
+              <div className="space-y-2">
+                <Label htmlFor="settings-receipt-footer" className={text.secondary}>
+                  Receipt footer
+                </Label>
+                <Input
+                  id="settings-receipt-footer"
+                  value={formData.receiptFooter}
+                  onChange={(event) => handleChange("receiptFooter", event.target.value)}
+                  placeholder="e.g. Thank you for your business!"
+                  className={formFieldInsetClassName()}
+                />
+              </div>
+            </section>
           </div>
         ) : null}
       </div>

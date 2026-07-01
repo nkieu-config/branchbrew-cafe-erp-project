@@ -1,15 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ListTree, Loader2, MinusCircle, Plus, Save } from "lucide-react";
+import { Loader2, MinusCircle, Plus } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,18 +14,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FormEmptyIngredientsBanner } from "@/components/shared/form-panel";
-import { FormModalFooter } from "@/components/shared/form-modal";
+import { FormDialog, FormModalFooter } from "@/components/shared/form-modal";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { useCreateProductionBOM } from "@/hooks/domains/useAccountingQueries";
 import { useLineItemRows } from "@/hooks/useLineItemRows";
 import { getErrorMessage } from "@/lib/errors";
 import type { Ingredient } from "@/types/api";
-import { hubModalIconClassName } from "@/lib/theme/color-helpers";
 import { formSectionClassName, hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { kitchenDialogContentClassName } from "@/lib/theme/hub-kitchen";
 import { formFieldInsetClassName, formLineQtyFieldClassName, formLineRowClassName, formRemoveButtonClassName, formSelectContentClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type RawLineDraft = {
@@ -128,32 +119,23 @@ export function BOMFormModal({ isOpen, onClose, ingredients }: BOMFormModalProps
   const submitDisabled = createMutation.isPending || formDisabled || duplicateKeys.size > 0;
 
   return (
-    <Dialog
+    <FormDialog
       open={isOpen}
       onOpenChange={(next) => {
         if (!next) onClose();
       }}
+      className={kitchenDialogContentClassName("sm:max-w-2xl")}
     >
-      <DialogContent className={kitchenDialogContentClassName("sm:max-w-2xl")}>
-        <DialogHeader>
-          <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <ListTree className={hubModalIconClassName("kitchen")} aria-hidden />
-            Create / Update Production BOM
-          </DialogTitle>
-          <DialogDescription>
-            Define raw ingredients and quantities per unit of finished product. Saving adds lines for
-            the selected target.
-          </DialogDescription>
-        </DialogHeader>
+        <FormDialog.Title>New BOM</FormDialog.Title>
 
-        <div className="space-y-4 pt-2">
+        <FormDialog.Body className="space-y-4 pt-1">
           <div className="space-y-2">
             <Label htmlFor="bom-target" className={text.secondary}>
               Target product
             </Label>
             <Select value={targetId} onValueChange={(value) => value != null && setTargetId(value)}>
               <SelectTrigger id="bom-target" className={formFieldInsetClassName("w-full")}>
-                <SelectValue placeholder="What are we making?" />
+                <SelectValue placeholder="Select product" />
               </SelectTrigger>
               <SelectContent className={formSelectContentClassName()}>
                 {ingredients.map((ingredient) => (
@@ -166,7 +148,6 @@ export function BOMFormModal({ isOpen, onClose, ingredients }: BOMFormModalProps
           </div>
 
           <div className={formSectionClassName()}>
-            <h3 className={typeHeadingClassName(cn("text-sm mb-4", text.secondary))}>Raw ingredients</h3>
             {ingredients.length === 0 ? (
               <FormEmptyIngredientsBanner />
             ) : (
@@ -179,7 +160,7 @@ export function BOMFormModal({ isOpen, onClose, ingredients }: BOMFormModalProps
                       <div key={line.rowId} className={formLineRowClassName()}>
                         <div className="grid grid-cols-1 sm:grid-cols-[1fr_8rem_auto] gap-3 items-end flex-1">
                           <div className="space-y-2">
-                            <Label className={cn("text-xs", text.secondary)}>Ingredient</Label>
+                            <Label className={cn("text-xs", text.secondary)}>Raw ingredient</Label>
                             <Select
                               value={line.rawIngredientId > 0 ? String(line.rawIngredientId) : undefined}
                               onValueChange={(value) =>
@@ -187,7 +168,7 @@ export function BOMFormModal({ isOpen, onClose, ingredients }: BOMFormModalProps
                               }
                             >
                               <SelectTrigger className={formFieldInsetClassName("w-full")}>
-                                <SelectValue placeholder="Select raw ingredient" />
+                                <SelectValue placeholder="Select ingredient" />
                               </SelectTrigger>
                               <SelectContent className={formSelectContentClassName()}>
                                 {ingredients.map((ingredient) => (
@@ -199,7 +180,7 @@ export function BOMFormModal({ isOpen, onClose, ingredients }: BOMFormModalProps
                             </Select>
                             {isDuplicate ? (
                               <StatusBadge tone="warning" className="mt-1 w-fit">
-                                Duplicate ingredient — combine into one row
+                                Duplicate row
                               </StatusBadge>
                             ) : null}
                           </div>
@@ -240,12 +221,12 @@ export function BOMFormModal({ isOpen, onClose, ingredients }: BOMFormModalProps
                   onClick={addRow}
                 >
                   <Plus className="w-4 h-4 mr-2" aria-hidden />
-                  Add raw ingredient
+                  Add line
                 </Button>
               </>
             )}
           </div>
-        </div>
+        </FormDialog.Body>
 
         <FormModalFooter>
           <Button type="button" variant="outline" onClick={onClose} className="min-h-[44px]">
@@ -257,15 +238,10 @@ export function BOMFormModal({ isOpen, onClose, ingredients }: BOMFormModalProps
             className={cn("min-h-[44px]", hubCtaClassName("kitchen"))}
             onClick={() => void handleCreate()}
           >
-            {createMutation.isPending ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />
-            ) : (
-              <Save className="w-4 h-4 mr-2" aria-hidden />
-            )}
-            Save production BOM
+            {createMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}
+            Save
           </Button>
         </FormModalFooter>
-      </DialogContent>
-    </Dialog>
+    </FormDialog>
   );
 }

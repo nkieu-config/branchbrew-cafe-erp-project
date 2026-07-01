@@ -1,13 +1,11 @@
 "use client";
 
 import type { RefObject } from "react";
-import { Award, Plus, Printer } from "lucide-react";
+import { Plus, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Receipt } from "@/components/pos/Receipt";
@@ -16,14 +14,15 @@ import { formatQueueNumber } from "@/lib/queue";
 import { parseVatRatePercent } from "@/lib/vat";
 import {
   posDialogContentClassName,
+  posImmersiveDialogFooterClassName,
+  posPriceClassName,
   posPrimaryActionClassName,
   posQueueNumberClassName,
-  posReceiptCaptionClassName,
-  posReceiptPreviewClassName,
-  posSuccessDialogClassName,
-  posSuccessTitleClassName,
+  posSecondaryActionClassName,
 } from "@/lib/theme/immersive";
 import { text } from "@/lib/theme/surface";
+import { typeHeadingClassName } from "@/lib/theme/typography";
+import { cn } from "@/lib/utils";
 import type { ReceiptOrder } from "@/types/api";
 
 export function PosOrderSuccessDialog({
@@ -48,6 +47,9 @@ export function PosOrderSuccessDialog({
   };
   onPrint: () => void;
 }) {
+  const hasQueue =
+    completedOrder?.queueNumber != null && completedOrder.queueNumber > 0;
+
   return (
     <Dialog
       open={open}
@@ -55,15 +57,16 @@ export function PosOrderSuccessDialog({
         if (!next) onOpenChange(false);
       }}
     >
-      <DialogContent className={posSuccessDialogClassName(posDialogContentClassName("sm:max-w-[400px]"))}>
-        <DialogHeader>
-          <DialogTitle className={posSuccessTitleClassName()}>
-            <Award className="w-12 h-12" />
-            Order Completed!
-          </DialogTitle>
-        </DialogHeader>
+      <DialogContent
+        className={posDialogContentClassName(
+          "gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-[380px]",
+        )}
+      >
+        <div className="px-5 pt-6 pb-2 text-center">
+          <DialogTitle className={typeHeadingClassName("text-xl")}>Order completed</DialogTitle>
+        </div>
 
-        <div className="py-4 flex justify-center">
+        <div className="flex flex-col items-center gap-2 px-5 py-4 text-center">
           <div className="hidden">
             {completedOrder && (
               <Receipt
@@ -80,30 +83,37 @@ export function PosOrderSuccessDialog({
             )}
           </div>
 
-          <div className={posReceiptPreviewClassName()}>
-            {completedOrder?.queueNumber != null && completedOrder.queueNumber > 0 && (
-              <p className={posQueueNumberClassName()}>
-                #{formatQueueNumber(completedOrder.queueNumber)}
-              </p>
-            )}
-            <p className={posReceiptCaptionClassName()}>
-              {completedOrder?.queueNumber ? "Your Queue Number" : "Receipt Preview"}
+          {hasQueue ? (
+            <p className={posQueueNumberClassName()}>
+              #{formatQueueNumber(completedOrder!.queueNumber!)}
             </p>
-            <p>Total: {formatCurrency(completedOrder?.netTotal)}</p>
-            <p className={`text-xs ${text.muted}`}>Order ref #{completedOrder?.id}</p>
-          </div>
+          ) : null}
+          <p className={cn(typeHeadingClassName("text-2xl tabular-nums"), posPriceClassName())}>
+            {formatCurrency(completedOrder?.netTotal ?? 0)}
+          </p>
+          <p className={cn("text-xs tabular-nums", text.muted)}>
+            Ref #{completedOrder?.id}
+            {completedOrder?.customerName ? ` · ${completedOrder.customerName}` : ""}
+          </p>
         </div>
 
-        <DialogFooter className="flex-col sm:flex-col gap-2">
-          <Button onClick={onPrint} className={posPrimaryActionClassName("w-full h-12 text-lg")}>
-            <Printer className="w-5 h-5 mr-2" />
+        <div className={cn(posImmersiveDialogFooterClassName(), "flex flex-col gap-2")}>
+          <Button
+            onClick={onPrint}
+            className={posPrimaryActionClassName("w-full min-h-[48px] rounded-xl")}
+          >
+            <Printer className="w-4 h-4 mr-2" aria-hidden />
             Print Receipt
           </Button>
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full h-12 text-lg">
-            <Plus className="w-5 h-5 mr-2" />
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            className={posSecondaryActionClassName("min-h-[44px]")}
+          >
+            <Plus className="w-4 h-4 mr-2" aria-hidden />
             New Order
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

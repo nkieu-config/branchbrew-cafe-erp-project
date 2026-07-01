@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_ENDPOINTS } from '@/lib/endpoints';
 import { fetchAPI } from '@/lib/api';
 import { NAV_COUNTS_QUERY_KEY } from '@/lib/nav-counts';
+import { inventoryKeys } from '@/lib/query-keys';
 
 // ==========================================
 // 🛒 PROCUREMENT HOOKS
@@ -83,7 +84,7 @@ export const useReceivePurchaseOrder = () => {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
-      queryClient.invalidateQueries({ queryKey: ['branchDetails'] });
+      queryClient.invalidateQueries({ queryKey: inventoryKeys.branchRoot });
       queryClient.invalidateQueries({ queryKey: [NAV_COUNTS_QUERY_KEY] });
     },
   });

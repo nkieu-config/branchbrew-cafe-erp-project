@@ -2,14 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { FormDialog } from "@/components/shared/form-modal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -23,7 +16,6 @@ import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { productsDialogContentClassName } from "@/lib/theme/hub-products";
 import { formFieldInsetClassName, formSelectContentClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { ModifierGroup } from "@/types/api";
 import { ModifierIngredientSelect } from "./ModifierIngredientSelect";
@@ -62,18 +54,9 @@ export function ModifierGroupFormDialog({
   onSave: () => void;
 }) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={productsDialogContentClassName()}>
-        <DialogHeader>
-          <DialogTitle className={typeHeadingClassName("text-xl")}>
-            {editingGroup ? "Edit Modifier Group" : "New Modifier Group"}
-          </DialogTitle>
-          <DialogDescription>
-            Groups appear on POS for matching product categories. Set swap ingredient for
-            milk-type style replacements.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4 pt-2">
+    <FormDialog open={open} onOpenChange={onOpenChange} className={productsDialogContentClassName()}>
+        <FormDialog.Title>{editingGroup ? "Edit group" : "New group"}</FormDialog.Title>
+        <FormDialog.Body className="space-y-4 pt-1">
           <div className="space-y-2">
             <Label htmlFor="modifier-group-name" className={text.secondary}>
               Name
@@ -135,8 +118,8 @@ export function ModifierGroupFormDialog({
               placeholder="No ingredient swap"
             />
           </div>
-        </div>
-        <DialogFooter>
+        </FormDialog.Body>
+        <FormDialog.Footer>
           <Button
             onClick={onSave}
             disabled={isSaving}
@@ -145,8 +128,7 @@ export function ModifierGroupFormDialog({
             {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}
             {editingGroup ? "Save changes" : "Create group"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialog.Footer>
+    </FormDialog>
   );
 }

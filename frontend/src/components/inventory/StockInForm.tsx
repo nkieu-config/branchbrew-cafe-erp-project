@@ -18,7 +18,6 @@ import {
   FormPanelFooter,
 } from "@/components/shared/form-panel";
 import { HubListPage } from "@/components/shared/hub-list-page";
-import { StatusBadge } from "@/components/shared/status-badge";
 import { getErrorMessage } from "@/lib/errors";
 import { formValidationHintClassName } from "@/lib/theme/color-helpers";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
@@ -83,11 +82,7 @@ export function StockInForm({
   return (
     <FormPanel>
       <p className={cn("text-sm mb-4", text.muted)}>
-        Add one row per ingredient. Optional expiry dates create batches in{" "}
-        <ButtonLink href="/inventory/batches" variant="link" className="h-auto p-0">
-          Batches &amp; Expiry
-        </ButtonLink>
-        . Receiving against a PO?{" "}
+        One row per ingredient. Optional expiry creates a batch. PO receipts:{" "}
         <ButtonLink href="/procurement/orders" variant="link" className="h-auto p-0">
           Purchase Orders
         </ButtonLink>
@@ -155,9 +150,9 @@ export function StockInForm({
                   </SelectContent>
                 </Select>
                 {isDuplicate ? (
-                  <StatusBadge tone="warning" className="mt-1 w-fit">
-                    Duplicate ingredient — combine into one row
-                  </StatusBadge>
+                  <p className={cn("text-xs mt-1", formValidationHintClassName())}>
+                    Duplicate — combine into one row
+                  </p>
                 ) : null}
               </div>
 
@@ -214,10 +209,10 @@ export function StockInForm({
           type="button"
           variant="outline"
           onClick={onAddRow}
-          className="w-full min-h-[44px] border-dashed"
+          className="w-full min-h-[44px]"
           disabled={formDisabled}
         >
-          <Plus className="w-4 h-4 mr-2" aria-hidden /> Add Another Row
+          <Plus className="w-4 h-4 mr-2" aria-hidden /> Add row
         </Button>
       </div>
 
@@ -259,7 +254,7 @@ export function StockInForm({
           ) : (
             <>
               <PackageOpen className="w-4 h-4 mr-2" aria-hidden />
-              Confirm &amp; Receive Stock
+              Receive stock
             </>
           )}
         </Button>

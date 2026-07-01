@@ -1,15 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { addDays, format, subDays } from "date-fns";
-import { CalendarDays, ChevronLeft, ChevronRight, Clock, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
-import { useBranches } from "@/hooks/domains/useGeneralQueries";
 import { useCreateShift, useHrUsers, useShifts } from "@/hooks/domains/useHrQueries";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterDate, ListFilterSelect } from "@/components/shared/list-filters";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
@@ -26,11 +22,12 @@ import {
 } from "@/lib/shift-filters";
 import { parseHrShiftsSearchParams } from "@/lib/hr-hub-url";
 import { formatDate } from "@/lib/intl-date";
-import { formatHubListCountWithFetching } from "@/lib/format-hub-list-count";
-import { hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { hrSectionPanelClassName } from "@/lib/theme/hub-hr";
+import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
-import type { Branch, ShiftStatus, User } from "@/types/api";
+import type { ShiftStatus, User } from "@/types/api";
+import { useSearchParams } from "next/navigation";
 
 function toDateInputValue(date: Date): string {
   return format(date, "yyyy-MM-dd");
@@ -42,9 +39,7 @@ export default function ShiftsPageClient() {
   const searchParams = useSearchParams();
   const urlState = useMemo(() => parseHrShiftsSearchParams(searchParams), [searchParams]);
 
-  const { data: branches = [] } = useBranches();
   const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
-  const branchName = (branches as Branch[]).find((b) => b.id === branchIdNum)?.name;
 
   const {
     data: shiftsData = [],
@@ -83,7 +78,6 @@ export default function ShiftsPageClient() {
   const ganttRows = useMemo(() => groupShiftsByUserId(filteredShifts), [filteredShifts]);
 
   const hasActiveFilters = statusFilter !== "ALL" || employeeFilterId != null;
-
   const shiftDateLabel = formatDate(selectedDateObj);
 
   const handleCreateShift = async (payload: {
@@ -108,19 +102,13 @@ export default function ShiftsPageClient() {
   }
 
   return (
-    <div className="space-y-6">
-      <HubPageHeader
-        hideTitle
-        icon={CalendarDays}
-        accentHub="hr"
-        branchScope={{ branchName }}
-        actions={
-          <Button className={hubCtaClassName("hr")} onClick={() => setIsModalOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" aria-hidden />
-            Schedule shift
-          </Button>
-        }
-      />
+    <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button className={hubCtaClassName("hr")} onClick={() => setIsModalOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" aria-hidden />
+          Schedule shift
+        </Button>
+      </div>
 
       <HubListPage className={hrSectionPanelClassName()}>
         <HubListPage.Error
@@ -205,29 +193,12 @@ export default function ShiftsPageClient() {
           }
         />
 
-        <HubListPage.Count
-          isLoading={isLoading}
-          isError={isError}
-          isFetching={isFetching}
-          actions={
-            <Link
-              href="/hr/attendance"
-              className={cn("inline-flex items-center gap-1 text-sm font-medium", inlineLinkClassName())}
-            >
-              <Clock className="w-3.5 h-3.5" aria-hidden />
-              View attendance
-            </Link>
-          }
-        >
-          {formatHubListCountWithFetching(
-            hasActiveFilters
-              ? `${filteredShifts.length} of ${(shiftsData as ShiftWithUser[]).length} shifts · ${shiftDateLabel}`
-              : summary.total > 0
-                ? `${summary.total} shift${summary.total === 1 ? "" : "s"} · ${shiftDateLabel}`
-                : `${shiftDateLabel} — no shifts scheduled`,
-            isFetching,
-            isLoading,
-          )}
+        <HubListPage.Count isLoading={isLoading} isError={isError} isFetching={isFetching}>
+          <span className={cn("tabular-nums", text.secondary)}>
+            {summary.total > 0
+              ? `${summary.total} shift${summary.total === 1 ? "" : "s"} · ${shiftDateLabel}`
+              : `${shiftDateLabel} — no shifts`}
+          </span>
         </HubListPage.Count>
 
         <ShiftsSchedulePanel

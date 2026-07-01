@@ -15,7 +15,7 @@ export function productsCategoryBadgeClassName(className?: string) {
 
 export function productsDialogContentClassName(className?: string) {
   return cn(
-    "sm:max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto",
+    "sm:max-w-lg rounded-xl max-h-[90vh] overflow-y-auto",
     "bg-[var(--table-container-bg)] border-[var(--table-container-border)] text-foreground",
     className,
   );
@@ -31,7 +31,7 @@ export function procurementMetaBadgeClassName(className?: string) {
 
 export function procurementDialogContentClassName(className?: string) {
   return cn(
-    "sm:max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto",
+    "sm:max-w-lg rounded-xl max-h-[90vh] overflow-y-auto",
     "bg-[var(--table-container-bg)] border-[var(--table-container-border)] text-foreground",
     className,
   );
@@ -47,7 +47,7 @@ export function kitchenMetaBadgeClassName(className?: string) {
 
 export function kitchenDialogContentClassName(className?: string) {
   return cn(
-    "sm:max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto",
+    "sm:max-w-lg rounded-xl max-h-[90vh] overflow-y-auto",
     "bg-[var(--table-container-bg)] border-[var(--table-container-border)] text-foreground",
     className,
   );
@@ -67,7 +67,7 @@ export function hrMetaBadgeClassName(className?: string) {
 
 export function hrDialogContentClassName(className?: string) {
   return cn(
-    "sm:max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto",
+    "sm:max-w-lg rounded-xl max-h-[90vh] overflow-y-auto",
     "bg-[var(--table-container-bg)] border-[var(--table-container-border)] text-foreground",
     className,
   );

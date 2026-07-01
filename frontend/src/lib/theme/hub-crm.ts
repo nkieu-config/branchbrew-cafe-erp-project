@@ -1,9 +1,7 @@
 import { cn } from "@/lib/utils";
 import type { StatusTone } from "./status";
-import { statusToneClassName } from "./status";
 import { metricValueClassName } from "./metric";
 import { text } from "./surface";
-import { typeMetricClassName } from "./typography";
 
 export { crmSectionPanelClassName } from "./hub-section-aliases";
 
@@ -16,59 +14,42 @@ export function crmSearchInputClassName(className?: string) {
 }
 
 export function crmPointsClassName(className?: string) {
-  return typeMetricClassName(cn("text-lg", metricValueClassName("emerald"), className));
+  return cn("tabular-nums font-semibold", text.primary, className);
 }
 
 export function crmPointsSuffixClassName(className?: string) {
-  return cn("text-xs font-bold opacity-70", metricValueClassName("emerald"), className);
+  return cn("text-xs font-normal", text.muted, className);
 }
 
 export function crmInsightPanelClassName(className?: string) {
-  return cn(
-    "rounded-2xl p-5 border",
-    "bg-[var(--form-line-bg)] border-[var(--form-line-border)]",
-    className,
-  );
+  return cn("rounded-xl p-4 bg-[var(--table-container-bg)]/60", className);
 }
 
 export function crmSectionLabelClassName(className?: string) {
-  return cn("text-sm font-bold uppercase tracking-wider mb-3 flex items-center gap-2", text.muted, className);
+  return cn("text-sm font-medium mb-2", text.muted, className);
 }
 
 export function crmFavoriteChipClassName(className?: string) {
-  return cn(
-    "flex items-center gap-2 px-3 py-1.5 rounded-full border",
-    "bg-[var(--tone-crm-subtle)] border-[var(--tone-crm-border)]",
-    className,
-  );
+  return cn("text-sm", text.secondary, className);
 }
 
 export function crmFavoriteCountClassName(className?: string) {
-  return cn(
-    "text-xs font-bold px-2 py-0.5 rounded-full tabular-nums",
-    "bg-[var(--tone-crm-border)] text-[var(--tone-crm-fg)]",
-    className,
-  );
+  return cn("tabular-nums", text.muted, className);
 }
 
 export function crmOrderCardClassName(className?: string) {
   return cn(
-    "flex justify-between items-center p-3 rounded-xl border shadow-sm",
-    "bg-[var(--table-container-bg)] border-[var(--table-container-border)]",
+    "flex justify-between items-center py-3 border-b border-[var(--table-row-border)] last:border-0",
     className,
   );
 }
 
 export function crmOrderIconWrapClassName(className?: string) {
-  return cn("p-2 rounded-lg bg-[var(--table-head-bg)]", text.muted, className);
+  return cn(text.muted, className);
 }
 
 export function crmMaxTierBadgeClassName(className?: string) {
-  return cn(
-    "mt-3 text-sm font-bold p-2 rounded-lg text-center uppercase tracking-wider",
-    statusToneClassName("purple"),
-    className,
-  );
+  return cn("mt-2 text-sm font-medium text-center", text.muted, className);
 }
 
 export function crmProgressClassName(className?: string) {
@@ -89,7 +70,7 @@ export function crmSheetContentClassName(className?: string) {
 
 export function crmDialogContentClassName(className?: string) {
   return cn(
-    "sm:max-w-md rounded-2xl",
+    "sm:max-w-md rounded-xl",
     "bg-[var(--table-container-bg)] border-[var(--table-container-border)] text-foreground",
     className,
   );

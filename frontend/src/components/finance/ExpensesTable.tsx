@@ -1,11 +1,15 @@
 "use client";
 
-import { DollarSign } from "lucide-react";
 import { FinanceTableSkeleton } from "@/components/finance/FinanceTableSkeleton";
+import {
+  ListMobileCard,
+  PaginatedMobileList,
+  ResponsiveDataTableLayout,
+} from "@/components/shared/responsive-data-table";
 import { formatDateTime } from "@/lib/intl-date";
 import { formatCurrency } from "@/lib/money";
 import {
-  listMobileCardClassName,
+  horizontalScrollHintClassName,
   nativeTableBodyClassName,
   nativeTableCellMutedClassName,
   nativeTableCellPrimaryClassName,
@@ -14,9 +18,8 @@ import {
   nativeTableHeadClassName,
   nativeTableRowClassName,
 } from "@/lib/theme/data-table";
-import { financeExpenseAmountClassName, financeMetricIconClassName, financeSectionPanelClassName, financeSectionTitleClassName } from "@/lib/theme/finance";
+import { financeExpenseAmountClassName, financeSectionLabelClassName } from "@/lib/theme/finance";
 import { text } from "@/lib/theme/surface";
-import { typeMicroClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { Expense } from "@/types/api";
 
@@ -36,87 +39,90 @@ export function ExpensesTable({ expenses, loading, expenseSearch }: ExpensesTabl
   const emptyMessage = expenseEmptyMessage(expenseSearch);
 
   return (
-    <div className={financeSectionPanelClassName("flex flex-col")}>
-      <h2 className={financeSectionTitleClassName()}>
-        <DollarSign className={financeMetricIconClassName("amber")} aria-hidden />
-        Petty cash expenses
-      </h2>
+    <div className="flex min-w-0 flex-col">
+      <h2 className={financeSectionLabelClassName()}>Expenses</h2>
 
-      <div className="md:hidden space-y-3">
-        {loading ? (
-          <FinanceTableSkeleton rows={3} />
-        ) : expenses.length === 0 ? (
-          <p className={cn("text-center py-8 text-sm", text.muted)}>{emptyMessage}</p>
-        ) : (
-          expenses.map((expense) => (
-            <div key={expense.id} className={listMobileCardClassName("cursor-default")}>
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="min-w-0">
-                  <p className={cn(typeUiLabelClassName(), text.primary)}>
-                    {expense.category}
-                  </p>
-                  <time className={cn(typeMicroClassName("tabular-nums"), text.subtle)} dateTime={expense.createdAt}>
-                    {formatDateTime(expense.createdAt)}
-                  </time>
-                </div>
-                <span className={financeExpenseAmountClassName("shrink-0 text-base")}>
-                  -{formatCurrency(expense.amount)}
-                </span>
-              </div>
-              {expense.description?.trim() ? (
-                <p className={cn("text-sm line-clamp-2 mb-2", text.secondary)}>{expense.description}</p>
-              ) : null}
-              <p className={cn("text-xs", text.muted)}>
-                Recorded by {expense.recordedBy?.name ?? "—"}
-              </p>
-            </div>
-          ))
-        )}
-      </div>
-
-      <div className="hidden md:block overflow-x-auto">
-        {loading ? (
-          <FinanceTableSkeleton />
-        ) : (
-          <table className={nativeTableClassName()}>
-            <thead className={nativeTableHeadClassName()}>
-              <tr>
-                <th className="px-4 py-3 rounded-l-lg">Date</th>
-                <th className="px-4 py-3">Category</th>
-                <th className="px-4 py-3">Description</th>
-                <th className="px-4 py-3 text-right">Amount</th>
-                <th className="px-4 py-3 rounded-r-lg">By</th>
-              </tr>
-            </thead>
-            <tbody className={nativeTableBodyClassName()}>
-              {expenses.map((expense) => (
-                <tr key={expense.id} className={nativeTableRowClassName()}>
-                  <td className={nativeTableCellMutedClassName()}>
-                    {formatDateTime(expense.createdAt)}
-                  </td>
-                  <td className={nativeTableCellPrimaryClassName()}>{expense.category}</td>
-                  <td className={nativeTableCellMutedClassName()}>
-                    {expense.description?.trim() || "—"}
-                  </td>
-                  <td className={financeExpenseAmountClassName()}>
-                    -{formatCurrency(expense.amount)}
-                  </td>
-                  <td className={nativeTableCellMutedClassName()}>
-                    {expense.recordedBy?.name ?? "—"}
-                  </td>
-                </tr>
-              ))}
-              {expenses.length === 0 && !loading && (
-                <tr>
-                  <td colSpan={5} className={nativeTableEmptyCellClassName()}>
-                    {emptyMessage}
-                  </td>
-                </tr>
+      <ResponsiveDataTableLayout
+        mobile={
+          loading ? (
+            <ResponsiveDataTableLayout.Skeleton rows={3} />
+          ) : expenses.length === 0 ? (
+            <ResponsiveDataTableLayout.Empty message={emptyMessage} />
+          ) : (
+            <PaginatedMobileList items={expenses} pageSize={0}>
+              {(expense) => (
+                <ListMobileCard>
+                  <div className="mb-2 flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className={cn("font-medium", text.primary)}>{expense.category}</p>
+                      <time
+                        className={cn("text-xs tabular-nums", text.muted)}
+                        dateTime={expense.createdAt}
+                      >
+                        {formatDateTime(expense.createdAt)}
+                      </time>
+                    </div>
+                    <span className={financeExpenseAmountClassName("shrink-0")}>
+                      -{formatCurrency(expense.amount)}
+                    </span>
+                  </div>
+                  {expense.description?.trim() ? (
+                    <p className={cn("mb-2 line-clamp-2 text-sm", text.secondary)}>
+                      {expense.description}
+                    </p>
+                  ) : null}
+                  <p className={cn("text-xs", text.muted)}>{expense.recordedBy?.name ?? "—"}</p>
+                </ListMobileCard>
               )}
-            </tbody>
-          </table>
-        )}
-      </div>
+            </PaginatedMobileList>
+          )
+        }
+        desktop={
+          loading ? (
+            <FinanceTableSkeleton />
+          ) : (
+            <div className={horizontalScrollHintClassName()}>
+              <table className={nativeTableClassName()}>
+                <thead className={nativeTableHeadClassName()}>
+                  <tr>
+                    <th className="rounded-l-lg px-3 py-2.5">Date</th>
+                    <th className="px-3 py-2.5">Category</th>
+                    <th className="px-3 py-2.5">Description</th>
+                    <th className="px-3 py-2.5 text-right">Amount</th>
+                    <th className="rounded-r-lg px-3 py-2.5">By</th>
+                  </tr>
+                </thead>
+                <tbody className={nativeTableBodyClassName()}>
+                  {expenses.map((expense) => (
+                    <tr key={expense.id} className={nativeTableRowClassName()}>
+                      <td className={nativeTableCellMutedClassName()}>
+                        {formatDateTime(expense.createdAt)}
+                      </td>
+                      <td className={nativeTableCellPrimaryClassName()}>{expense.category}</td>
+                      <td className={nativeTableCellMutedClassName()}>
+                        {expense.description?.trim() || "—"}
+                      </td>
+                      <td className={cn("px-3 py-2.5 text-right", financeExpenseAmountClassName())}>
+                        -{formatCurrency(expense.amount)}
+                      </td>
+                      <td className={nativeTableCellMutedClassName()}>
+                        {expense.recordedBy?.name ?? "—"}
+                      </td>
+                    </tr>
+                  ))}
+                  {expenses.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className={nativeTableEmptyCellClassName()}>
+                        {emptyMessage}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )
+        }
+      />
     </div>
   );
 }

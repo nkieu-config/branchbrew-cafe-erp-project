@@ -3,22 +3,22 @@
 import { useCallback, useMemo, useState } from "react";
 import type { ColumnsType } from "antd/es/table";
 import {
-  SlidersHorizontal,
   Plus,
   Pencil,
   Trash2,
-  Monitor,
 } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "@/components/shared/data-table";
+import {
+  ListMobileCard,
+  PaginatedMobileList,
+} from "@/components/shared/responsive-data-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { QueryLoadingPanel } from "@/components/shared/query-states";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { Button } from "@/components/ui/button";
-import { ButtonLink } from "@/components/ui/button-link";
 import {
   MODIFIER_ALL_CATEGORIES,
   ModifierGroupFormDialog,
@@ -50,15 +50,11 @@ import {
   type ModifierCategoryFilter,
   type ModifierHighlightFilter,
 } from "@/lib/modifier-filters";
-import { StatusBadge } from "@/components/shared/status-badge";
 import { hubListDataTableProps } from "@/lib/theme/data-table";
-import { tableCellMutedClassName } from "@/lib/theme/feedback";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { modifierGroupPanelClassName } from "@/lib/theme/hub-products";
-import { productsCategoryBadgeClassName, productsSectionPanelClassName } from "@/lib/theme/hub-products";
-import { metricValueClassName } from "@/lib/theme/metric";
+import { productsSectionPanelClassName } from "@/lib/theme/hub-products";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 export default function ModifiersPageClient() {
@@ -318,11 +314,7 @@ export default function ModifiersPageClient() {
         title: "Price +",
         key: "price",
         render: (_: unknown, record: ModifierOption) => (
-          <span
-            className={typeHeadingClassName(
-              cn("tabular-nums", metricValueClassName("emerald")),
-            )}
-          >
+          <span className={cn("tabular-nums font-medium", text.primary)}>
             {formatCurrency(toNumber(record.priceDelta))}
           </span>
         ),
@@ -332,31 +324,29 @@ export default function ModifiersPageClient() {
         dataIndex: "isDefault",
         key: "default",
         responsive: ["md"],
-        render: (v: boolean) =>
-          v ? (
-            <StatusBadge tone="success">Yes</StatusBadge>
-          ) : (
-            <StatusBadge tone="neutral">No</StatusBadge>
-          ),
+        width: 72,
+        render: (v: boolean) => (
+          <span className={cn("text-sm", v ? text.primary : text.muted)}>{v ? "Yes" : "—"}</span>
+        ),
       },
       {
-        title: "Swap to",
+        title: "Swap",
         key: "swap",
         responsive: ["lg"],
-        render: (_: unknown, record: ModifierOption) =>
-          record.swapToIngredient?.name ? (
-            <StatusBadge tone="success">{record.swapToIngredient.name}</StatusBadge>
-          ) : (
-            <span className={text.muted}>—</span>
-          ),
+        render: (_: unknown, record: ModifierOption) => (
+          <span className={cn("text-sm", text.secondary)}>
+            {record.swapToIngredient?.name ?? "—"}
+          </span>
+        ),
       },
       {
         title: "Sort",
         dataIndex: "sortOrder",
         key: "sort",
         responsive: ["lg"],
+        width: 56,
         render: (sortOrder: number) => (
-          <span className={tableCellMutedClassName()}>{sortOrder}</span>
+          <span className={cn("tabular-nums text-sm", text.muted)}>{sortOrder}</span>
         ),
       },
       {
@@ -387,31 +377,64 @@ export default function ModifiersPageClient() {
     [openEditOption],
   );
 
-  const groupActionButtonClass =
-    "min-h-[44px] font-medium";
+  const renderOptionMobile = useCallback(
+    (record: ModifierOption, group: ModifierGroup) => (
+      <ListMobileCard>
+        <div className="mb-2 flex items-start justify-between gap-3">
+          <span className={cn("font-medium", text.primary)}>{record.name}</span>
+          <span className={cn("shrink-0 tabular-nums font-medium", text.primary)}>
+            {formatCurrency(toNumber(record.priceDelta))}
+          </span>
+        </div>
+        <dl className="mb-3 grid grid-cols-2 gap-x-3 gap-y-1 text-sm">
+          <div>
+            <dt className={text.muted}>Default</dt>
+            <dd className={cn(record.isDefault ? text.primary : text.muted)}>
+              {record.isDefault ? "Yes" : "—"}
+            </dd>
+          </div>
+          <div>
+            <dt className={text.muted}>Sort</dt>
+            <dd className={cn("tabular-nums", text.muted)}>{record.sortOrder}</dd>
+          </div>
+          {record.swapToIngredient?.name ? (
+            <div className="col-span-2">
+              <dt className={text.muted}>Swap</dt>
+              <dd className={text.secondary}>{record.swapToIngredient.name}</dd>
+            </div>
+          ) : null}
+        </dl>
+        <div className="flex items-center justify-end gap-1">
+          <TableActionButton
+            icon={Pencil}
+            label={`Edit ${record.name} in ${group.name}`}
+            iconOnly
+            tone="purple"
+            onClick={() => openEditOption(record)}
+          />
+          <TableActionButton
+            icon={Trash2}
+            label={`Delete ${record.name}`}
+            iconOnly
+            destructive
+            onClick={() => setPendingDelete({ type: "option", item: record })}
+          />
+        </div>
+      </ListMobileCard>
+    ),
+    [openEditOption],
+  );
+
+  const groupActionButtonClass = "min-h-9";
 
   return (
     <>
-      <HubPageHeader
-        hideTitle
-        icon={SlidersHorizontal}
-        accentHub="products"
-        actions={
-          <>
-            <ButtonLink href="/pos/terminal" variant="outline" className="font-medium">
-              <Monitor className="w-4 h-4 mr-2" aria-hidden />
-              POS Terminal
-            </ButtonLink>
-            <Button
-              onClick={openCreateGroup}
-              className={hubCtaClassName("products")}
-            >
-              <Plus className="w-4 h-4 mr-2" aria-hidden />
-              New Group
-            </Button>
-          </>
-        }
-      />
+      <div className="mb-4 flex justify-end">
+        <Button onClick={openCreateGroup} className={hubCtaClassName("products")}>
+          <Plus className="w-4 h-4 mr-2" aria-hidden />
+          New group
+        </Button>
+      </div>
 
       <HubListPage className={productsSectionPanelClassName()}>
         <HubListPage.Error
@@ -476,7 +499,7 @@ export default function ModifiersPageClient() {
             : undefined}
         </HubListPage.Count>
 
-        <HubListPage.Body className="space-y-4">
+        <HubListPage.Body className="space-y-0">
           {isLoading ? (
             <QueryLoadingPanel message="Loading modifier groups…" minHeightClassName="py-16" />
           ) : !isError && filteredGroups.length === 0 ? (
@@ -495,38 +518,28 @@ export default function ModifiersPageClient() {
             filteredGroups.map((group: ModifierGroup) => (
               <div key={group.id} className={modifierGroupPanelClassName()}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h3 className={typeHeadingClassName("text-lg")}>
-                      {group.name}
-                    </h3>
-                    <div className="flex flex-wrap gap-2 mt-1">
-                      {group.category ? (
-                        <span className={productsCategoryBadgeClassName()}>
-                          {group.category}
-                        </span>
-                      ) : (
-                        <span className={productsCategoryBadgeClassName()}>
-                          All categories
-                        </span>
-                      )}
-                      <span className={productsCategoryBadgeClassName()}>
-                        Order: {group.sortOrder}
-                      </span>
-                      {group.swapIngredient && (
-                        <StatusBadge tone="success">
-                          Swaps: {group.swapIngredient.name}
-                        </StatusBadge>
-                      )}
-                    </div>
+                  <div className="min-w-0">
+                    <h3 className={cn("font-semibold", text.primary)}>{group.name}</h3>
+                    <p className={cn("mt-0.5 text-sm", text.muted)}>
+                      {[
+                        group.category ?? "All categories",
+                        `sort ${group.sortOrder}`,
+                        group.swapIngredient?.name
+                          ? `swap ${group.swapIngredient.name}`
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     <Button
                       variant="outline"
                       size="sm"
                       className={groupActionButtonClass}
                       onClick={() => openEditGroup(group)}
                     >
-                      <Pencil className="w-4 h-4 mr-1" aria-hidden />
+                      <Pencil className="w-3.5 h-3.5 mr-1" aria-hidden />
                       Edit
                     </Button>
                     <Button
@@ -535,7 +548,7 @@ export default function ModifiersPageClient() {
                       className={groupActionButtonClass}
                       onClick={() => openCreateOption(group.id)}
                     >
-                      <Plus className="w-4 h-4 mr-1" aria-hidden />
+                      <Plus className="w-3.5 h-3.5 mr-1" aria-hidden />
                       Option
                     </Button>
                     <TableActionButton
@@ -549,14 +562,28 @@ export default function ModifiersPageClient() {
                   </div>
                 </div>
 
-                <DataTable
-                  {...hubListDataTableProps()}
-                  rowKey="id"
-                  dataSource={group.options}
-                  pagination={false}
-                  emptyDescription="No options in this group yet."
-                  columns={makeOptionColumns(group)}
-                />
+                <div className="md:hidden">
+                  {group.options.length === 0 ? (
+                    <p className={cn("py-4 text-center text-sm", text.muted)}>No options yet.</p>
+                  ) : (
+                    <PaginatedMobileList
+                      items={group.options}
+                      pageSize={0}
+                    >
+                      {(record) => renderOptionMobile(record, group)}
+                    </PaginatedMobileList>
+                  )}
+                </div>
+                <div className="hidden md:block">
+                  <DataTable
+                    {...hubListDataTableProps()}
+                    rowKey="id"
+                    dataSource={group.options}
+                    pagination={false}
+                    emptyDescription="No options yet."
+                    columns={makeOptionColumns(group)}
+                  />
+                </div>
               </div>
             ))
           )}

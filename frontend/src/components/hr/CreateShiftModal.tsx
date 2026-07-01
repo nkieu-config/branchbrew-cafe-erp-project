@@ -2,16 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { FormDialog } from "@/components/shared/form-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,12 +16,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { User } from "@/types/api";
-import { hubModalIconClassName } from "@/lib/theme/color-helpers";
 import { hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
 import { hrDialogContentClassName } from "@/lib/theme/hub-hr";
 import { formFieldInsetClassName, formLineDateFieldClassName, formSelectContentClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type CreateShiftModalProps = {
@@ -104,25 +95,16 @@ export function CreateShiftModal({
   };
 
   return (
-    <Dialog
+    <FormDialog
       open={open}
       onOpenChange={(next) => {
         if (!next) onClose();
       }}
+      className={hrDialogContentClassName()}
     >
-      <DialogContent className={hrDialogContentClassName()}>
-        <DialogHeader>
-          <DialogTitle className={typeHeadingClassName("text-xl flex items-center gap-2")}>
-            <CalendarDays className={hubModalIconClassName("hr")} aria-hidden />
-            Schedule shift
-          </DialogTitle>
-          <DialogDescription>
-            Assign a time block for an employee at this branch. Shifts appear on the Gantt timeline
-            and drive attendance late detection.
-          </DialogDescription>
-        </DialogHeader>
+        <FormDialog.Title>Schedule shift</FormDialog.Title>
 
-        <div className="space-y-4 pt-2">
+        <FormDialog.Body className="space-y-4 pt-1">
           <div className="space-y-2">
             <Label htmlFor="shift-employee" className={text.secondary}>
               Employee
@@ -131,9 +113,8 @@ export function CreateShiftModal({
               <p className={cn("text-sm", text.muted)}>
                 No employees yet —{" "}
                 <Link href="/hr/employees" className={inlineLinkClassName()}>
-                  open the directory
-                </Link>{" "}
-                or add users in Organization.
+                  add staff
+                </Link>
               </p>
             ) : (
               <Select value={userId} onValueChange={(value) => value != null && setUserId(value)}>
@@ -143,7 +124,7 @@ export function CreateShiftModal({
                 <SelectContent className={formSelectContentClassName()}>
                   {staffOptions.map((employee) => (
                     <SelectItem key={employee.id} value={String(employee.id)}>
-                      {employee.name ?? employee.email} ({employee.role})
+                      {employee.name ?? employee.email}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -189,9 +170,9 @@ export function CreateShiftModal({
               />
             </div>
           </div>
-        </div>
+        </FormDialog.Body>
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <FormDialog.Footer className="gap-2 sm:gap-0">
           <Button type="button" variant="outline" onClick={onClose} className="min-h-[44px]">
             Cancel
           </Button>
@@ -202,10 +183,9 @@ export function CreateShiftModal({
             onClick={() => void handleSubmit()}
           >
             {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}
-            Save shift
+            Save
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </FormDialog.Footer>
+    </FormDialog>
   );
 }

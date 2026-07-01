@@ -1,24 +1,30 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useMemo } from "react";
 import type { ColumnsType } from "antd/es/table";
 import Link from "next/link";
 import { Edit, Trash2 } from "lucide-react";
 import { DataTable } from "@/components/shared/data-table";
+import {
+  ListMobileCard,
+  PaginatedMobileList,
+  ResponsiveDataTableLayout,
+} from "@/components/shared/responsive-data-table";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
-import { formatDate } from "@/lib/intl-date";
 import { formatCurrency } from "@/lib/money";
 import { calcProductFoodCost, foodCostStatus } from "@/lib/food-cost";
 import { productFoodCostBucket } from "@/lib/food-cost-filters";
 import { productHasRecipe, productIsActive } from "@/lib/menu-product-filters";
 import { buildProductsCostingUrl } from "@/lib/products-hub-url";
-import { hubListDataTableProps } from "@/lib/theme/data-table";
-import { tableCellMutedClassName } from "@/lib/theme/feedback";
+import { useHubListPagination } from "@/hooks/useHubListPagination";
 import { inlineLinkClassName } from "@/lib/theme/hub-primitives";
-import { foodCostStatusClassName, productsCategoryBadgeClassName } from "@/lib/theme/hub-products";
+import {
+  foodCostStatusClassName,
+  productsCategoryTextClassName,
+} from "@/lib/theme/hub-products";
 import { text } from "@/lib/theme/surface";
-import { typeHeadingClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/types/api";
 
@@ -41,20 +47,11 @@ export function MenuProductListTable({
     () =>
       [
         {
-          title: "ID",
-          dataIndex: "id",
-          key: "id",
-          responsive: ["lg"],
-          render: (id: number) => (
-            <span className={tableCellMutedClassName()}>#{id}</span>
-          ),
-        },
-        {
-          title: "Menu Name",
+          title: "Name",
           dataIndex: "name",
           key: "name",
           render: (name: string) => (
-            <span className={typeHeadingClassName()}>{name}</span>
+            <span className={cn("font-medium", text.primary)}>{name}</span>
           ),
         },
         {
@@ -63,7 +60,7 @@ export function MenuProductListTable({
           key: "category",
           responsive: ["md"],
           render: (category: string) => (
-            <span className={productsCategoryBadgeClassName()}>{category}</span>
+            <span className={productsCategoryTextClassName()}>{category}</span>
           ),
         },
         {
@@ -71,13 +68,13 @@ export function MenuProductListTable({
           dataIndex: "price",
           key: "price",
           render: (price: number) => (
-            <span className={typeUiLabelClassName(cn("tabular-nums", text.primary))}>
+            <span className={cn("tabular-nums font-medium", text.primary)}>
               {formatCurrency(price)}
             </span>
           ),
         },
         {
-          title: "Food Cost %",
+          title: "Food cost",
           key: "foodCost",
           responsive: ["md"],
           render: (_: unknown, record: Product) => {
@@ -86,73 +83,58 @@ export function MenuProductListTable({
               return (
                 <Link
                   href={buildProductsCostingUrl({ status: "no-recipe" })}
-                  className={inlineLinkClassName()}
+                  className={inlineLinkClassName("text-sm")}
                 >
                   No recipe
                 </Link>
               );
             }
             if (bucket === "no-price") {
-              return <span className={text.muted}>No price</span>;
+              return <span className={text.muted}>—</span>;
             }
-            const { cost, foodCostPercent } = calcProductFoodCost(record);
+            const { foodCostPercent } = calcProductFoodCost(record);
             const status = foodCostStatus(foodCostPercent);
             return (
-              <div>
-                <Link
-                  href={buildProductsCostingUrl({
-                    status,
-                    ...(record.category ? { category: record.category } : {}),
-                  })}
-                  className={cn(foodCostStatusClassName(status), "hover:opacity-80")}
-                >
-                  {foodCostPercent.toFixed(1)}%
-                </Link>
-                <div className={cn("text-xs", tableCellMutedClassName())}>
-                  COGS {formatCurrency(cost)}
-                </div>
-              </div>
+              <Link
+                href={buildProductsCostingUrl({
+                  status,
+                  ...(record.category ? { category: record.category } : {}),
+                })}
+                className={foodCostStatusClassName(status)}
+              >
+                {foodCostPercent.toFixed(1)}%
+              </Link>
             );
           },
         },
         {
           title: "Status",
           key: "isActive",
+          width: 96,
           render: (_: unknown, record: Product) =>
             productIsActive(record) ? (
               <StatusBadge tone="success">Active</StatusBadge>
             ) : (
-              <StatusBadge tone="neutral">Inactive</StatusBadge>
+              <StatusBadge tone="neutral">Off</StatusBadge>
             ),
         },
         {
-          title: "Menu Recipe",
+          title: "Recipe",
           key: "recipe",
           responsive: ["lg"],
           render: (_: unknown, record: Product) =>
             productHasRecipe(record) ? (
-              <StatusBadge tone="info">
-                {record.recipeItems!.length} ingredients
-              </StatusBadge>
+              <span className={cn("text-sm tabular-nums", text.muted)}>
+                {record.recipeItems!.length} items
+              </span>
             ) : (
-              <StatusBadge tone="neutral">No Menu Recipe</StatusBadge>
+              <span className={text.muted}>—</span>
             ),
-        },
-        {
-          title: "Created",
-          dataIndex: "createdAt",
-          key: "createdAt",
-          responsive: ["lg"],
-          render: (createdAt?: string) => (
-            <span className={cn("text-sm font-medium", text.muted)}>
-              {createdAt ? formatDate(createdAt) : "—"}
-            </span>
-          ),
         },
         {
           title: "",
           key: "actions",
-          width: 96,
+          width: 80,
           align: "right" as const,
           render: (_: unknown, record: Product) => (
             <div className="flex items-center justify-end gap-1">
@@ -177,18 +159,109 @@ export function MenuProductListTable({
     [onEdit, onDelete],
   );
 
+  const emptyDescription = hasActiveFilters ? "No items match your filters." : "No menu items yet.";
+
+  const listPagination = useHubListPagination(
+    { pageSize: 15 },
+    `${products.length}-${hasActiveFilters}`,
+  );
+
   return (
-    <DataTable
-      {...hubListDataTableProps()}
-      loading={isLoading}
-      emptyDescription={
-        hasActiveFilters
-          ? "No menu items match your filters."
-          : "No menu items yet. Add raw ingredients first, then create menu items for the POS."
+    <ResponsiveDataTableLayout
+      mobile={
+        isLoading ? (
+          <ResponsiveDataTableLayout.Skeleton />
+        ) : products.length === 0 ? (
+          <ResponsiveDataTableLayout.Empty message={emptyDescription} />
+        ) : (
+          <PaginatedMobileList
+            items={products}
+            pageSize={listPagination.pageSize}
+            page={listPagination.currentPage}
+            onPageChange={listPagination.setCurrentPage}
+          >
+            {(record) => {
+              const bucket = productFoodCostBucket(record);
+              let foodCostLabel = null as ReactNode;
+              if (bucket === "no-recipe") {
+                foodCostLabel = (
+                  <Link href={buildProductsCostingUrl({ status: "no-recipe" })} className={inlineLinkClassName("text-sm")}>
+                    No recipe
+                  </Link>
+                );
+              } else if (bucket !== "no-price") {
+                const { foodCostPercent } = calcProductFoodCost(record);
+                const status = foodCostStatus(foodCostPercent);
+                foodCostLabel = (
+                  <Link
+                    href={buildProductsCostingUrl({
+                      status,
+                      ...(record.category ? { category: record.category } : {}),
+                    })}
+                    className={foodCostStatusClassName(status)}
+                  >
+                    {foodCostPercent.toFixed(1)}% food cost
+                  </Link>
+                );
+              }
+
+              return (
+                <ListMobileCard>
+                  <div className="mb-2 flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className={cn("font-medium", text.primary)}>{record.name}</p>
+                      {record.category ? <p className={productsCategoryTextClassName()}>{record.category}</p> : null}
+                    </div>
+                    <span className={cn("shrink-0 tabular-nums font-medium", text.primary)}>
+                      {formatCurrency(record.price)}
+                    </span>
+                  </div>
+                  <div className="mb-3 flex flex-wrap items-center gap-2">
+                    {productIsActive(record) ? (
+                      <StatusBadge tone="success">Active</StatusBadge>
+                    ) : (
+                      <StatusBadge tone="neutral">Off</StatusBadge>
+                    )}
+                    {foodCostLabel}
+                    {productHasRecipe(record) ? (
+                      <span className={cn("text-xs tabular-nums", text.muted)}>
+                        {record.recipeItems!.length} recipe items
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="flex justify-end gap-1">
+                    <TableActionButton
+                      icon={Edit}
+                      label={`Edit ${record.name}`}
+                      iconOnly
+                      tone="purple"
+                      onClick={() => onEdit(record)}
+                    />
+                    <TableActionButton
+                      icon={Trash2}
+                      label={`Delete ${record.name}`}
+                      iconOnly
+                      destructive
+                      onClick={() => onDelete(record)}
+                    />
+                  </div>
+                </ListMobileCard>
+              );
+            }}
+          </PaginatedMobileList>
+        )
       }
-      columns={columns}
-      dataSource={products}
-      rowKey="id"
+      desktop={
+        <DataTable
+          hideBorders
+          pagination={listPagination.tablePagination}
+          loading={isLoading}
+          emptyDescription={emptyDescription}
+          columns={columns}
+          dataSource={products}
+          rowKey="id"
+        />
+      }
     />
   );
 }

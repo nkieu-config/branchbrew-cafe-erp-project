@@ -28,7 +28,7 @@ export function SidebarRail({ onExpand, onNavigate, className }: SidebarRailProp
 
   return (
     <div className={sidebarRootClassName(className, true)}>
-      <div className={cn("h-14 md:h-16 flex items-center justify-center border-b shrink-0", shell.sidebarDivider, shellHeaderInsetClassName())}>
+      <div className={cn("h-14 flex items-center justify-center border-b shrink-0", shell.sidebarDivider, shellHeaderInsetClassName())}>
         <Link
           href="/"
           onClick={onNavigate}
@@ -59,7 +59,7 @@ export function SidebarRail({ onExpand, onNavigate, className }: SidebarRailProp
               aria-current={isCurrentPage ? "page" : undefined}
               className={cn(sidebarRailLinkClassName(isActive, isCurrentPage), "relative")}
             >
-              <ItemIcon className="w-5 h-5 shrink-0" aria-hidden />
+              <ItemIcon className="w-[18px] h-[18px] shrink-0" aria-hidden />
               {badge && (
                 <SidebarNavBadge
                   count={badge.count}
@@ -82,7 +82,7 @@ export function SidebarRail({ onExpand, onNavigate, className }: SidebarRailProp
             aria-label="Expand sidebar"
             title="Expand sidebar"
           >
-            <PanelLeftOpen className="w-5 h-5" aria-hidden />
+            <PanelLeftOpen className="w-4 h-4" aria-hidden />
           </button>
         </div>
       )}

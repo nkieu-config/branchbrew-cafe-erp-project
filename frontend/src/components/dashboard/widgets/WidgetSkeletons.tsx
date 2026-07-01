@@ -2,13 +2,13 @@ import { dashboardSkeletonClass } from "@/lib/theme/dashboard";
 import { cn } from "@/lib/utils";
 
 export function StatWidgetSkeleton() {
-  return <div className={dashboardSkeletonClass("h-full min-h-[180px]")} />;
+  return <div className={dashboardSkeletonClass("h-full min-h-[120px]")} />;
 }
 
 export function AlertsWidgetSkeleton() {
-  return <div className={dashboardSkeletonClass("h-[300px]")} />;
+  return <div className={dashboardSkeletonClass("h-[240px]")} />;
 }
 
 export function ChartWidgetSkeleton({ className }: { className?: string }) {
-  return <div className={dashboardSkeletonClass(cn("h-[400px]", className))} />;
+  return <div className={dashboardSkeletonClass(cn("h-[320px]", className))} />;
 }

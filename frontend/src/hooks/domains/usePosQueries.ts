@@ -3,7 +3,11 @@ import { API_ENDPOINTS } from '@/lib/endpoints';
 import { fetchAPI } from '@/lib/api';
 import type { Order, OrderStatus } from '@/types/api';
 import { KDS_STATUSES, mergeKdsOrders, normalizeKdsOrders } from '@/lib/kds-utils';
-import { NAV_COUNTS_QUERY_KEY } from '@/lib/nav-counts';
+import {
+  invalidateNavCounts,
+  invalidatePosOrderSideEffects,
+  orderKeys,
+} from '@/lib/query-keys';
 
 export const kdsOrdersQueryKey = (branchId?: number) => ['kdsOrders', branchId] as const;
 
@@ -52,7 +56,7 @@ export const useUpdateKdsOrderStatus = (branchId?: number) => {
       if (branchId) {
         queryClient.invalidateQueries({ queryKey: kdsOrdersQueryKey(branchId) });
       }
-      queryClient.invalidateQueries({ queryKey: [NAV_COUNTS_QUERY_KEY] });
+      invalidateNavCounts(queryClient);
     },
   });
 };
@@ -62,7 +66,7 @@ export const useUpdateKdsOrderStatus = (branchId?: number) => {
 // ==========================================
 export const useProducts = () => {
   return useQuery({
-    queryKey: ['products'],
+    queryKey: orderKeys.products,
     queryFn: () => fetchAPI(API_ENDPOINTS.products.list),
   });
 };
@@ -72,15 +76,15 @@ export const useCreateOrder = () => {
   return useMutation({
     mutationFn: (data: unknown) => fetchAPI(API_ENDPOINTS.orders.create, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: [NAV_COUNTS_QUERY_KEY] });
+      queryClient.invalidateQueries({ queryKey: orderKeys.root });
+      invalidateNavCounts(queryClient);
     },
   });
 };
 
 export const useBranchOrders = (branchId?: number) => {
   return useQuery({
-    queryKey: ['orders', branchId],
+    queryKey: orderKeys.branch(branchId),
     queryFn: () => fetchAPI(API_ENDPOINTS.orders.list(branchId)),
     enabled: !!branchId,
   });
@@ -92,10 +96,7 @@ export const useVoidOrder = () => {
     mutationFn: (orderId: number) =>
       fetchAPI(API_ENDPOINTS.orders.void(orderId), { method: 'POST' }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: ['analyticsSummary'] });
-      queryClient.invalidateQueries({ queryKey: ['salesTrends'] });
-      queryClient.invalidateQueries({ queryKey: ['branchInventory'] });
+      invalidatePosOrderSideEffects(queryClient);
     },
   });
 };
@@ -109,10 +110,7 @@ export const useRefundOrder = () => {
         body: JSON.stringify(reason ? { reason } : {}),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: ['analyticsSummary'] });
-      queryClient.invalidateQueries({ queryKey: ['salesTrends'] });
-      queryClient.invalidateQueries({ queryKey: ['branchInventory'] });
+      invalidatePosOrderSideEffects(queryClient);
     },
   });
 };

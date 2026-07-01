@@ -10,9 +10,13 @@ export function organizationHubIconClassName(className?: string) {
   return hubIconClassName("organization", className);
 }
 
+export function organizationMutedMetaClassName(className?: string) {
+  return cn("text-sm", text.muted, className);
+}
+
 export function organizationDialogContentClassName(className?: string) {
   return cn(
-    "sm:max-w-lg rounded-2xl max-h-[90vh] overflow-y-auto",
+    "sm:max-w-lg rounded-xl max-h-[90vh] overflow-y-auto",
     "bg-[var(--table-container-bg)] border-[var(--table-container-border)] text-foreground",
     className,
   );

@@ -1,10 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { AnimatedPage } from "@/components/layout/animated-page";
-import { KdsOrderBoard } from "@/components/kds/KdsOrderBoard";
+import { useState } from "react";
+import dynamic from "next/dynamic";
 import {
-  KdsConnectionBadge,
   KdsImmersiveHeader,
 } from "@/components/kds/KdsImmersiveChrome";
 import type { KdsPendingAction } from "@/components/kds/KdsOrderTicket";
@@ -16,7 +14,6 @@ import { useSocket } from "@/context/SocketContext";
 import { useKdsOrders, useUpdateKdsOrderStatus } from "@/hooks/domains/usePosQueries";
 import { useKdsSocketSync } from "@/hooks/useKdsSocketSync";
 import { useKdsWaitClock } from "@/hooks/useKdsWaitClock";
-import { getWaitTimeMinutes } from "@/lib/kds-display";
 import { ChefHat } from "lucide-react";
 import { formatQueueNumber } from "@/lib/queue";
 import { getErrorMessage } from "@/lib/errors";
@@ -29,6 +26,15 @@ import { text } from "@/lib/theme/surface";
 import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { Order } from "@/types/api";
+
+const KdsOrderBoard = dynamic(
+  () => import("@/components/kds/KdsOrderBoard").then((m) => m.KdsOrderBoard),
+  {
+    loading: () => (
+      <QueryLoadingPanel message="Loading board…" variant="kds" minHeightClassName="min-h-[16rem]" />
+    ),
+  },
+);
 
 export default function KdsPage() {
   const { activeBranchId } = useAuth();
@@ -48,16 +54,6 @@ export default function KdsPage() {
 
   const updateStatusMutation = useUpdateKdsOrderStatus(activeBranchId ?? undefined);
   useKdsSocketSync(activeBranchId ?? undefined);
-
-  const queueStats = useMemo(() => {
-    let late = 0;
-    let preparing = 0;
-    for (const order of orders) {
-      if (order.status === "PREPARING") preparing += 1;
-      if (getWaitTimeMinutes(order.createdAt, now) >= 10) late += 1;
-    }
-    return { total: orders.length, late, preparing };
-  }, [orders, now]);
 
   const handleUpdateStatus = async (
     orderId: number,
@@ -109,24 +105,21 @@ export default function KdsPage() {
 
   if (!activeBranchId) {
     return (
-      <AnimatedPage className="flex h-full flex-col">
+      <div className="flex h-full flex-col">
         <BranchEmptyState title="Select a branch for KDS" />
-      </AnimatedPage>
+      </div>
     );
   }
 
   const fetchError = isError ? getErrorMessage(error, "Failed to load kitchen orders") : null;
 
   return (
-    <AnimatedPage className="flex h-full min-h-0 flex-col gap-3 sm:gap-4">
-      <KdsImmersiveHeader
-        isConnected={isConnected}
-        queueStats={queueStats}
-        isLoading={isLoading}
-      />
+    <div className="flex h-full min-h-0 flex-col gap-3 overflow-hidden sm:gap-4">
+      <KdsImmersiveHeader />
 
       {fetchError && (
         <QueryErrorBanner
+          className="shrink-0"
           message={fetchError}
           onRetry={() => void refetch()}
           loading={isFetching}
@@ -138,14 +131,11 @@ export default function KdsPage() {
           <QueryLoadingPanel message="Loading orders…" variant="kds" minHeightClassName="min-h-[16rem]" />
         ) : orders.length === 0 && !isError ? (
           <div className={kdsEmptyStateClassName()}>
-            <ChefHat className={kdsEmptyIconClassName("mx-auto mb-4 h-12 w-12")} aria-hidden />
+            <ChefHat className={kdsEmptyIconClassName("mb-3 h-10 w-10")} aria-hidden />
             <p className={typeUiLabelClassName(text.primary)}>No pending orders</p>
-            <p className={cn("mt-2 text-sm", text.muted)}>
-              Kitchen is clear — new orders will appear here automatically.
+            <p className={cn("mt-1 text-sm", text.muted)}>
+              New tickets will appear here automatically.
             </p>
-            <div className="mt-4 flex justify-center">
-              <KdsConnectionBadge isConnected={isConnected} />
-            </div>
           </div>
         ) : !isError ? (
           <KdsOrderBoard
@@ -160,6 +150,6 @@ export default function KdsPage() {
           />
         ) : null}
       </div>
-    </AnimatedPage>
+    </div>
   );
 }

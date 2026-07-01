@@ -73,7 +73,6 @@ export {
   kanbanCardClassName,
   kanbanCompletedCardClassName,
   kanbanOrderBadgeClassName,
-  kanbanMetaChipClassName,
 } from "./hub-kitchen";
 
 export {
@@ -121,4 +120,5 @@ export {
   settingsSectionClassName,
   settingsSectionHeaderClassName,
   settingsSectionTitleClassName,
+  settingsSectionLabelClassName,
 } from "./settings-form-section";

@@ -1,12 +1,9 @@
 "use client";
 
-import Link from "next/link";
-import { ListTree, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { hubCardIconFor, hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
-import { kitchenMetaBadgeClassName } from "@/lib/theme/hub-kitchen";
+import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { text } from "@/lib/theme/surface";
-import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 
 type BomListEmptyStateProps = {
@@ -16,26 +13,18 @@ type BomListEmptyStateProps = {
 
 export function BomListEmptyState({ hasSearch, onCreate }: BomListEmptyStateProps) {
   return (
-    <div className="py-16 text-center">
-      <ListTree className={hubCardIconFor("kitchen", "w-12 h-12 mx-auto mb-4")} />
-      <p className={typeUiLabelClassName(text.primary)}>
+    <div className="py-14 text-center">
+      <p className={cn("font-medium", text.primary)}>
         {hasSearch ? "No BOMs match your search" : "No production BOMs yet"}
       </p>
-      <p className={cn("text-sm mt-2 max-w-md mx-auto", text.muted)}>
-        {hasSearch
-          ? "Try a different target or raw ingredient name."
-          : "Create a production BOM to define raw ingredients and quantities for each finished product."}
+      <p className={cn("text-sm mt-1.5", text.muted)}>
+        {hasSearch ? "Try a different name." : "Define raw ingredients per finished product."}
       </p>
       {!hasSearch && (
-        <div className="mt-6 flex flex-wrap justify-center gap-3">
-          <Button className={hubCtaClassName("kitchen")} onClick={onCreate}>
-            <Plus className="w-4 h-4 mr-2" aria-hidden />
-            Create first BOM
-          </Button>
-          <Link href="/products/ingredients" className={kitchenMetaBadgeClassName("px-4 py-2")}>
-            Raw ingredients
-          </Link>
-        </div>
+        <Button className={cn("mt-5", hubCtaClassName("kitchen"))} onClick={onCreate}>
+          <Plus className="w-4 h-4 mr-2" aria-hidden />
+          Create BOM
+        </Button>
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import type { MetricTone } from "./metric";
 import { metricValueClassName } from "./metric";
+import { text } from "./surface";
 
 export {
   productsCategoryBadgeClassName,
@@ -20,7 +21,7 @@ export function foodCostStatusMetricTone(status: "good" | "warn" | "bad"): Metri
 }
 
 export function foodCostStatusClassName(status: "good" | "warn" | "bad", className?: string) {
-  return cn("font-bold tabular-nums", metricValueClassName(foodCostStatusMetricTone(status)), className);
+  return cn("font-semibold tabular-nums text-sm", metricValueClassName(foodCostStatusMetricTone(status)), className);
 }
 
 export function foodCostProgressIndicatorClassName(isWarning: boolean, className?: string) {
@@ -31,9 +32,9 @@ export function foodCostProgressIndicatorClassName(isWarning: boolean, className
 }
 
 export function modifierGroupPanelClassName(className?: string) {
-  return cn(
-    "rounded-xl border p-5 space-y-4 mb-4 last:mb-0",
-    "border-[var(--table-container-border)] bg-[var(--form-line-bg)]",
-    className,
-  );
+  return cn("space-y-3 py-4 border-b border-[var(--table-row-border)] last:border-0", className);
+}
+
+export function productsCategoryTextClassName(className?: string) {
+  return cn("text-sm", text.muted, className);
 }

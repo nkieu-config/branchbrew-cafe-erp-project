@@ -21,7 +21,7 @@ export function PosCustomerLookupDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={posDialogContentClassName(
-          "sm:max-w-[360px] bg-transparent border-none shadow-none p-0",
+          "gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-[400px]",
         )}
         showCloseButton={false}
       >

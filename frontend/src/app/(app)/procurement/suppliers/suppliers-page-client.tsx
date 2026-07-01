@@ -1,13 +1,15 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { Building2, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { SupplierFormDialog } from "@/components/procurement/SupplierFormDialog";
+import {
+  SupplierFormDialog,
+  type SupplierFormValues,
+} from "@/components/procurement/SupplierFormDialog";
 import { SuppliersTable } from "@/components/procurement/SuppliersTable";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,9 +46,6 @@ export default function SuppliersPageClient() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Supplier | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Supplier | null>(null);
-  const [name, setName] = useState("");
-  const [contactEmail, setContactEmail] = useState("");
-  const [phone, setPhone] = useState("");
 
   const poCountBySupplier = useMemo(
     () => countPurchaseOrdersBySupplier(purchaseOrders),
@@ -62,41 +61,30 @@ export default function SuppliersPageClient() {
 
   const hasActiveFilters = hasSupplierFilters({ search, contactFilter });
 
-  const resetForm = useCallback(() => {
-    setName("");
-    setContactEmail("");
-    setPhone("");
-  }, []);
-
   const openCreate = useCallback(() => {
     setEditing(null);
-    resetForm();
     setOpen(true);
-  }, [resetForm]);
+  }, []);
 
   const openEdit = useCallback((supplier: Supplier) => {
     setEditing(supplier);
-    setName(supplier.name);
-    setContactEmail(supplier.contactEmail ?? "");
-    setPhone(supplier.phone ?? "");
     setOpen(true);
   }, []);
 
   const closeDialog = useCallback(() => {
     setOpen(false);
     setEditing(null);
-    resetForm();
-  }, [resetForm]);
+  }, []);
 
-  const handleSubmit = async () => {
-    if (!name.trim()) {
+  const handleSave = async (values: SupplierFormValues) => {
+    if (!values.name.trim()) {
       toast.error("Name is required");
       return;
     }
     const payload = {
-      name: name.trim(),
-      contactEmail: contactEmail.trim() || undefined,
-      phone: phone.trim() || undefined,
+      name: values.name.trim(),
+      contactEmail: values.contactEmail.trim() || undefined,
+      phone: values.phone.trim() || undefined,
     };
     try {
       if (editing) {
@@ -127,17 +115,12 @@ export default function SuppliersPageClient() {
 
   return (
     <>
-      <HubPageHeader
-        hideTitle
-        icon={Building2}
-        accentHub="procurement"
-        actions={
-          <Button onClick={openCreate} className={hubCtaClassName("procurement")}>
-            <Plus className="w-4 h-4 mr-2" aria-hidden />
-            Add Supplier
-          </Button>
-        }
-      />
+      <div className="mb-4 flex justify-end">
+        <Button onClick={openCreate} className={hubCtaClassName("procurement")}>
+          <Plus className="w-4 h-4 mr-2" aria-hidden />
+          Add supplier
+        </Button>
+      </div>
 
       <HubListPage className={procurementSectionPanelClassName()}>
         <HubListPage.Error
@@ -160,9 +143,9 @@ export default function SuppliersPageClient() {
               value={contactFilter}
               onValueChange={(value) => setContactFilter(value as SupplierContactFilter)}
               ariaLabel="Filter by contact data"
-              widthClassName="w-full sm:w-[200px]"
+              widthClassName="w-full sm:w-[180px]"
               options={[
-                { value: "ALL", label: "All contact levels" },
+                { value: "ALL", label: "All" },
                 { value: "missing-email", label: "Missing email" },
                 { value: "missing-phone", label: "Missing phone" },
               ]}
@@ -192,29 +175,21 @@ export default function SuppliersPageClient() {
 
       <SupplierFormDialog
         open={open}
-        editing={editing}
-        name={name}
-        contactEmail={contactEmail}
-        phone={phone}
+        initialValues={editing}
         saving={saving}
         onOpenChange={(isOpen) => {
           if (!isOpen) closeDialog();
           else setOpen(true);
         }}
-        onNameChange={setName}
-        onContactEmailChange={setContactEmail}
-        onPhoneChange={setPhone}
-        onSubmit={() => void handleSubmit()}
+        onSave={(values) => void handleSave(values)}
       />
 
       <ConfirmDialog
         open={deleteTarget !== null}
         onOpenChange={(isOpen) => !isOpen && setDeleteTarget(null)}
-        title="Delete this supplier?"
+        title="Delete supplier?"
         description={
-          deleteTarget
-            ? `Remove "${deleteTarget.name}" from the vendor list? Existing purchase orders will keep their historical supplier reference.`
-            : undefined
+          deleteTarget ? `Remove "${deleteTarget.name}"?` : undefined
         }
         confirmLabel="Delete"
         destructive

@@ -1,12 +1,10 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { Plus, Users } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { useHrUsers, useUpdateHourlyRate } from "@/hooks/domains/useHrQueries";
-import { useBranches } from "@/hooks/domains/useGeneralQueries";
-import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
@@ -23,7 +21,7 @@ import {
 } from "@/lib/employee-filters";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { hrSectionPanelClassName } from "@/lib/theme/hub-hr";
-import type { Branch, User } from "@/types/api";
+import type { User } from "@/types/api";
 
 export default function EmployeesPageClient() {
   const { user, activeBranchId } = useAuth();
@@ -31,9 +29,7 @@ export default function EmployeesPageClient() {
   const canEditCompensation = role === "SUPER_ADMIN" || role === "MANAGER";
   const canLinkPayroll = canEditCompensation;
 
-  const { data: branches = [] } = useBranches();
   const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
-  const branchName = (branches as Branch[]).find((b) => b.id === branchIdNum)?.name;
 
   const {
     data: usersData,
@@ -110,20 +106,14 @@ export default function EmployeesPageClient() {
 
   return (
     <>
-      <HubPageHeader
-        hideTitle
-        icon={Users}
-        accentHub="hr"
-        branchScope={{ branchName }}
-        actions={
-          role === "SUPER_ADMIN" ? (
-            <ButtonLink href="/organization/users" className={hubCtaClassName("hr")}>
-              <Plus className="w-4 h-4 mr-2" aria-hidden />
-              Add user
-            </ButtonLink>
-          ) : undefined
-        }
-      />
+      {role === "SUPER_ADMIN" ? (
+        <div className="mb-4 flex justify-end">
+          <ButtonLink href="/organization/users" className={hubCtaClassName("hr")}>
+            <Plus className="w-4 h-4 mr-2" aria-hidden />
+            Add user
+          </ButtonLink>
+        </div>
+      ) : null}
 
       <HubListPage className={hrSectionPanelClassName()}>
         <HubListPage.Error
@@ -211,7 +201,6 @@ export default function EmployeesPageClient() {
         onClose={closeModal}
         onSubmit={() => void handleUpdateSubmit()}
         isSubmitting={updateHourlyRateMutation.isPending}
-        canLinkPayroll={canLinkPayroll}
       />
     </>
   );
