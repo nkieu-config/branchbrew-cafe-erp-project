@@ -1,10 +1,10 @@
 "use client";
 
+import { AUTH_ENDPOINTS } from "@/lib/endpoints/auth";
 import { createContext, use, useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { fetchAPI } from "@/lib/api/client";
-import { API_ENDPOINTS } from "@/lib/endpoints";
 import { setStoredBranchId } from "@/lib/branch-storage";
 import type { SessionUser } from "@/types/auth";
 
@@ -51,7 +51,7 @@ export function AuthProvider({
 
     let cancelled = false;
 
-    fetchAPI(API_ENDPOINTS.auth.me)
+    fetchAPI(AUTH_ENDPOINTS.me)
       .then((profile: SessionUser) => {
         if (cancelled) return;
         setUser(profile);
@@ -82,7 +82,7 @@ export function AuthProvider({
 
   const logout = useCallback(async () => {
     try {
-      await fetchAPI(API_ENDPOINTS.auth.logout, { method: "POST" });
+      await fetchAPI(AUTH_ENDPOINTS.logout, { method: "POST" });
     } catch {
       // Clear client state even if the server call fails.
     }

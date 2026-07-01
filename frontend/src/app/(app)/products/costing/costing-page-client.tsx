@@ -1,10 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useDeferredValue } from "react";
 import { useSearchParams } from "next/navigation";
 import { useOrders } from "@/hooks/domains/useReportsQueries";
 import { useProductsSummary } from "@/hooks/domains/useProductsSummary";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { FoodCostMarginPanel } from "@/components/products/FoodCostMarginPanel";
 import { FoodCostTable } from "@/components/products/FoodCostTable";
 import { ProductFormModal } from "@/components/products/ProductFormModal";
@@ -39,7 +38,7 @@ export default function CostingPageClient() {
   const { data: orders = [], isLoading: ordersLoading } = useOrders();
 
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<FoodCostStatusFilter>("ALL");
   const [activeFilter, setActiveFilter] = useState<FoodCostActiveFilter>("ALL");
@@ -47,23 +46,29 @@ export default function CostingPageClient() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const costingStatusParam = searchParams.get("status");
+  const costingCategoryParam = searchParams.get("category");
+
   useEffect(() => {
-    const parsed = parseProductsCostingSearchParams(searchParams);
+    const params = new URLSearchParams();
+    if (costingStatusParam) params.set("status", costingStatusParam);
+    if (costingCategoryParam) params.set("category", costingCategoryParam);
+    const parsed = parseProductsCostingSearchParams(params);
     if (parsed.status !== "ALL") setStatusFilter(parsed.status);
     if (parsed.category !== "ALL") setCategoryFilter(parsed.category);
-  }, [searchParams]);
+  }, [costingStatusParam, costingCategoryParam]);
 
   const categories = useMemo(() => extractProductCategories(products), [products]);
 
   const filteredProducts = useMemo(
     () =>
       filterFoodCostProducts(products, {
-        search: debouncedSearch,
+        search: deferredSearch,
         categoryFilter,
         statusFilter,
         activeFilter,
       }),
-    [products, debouncedSearch, categoryFilter, statusFilter, activeFilter],
+    [products, deferredSearch, categoryFilter, statusFilter, activeFilter],
   );
 
   const hasActiveFilters = hasFoodCostFilters({

@@ -96,6 +96,7 @@ export function listMobileCardClassName(className?: string) {
     "bg-[var(--table-container-bg)] border-[var(--table-container-border)]",
     "hover:bg-[var(--table-row-hover)]",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]/50",
+    "[content-visibility:auto] [contain-intrinsic-size:auto_7rem]",
     className,
   );
 }

@@ -5,12 +5,11 @@ import { SidebarNavBadge } from "@/components/shared/sidebar-nav-badge";
 import {
   getHubConfig,
   getVisibleHubTabs,
-  isSidebarItemActive,
   isTabActive,
-  resolveSidebarHubId,
   shouldShowHubSubNav,
-  type SidebarItem,
-} from "@/lib/navigation";
+} from "@/lib/navigation/hub-utils";
+import { isSidebarItemActive, resolveSidebarHubId } from "@/lib/navigation/sidebar";
+import type { SidebarItem } from "@/lib/navigation/types";
 import { resolveChildTabHref, resolveSidebarItemHref } from "@/lib/operational-links";
 import type { SidebarNavBadgeMap } from "@/lib/sidebar-badges";
 import { sidebarNavChildLinkClassName, sidebarNavIconClassName, sidebarNavLinkClassName, sidebarTreeIndentClassName } from "@/lib/theme/shell";

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useDeferredValue } from "react";
 import { useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -14,7 +14,6 @@ import { IngredientsTable } from "@/components/products/IngredientsTable";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { getErrorMessage } from "@/lib/errors";
 import {
   filterIngredients,
@@ -41,7 +40,7 @@ export default function IngredientsPageClient() {
   const deleteMutation = useDeleteIngredient();
 
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [statusFilter, setStatusFilter] = useState<IngredientStatusFilter>("ALL");
   const [costFilter, setCostFilter] = useState<IngredientCostFilter>("ALL");
 
@@ -49,10 +48,14 @@ export default function IngredientsPageClient() {
   const [selectedIngredient, setSelectedIngredient] = useState<Ingredient | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Ingredient | null>(null);
 
+  const costParam = searchParams.get("cost");
+
   useEffect(() => {
-    const parsed = parseProductsIngredientsSearchParams(searchParams);
+    const parsed = parseProductsIngredientsSearchParams(
+      new URLSearchParams(costParam ? `cost=${costParam}` : ""),
+    );
     if (parsed.cost !== "ALL") setCostFilter(parsed.cost);
-  }, [searchParams]);
+  }, [costParam]);
 
   const summary = useMemo(
     () => summarizeIngredients(ingredients ?? []),
@@ -62,11 +65,11 @@ export default function IngredientsPageClient() {
   const filteredIngredients = useMemo(
     () =>
       filterIngredients(ingredients ?? [], {
-        search: debouncedSearch,
+        search: deferredSearch,
         statusFilter,
         costFilter,
       }),
-    [ingredients, debouncedSearch, statusFilter, costFilter],
+    [ingredients, deferredSearch, statusFilter, costFilter],
   );
 
   const hasActiveFilters = hasIngredientFilters({

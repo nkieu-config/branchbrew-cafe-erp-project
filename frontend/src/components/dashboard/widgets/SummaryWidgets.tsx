@@ -1,5 +1,7 @@
 "use client";
 
+import { INVENTORY_ENDPOINTS } from "@/lib/endpoints/inventory";
+import { BRANCH_ENDPOINTS } from "@/lib/endpoints/branches";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useMemo, type ReactNode } from "react";
@@ -16,8 +18,8 @@ import {
   CheckCircle2,
   Award,
 } from "lucide-react";
-import { useAnalyticsSummarySuspense, useTopProductsSuspense } from "@/hooks/domains/useReportsQueries";
-import { API_ENDPOINTS } from "@/lib/endpoints";
+import { useTopProductsSuspense } from "@/hooks/domains/useReportsQueries";
+import { useDashboardSummary } from "@/components/dashboard/DashboardSummaryContext";
 import { fetchAPI } from "@/lib/api";
 import { inventoryKeys } from "@/lib/query-keys";
 import {
@@ -56,8 +58,8 @@ function hasComparableGrowth(
   );
 }
 
-export function SalesWidget({ branchId }: { branchId: string }) {
-  const { data: summary } = useAnalyticsSummarySuspense(branchId);
+export function SalesWidget({ branchId: _branchId }: { branchId: string }) {
+  const summary = useDashboardSummary();
   const showGrowth = hasComparableGrowth(summary?.salesGrowth, summary?.salesYesterday);
 
   return (
@@ -107,7 +109,7 @@ export function TopBranchWidget({
   branchId: string;
   branchName?: string;
 }) {
-  const { data: summary } = useAnalyticsSummarySuspense(branchId);
+  const summary = useDashboardSummary();
   const isAllBranches = branchId === "ALL";
 
   if (!isAllBranches) {
@@ -339,7 +341,7 @@ export function LowStockWidget({
   branchName?: string;
 }) {
   if (branchId === "ALL") {
-    return <LowStockAllBranchesWidget branchId={branchId} />;
+    return <LowStockAllBranchesWidget />;
   }
 
   return (
@@ -398,8 +400,8 @@ function LowStockWidgetShell({
   );
 }
 
-function LowStockAllBranchesWidget({ branchId }: { branchId: string }) {
-  const { data: summary } = useAnalyticsSummarySuspense(branchId);
+function LowStockAllBranchesWidget() {
+  const summary = useDashboardSummary();
   const lowStockAlerts = (summary.lowStockAlerts ?? []) as DashboardLowStockAlert[];
   const expiryAlerts = (summary.expiryAlerts ?? []) as DashboardExpiryAlert[];
 
@@ -425,11 +427,11 @@ function LowStockSingleBranchWidget({
     queries: [
       {
         queryKey: inventoryKeys.balance(branchId),
-        queryFn: () => fetchAPI(API_ENDPOINTS.inventory.balance(branchId)),
+        queryFn: () => fetchAPI(INVENTORY_ENDPOINTS.balance(branchId)),
       },
       {
         queryKey: inventoryKeys.branch(branchId),
-        queryFn: () => fetchAPI(API_ENDPOINTS.branches.detail(branchId)),
+        queryFn: () => fetchAPI(BRANCH_ENDPOINTS.detail(branchId)),
       },
     ],
   });

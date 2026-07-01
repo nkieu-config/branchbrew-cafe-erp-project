@@ -7,7 +7,7 @@ export const crmHub: HubConfig = {
   description: "Manage customer loyalty and marketing campaigns.",
   icon: Gift,
   basePath: "/crm",
-  wrapAntd: true,
+  wrapAntd: false,
   tabs: [
     {
       id: "customers",

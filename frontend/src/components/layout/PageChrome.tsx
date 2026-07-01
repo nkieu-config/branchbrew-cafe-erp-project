@@ -13,7 +13,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { BranchScopeIndicator } from "@/components/shared/branch-scope-indicator";
 import { useAuth } from "@/context/AuthContext";
-import { getPageChromeTitleVisibility } from "@/lib/navigation";
+import { getPageChromeTitleVisibility } from "@/lib/navigation/topbar-chrome";
 import { pageChromeStickyBarClassName, shellPageTitleClassName } from "@/lib/theme/shell";
 import { text } from "@/lib/theme/surface";
 import { typeHeadingClassName } from "@/lib/theme/typography";

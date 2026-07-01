@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import type { ColumnsType } from "antd/es/table";
 import { DataTable } from "@/components/shared/data-table";
 import {
@@ -34,7 +34,10 @@ type CustomerMobileCardProps = {
   onSelectCustomer: (id: number) => void;
 };
 
-function CustomerMobileCard({ customer, onSelectCustomer }: CustomerMobileCardProps) {
+const CustomerMobileCard = memo(function CustomerMobileCard({
+  customer,
+  onSelectCustomer,
+}: CustomerMobileCardProps) {
   return (
     <ListMobileCard
       onClick={() => onSelectCustomer(customer.id)}
@@ -70,7 +73,7 @@ function CustomerMobileCard({ customer, onSelectCustomer }: CustomerMobileCardPr
       </div>
     </ListMobileCard>
   );
-}
+});
 
 export function CustomerListTable({
   customers,

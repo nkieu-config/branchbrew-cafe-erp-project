@@ -1,5 +1,6 @@
+import { ACCOUNTING_ENDPOINTS } from "@/lib/endpoints/accounting";
+import { PRODUCTION_ENDPOINTS } from "@/lib/endpoints/production";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { API_ENDPOINTS } from '@/lib/endpoints';
 import { fetchAPI } from '@/lib/api';
 
 // ==========================================
@@ -8,21 +9,21 @@ import { fetchAPI } from '@/lib/api';
 export const useLedger = (branchId?: string) => {
   return useQuery({
     queryKey: ['ledger', branchId],
-    queryFn: () => fetchAPI(API_ENDPOINTS.accounting.profitLoss(branchId)),
+    queryFn: () => fetchAPI(ACCOUNTING_ENDPOINTS.profitLoss(branchId)),
   });
 };
 
 export const useJournalEntries = (branchId?: string) => {
   return useQuery({
     queryKey: ['journalEntries', branchId],
-    queryFn: () => fetchAPI(API_ENDPOINTS.accounting.journalEntries(branchId)),
+    queryFn: () => fetchAPI(ACCOUNTING_ENDPOINTS.journalEntries(branchId)),
   });
 };
 
 export const useAccounts = () => {
   return useQuery({
     queryKey: ['accounts'],
-    queryFn: () => fetchAPI(API_ENDPOINTS.accounting.accounts),
+    queryFn: () => fetchAPI(ACCOUNTING_ENDPOINTS.accounts),
   });
 };
 
@@ -30,14 +31,14 @@ export const useAccounts = () => {
 export const useProductionBOMs = () => {
   return useQuery({
     queryKey: ['productionBOMs'],
-    queryFn: () => fetchAPI(API_ENDPOINTS.production.boms),
+    queryFn: () => fetchAPI(PRODUCTION_ENDPOINTS.boms),
   });
 };
 
 export const useCreateProductionBOM = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: unknown) => fetchAPI(API_ENDPOINTS.production.createBom, { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: unknown) => fetchAPI(PRODUCTION_ENDPOINTS.createBom, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['productionBOMs'] }),
   });
 };

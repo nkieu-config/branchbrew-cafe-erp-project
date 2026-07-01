@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useDeferredValue } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowDownToLine } from "lucide-react";
 import { toast } from "sonner";
@@ -11,7 +11,6 @@ import { BatchInventoryPanel } from "@/components/inventory/BatchInventoryPanel"
 import { BatchWasteDialog } from "@/components/inventory/BatchWasteDialog";
 import { ExpiryHeatmapPanel } from "@/components/inventory/ExpiryHeatmapPanel";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import {
   filterBatchInventories,
   hasBatchInventoryFilters,
@@ -51,7 +50,7 @@ export default function BatchesPageClient() {
   const reportWasteMutation = useReportWaste();
 
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [expiryFilter, setExpiryFilter] = useState<ExpiryFilter>(
     expiringFromUrl ? "expiring" : "ALL",
   );
@@ -78,10 +77,10 @@ export default function BatchesPageClient() {
   const filteredInventories = useMemo(
     () =>
       filterBatchInventories(inventories, batches, {
-        search: debouncedSearch,
+        search: deferredSearch,
         expiryFilter,
       }),
-    [inventories, debouncedSearch, expiryFilter, batches],
+    [inventories, deferredSearch, expiryFilter, batches],
   );
 
   const hasActiveFilters = hasBatchInventoryFilters({ search, expiryFilter });

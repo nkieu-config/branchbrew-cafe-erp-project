@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useMobileNav } from "@/context/MobileNavContext";
 import { useSidebarNavBadges } from "@/hooks/useSidebarNavBadges";
 import { resolveMobileBottomNavBadge } from "@/lib/sidebar-badges";
-import { getMobileBottomNavItems, isMobileBottomNavActive } from "@/lib/navigation";
+import { getMobileBottomNavItems, isMobileBottomNavActive } from "@/lib/navigation/mobile-nav";
 import {
   MobileBottomNavLink,
   MobileBottomNavMenuButton,

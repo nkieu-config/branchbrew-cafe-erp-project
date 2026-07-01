@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { buildBreadcrumbDisplay } from "@/lib/navigation/breadcrumb-display";
 import { useIsLgUp } from "@/hooks/useMediaQuery";
-import type { BreadcrumbItem } from "@/lib/navigation";
+import type { BreadcrumbItem } from "@/lib/navigation/types";
 import {
   breadcrumbCurrentClassName,
   breadcrumbEllipsisClassName,

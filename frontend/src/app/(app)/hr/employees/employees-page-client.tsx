@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useDeferredValue } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
@@ -11,7 +11,6 @@ import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { EditCompensationModal } from "@/components/hr/EditCompensationModal";
 import { EmployeeDirectoryTable } from "@/components/hr/EmployeeDirectoryTable";
 import { ButtonLink } from "@/components/ui/button-link";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { getErrorMessage } from "@/lib/errors";
 import {
   type EmployeeRateFilter,
@@ -42,7 +41,7 @@ export default function EmployeesPageClient() {
   const updateHourlyRateMutation = useUpdateHourlyRate();
 
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [roleFilter, setRoleFilter] = useState<EmployeeRoleFilter>("ALL");
   const [employmentTypeFilter, setEmploymentTypeFilter] = useState<EmploymentTypeFilter>("ALL");
   const [rateFilter, setRateFilter] = useState<EmployeeRateFilter>("ALL");
@@ -56,12 +55,12 @@ export default function EmployeesPageClient() {
   const filteredEmployees = useMemo(
     () =>
       filterEmployees(employees, {
-        search: debouncedSearch,
+        search: deferredSearch,
         roleFilter,
         employmentTypeFilter,
         rateFilter,
       }),
-    [employees, debouncedSearch, roleFilter, employmentTypeFilter, rateFilter],
+    [employees, deferredSearch, roleFilter, employmentTypeFilter, rateFilter],
   );
 
   const hasActiveFilters =

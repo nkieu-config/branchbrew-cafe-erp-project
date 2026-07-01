@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useDeferredValue } from "react";
 import dynamic from "next/dynamic";
 import { Loader2, Play } from "lucide-react";
 import { toast } from "sonner";
@@ -10,7 +10,6 @@ import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { JournalEntriesTable } from "@/components/finance/JournalEntriesTable";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useJournalEntries, useLedger } from "@/hooks/domains/useAccountingQueries";
 import { seedAccounts } from "@/lib/api";
 import { getErrorMessage } from "@/lib/errors";
@@ -37,7 +36,7 @@ export default function LedgerPageClient() {
   const [showSeedConfirm, setShowSeedConfirm] = useState(false);
   const [statusFilter, setStatusFilter] = useState<JournalStatusFilter>("ALL");
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
 
   const {
     data: chartData = [],
@@ -67,9 +66,9 @@ export default function LedgerPageClient() {
     () =>
       filterJournalEntries(entries, {
         statusFilter,
-        search: debouncedSearch,
+        search: deferredSearch,
       }),
-    [entries, statusFilter, debouncedSearch],
+    [entries, statusFilter, deferredSearch],
   );
 
   const hasActiveFilters = statusFilter !== "ALL" || search.trim().length > 0;

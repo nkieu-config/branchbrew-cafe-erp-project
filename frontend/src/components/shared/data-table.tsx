@@ -1,8 +1,11 @@
+"use client";
+
 import React from "react";
 import { Table, Skeleton } from "antd";
 import type { TableProps } from "antd";
 import { useTheme } from "next-themes";
 import { Inbox } from "lucide-react";
+import { AntdScope } from "@/components/providers/AntdScope";
 import { QueryErrorBanner } from "@/components/shared/query-error-banner";
 import { dataTableContainerClassName, dataTableEmptyIconClassName, dataTableEmptyTextClassName, dataTableSkeletonClassName } from "@/lib/theme/data-table";
 
@@ -42,14 +45,17 @@ export function DataTable<RecordType extends object = object>({
 
   if (props.loading && (!props.dataSource || (Array.isArray(props.dataSource) && props.dataSource.length === 0))) {
     return (
-      <div className={dataTableSkeletonClassName({ hideBorders }, containerClassName)}>
-        <Skeleton active paragraph={{ rows: 5 }} />
-      </div>
+      <AntdScope>
+        <div className={dataTableSkeletonClassName({ hideBorders }, containerClassName)}>
+          <Skeleton active paragraph={{ rows: 5 }} />
+        </div>
+      </AntdScope>
     );
   }
 
   return (
-    <div className="space-y-3">
+    <AntdScope>
+      <div className="space-y-3">
       {isError && (
         <QueryErrorBanner
           message={errorMessage}
@@ -73,6 +79,7 @@ export function DataTable<RecordType extends object = object>({
           {...props}
         />
       </div>
-    </div>
+      </div>
+    </AntdScope>
   );
 }

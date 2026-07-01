@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useDeferredValue } from "react";
 import type { ColumnsType } from "antd/es/table";
 import {
   Plus,
@@ -34,7 +34,6 @@ import {
   useDeleteModifierOption,
 } from "@/hooks/domains/useModifierQueries";
 import { useProducts } from "@/hooks/domains/useProductQueries";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import type { ModifierGroup, ModifierOption, Product } from "@/types/api";
 import { getErrorMessage } from "@/lib/errors";
 import { formatHubListCountWithFetching } from "@/lib/format-hub-list-count";
@@ -75,7 +74,7 @@ export default function ModifiersPageClient() {
   const deleteOption = useDeleteModifierOption();
 
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [categoryFilter, setCategoryFilter] = useState<ModifierCategoryFilter>("ALL");
   const [highlightFilter, setHighlightFilter] = useState<ModifierHighlightFilter>("ALL");
 
@@ -140,12 +139,12 @@ export default function ModifiersPageClient() {
 
   const filteredGroups = useMemo(() => {
     return groups.filter((group: ModifierGroup) => {
-      const matchesSearch = matchesModifierSearch(group, debouncedSearch);
+      const matchesSearch = matchesModifierSearch(group, deferredSearch);
       const matchesCategory = matchesModifierCategoryFilter(group, categoryFilter);
       const matchesHighlight = matchesModifierHighlightFilter(group, highlightFilter);
       return matchesSearch && matchesCategory && matchesHighlight;
     });
-  }, [groups, debouncedSearch, categoryFilter, highlightFilter]);
+  }, [groups, deferredSearch, categoryFilter, highlightFilter]);
 
   const hasActiveFilters =
     search.trim().length > 0 ||

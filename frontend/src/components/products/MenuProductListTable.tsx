@@ -1,7 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { useMemo } from "react";
+import { memo, useMemo, type ReactNode } from "react";
 import type { ColumnsType } from "antd/es/table";
 import Link from "next/link";
 import { Edit, Trash2 } from "lucide-react";
@@ -35,6 +34,85 @@ type MenuProductListTableProps = {
   onEdit: (product: Product) => void;
   onDelete: (product: Product) => void;
 };
+
+type MenuProductMobileCardProps = {
+  record: Product;
+  onEdit: (product: Product) => void;
+  onDelete: (product: Product) => void;
+};
+
+const MenuProductMobileCard = memo(function MenuProductMobileCard({
+  record,
+  onEdit,
+  onDelete,
+}: MenuProductMobileCardProps) {
+  const bucket = productFoodCostBucket(record);
+  let foodCostLabel = null as ReactNode;
+  if (bucket === "no-recipe") {
+    foodCostLabel = (
+      <Link href={buildProductsCostingUrl({ status: "no-recipe" })} className={inlineLinkClassName("text-sm")}>
+        No recipe
+      </Link>
+    );
+  } else if (bucket !== "no-price") {
+    const { foodCostPercent } = calcProductFoodCost(record);
+    const status = foodCostStatus(foodCostPercent);
+    foodCostLabel = (
+      <Link
+        href={buildProductsCostingUrl({
+          status,
+          ...(record.category ? { category: record.category } : {}),
+        })}
+        className={foodCostStatusClassName(status)}
+      >
+        {foodCostPercent.toFixed(1)}% food cost
+      </Link>
+    );
+  }
+
+  return (
+    <ListMobileCard>
+      <div className="mb-2 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className={cn("font-medium", text.primary)}>{record.name}</p>
+          {record.category ? <p className={productsCategoryTextClassName()}>{record.category}</p> : null}
+        </div>
+        <span className={cn("shrink-0 tabular-nums font-medium", text.primary)}>
+          {formatCurrency(record.price)}
+        </span>
+      </div>
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        {productIsActive(record) ? (
+          <StatusBadge tone="success">Active</StatusBadge>
+        ) : (
+          <StatusBadge tone="neutral">Off</StatusBadge>
+        )}
+        {foodCostLabel}
+        {productHasRecipe(record) ? (
+          <span className={cn("text-xs tabular-nums", text.muted)}>
+            {record.recipeItems!.length} recipe items
+          </span>
+        ) : null}
+      </div>
+      <div className="flex justify-end gap-1">
+        <TableActionButton
+          icon={Edit}
+          label={`Edit ${record.name}`}
+          iconOnly
+          tone="purple"
+          onClick={() => onEdit(record)}
+        />
+        <TableActionButton
+          icon={Trash2}
+          label={`Delete ${record.name}`}
+          iconOnly
+          destructive
+          onClick={() => onDelete(record)}
+        />
+      </div>
+    </ListMobileCard>
+  );
+});
 
 export function MenuProductListTable({
   products,
@@ -180,74 +258,9 @@ export function MenuProductListTable({
             page={listPagination.currentPage}
             onPageChange={listPagination.setCurrentPage}
           >
-            {(record) => {
-              const bucket = productFoodCostBucket(record);
-              let foodCostLabel = null as ReactNode;
-              if (bucket === "no-recipe") {
-                foodCostLabel = (
-                  <Link href={buildProductsCostingUrl({ status: "no-recipe" })} className={inlineLinkClassName("text-sm")}>
-                    No recipe
-                  </Link>
-                );
-              } else if (bucket !== "no-price") {
-                const { foodCostPercent } = calcProductFoodCost(record);
-                const status = foodCostStatus(foodCostPercent);
-                foodCostLabel = (
-                  <Link
-                    href={buildProductsCostingUrl({
-                      status,
-                      ...(record.category ? { category: record.category } : {}),
-                    })}
-                    className={foodCostStatusClassName(status)}
-                  >
-                    {foodCostPercent.toFixed(1)}% food cost
-                  </Link>
-                );
-              }
-
-              return (
-                <ListMobileCard>
-                  <div className="mb-2 flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className={cn("font-medium", text.primary)}>{record.name}</p>
-                      {record.category ? <p className={productsCategoryTextClassName()}>{record.category}</p> : null}
-                    </div>
-                    <span className={cn("shrink-0 tabular-nums font-medium", text.primary)}>
-                      {formatCurrency(record.price)}
-                    </span>
-                  </div>
-                  <div className="mb-3 flex flex-wrap items-center gap-2">
-                    {productIsActive(record) ? (
-                      <StatusBadge tone="success">Active</StatusBadge>
-                    ) : (
-                      <StatusBadge tone="neutral">Off</StatusBadge>
-                    )}
-                    {foodCostLabel}
-                    {productHasRecipe(record) ? (
-                      <span className={cn("text-xs tabular-nums", text.muted)}>
-                        {record.recipeItems!.length} recipe items
-                      </span>
-                    ) : null}
-                  </div>
-                  <div className="flex justify-end gap-1">
-                    <TableActionButton
-                      icon={Edit}
-                      label={`Edit ${record.name}`}
-                      iconOnly
-                      tone="purple"
-                      onClick={() => onEdit(record)}
-                    />
-                    <TableActionButton
-                      icon={Trash2}
-                      label={`Delete ${record.name}`}
-                      iconOnly
-                      destructive
-                      onClick={() => onDelete(record)}
-                    />
-                  </div>
-                </ListMobileCard>
-              );
-            }}
+            {(record) => (
+              <MenuProductMobileCard record={record} onEdit={onEdit} onDelete={onDelete} />
+            )}
           </PaginatedMobileList>
         )
       }

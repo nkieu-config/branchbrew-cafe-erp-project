@@ -7,7 +7,7 @@ import { SidebarNavItem } from "@/components/layout/SidebarNavItem";
 import { useAuth } from "@/context/AuthContext";
 import { useSidebarExpandedGroups } from "@/hooks/useSidebarExpandedGroups";
 import { useSidebarNavBadges } from "@/hooks/useSidebarNavBadges";
-import { SIDEBAR_GROUPS } from "@/lib/navigation";
+import { SIDEBAR_GROUPS } from "@/lib/navigation/sidebar";
 import { sidebarBrandLinkClassName, sidebarBrandTitleClassName, sidebarBrandMarkClassName, sidebarBrandMarkIconClassName, sidebarGroupButtonClassName, sidebarIconButtonClassName, sidebarRootClassName, shell, shellHeaderInsetClassName } from "@/lib/theme/shell";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types/api";

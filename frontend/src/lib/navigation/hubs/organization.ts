@@ -7,7 +7,7 @@ export const organizationHub: HubConfig = {
   description: "Manage branches, locations, and user access.",
   icon: Building2,
   basePath: "/organization",
-  wrapAntd: true,
+  wrapAntd: false,
   tabs: [
     {
       id: "branches",

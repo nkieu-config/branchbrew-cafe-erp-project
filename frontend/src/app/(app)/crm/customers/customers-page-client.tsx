@@ -1,8 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useDeferredValue } from "react";
 import { useCustomers } from "@/hooks/domains/useCrmQueries";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { Customer360Sheet } from "@/components/crm/Customer360Sheet";
 import { CustomerListTable } from "@/components/crm/CustomerListTable";
 import { RegisterCustomerDialog } from "@/components/crm/RegisterCustomerDialog";
@@ -16,7 +15,7 @@ type TierFilter = "ALL" | Tier;
 
 export default function CustomersPageClient() {
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim(), 300);
+  const deferredSearch = useDeferredValue(search.trim());
   const [tierFilter, setTierFilter] = useState<TierFilter>("ALL");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
@@ -28,7 +27,7 @@ export default function CustomersPageClient() {
     error,
     refetch,
     isFetching,
-  } = useCustomers(debouncedSearch || undefined);
+  } = useCustomers(deferredSearch || undefined);
   const customers = customersData || [];
 
   const tierSummary = useMemo(() => {

@@ -1,10 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useDeferredValue } from "react";
 import { Loader2, MapPin, Pencil, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useBranches, useCreateBranch, useUpdateBranch } from "@/hooks/domains/useGeneralQueries";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { TableActionButton } from "@/components/shared/table-action-button";
@@ -46,7 +45,7 @@ export default function BranchesPageClient({ embedded = false }: { embedded?: bo
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [typeFilter, setTypeFilter] = useState<BranchTypeFilter>("ALL");
 
   const branchList = (branches as Branch[] | undefined) ?? [];
@@ -56,9 +55,9 @@ export default function BranchesPageClient({ embedded = false }: { embedded?: bo
     () =>
       filterBranches(branchList, {
         typeFilter,
-        search: debouncedSearch,
+        search: deferredSearch,
       }),
-    [branchList, typeFilter, debouncedSearch],
+    [branchList, typeFilter, deferredSearch],
   );
 
   const hasActiveFilters = search.trim().length > 0 || typeFilter !== "ALL";

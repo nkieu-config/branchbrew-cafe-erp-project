@@ -7,7 +7,7 @@ export const assetsHub: HubConfig = {
   description: "Register equipment and track maintenance for store assets.",
   icon: Wrench,
   basePath: "/assets",
-  wrapAntd: true,
+  wrapAntd: false,
   tabs: [
     {
       id: "equipment",

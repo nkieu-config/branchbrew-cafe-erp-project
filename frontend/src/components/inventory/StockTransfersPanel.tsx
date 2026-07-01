@@ -1,20 +1,12 @@
 "use client";
 
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useState,
-} from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState, useDeferredValue } from "react";
+import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   CheckCircle2,
-  ArrowRightLeft,
   ExternalLink,
-  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDateTime } from "@/lib/intl-date";
@@ -27,7 +19,6 @@ import {
   useCreateTransfer,
   useAcceptTransfer,
 } from "@/hooks/domains/useTransferQueries";
-import { FormModal } from "@/components/shared/form-modal";
 import { DataTable } from "@/components/shared/data-table";
 import {
   ListMobileCard,
@@ -41,57 +32,34 @@ import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterRow, ListFilterSelect } from "@/components/shared/list-filters";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { getErrorMessage } from "@/lib/errors";
 import { formatHubListCountWithFetching } from "@/lib/format-hub-list-count";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { hubCtaClassName } from "@/lib/theme/hub-primitives";
-import { compactPanelLinkClassName, formFieldInsetClassName, formSelectContentClassName, formSourceBannerClassName } from "@/lib/theme/stock";
+import { compactPanelLinkClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
 import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 import type { Branch, Ingredient, StockTransfer } from "@/types/api";
 import type { ColumnsType } from "antd/es/table";
+import {
+  branchLabel,
+  emptyCreateForm,
+  parseDirectionFilter,
+  parseStatusFilter,
+  transferMatchesSearch,
+  type CreateTransferForm,
+  type DirectionFilter,
+  type SourceInventory,
+  type StatusFilter,
+} from "@/components/inventory/stock-transfer-types";
 
-type SourceInventory = { ingredient: Ingredient; stock: number };
+const CreateTransferModal = dynamic(
+  () => import("@/components/inventory/CreateTransferModal").then((m) => m.CreateTransferModal),
+  { ssr: false },
+);
 
-type CreateTransferForm = {
-  fromBranchId: number;
-  toBranchId: number;
-  ingredientId: number;
-  quantity: string;
-};
+import type { StockTransfersPanelHandle } from "@/components/inventory/stock-transfers-panel-handle";
 
-type StatusFilter = "ALL" | "PENDING";
-type DirectionFilter = "ALL" | "incoming" | "outgoing";
-
-const emptyCreateForm = (): CreateTransferForm => ({
-  fromBranchId: 0,
-  toBranchId: 0,
-  ingredientId: 0,
-  quantity: "",
-});
-
-function parseStatusFilter(param: string | null): StatusFilter {
-  return param === "PENDING" ? "PENDING" : "ALL";
-}
-
-function parseDirectionFilter(param: string | null): DirectionFilter {
-  if (param === "incoming" || param === "outgoing") return param;
-  return "ALL";
-}
-
-export type StockTransfersPanelHandle = {
-  openCreate: () => void;
-};
+export type { StockTransfersPanelHandle };
 
 interface StockTransfersPanelProps {
   /** @deprecated Use `variant` instead */
@@ -102,29 +70,8 @@ interface StockTransfersPanelProps {
   sourceInventories?: SourceInventory[];
 }
 
-function branchLabel(name: string | undefined) {
-  return name?.trim() || "—";
-}
-
 function BranchCell({ name }: { name: string | undefined }) {
   return <span className={cn("font-medium", text.secondary)}>{branchLabel(name)}</span>;
-}
-
-function transferMatchesSearch(transfer: StockTransfer, query: string) {
-  const ingredient = transfer.ingredient?.name?.toLowerCase() ?? "";
-  const from = transfer.fromBranch?.name?.toLowerCase() ?? "";
-  const to = transfer.toBranch?.name?.toLowerCase() ?? "";
-  const requester = (
-    transfer.requestedBy?.name ??
-    transfer.requestedBy?.email ??
-    ""
-  ).toLowerCase();
-  return (
-    ingredient.includes(query) ||
-    from.includes(query) ||
-    to.includes(query) ||
-    requester.includes(query)
-  );
 }
 
 export const StockTransfersPanel = forwardRef<
@@ -162,7 +109,7 @@ export const StockTransfersPanel = forwardRef<
   const [acceptTarget, setAcceptTarget] = useState<StockTransfer | null>(null);
   const [createForm, setCreateForm] = useState<CreateTransferForm>(emptyCreateForm);
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [statusFilter, setStatusFilter] = useState<StatusFilter>(() =>
     parseStatusFilter(searchParams.get("status")),
   );
@@ -172,10 +119,13 @@ export const StockTransfersPanel = forwardRef<
 
   const modalFormLoading = loadingBranches || loadingIng;
 
+  const transferStatusParam = searchParams.get("status");
+  const transferDirectionParam = searchParams.get("direction");
+
   useEffect(() => {
-    setStatusFilter(parseStatusFilter(searchParams.get("status")));
-    setDirectionFilter(parseDirectionFilter(searchParams.get("direction")));
-  }, [searchParams]);
+    setStatusFilter(parseStatusFilter(transferStatusParam));
+    setDirectionFilter(parseDirectionFilter(transferDirectionParam));
+  }, [transferStatusParam, transferDirectionParam]);
 
   const syncUrlFilters = useCallback(
     (status: StatusFilter, direction: DirectionFilter) => {
@@ -239,13 +189,13 @@ export const StockTransfersPanel = forwardRef<
       if (directionFilter === "outgoing" && branchId) {
         base = base.filter((t) => t.fromBranchId === branchId);
       }
-      if (debouncedSearch) {
-        base = base.filter((t) => transferMatchesSearch(t, debouncedSearch));
+      if (deferredSearch) {
+        base = base.filter((t) => transferMatchesSearch(t, deferredSearch));
       }
     }
 
     return base;
-  }, [transfers, variant, branchId, statusFilter, directionFilter, debouncedSearch]);
+  }, [transfers, variant, branchId, statusFilter, directionFilter, deferredSearch]);
 
   const hasActiveFilters =
     variant === "page" &&
@@ -682,157 +632,24 @@ export const StockTransfersPanel = forwardRef<
         </HubListPage>
       )}
 
-      <FormModal
-        title="Request transfer"
-        icon={ArrowRightLeft}
-        isOpen={isModalOpen}
-        onClose={() => {
-          setIsModalOpen(false);
-          setCreateForm(emptyCreateForm());
-        }}
-        width={520}
-      >
-        <div className="space-y-4">
-          {!branchId && (
-            <div className="space-y-2">
-              <Label htmlFor="transfer-from-branch" className={text.secondary}>
-                From branch (source)
-              </Label>
-              <Select
-                value={createForm.fromBranchId === 0 ? "" : String(createForm.fromBranchId)}
-                onValueChange={(value) => {
-                  if (value == null) return;
-                  setCreateForm((prev) => ({ ...prev, fromBranchId: Number(value) }));
-                }}
-                disabled={modalFormLoading}
-              >
-                <SelectTrigger
-                  id="transfer-from-branch"
-                  className={formFieldInsetClassName("h-11 w-full")}
-                >
-                  <SelectValue
-                    placeholder={modalFormLoading ? "Loading branches…" : "Select source branch"}
-                  />
-                </SelectTrigger>
-                <SelectContent className={formSelectContentClassName()}>
-                  {branches.map((b: Branch) => (
-                    <SelectItem key={b.id} value={String(b.id)}>
-                      {b.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {branchId && (
-            <p className={cn(formSourceBannerClassName("border-0 px-0 py-0 bg-transparent"), text.muted)}>
-              From{" "}
-              <span className={text.primary}>
-                {branches.find((b: Branch) => b.id === branchId)?.name ?? "selected branch"}
-              </span>
-            </p>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="transfer-to-branch" className={text.secondary}>
-              To branch (destination)
-            </Label>
-            <Select
-              value={createForm.toBranchId === 0 ? "" : String(createForm.toBranchId)}
-              onValueChange={(value) => {
-                if (value == null) return;
-                setCreateForm((prev) => ({ ...prev, toBranchId: Number(value) }));
-              }}
-              disabled={modalFormLoading}
-            >
-              <SelectTrigger id="transfer-to-branch" className={formFieldInsetClassName("h-11 w-full")}>
-                <SelectValue
-                  placeholder={
-                    modalFormLoading ? "Loading branches…" : "Select destination branch"
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent className={formSelectContentClassName()}>
-                {destinationBranches.map((b: Branch) => (
-                  <SelectItem key={b.id} value={String(b.id)}>
-                    {b.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="transfer-ingredient" className={text.secondary}>
-              Ingredient
-            </Label>
-            <Select
-              value={createForm.ingredientId === 0 ? "" : String(createForm.ingredientId)}
-              onValueChange={(value) => {
-                if (value == null) return;
-                setCreateForm((prev) => ({ ...prev, ingredientId: Number(value) }));
-              }}
-              disabled={modalFormLoading}
-            >
-              <SelectTrigger id="transfer-ingredient" className={formFieldInsetClassName("h-11 w-full")}>
-                <SelectValue
-                  placeholder={modalFormLoading ? "Loading ingredients…" : "Select ingredient"}
-                />
-              </SelectTrigger>
-              <SelectContent className={formSelectContentClassName()}>
-                {ingredientOptions.map((option) => (
-                  <SelectItem key={option.id} value={String(option.id)}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="transfer-quantity" className={text.secondary}>
-              Quantity
-            </Label>
-            <Input
-              id="transfer-quantity"
-              type="number"
-              min="0.1"
-              step="0.1"
-              className={formFieldInsetClassName("h-11")}
-              value={createForm.quantity}
-              disabled={modalFormLoading}
-              onChange={(e) =>
-                setCreateForm((prev) => ({ ...prev, quantity: e.target.value }))
-              }
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              className={hubCtaClassName("inventory")}
-              disabled={submitting || modalFormLoading}
-              onClick={() => void handleCreateSubmit()}
-            >
-              {submitting ? (
-                <>
-                  <Loader2
-                    className="w-4 h-4 mr-2 animate-spin motion-reduce:animate-none"
-                    aria-hidden
-                  />
-                  Requesting…
-                </>
-              ) : (
-                "Request Transfer"
-              )}
-            </Button>
-          </div>
-        </div>
-      </FormModal>
+      {isModalOpen ? (
+        <CreateTransferModal
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setCreateForm(emptyCreateForm());
+          }}
+          branchId={branchId}
+          branches={branches}
+          destinationBranches={destinationBranches}
+          ingredientOptions={ingredientOptions}
+          modalFormLoading={modalFormLoading}
+          createForm={createForm}
+          setCreateForm={setCreateForm}
+          submitting={submitting}
+          onSubmit={handleCreateSubmit}
+        />
+      ) : null}
 
       <ConfirmDialog
         open={acceptTarget !== null}

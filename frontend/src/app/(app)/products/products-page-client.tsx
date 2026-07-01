@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useDeferredValue } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useDeleteProduct } from "@/hooks/domains/useProductQueries";
@@ -11,7 +11,6 @@ import { MenuProductListTable } from "@/components/products/MenuProductListTable
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { getErrorMessage } from "@/lib/errors";
 import {
   extractProductCategories,
@@ -39,7 +38,7 @@ export default function ProductsPageClient() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [categoryFilter, setCategoryFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<MenuStatusFilter>("ALL");
 
@@ -48,11 +47,11 @@ export default function ProductsPageClient() {
   const filteredProducts = useMemo(
     () =>
       filterMenuProducts(products, {
-        search: debouncedSearch,
+        search: deferredSearch,
         categoryFilter,
         statusFilter,
       }),
-    [products, debouncedSearch, categoryFilter, statusFilter],
+    [products, deferredSearch, categoryFilter, statusFilter],
   );
 
   const hasActiveFilters = hasMenuProductFilters({

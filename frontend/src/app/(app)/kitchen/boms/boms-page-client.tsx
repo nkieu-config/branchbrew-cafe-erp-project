@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useDeferredValue } from "react";
 import Link from "next/link";
 import { useProductionBOMs } from "@/hooks/domains/useAccountingQueries";
 import { useIngredients } from "@/hooks/domains/useProductQueries";
@@ -11,7 +11,6 @@ import { BomListEmptyState } from "@/components/kitchen/BomListEmptyState";
 import { CentralKitchenBanner } from "@/components/kitchen/CentralKitchenBanner";
 import { ProductionBomTable } from "@/components/kitchen/ProductionBomTable";
 import { Button } from "@/components/ui/button";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { getErrorMessage } from "@/lib/errors";
 import { groupProductionBoms } from "@/lib/bom";
 import { buildProductsIngredientsUrl } from "@/lib/products-hub-url";
@@ -25,7 +24,7 @@ import { cn } from "@/lib/utils";
 export default function BomsPageClient() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
 
   const {
     data: bomsData = [],
@@ -45,8 +44,8 @@ export default function BomsPageClient() {
   );
 
   const filteredGroups = useMemo(
-    () => bomsGrouped.filter((group) => matchesBomSearch(group, debouncedSearch)),
-    [bomsGrouped, debouncedSearch],
+    () => bomsGrouped.filter((group) => matchesBomSearch(group, deferredSearch)),
+    [bomsGrouped, deferredSearch],
   );
 
   const summary = useMemo(() => summarizeProductionBoms(bomsGrouped), [bomsGrouped]);

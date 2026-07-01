@@ -1,5 +1,5 @@
+import { SETTINGS_ENDPOINTS } from "@/lib/endpoints/settings";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { API_ENDPOINTS } from '@/lib/endpoints';
 import { fetchAPI } from '@/lib/api';
 import { getErrorMessage } from '@/lib/errors';
 import { toast } from 'sonner';
@@ -8,7 +8,7 @@ export const useSettings = () => {
   return useQuery({
     queryKey: ['settings'],
     queryFn: async () => {
-      return await fetchAPI(API_ENDPOINTS.settings.get);
+      return await fetchAPI(SETTINGS_ENDPOINTS.get);
     },
   });
 };
@@ -18,7 +18,7 @@ export const useUpdateSettings = () => {
   
   return useMutation({
     mutationFn: async (data: Record<string, string>) => {
-      return await fetchAPI(API_ENDPOINTS.settings.update, { method: 'POST', body: JSON.stringify(data) });
+      return await fetchAPI(SETTINGS_ENDPOINTS.update, { method: 'POST', body: JSON.stringify(data) });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['settings'] });

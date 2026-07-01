@@ -1,12 +1,12 @@
+import { MODIFIER_ENDPOINTS } from "@/lib/endpoints/products";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { API_ENDPOINTS } from '@/lib/endpoints';
 import { fetchAPI } from '@/lib/api';
 import type { ModifierGroup, ModifierOption } from '@/types/api';
 
 export const useModifiers = (category?: string) => {
   return useQuery({
     queryKey: ['modifiers', category ?? 'all'],
-    queryFn: () => fetchAPI(API_ENDPOINTS.modifiers.list(category)),
+    queryFn: () => fetchAPI(MODIFIER_ENDPOINTS.list(category)),
     staleTime: category ? Infinity : undefined,
   });
 };
@@ -27,7 +27,7 @@ export const useCreateModifierGroup = () => {
         swapToIngredientId?: number;
       }[];
     }) =>
-      fetchAPI(API_ENDPOINTS.modifiers.createGroup, {
+      fetchAPI(MODIFIER_ENDPOINTS.createGroup, {
         method: 'POST',
         body: JSON.stringify(data),
       }),
@@ -48,7 +48,7 @@ export const useUpdateModifierGroup = () => {
       sortOrder?: number;
       swapIngredientId?: number | null;
     }) =>
-      fetchAPI(API_ENDPOINTS.modifiers.updateGroup(id), {
+      fetchAPI(MODIFIER_ENDPOINTS.updateGroup(id), {
         method: 'PATCH',
         body: JSON.stringify(data),
       }),
@@ -60,7 +60,7 @@ export const useDeleteModifierGroup = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) =>
-      fetchAPI(API_ENDPOINTS.modifiers.deleteGroup(id), { method: 'DELETE' }),
+      fetchAPI(MODIFIER_ENDPOINTS.deleteGroup(id), { method: 'DELETE' }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['modifiers'] }),
   });
 };
@@ -76,7 +76,7 @@ export const useCreateModifierOption = () => {
       sortOrder?: number;
       swapToIngredientId?: number;
     }) =>
-      fetchAPI(API_ENDPOINTS.modifiers.createOption, {
+      fetchAPI(MODIFIER_ENDPOINTS.createOption, {
         method: 'POST',
         body: JSON.stringify(data),
       }),
@@ -98,7 +98,7 @@ export const useUpdateModifierOption = () => {
       sortOrder?: number;
       swapToIngredientId?: number | null;
     }) =>
-      fetchAPI(API_ENDPOINTS.modifiers.updateOption(id), {
+      fetchAPI(MODIFIER_ENDPOINTS.updateOption(id), {
         method: 'PATCH',
         body: JSON.stringify(data),
       }),
@@ -110,7 +110,7 @@ export const useDeleteModifierOption = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) =>
-      fetchAPI(API_ENDPOINTS.modifiers.deleteOption(id), { method: 'DELETE' }),
+      fetchAPI(MODIFIER_ENDPOINTS.deleteOption(id), { method: 'DELETE' }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['modifiers'] }),
   });
 };

@@ -7,7 +7,6 @@ import { SidebarRail } from "@/components/layout/SidebarRail";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { RouteTransition } from "@/components/layout/RouteTransition";
 import { AppHeader } from "@/components/layout/AppHeader";
-import { SocketProvider } from "@/context/SocketContext";
 import { MobileNavProvider, useMobileNav } from "@/context/MobileNavContext";
 import { ScrollCompactProvider } from "@/context/ScrollCompactContext";
 import { SidebarBadgesProvider } from "@/context/SidebarBadgesContext";
@@ -136,12 +135,10 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <SocketProvider>
-      <MobileNavProvider>
-        <SidebarBadgesProvider>
-          <AppShellInner>{children}</AppShellInner>
-        </SidebarBadgesProvider>
-      </MobileNavProvider>
-    </SocketProvider>
+    <MobileNavProvider>
+      <SidebarBadgesProvider>
+        <AppShellInner>{children}</AppShellInner>
+      </SidebarBadgesProvider>
+    </MobileNavProvider>
   );
 }

@@ -20,7 +20,6 @@ import {
   type ShiftStatusFilter,
   type ShiftWithUser,
 } from "@/lib/shift-filters";
-import { parseHrShiftsSearchParams } from "@/lib/hr-hub-url";
 import { formatDate } from "@/lib/intl-date";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { hrSectionPanelClassName } from "@/lib/theme/hub-hr";
@@ -37,7 +36,15 @@ export default function ShiftsPageClient() {
   const { user, activeBranchId } = useAuth();
   const role = user?.role;
   const searchParams = useSearchParams();
-  const urlState = useMemo(() => parseHrShiftsSearchParams(searchParams), [searchParams]);
+  const shiftDateParam = searchParams.get("date");
+  const shiftEmployeeParam = searchParams.get("employee");
+  const shiftEmployeeId = useMemo(() => {
+    if (!shiftEmployeeParam) return null;
+    const id = Number(shiftEmployeeParam);
+    return Number.isFinite(id) && id > 0 ? id : null;
+  }, [shiftEmployeeParam]);
+  const shiftDateFromUrl =
+    shiftDateParam && /^\d{4}-\d{2}-\d{2}$/.test(shiftDateParam) ? shiftDateParam : null;
 
   const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
 
@@ -52,15 +59,15 @@ export default function ShiftsPageClient() {
   const { data: employees = [] } = useHrUsers(branchIdNum);
   const createShiftMutation = useCreateShift();
 
-  const [selectedDate, setSelectedDate] = useState(() => urlState.date ?? toDateInputValue(new Date()));
+  const [selectedDate, setSelectedDate] = useState(() => shiftDateFromUrl ?? toDateInputValue(new Date()));
   const [statusFilter, setStatusFilter] = useState<ShiftStatusFilter>("ALL");
-  const [employeeFilterId, setEmployeeFilterId] = useState<number | null>(urlState.employeeId);
+  const [employeeFilterId, setEmployeeFilterId] = useState<number | null>(shiftEmployeeId);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    if (urlState.date) setSelectedDate(urlState.date);
-    if (urlState.employeeId != null) setEmployeeFilterId(urlState.employeeId);
-  }, [urlState.date, urlState.employeeId]);
+    if (shiftDateFromUrl) setSelectedDate(shiftDateFromUrl);
+    setEmployeeFilterId(shiftEmployeeId);
+  }, [shiftDateFromUrl, shiftEmployeeId]);
 
   const selectedDateObj = useMemo(() => new Date(`${selectedDate}T12:00:00`), [selectedDate]);
 

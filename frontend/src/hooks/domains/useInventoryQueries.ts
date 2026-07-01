@@ -1,5 +1,7 @@
+import { BRANCH_ENDPOINTS } from "@/lib/endpoints/branches";
+import { INGREDIENT_ENDPOINTS } from "@/lib/endpoints/products";
+import { INVENTORY_ENDPOINTS } from "@/lib/endpoints/inventory";
 import { useQuery, useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
-import { API_ENDPOINTS } from '@/lib/endpoints';
 import { fetchAPI } from '@/lib/api';
 import { inventoryKeys, invalidateInventoryBranch, invalidateNavCounts } from '@/lib/query-keys';
 
@@ -9,7 +11,7 @@ import { inventoryKeys, invalidateInventoryBranch, invalidateNavCounts } from '@
 export const useBranchDetails = (branchId?: number) => {
   return useQuery({
     queryKey: inventoryKeys.branch(branchId!),
-    queryFn: () => fetchAPI(API_ENDPOINTS.branches.detail(branchId!)),
+    queryFn: () => fetchAPI(BRANCH_ENDPOINTS.detail(branchId!)),
     enabled: !!branchId,
   });
 };
@@ -17,7 +19,7 @@ export const useBranchDetails = (branchId?: number) => {
 export const useBranchDetailsSuspense = (branchId: number) => {
   return useSuspenseQuery({
     queryKey: inventoryKeys.branch(branchId),
-    queryFn: () => fetchAPI(API_ENDPOINTS.branches.detail(branchId)),
+    queryFn: () => fetchAPI(BRANCH_ENDPOINTS.detail(branchId)),
   });
 };
 
@@ -31,7 +33,7 @@ export {
 export const useAddInventoryBatch = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ branchId, data }: { branchId: number, data: unknown }) => fetchAPI(API_ENDPOINTS.branches.addBatch(branchId), { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: ({ branchId, data }: { branchId: number, data: unknown }) => fetchAPI(BRANCH_ENDPOINTS.addBatch(branchId), { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: inventoryKeys.branch(variables.branchId) });
       invalidateNavCounts(queryClient);
@@ -42,7 +44,7 @@ export const useAddInventoryBatch = () => {
 export const useWasteLogs = (branchId?: number) => {
   return useQuery({
     queryKey: inventoryKeys.wasteLogs(branchId!),
-    queryFn: () => fetchAPI(API_ENDPOINTS.ingredients.wasteLogs(branchId)),
+    queryFn: () => fetchAPI(INGREDIENT_ENDPOINTS.wasteLogs(branchId)),
     enabled: !!branchId,
   });
 };
@@ -50,7 +52,7 @@ export const useWasteLogs = (branchId?: number) => {
 export const useReportWaste = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ branchId, data }: { branchId: number, data: unknown }) => fetchAPI(API_ENDPOINTS.branches.reportWaste(branchId), { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: ({ branchId, data }: { branchId: number, data: unknown }) => fetchAPI(BRANCH_ENDPOINTS.reportWaste(branchId), { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: inventoryKeys.wasteLogs(variables.branchId) });
       queryClient.invalidateQueries({ queryKey: inventoryKeys.branch(variables.branchId) });
@@ -65,7 +67,7 @@ export const useReportWaste = () => {
 export function useBranchInventory(branchId?: number) {
   return useQuery({
     queryKey: inventoryKeys.balance(branchId!),
-    queryFn: () => fetchAPI(API_ENDPOINTS.inventory.balance(branchId!)),
+    queryFn: () => fetchAPI(INVENTORY_ENDPOINTS.balance(branchId!)),
     enabled: !!branchId,
   });
 }
@@ -73,7 +75,7 @@ export function useBranchInventory(branchId?: number) {
 export function useBranchInventorySuspense(branchId: number) {
   return useSuspenseQuery({
     queryKey: inventoryKeys.balance(branchId),
-    queryFn: () => fetchAPI(API_ENDPOINTS.inventory.balance(branchId)),
+    queryFn: () => fetchAPI(INVENTORY_ENDPOINTS.balance(branchId)),
   });
 }
 
@@ -81,7 +83,7 @@ export function useStockIn() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: { branchId: number; items: { ingredientId: number; quantity: number; expiryDate?: string }[] }) =>
-      fetchAPI(API_ENDPOINTS.inventory.stockIn(data.branchId), {
+      fetchAPI(INVENTORY_ENDPOINTS.stockIn(data.branchId), {
         method: "POST",
         body: JSON.stringify({ items: data.items }),
       }),
@@ -96,7 +98,7 @@ export function useRecordWaste() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: { branchId: number; items: { ingredientId: number; quantity: number; reason: string }[] }) =>
-      fetchAPI(API_ENDPOINTS.inventory.waste(data.branchId), {
+      fetchAPI(INVENTORY_ENDPOINTS.waste(data.branchId), {
         method: "POST",
         body: JSON.stringify({ items: data.items }),
       }),

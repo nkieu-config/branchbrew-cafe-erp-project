@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useDeferredValue } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Download, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -16,7 +16,6 @@ import {
   useFinanceExpenses,
   useFinanceSettlements,
 } from "@/hooks/domains/useFinanceQueries";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { exportSales } from "@/lib/api";
 import { getErrorMessage } from "@/lib/errors";
 import { formatCurrency } from "@/lib/money";
@@ -48,7 +47,7 @@ export default function OverviewPageClient() {
 
   const [settlementFilter, setSettlementFilter] = useState<SettlementStatusFilter>(initialStatus);
   const [expenseSearch, setExpenseSearch] = useState("");
-  const debouncedExpenseSearch = useDebouncedValue(expenseSearch.trim().toLowerCase(), 300);
+  const deferredExpenseSearch = useDeferredValue(expenseSearch.trim().toLowerCase());
   const [approveTarget, setApproveTarget] = useState<Settlement | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -101,8 +100,8 @@ export default function OverviewPageClient() {
   );
 
   const visibleExpenses = useMemo(
-    () => filterExpenses(expenses, debouncedExpenseSearch),
-    [expenses, debouncedExpenseSearch],
+    () => filterExpenses(expenses, deferredExpenseSearch),
+    [expenses, deferredExpenseSearch],
   );
 
   const hasActiveFilters =

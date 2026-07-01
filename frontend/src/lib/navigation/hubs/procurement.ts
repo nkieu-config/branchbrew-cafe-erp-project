@@ -7,7 +7,7 @@ export const procurementHub: HubConfig = {
   description: "Manage suppliers and purchase orders.",
   icon: Truck,
   basePath: "/procurement",
-  wrapAntd: true,
+  wrapAntd: false,
   tabs: [
     {
       id: "suppliers",

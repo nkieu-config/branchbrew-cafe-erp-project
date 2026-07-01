@@ -1,5 +1,7 @@
+import { ORDER_ENDPOINTS } from "@/lib/endpoints/orders";
+import { PRODUCT_ENDPOINTS } from "@/lib/endpoints/products";
+import { PROMOTION_ENDPOINTS, CUSTOMER_ENDPOINTS } from "@/lib/endpoints/crm";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { API_ENDPOINTS } from '@/lib/endpoints';
 import { fetchAPI } from '@/lib/api';
 import type { Order, OrderStatus } from '@/types/api';
 import { KDS_STATUSES, mergeKdsOrders, normalizeKdsOrders } from '@/lib/kds-utils';
@@ -14,7 +16,7 @@ export const kdsOrdersQueryKey = (branchId?: number) => ['kdsOrders', branchId] 
 export const useKdsOrders = (branchId?: number, isConnected = false) => {
   return useQuery({
     queryKey: kdsOrdersQueryKey(branchId),
-    queryFn: () => fetchAPI(API_ENDPOINTS.orders.kds(branchId!)),
+    queryFn: () => fetchAPI(ORDER_ENDPOINTS.kds(branchId!)),
     enabled: !!branchId,
     refetchInterval: isConnected ? false : 30_000,
     select: normalizeKdsOrders,
@@ -25,7 +27,7 @@ export const useUpdateKdsOrderStatus = (branchId?: number) => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ orderId, status }: { orderId: number; status: string }) =>
-      fetchAPI(API_ENDPOINTS.orders.updateStatus(orderId), {
+      fetchAPI(ORDER_ENDPOINTS.updateStatus(orderId), {
         method: 'PATCH',
         body: JSON.stringify({ status }),
       }),
@@ -67,14 +69,14 @@ export const useUpdateKdsOrderStatus = (branchId?: number) => {
 export const useProducts = () => {
   return useQuery({
     queryKey: orderKeys.products,
-    queryFn: () => fetchAPI(API_ENDPOINTS.products.list),
+    queryFn: () => fetchAPI(PRODUCT_ENDPOINTS.list),
   });
 };
 
 export const useCreateOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: unknown) => fetchAPI(API_ENDPOINTS.orders.create, { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: unknown) => fetchAPI(ORDER_ENDPOINTS.create, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: orderKeys.root });
       invalidateNavCounts(queryClient);
@@ -85,7 +87,7 @@ export const useCreateOrder = () => {
 export const useBranchOrders = (branchId?: number) => {
   return useQuery({
     queryKey: orderKeys.branch(branchId),
-    queryFn: () => fetchAPI(API_ENDPOINTS.orders.list(branchId)),
+    queryFn: () => fetchAPI(ORDER_ENDPOINTS.list(branchId)),
     enabled: !!branchId,
   });
 };
@@ -94,7 +96,7 @@ export const useVoidOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (orderId: number) =>
-      fetchAPI(API_ENDPOINTS.orders.void(orderId), { method: 'POST' }),
+      fetchAPI(ORDER_ENDPOINTS.void(orderId), { method: 'POST' }),
     onSuccess: () => {
       invalidatePosOrderSideEffects(queryClient);
     },
@@ -105,7 +107,7 @@ export const useRefundOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ orderId, reason }: { orderId: number; reason?: string }) =>
-      fetchAPI(API_ENDPOINTS.orders.refund(orderId), {
+      fetchAPI(ORDER_ENDPOINTS.refund(orderId), {
         method: 'POST',
         body: JSON.stringify(reason ? { reason } : {}),
       }),
@@ -117,13 +119,13 @@ export const useRefundOrder = () => {
 
 export const useValidatePromotion = () => {
   return useMutation({
-    mutationFn: ({ code, subtotal }: { code: string, subtotal: number }) => fetchAPI(API_ENDPOINTS.promotions.validate, { method: 'POST', body: JSON.stringify({ code, subtotal }) }),
+    mutationFn: ({ code, subtotal }: { code: string, subtotal: number }) => fetchAPI(PROMOTION_ENDPOINTS.validate, { method: 'POST', body: JSON.stringify({ code, subtotal }) }),
   });
 };
 
 export const useCustomerByPhone = () => {
   return useMutation({
-    mutationFn: (phone: string) => fetchAPI(API_ENDPOINTS.customers.byPhone(phone)),
+    mutationFn: (phone: string) => fetchAPI(CUSTOMER_ENDPOINTS.byPhone(phone)),
   });
 };
 

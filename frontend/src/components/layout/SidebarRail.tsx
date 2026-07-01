@@ -6,7 +6,7 @@ import { Coffee, PanelLeftOpen } from "lucide-react";
 import { SidebarNavBadge } from "@/components/shared/sidebar-nav-badge";
 import { useAuth } from "@/context/AuthContext";
 import { useSidebarNavBadges } from "@/hooks/useSidebarNavBadges";
-import { FLAT_SIDEBAR_ITEMS, findActiveSidebarItem, isSidebarItemActive } from "@/lib/navigation";
+import { FLAT_SIDEBAR_ITEMS, findActiveSidebarItem, isSidebarItemActive } from "@/lib/navigation/sidebar";
 import { sidebarRailExpandButtonClassName, sidebarRailLinkClassName, sidebarBrandMarkClassName, sidebarBrandMarkIconClassName, sidebarRootClassName, shell, shellHeaderInsetClassName } from "@/lib/theme/shell";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types/api";

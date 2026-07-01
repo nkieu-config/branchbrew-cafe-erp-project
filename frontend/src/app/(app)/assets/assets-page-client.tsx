@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useDeferredValue } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
@@ -9,7 +9,6 @@ import {
   useEquipment,
   useLogMaintenance,
 } from "@/hooks/domains/useProcurementQueries";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
@@ -47,7 +46,7 @@ export default function AssetsPageClient() {
   const maintMutation = useLogMaintenance();
 
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [statusFilter, setStatusFilter] = useState<EquipmentStatusFilter>("ALL");
   const [typeFilter, setTypeFilter] = useState<EquipmentTypeFilter>("ALL");
   const [highlightFilter, setHighlightFilter] = useState<EquipmentHighlightFilter>("ALL");
@@ -64,9 +63,9 @@ export default function AssetsPageClient() {
         statusFilter,
         typeFilter,
         highlightFilter,
-        search: debouncedSearch,
+        search: deferredSearch,
       }),
-    [equipmentList, statusFilter, typeFilter, highlightFilter, debouncedSearch],
+    [equipmentList, statusFilter, typeFilter, highlightFilter, deferredSearch],
   );
 
   const hasActiveFilters =

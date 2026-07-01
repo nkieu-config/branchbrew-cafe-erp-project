@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useDeferredValue } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { HubListPage } from "@/components/shared/hub-list-page";
@@ -19,7 +19,6 @@ import {
   useDeleteSupplier,
   usePurchaseOrders,
 } from "@/hooks/domains/useProcurementQueries";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { getErrorMessage } from "@/lib/errors";
 import {
   countPurchaseOrdersBySupplier,
@@ -40,7 +39,7 @@ export default function SuppliersPageClient() {
   const deleteMutation = useDeleteSupplier();
 
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [contactFilter, setContactFilter] = useState<SupplierContactFilter>("ALL");
 
   const [open, setOpen] = useState(false);
@@ -55,8 +54,8 @@ export default function SuppliersPageClient() {
   const summary = useMemo(() => summarizeSuppliers(suppliers), [suppliers]);
 
   const filteredSuppliers = useMemo(
-    () => filterSuppliers(suppliers, { search: debouncedSearch, contactFilter }),
-    [suppliers, debouncedSearch, contactFilter],
+    () => filterSuppliers(suppliers, { search: deferredSearch, contactFilter }),
+    [suppliers, deferredSearch, contactFilter],
   );
 
   const hasActiveFilters = hasSupplierFilters({ search, contactFilter });

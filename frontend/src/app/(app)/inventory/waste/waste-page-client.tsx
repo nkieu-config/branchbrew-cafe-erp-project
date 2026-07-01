@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useDeferredValue } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -14,7 +14,6 @@ import { WasteHistoryPanel } from "@/components/inventory/WasteHistoryPanel";
 import { WasteRecordForm, type WasteLineRow } from "@/components/inventory/WasteRecordForm";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { useLineItemRows } from "@/hooks/useLineItemRows";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { filterActive } from "@/lib/form";
 import { getErrorMessage } from "@/lib/errors";
 import {
@@ -93,7 +92,7 @@ export default function WastePageClient() {
   const [ingredientFilter, setIngredientFilter] = useState("ALL");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
-  const debouncedHistorySearch = useDebouncedValue(historySearch.trim().toLowerCase(), 300);
+  const deferredHistorySearch = useDeferredValue(historySearch.trim().toLowerCase());
 
   const formDisabled =
     ingredientsLoading || ingredientsError || ingredients.length === 0;
@@ -123,12 +122,12 @@ export default function WastePageClient() {
   const filteredLogs = useMemo(
     () =>
       filterWasteLogs(wasteLogs, {
-        search: debouncedHistorySearch,
+        search: deferredHistorySearch,
         ingredientFilter,
         dateFrom,
         dateTo,
       }),
-    [wasteLogs, debouncedHistorySearch, ingredientFilter, dateFrom, dateTo],
+    [wasteLogs, deferredHistorySearch, ingredientFilter, dateFrom, dateTo],
   );
 
   const historyFiltersActive = hasWasteHistoryFilters({

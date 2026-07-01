@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, useDeferredValue } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -20,7 +20,6 @@ import {
   useLeaveRequests,
   useUpdateLeaveStatus,
 } from "@/hooks/domains/useHrQueries";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { getErrorMessage } from "@/lib/errors";
 import {
   type LeaveStatusFilter,
@@ -58,14 +57,18 @@ export default function LeavePageClient() {
   const [statusFilter, setStatusFilter] = useState<LeaveStatusFilter>(initialStatus);
   const [typeFilter, setTypeFilter] = useState<LeaveTypeFilter>("ALL");
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [confirmAction, setConfirmAction] = useState<LeaveConfirmAction | null>(null);
 
+  const leaveStatusParam = searchParams.get("status");
+
   useEffect(() => {
-    setStatusFilter(parseHrLeaveSearchParams(searchParams).statusFilter);
-  }, [searchParams]);
+    setStatusFilter(parseHrLeaveSearchParams(
+      new URLSearchParams(leaveStatusParam ? `status=${leaveStatusParam}` : ""),
+    ).statusFilter);
+  }, [leaveStatusParam]);
 
   const summary = useMemo(() => summarizeLeaveRequests(leaveRequests), [leaveRequests]);
 
@@ -74,9 +77,9 @@ export default function LeavePageClient() {
       filterLeaveRequests(leaveRequests, {
         statusFilter,
         typeFilter,
-        search: debouncedSearch,
+        search: deferredSearch,
       }),
-    [leaveRequests, statusFilter, typeFilter, debouncedSearch],
+    [leaveRequests, statusFilter, typeFilter, deferredSearch],
   );
 
   const hasActiveFilters =

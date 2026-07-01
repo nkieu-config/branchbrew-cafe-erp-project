@@ -3,6 +3,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { toNum } from '../common/decimal.util';
 
+const ACTIVE_ORDER_STATUSES = ['COMPLETED', 'PENDING', 'PREPARING'] as const;
+
 @Injectable()
 export class ReportsService {
   constructor(private prisma: PrismaService) {}
@@ -20,6 +22,36 @@ export class ReportsService {
         select: { id: true },
       })
       .then((branches) => branches.map((branch) => branch.id));
+  }
+
+  private async resolveTopBranchToday(today: Date) {
+    const retailBranchIds = await this.retailBranchIds();
+    if (retailBranchIds.length === 0) return null;
+
+    const branchSales = await this.prisma.order.groupBy({
+      by: ['branchId'],
+      _sum: { netAmount: true },
+      where: {
+        branchId: { in: retailBranchIds },
+        createdAt: { gte: today },
+        status: { in: [...ACTIVE_ORDER_STATUSES] },
+      },
+      orderBy: { _sum: { netAmount: 'desc' } },
+      take: 1,
+    });
+
+    if (branchSales.length === 0) return null;
+
+    const branch = await this.prisma.branch.findUnique({
+      where: { id: branchSales[0].branchId },
+    });
+    if (!branch) return null;
+
+    return {
+      id: branch.id,
+      name: branch.name,
+      totalSales: toNum(branchSales[0]._sum.netAmount),
+    };
   }
 
   async getSalesTrends(branchId?: number) {
@@ -88,26 +120,30 @@ export class ReportsService {
       orderBy: {
         _sum: { quantity: 'desc' },
       },
-      take: 5,
+      take: 3,
     });
 
-    // Populate product names
-    const result: { productId: number; name: string; totalQuantity: number }[] =
-      [];
-    for (const item of items) {
-      const product = await this.prisma.product.findUnique({
-        where: { id: item.productId },
-      });
-      if (product) {
-        result.push({
+    if (items.length === 0) return [];
+
+    const products = await this.prisma.product.findMany({
+      where: { id: { in: items.map((item) => item.productId) } },
+      select: { id: true, name: true },
+    });
+    const productById = new Map(
+      products.map((product) => [product.id, product]),
+    );
+
+    return items.flatMap((item) => {
+      const product = productById.get(item.productId);
+      if (!product) return [];
+      return [
+        {
           productId: item.productId,
           name: product.name,
           totalQuantity: item._sum.quantity || 0,
-        });
-      }
-    }
-
-    return result;
+        },
+      ];
+    });
   }
 
   async getProfitLoss(branchId?: number) {
@@ -117,25 +153,25 @@ export class ReportsService {
 
     const whereBranch = branchId ? { branchId } : {};
 
-    const orders = await this.prisma.order.aggregate({
-      where: { ...whereBranch, createdAt: { gte: startOfMonth } },
-      _sum: { netAmount: true, totalCogs: true },
-    });
-
-    const expenses = await this.prisma.expense.aggregate({
-      where: { ...whereBranch, createdAt: { gte: startOfMonth } },
-      _sum: { amount: true },
-    });
-
-    const payrolls = await this.prisma.payslip.aggregate({
-      where: {
-        payrollRun: {
-          ...(branchId && { branchId }),
-          createdAt: { gte: startOfMonth },
+    const [orders, expenses, payrolls] = await Promise.all([
+      this.prisma.order.aggregate({
+        where: { ...whereBranch, createdAt: { gte: startOfMonth } },
+        _sum: { netAmount: true, totalCogs: true },
+      }),
+      this.prisma.expense.aggregate({
+        where: { ...whereBranch, createdAt: { gte: startOfMonth } },
+        _sum: { amount: true },
+      }),
+      this.prisma.payslip.aggregate({
+        where: {
+          payrollRun: {
+            ...(branchId && { branchId }),
+            createdAt: { gte: startOfMonth },
+          },
         },
-      },
-      _sum: { netPay: true },
-    });
+        _sum: { netPay: true },
+      }),
+    ]);
 
     const revenue = toNum(orders._sum.netAmount);
     const cogs = toNum(orders._sum.totalCogs);
@@ -163,23 +199,51 @@ export class ReportsService {
 
     const whereBranch = branchId ? { branchId } : {};
 
-    // 1. Sales Today vs Yesterday
-    const salesTodayAgg = await this.prisma.order.aggregate({
-      where: {
-        ...whereBranch,
-        createdAt: { gte: today },
-        status: { in: ['COMPLETED', 'PENDING', 'PREPARING'] },
-      },
-      _sum: { netAmount: true },
-    });
-    const salesYesterdayAgg = await this.prisma.order.aggregate({
-      where: {
-        ...whereBranch,
-        createdAt: { gte: yesterday, lt: today },
-        status: { in: ['COMPLETED', 'PENDING', 'PREPARING'] },
-      },
-      _sum: { netAmount: true },
-    });
+    const warningDate = new Date();
+    warningDate.setDate(warningDate.getDate() + 7);
+
+    const [
+      salesTodayAgg,
+      salesYesterdayAgg,
+      topBranch,
+      inventories,
+      expiringBatches,
+    ] = await Promise.all([
+      this.prisma.order.aggregate({
+        where: {
+          ...whereBranch,
+          createdAt: { gte: today },
+          status: { in: [...ACTIVE_ORDER_STATUSES] },
+        },
+        _sum: { netAmount: true },
+        _count: { _all: true },
+      }),
+      this.prisma.order.aggregate({
+        where: {
+          ...whereBranch,
+          createdAt: { gte: yesterday, lt: today },
+          status: { in: [...ACTIVE_ORDER_STATUSES] },
+        },
+        _sum: { netAmount: true },
+        _count: { _all: true },
+      }),
+      branchId ? Promise.resolve(null) : this.resolveTopBranchToday(today),
+      this.prisma.branchInventory.findMany({
+        where: whereBranch,
+        include: { ingredient: true, branch: true },
+      }),
+      this.prisma.inventoryBatch.findMany({
+        where: {
+          ...whereBranch,
+          expiryDate: { not: null, lte: warningDate },
+          status: { in: ['ACTIVE', 'EXPIRED'] },
+          quantity: { gt: 0 },
+        },
+        include: { ingredient: true, branch: true },
+        orderBy: { expiryDate: 'asc' },
+        take: 5,
+      }),
+    ]);
 
     const salesToday = toNum(salesTodayAgg._sum.netAmount);
     const salesYesterday = toNum(salesYesterdayAgg._sum.netAmount);
@@ -188,46 +252,16 @@ export class ReportsService {
       salesGrowth = ((salesToday - salesYesterday) / salesYesterday) * 100;
     }
 
-    // 2. Top Branch by Sales Today
-    let topBranch: {
-      id: number;
-      name: string;
-      totalSales: number;
-    } | null = null;
-    if (!branchId) {
-      const retailBranchIds = await this.retailBranchIds();
-
-      const branchSales = await this.prisma.order.groupBy({
-        by: ['branchId'],
-        _sum: { netAmount: true },
-        where: {
-          branchId: { in: retailBranchIds },
-          createdAt: { gte: today },
-          status: { in: ['COMPLETED', 'PENDING', 'PREPARING'] },
-        },
-        orderBy: { _sum: { netAmount: 'desc' } },
-        take: 1,
-      });
-
-      if (branchSales.length > 0) {
-        const branch = await this.prisma.branch.findUnique({
-          where: { id: branchSales[0].branchId },
-        });
-        if (branch) {
-          topBranch = {
-            id: branch.id,
-            name: branch.name,
-            totalSales: toNum(branchSales[0]._sum.netAmount),
-          };
-        }
-      }
+    const ordersToday = salesTodayAgg._count._all;
+    const ordersYesterday = salesYesterdayAgg._count._all;
+    let ordersGrowth = 0;
+    if (ordersYesterday > 0) {
+      ordersGrowth = ((ordersToday - ordersYesterday) / ordersYesterday) * 100;
     }
 
-    // 3. Low Stock Alerts
-    const inventories = await this.prisma.branchInventory.findMany({
-      where: whereBranch,
-      include: { ingredient: true, branch: true },
-    });
+    const avgTicketToday = ordersToday > 0 ? salesToday / ordersToday : 0;
+    const avgTicketYesterday =
+      ordersYesterday > 0 ? salesYesterday / ordersYesterday : 0;
 
     const alerts = inventories
       .filter((inv) => inv.stock <= inv.minStock)
@@ -240,21 +274,6 @@ export class ReportsService {
         stock: inv.stock,
         minStock: inv.minStock,
       }));
-
-    const warningDate = new Date();
-    warningDate.setDate(warningDate.getDate() + 7);
-
-    const expiringBatches = await this.prisma.inventoryBatch.findMany({
-      where: {
-        ...whereBranch,
-        expiryDate: { not: null, lte: warningDate },
-        status: { in: ['ACTIVE', 'EXPIRED'] },
-        quantity: { gt: 0 },
-      },
-      include: { ingredient: true, branch: true },
-      orderBy: { expiryDate: 'asc' },
-      take: 5,
-    });
 
     const expiryAlerts = expiringBatches.map((batch) => ({
       id: batch.id,
@@ -269,6 +288,11 @@ export class ReportsService {
       salesToday,
       salesYesterday,
       salesGrowth,
+      ordersToday,
+      ordersYesterday,
+      ordersGrowth,
+      avgTicketToday,
+      avgTicketYesterday,
       topBranch,
       lowStockAlerts: alerts,
       expiryAlerts,

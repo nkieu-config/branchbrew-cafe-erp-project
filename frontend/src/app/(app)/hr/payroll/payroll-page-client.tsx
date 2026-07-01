@@ -17,7 +17,7 @@ import {
   useHrUsers,
   usePayrollRuns,
 } from "@/hooks/domains/useHrQueries";
-import { buildHrPayrollUrl, parseHrPayrollSearchParams } from "@/lib/hr-hub-url";
+import { buildHrPayrollUrl } from "@/lib/hr-hub-url";
 import { formatCurrency } from "@/lib/money";
 import { getErrorMessage } from "@/lib/errors";
 import {
@@ -42,10 +42,12 @@ export default function PayrollPageClient() {
   const { activeBranchId } = useAuth();
   const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
 
-  const employeeId = useMemo(
-    () => parseHrPayrollSearchParams(searchParams).employeeId,
-    [searchParams],
-  );
+  const payrollEmployeeParam = searchParams.get("employee");
+  const employeeId = useMemo(() => {
+    if (!payrollEmployeeParam) return null;
+    const id = Number(payrollEmployeeParam);
+    return Number.isFinite(id) && id > 0 ? id : null;
+  }, [payrollEmployeeParam]);
 
   const { data: hrUsers = [] } = useHrUsers(branchIdNum);
 

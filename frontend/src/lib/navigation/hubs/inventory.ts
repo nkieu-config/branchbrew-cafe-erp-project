@@ -14,7 +14,7 @@ export const inventoryHub: HubConfig = {
   description: "Manage stock levels, batches, receipts, transfers, and waste.",
   icon: Package,
   basePath: "/inventory",
-  wrapAntd: true,
+  wrapAntd: false,
   tabs: [
     {
       id: "balance",

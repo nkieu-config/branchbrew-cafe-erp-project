@@ -24,6 +24,7 @@ import {
   ChartWidgetSkeleton,
   AlertsWidgetSkeleton,
 } from "@/components/dashboard/widgets/WidgetSkeletons";
+import { DashboardSummaryProvider } from "@/components/dashboard/DashboardSummaryContext";
 import { DashboardLayoutSkeleton } from "@/components/dashboard/DashboardLayoutSkeleton";
 import type { DashboardWidgetRegistry } from "@/components/dashboard/DashboardSortableGrid";
 
@@ -81,15 +82,43 @@ function DashboardGridSection({
 
   if (customizeLayout) {
     return (
-      <DashboardSortableGridLazy
-        widgetOrder={widgetOrder}
-        onReorder={onReorder}
-        widgets={widgets}
-      />
+      <Suspense
+        fallback={
+          <div className={dashboardGridClass()}>
+            <StatWidgetSkeleton />
+            <StatWidgetSkeleton />
+            <AlertsWidgetSkeleton />
+            <ChartWidgetSkeleton />
+            <ChartWidgetSkeleton />
+          </div>
+        }
+      >
+        <DashboardSummaryProvider branchId={analyticsBranch}>
+          <DashboardSortableGridLazy
+            widgetOrder={widgetOrder}
+            onReorder={onReorder}
+            widgets={widgets}
+          />
+        </DashboardSummaryProvider>
+      </Suspense>
     );
   }
 
-  return <DashboardStaticGrid widgetOrder={widgetOrder} widgets={widgets} />;
+  return (
+    <Suspense
+      fallback={
+        <div className={dashboardGridClass()}>
+          <StatWidgetSkeleton />
+          <StatWidgetSkeleton />
+          <AlertsWidgetSkeleton />
+        </div>
+      }
+    >
+      <DashboardSummaryProvider branchId={analyticsBranch}>
+        <DashboardStaticGrid widgetOrder={widgetOrder} widgets={widgets} />
+      </DashboardSummaryProvider>
+    </Suspense>
+  );
 }
 
 function DashboardStaticGrid({
@@ -133,27 +162,27 @@ function buildWidgetRegistry(
     sales: {
       content: (
         <WidgetBoundary onReset={reset}>
-          <Suspense fallback={<StatWidgetSkeleton />}>
-            <SalesWidget branchId={analyticsBranch} />
-          </Suspense>
+          <SalesWidget branchId={analyticsBranch} />
         </WidgetBoundary>
       ),
     },
     topBranch: {
       content: (
         <WidgetBoundary onReset={reset}>
-          <Suspense fallback={<StatWidgetSkeleton />}>
-            <TopBranchWidget branchId={analyticsBranch} branchName={branchName} />
-          </Suspense>
+          <TopBranchWidget branchId={analyticsBranch} branchName={branchName} />
         </WidgetBoundary>
       ),
     },
     lowStock: {
       content: (
         <WidgetBoundary onReset={reset}>
-          <Suspense fallback={<AlertsWidgetSkeleton />}>
+          {analyticsBranch === "ALL" ? (
             <LowStockWidget branchId={analyticsBranch} branchName={branchName} />
-          </Suspense>
+          ) : (
+            <Suspense fallback={<AlertsWidgetSkeleton />}>
+              <LowStockWidget branchId={analyticsBranch} branchName={branchName} />
+            </Suspense>
+          )}
         </WidgetBoundary>
       ),
     },

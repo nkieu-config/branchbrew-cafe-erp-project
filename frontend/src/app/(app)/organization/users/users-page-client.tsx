@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useDeferredValue } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useHrUsers, useCreateUser, useUpdateUser } from "@/hooks/domains/useHrQueries";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { RoleGuard } from "@/components/auth/RoleGuard";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
@@ -55,7 +54,7 @@ export default function UsersPageClient({ embedded = false }: { embedded?: boole
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [roleFilter, setRoleFilter] = useState<EmployeeRoleFilter>("ALL");
   const [branchFilter, setBranchFilter] = useState<OrgUserBranchFilter>("ALL");
 
@@ -70,7 +69,7 @@ export default function UsersPageClient({ embedded = false }: { embedded?: boole
   const filteredUsers = useMemo(
     () =>
       filterEmployees(userList, {
-        search: debouncedSearch,
+        search: deferredSearch,
         roleFilter,
         employmentTypeFilter: "ALL",
         rateFilter: "ALL",
@@ -79,7 +78,7 @@ export default function UsersPageClient({ embedded = false }: { embedded?: boole
       }),
     [
       userList,
-      debouncedSearch,
+      deferredSearch,
       roleFilter,
       branchFilter,
       branchNameById,

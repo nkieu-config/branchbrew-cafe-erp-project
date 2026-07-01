@@ -7,7 +7,7 @@ export const kitchenHub: HubConfig = {
   description: "Manage production orders and production BOMs.",
   icon: ChefHat,
   basePath: "/kitchen",
-  wrapAntd: true,
+  wrapAntd: false,
   tabs: [
     {
       id: "production",

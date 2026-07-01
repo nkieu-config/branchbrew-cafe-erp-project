@@ -1,9 +1,9 @@
 "use client";
 
+import { CORE_ENDPOINTS } from "@/lib/endpoints/core";
 import { createContext, use, useMemo, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
-import { API_ENDPOINTS } from "@/lib/endpoints";
 import { fetchAPI } from "@/lib/api";
 import {
   buildSidebarBadgesFromNavCounts,
@@ -63,7 +63,7 @@ export function SidebarBadgesProvider({ children }: { children: ReactNode }) {
   const { data: navCounts } = useQuery({
     queryKey: [NAV_COUNTS_QUERY_KEY, queryBranchId ?? "all", role],
     queryFn: () =>
-      fetchAPI(API_ENDPOINTS.navCounts(queryBranchId ?? undefined)) as Promise<
+      fetchAPI(CORE_ENDPOINTS.navCounts(queryBranchId ?? undefined)) as Promise<
         NavCountsSnapshot & { branchId: number | null }
       >,
     enabled,

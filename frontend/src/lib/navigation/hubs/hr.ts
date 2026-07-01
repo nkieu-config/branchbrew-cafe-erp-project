@@ -14,7 +14,7 @@ export const hrHub: HubConfig = {
   description: "Manage staff, shifts, attendance, and payroll.",
   icon: UserSquare2,
   basePath: "/hr",
-  wrapAntd: true,
+  wrapAntd: false,
   tabs: [
     {
       id: "employees",

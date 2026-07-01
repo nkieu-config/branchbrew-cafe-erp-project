@@ -7,7 +7,7 @@ export const productsHub: HubConfig = {
   description: "Manage menu catalog, ingredients, modifiers, and food cost.",
   icon: ClipboardList,
   basePath: "/products",
-  wrapAntd: true,
+  wrapAntd: false,
   tabs: [
     {
       id: "menu",

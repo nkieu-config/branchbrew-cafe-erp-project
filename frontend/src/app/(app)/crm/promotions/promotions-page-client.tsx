@@ -1,9 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useDeferredValue } from "react";
 import { Plus } from "lucide-react";
 import { usePromotions } from "@/hooks/domains/useCrmQueries";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { DeletePromotionDialog } from "@/components/crm/DeletePromotionDialog";
 import { PromotionFormDialog } from "@/components/crm/PromotionFormDialog";
 import { PromotionListTable } from "@/components/crm/PromotionListTable";
@@ -32,7 +31,7 @@ export default function PromotionsPageClient() {
   const promotions = promotionsData || [];
 
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [statusFilter, setStatusFilter] = useState<PromoStatusFilter>("ALL");
   const [discountFilter, setDiscountFilter] = useState<PromoDiscountFilter>("ALL");
 
@@ -51,13 +50,13 @@ export default function PromotionsPageClient() {
   const filteredPromotions = useMemo(() => {
     return promotions.filter((p: Promotion) => {
       const haystack = [p.code, p.description].join(" ").toLowerCase();
-      const matchesSearch = !debouncedSearch || haystack.includes(debouncedSearch);
+      const matchesSearch = !deferredSearch || haystack.includes(deferredSearch);
       const validity = getPromoValidity(p);
       const matchesStatus = statusFilter === "ALL" || validity === statusFilter;
       const matchesDiscount = discountFilter === "ALL" || p.discountType === discountFilter;
       return matchesSearch && matchesStatus && matchesDiscount;
     });
-  }, [promotions, debouncedSearch, statusFilter, discountFilter]);
+  }, [promotions, deferredSearch, statusFilter, discountFilter]);
 
   const hasActiveFilters =
     search.trim().length > 0 || statusFilter !== "ALL" || discountFilter !== "ALL";

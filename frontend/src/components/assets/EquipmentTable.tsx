@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo } from "react";
 import type { ColumnsType } from "antd/es/table";
 import { Wrench } from "lucide-react";
 import { DataTable } from "@/components/shared/data-table";
@@ -46,6 +46,64 @@ function equipmentRowHighlightClass(record: Equipment) {
     return equipmentMaintenanceDueRowClassName("cursor-default");
   }
   return undefined;
+}
+
+type EquipmentMobileCardProps = {
+  record: Equipment;
+  onLogMaintenance: (equipment: Equipment) => void;
+};
+
+const EquipmentMobileCard = memo(function EquipmentMobileCard({
+  record,
+  onLogMaintenance,
+}: EquipmentMobileCardProps) {
+  return (
+    <ListMobileCard className={equipmentRowHighlightClass(record)}>
+      <div className="mb-2 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className={cn("truncate font-medium", text.primary)}>{record.name}</p>
+          {record.serialNumber ? (
+            <p className={cn("truncate font-mono text-xs", tableCellMutedClassName())}>
+              {record.serialNumber}
+            </p>
+          ) : null}
+          <p className={cn("mt-1 text-sm", assetsMutedMetaClassName())}>
+            {equipmentTypeLabel(record.type)}
+          </p>
+        </div>
+        <StatusBadge tone={equipmentStatusTone(record.status)} className="shrink-0">
+          {equipmentStatusLabel(record.status)}
+        </StatusBadge>
+      </div>
+      <p className={cn("mb-3 text-sm", text.muted)}>
+        Next maintenance{" "}
+        {record.nextMaintenanceDate ? (
+          <EquipmentMaintenanceDate date={record.nextMaintenanceDate} />
+        ) : (
+          <span>—</span>
+        )}
+      </p>
+      <div className="flex justify-end">
+        <TableActionButton
+          label={`Log maintenance for ${record.name}`}
+          icon={Wrench}
+          iconOnly
+          tone="amber"
+          onClick={() => onLogMaintenance(record)}
+        />
+      </div>
+    </ListMobileCard>
+  );
+});
+
+function EquipmentMaintenanceDate({ date }: { date: string }) {
+  const overdue = isMaintenanceOverdue(date);
+  const dueSoon = isMaintenanceDueSoon(date);
+  return (
+    <span className={equipmentMaintenanceDateClassName(overdue, dueSoon)}>
+      {formatDate(date)}
+    </span>
+  );
 }
 
 export function EquipmentTable({
@@ -165,37 +223,7 @@ export function EquipmentTable({
             onPageChange={listPagination.setCurrentPage}
           >
             {(record) => (
-              <ListMobileCard className={equipmentRowHighlightClass(record)}>
-                <div className="mb-2 flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className={cn("truncate font-medium", text.primary)}>{record.name}</p>
-                    {record.serialNumber ? (
-                      <p className={cn("truncate font-mono text-xs", tableCellMutedClassName())}>
-                        {record.serialNumber}
-                      </p>
-                    ) : null}
-                    <p className={cn("mt-1 text-sm", assetsMutedMetaClassName())}>
-                      {equipmentTypeLabel(record.type)}
-                    </p>
-                  </div>
-                  <StatusBadge tone={equipmentStatusTone(record.status)} className="shrink-0">
-                    {equipmentStatusLabel(record.status)}
-                  </StatusBadge>
-                </div>
-                <p className={cn("mb-3 text-sm", text.muted)}>
-                  Next maintenance{" "}
-                  {record.nextMaintenanceDate ? renderMaintenanceDate(record.nextMaintenanceDate) : <span>—</span>}
-                </p>
-                <div className="flex justify-end">
-                  <TableActionButton
-                    label={`Log maintenance for ${record.name}`}
-                    icon={Wrench}
-                    iconOnly
-                    tone="amber"
-                    onClick={() => onLogMaintenance(record)}
-                  />
-                </div>
-              </ListMobileCard>
+              <EquipmentMobileCard record={record} onLogMaintenance={onLogMaintenance} />
             )}
           </PaginatedMobileList>
         )

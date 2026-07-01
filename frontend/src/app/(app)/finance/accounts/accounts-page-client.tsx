@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useDeferredValue } from "react";
 import { Loader2, Play } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,6 @@ import { ListFilterSelect } from "@/components/shared/list-filters";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { ChartOfAccountsTable } from "@/components/finance/ChartOfAccountsTable";
 import { useAccounts } from "@/hooks/domains/useAccountingQueries";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { seedAccounts } from "@/lib/api";
 import { groupAccountsByType } from "@/lib/accounts";
 import {
@@ -36,7 +35,7 @@ export default function AccountsPageClient() {
   } = useAccounts();
 
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [typeFilter, setTypeFilter] = useState<AccountTypeFilter>("ALL");
   const [activeFilter, setActiveFilter] = useState<AccountActiveFilter>("ALL");
   const [isSeeding, setIsSeeding] = useState(false);
@@ -48,11 +47,11 @@ export default function AccountsPageClient() {
   const filteredTree = useMemo(
     () =>
       filterAccountTree(accountsTree, {
-        search: debouncedSearch,
+        search: deferredSearch,
         typeFilter,
         activeFilter,
       }),
-    [accountsTree, debouncedSearch, typeFilter, activeFilter],
+    [accountsTree, deferredSearch, typeFilter, activeFilter],
   );
 
   const hasActiveFilters =

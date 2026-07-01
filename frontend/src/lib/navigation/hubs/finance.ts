@@ -7,7 +7,7 @@ export const financeHub: HubConfig = {
   description: "Manage HQ finances, ledger, and accounts.",
   icon: Landmark,
   basePath: "/finance",
-  wrapAntd: true,
+  wrapAntd: false,
   tabs: [
     {
       id: "overview",

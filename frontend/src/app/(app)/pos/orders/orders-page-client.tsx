@@ -1,10 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useDeferredValue } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useBranchOrders, useVoidOrder, useRefundOrder } from "@/hooks/domains/usePosQueries";
 import { useBranches } from "@/hooks/domains/useGeneralQueries";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { HubPageHeader } from "@/components/shared/hub-card";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
@@ -48,7 +47,7 @@ export default function OrdersPageClient() {
   const refundMutation = useRefundOrder();
 
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [statusFilter, setStatusFilter] = useState<OrderStatus | "ALL">("ALL");
   const [refundTarget, setRefundTarget] = useState<Order | null>(null);
   const [refundReason, setRefundReason] = useState("");
@@ -61,10 +60,10 @@ export default function OrdersPageClient() {
   const filteredOrders = useMemo(
     () =>
       filterPosOrders(recentOrders, {
-        search: debouncedSearch,
+        search: deferredSearch,
         statusFilter,
       }),
-    [recentOrders, debouncedSearch, statusFilter],
+    [recentOrders, deferredSearch, statusFilter],
   );
 
   const hasActiveFilters = hasPosOrderFilters({ search, statusFilter });

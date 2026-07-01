@@ -1,5 +1,6 @@
+import { PROCUREMENT_ENDPOINTS } from "@/lib/endpoints/procurement";
+import { EQUIPMENT_ENDPOINTS } from "@/lib/endpoints/equipment";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { API_ENDPOINTS } from '@/lib/endpoints';
 import { fetchAPI } from '@/lib/api';
 import { NAV_COUNTS_QUERY_KEY } from '@/lib/nav-counts';
 import { inventoryKeys } from '@/lib/query-keys';
@@ -10,21 +11,21 @@ import { inventoryKeys } from '@/lib/query-keys';
 export const usePurchaseOrders = () => {
   return useQuery({
     queryKey: ['purchaseOrders'],
-    queryFn: () => fetchAPI(API_ENDPOINTS.procurement.purchaseOrders),
+    queryFn: () => fetchAPI(PROCUREMENT_ENDPOINTS.purchaseOrders),
   });
 };
 
 export const useSuppliers = () => {
   return useQuery({
     queryKey: ['suppliers'],
-    queryFn: () => fetchAPI(API_ENDPOINTS.procurement.suppliers),
+    queryFn: () => fetchAPI(PROCUREMENT_ENDPOINTS.suppliers),
   });
 };
 
 export const useCreatePurchaseOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: unknown) => fetchAPI(API_ENDPOINTS.procurement.createPurchaseOrder, { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: (data: unknown) => fetchAPI(PROCUREMENT_ENDPOINTS.createPurchaseOrder, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
       queryClient.invalidateQueries({ queryKey: [NAV_COUNTS_QUERY_KEY] });
@@ -36,7 +37,7 @@ export const useSubmitPurchaseOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) =>
-      fetchAPI(API_ENDPOINTS.procurement.submitPurchaseOrder(id), {
+      fetchAPI(PROCUREMENT_ENDPOINTS.submitPurchaseOrder(id), {
         method: 'PATCH',
       }),
     onSuccess: () => {
@@ -49,7 +50,7 @@ export const useSubmitPurchaseOrder = () => {
 export const useApprovePurchaseOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => fetchAPI(API_ENDPOINTS.procurement.approvePurchaseOrder(id), { method: 'PATCH' }),
+    mutationFn: (id: number) => fetchAPI(PROCUREMENT_ENDPOINTS.approvePurchaseOrder(id), { method: 'PATCH' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
       queryClient.invalidateQueries({ queryKey: [NAV_COUNTS_QUERY_KEY] });
@@ -60,7 +61,7 @@ export const useApprovePurchaseOrder = () => {
 export const useRejectPurchaseOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: number) => fetchAPI(API_ENDPOINTS.procurement.rejectPurchaseOrder(id), { method: 'PATCH' }),
+    mutationFn: (id: number) => fetchAPI(PROCUREMENT_ENDPOINTS.rejectPurchaseOrder(id), { method: 'PATCH' }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
       queryClient.invalidateQueries({ queryKey: [NAV_COUNTS_QUERY_KEY] });
@@ -78,7 +79,7 @@ export const useReceivePurchaseOrder = () => {
       id: number;
       items?: { ingredientId: number; expiryDate?: string }[];
     }) =>
-      fetchAPI(API_ENDPOINTS.procurement.receivePurchaseOrder(id), {
+      fetchAPI(PROCUREMENT_ENDPOINTS.receivePurchaseOrder(id), {
         method: 'POST',
         body: JSON.stringify(items?.length ? { items } : {}),
       }),
@@ -94,7 +95,7 @@ export const useCreateSupplier = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: { name: string; contactEmail?: string; phone?: string }) =>
-      fetchAPI(API_ENDPOINTS.procurement.createSupplier, {
+      fetchAPI(PROCUREMENT_ENDPOINTS.createSupplier, {
         method: 'POST',
         body: JSON.stringify(data),
       }),
@@ -114,7 +115,7 @@ export const useUpdateSupplier = () => {
       contactEmail?: string;
       phone?: string;
     }) =>
-      fetchAPI(API_ENDPOINTS.procurement.updateSupplier(id), {
+      fetchAPI(PROCUREMENT_ENDPOINTS.updateSupplier(id), {
         method: 'PATCH',
         body: JSON.stringify(data),
       }),
@@ -126,7 +127,7 @@ export const useDeleteSupplier = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) =>
-      fetchAPI(API_ENDPOINTS.procurement.deleteSupplier(id), { method: 'DELETE' }),
+      fetchAPI(PROCUREMENT_ENDPOINTS.deleteSupplier(id), { method: 'DELETE' }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['suppliers'] }),
   });
 };
@@ -140,7 +141,7 @@ export {
 export const useEquipment = (branchId?: number) => {
   return useQuery({
     queryKey: ['equipment', branchId],
-    queryFn: () => fetchAPI(API_ENDPOINTS.equipment.list(branchId)),
+    queryFn: () => fetchAPI(EQUIPMENT_ENDPOINTS.list(branchId)),
   });
 };
 
@@ -148,7 +149,7 @@ export const useCreateEquipment = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: { branchId: number } & Record<string, unknown>) =>
-      fetchAPI(API_ENDPOINTS.equipment.create, { method: 'POST', body: JSON.stringify(data) }),
+      fetchAPI(EQUIPMENT_ENDPOINTS.create, { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: (_, variables) => queryClient.invalidateQueries({ queryKey: ['equipment', variables.branchId] }),
   });
 };
@@ -156,7 +157,7 @@ export const useCreateEquipment = () => {
 export const useLogMaintenance = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number, data: unknown }) => fetchAPI(API_ENDPOINTS.equipment.maintenance(id), { method: 'POST', body: JSON.stringify(data) }),
+    mutationFn: ({ id, data }: { id: number, data: unknown }) => fetchAPI(EQUIPMENT_ENDPOINTS.maintenance(id), { method: 'POST', body: JSON.stringify(data) }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['equipment'] }),
   });
 };

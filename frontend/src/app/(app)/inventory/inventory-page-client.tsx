@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useDeferredValue } from "react";
 import { useSearchParams } from "next/navigation";
 import { useBranchInventory } from "@/hooks/domains/useInventoryQueries";
 import { useAuth } from "@/context/AuthContext";
@@ -10,7 +10,6 @@ import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { ButtonLink } from "@/components/ui/button-link";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { getErrorMessage } from "@/lib/errors";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { inventorySectionPanelClassName, stockLevel } from "@/lib/theme/stock";
@@ -53,7 +52,7 @@ export default function InventoryPageClient() {
   const inventoryFilterParam = searchParams.get("filter");
   const attentionFromUrl = inventoryFilterParam === "low";
   const [search, setSearch] = useState("");
-  const debouncedSearch = useDebouncedValue(search.trim().toLowerCase(), 300);
+  const deferredSearch = useDeferredValue(search.trim().toLowerCase());
   const [stockFilter, setStockFilter] = useState<StockFilter>(
     attentionFromUrl ? "attention" : "ALL",
   );
@@ -78,10 +77,10 @@ export default function InventoryPageClient() {
       const level = stockLevel(record.stock, record.minStock);
       const matchesLevel = matchesStockFilter(level, stockFilter);
       const name = record.ingredient?.name?.toLowerCase() ?? "";
-      const matchesSearch = !debouncedSearch || name.includes(debouncedSearch);
+      const matchesSearch = !deferredSearch || name.includes(deferredSearch);
       return matchesLevel && matchesSearch;
     });
-  }, [inventory, debouncedSearch, stockFilter]);
+  }, [inventory, deferredSearch, stockFilter]);
 
   const hasActiveFilters = search.trim().length > 0 || stockFilter !== "ALL";
 
