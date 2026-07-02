@@ -108,7 +108,18 @@ export class BranchesService {
         fromBranch: true,
         toBranch: true,
         ingredient: true,
-        requestedBy: true,
+        requestedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            branchId: true,
+            employmentType: true,
+            hourlyRate: true,
+            baseSalary: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -123,7 +134,18 @@ export class BranchesService {
         fromBranch: true,
         toBranch: true,
         ingredient: true,
-        requestedBy: true,
+        requestedBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            branchId: true,
+            employmentType: true,
+            hourlyRate: true,
+            baseSalary: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     });

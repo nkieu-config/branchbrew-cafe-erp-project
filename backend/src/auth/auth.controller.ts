@@ -12,6 +12,7 @@ import type { Response } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
+import { AuthLoginResponseDto, AuthUserResponseDto } from './dto/auth-response.dto';
 import { Public } from './public.decorator';
 import { setAuthCookie, clearAuthCookie } from './auth-cookie.util';
 import type { RequestWithUser } from './interfaces/request-with-user.interface';
@@ -33,7 +34,7 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('login')
   @ApiOperation({ summary: 'Login and set auth cookie' })
-  @ApiOkResponse({ description: 'Login successful' })
+  @ApiOkResponse({ type: AuthLoginResponseDto, description: 'Login successful' })
   @ApiAuthErrorResponses()
   async login(
     @Body() signInDto: LoginDto,
@@ -58,7 +59,7 @@ export class AuthController {
 
   @Get('me')
   @ApiOperation({ summary: 'Get current user profile' })
-  @ApiOkResponse({ description: 'Authenticated profile' })
+  @ApiOkResponse({ type: AuthUserResponseDto, description: 'Authenticated profile' })
   @ApiAuthErrorResponses()
   getMe(@Req() req: RequestWithUser) {
     return this.authService.getProfile(req.user.userId);

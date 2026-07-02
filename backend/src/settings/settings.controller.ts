@@ -14,6 +14,7 @@ import type { RequestWithUser } from '../auth/interfaces/request-with-user.inter
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
 import type { SettingsUpdateInput } from './settings-keys.util';
+import { SettingsResponseDto } from './dto/settings-response.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiTags('settings')
@@ -24,7 +25,7 @@ export class SettingsController {
 
   @Get()
   @ApiOperation({ summary: 'Get system settings' })
-  @ApiOkResponse({ description: 'Settings retrieved' })
+  @ApiOkResponse({ type: SettingsResponseDto, description: 'Settings retrieved' })
   getAllSettings() {
     return this.settingsService.getAllSettings();
   }
@@ -32,7 +33,7 @@ export class SettingsController {
   @Roles('SUPER_ADMIN')
   @Post()
   @ApiOperation({ summary: 'Update system settings' })
-  @ApiOkResponse({ description: 'Settings updated' })
+  @ApiOkResponse({ type: SettingsResponseDto, description: 'Settings updated' })
   updateSettings(
     @Request() req: RequestWithUser,
     @Body() data: SettingsUpdateInput,

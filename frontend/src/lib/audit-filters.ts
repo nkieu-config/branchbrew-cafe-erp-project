@@ -1,9 +1,9 @@
-import type { AuditLog, User } from "@/types/api";
+import type { AuditLog } from "@/types/api";
 
 export type AuditActionCategory = "ALL" | "create" | "update" | "delete" | "approve" | "other";
 export type AuditTargetTypeFilter = "ALL" | string;
 
-export type AuditLogRow = AuditLog & { user?: User };
+export type AuditLogRow = AuditLog;
 
 const AUDIT_ACRONYMS = new Set(["PO", "QR", "HQ", "ID", "VAT", "KDS", "POS"]);
 

@@ -1,0 +1,99 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { AccountType, JournalStatus } from '@prisma/client';
+
+export class AccountResponseDto {
+  @ApiProperty({ example: 1 })
+  id: number;
+
+  @ApiProperty({ example: '1010' })
+  code: string;
+
+  @ApiProperty({ example: 'Cash' })
+  name: string;
+
+  @ApiProperty({ enum: AccountType, example: AccountType.ASSET })
+  type: AccountType;
+
+  @ApiProperty({ type: String, example: 'Petty cash and register float', nullable: true })
+  description: string | null;
+
+  @ApiProperty({ example: true })
+  isActive: boolean;
+
+  @ApiProperty({ type: String, format: 'date-time' })
+  createdAt: Date;
+
+  @ApiProperty({ type: String, format: 'date-time' })
+  updatedAt: Date;
+}
+
+export class JournalLineResponseDto {
+  @ApiProperty({ example: 1 })
+  id: number;
+
+  @ApiProperty({ example: 10 })
+  journalEntryId: number;
+
+  @ApiProperty({ example: 3 })
+  accountId: number;
+
+  @ApiProperty({ example: 1200 })
+  debit: number;
+
+  @ApiProperty({ example: 0 })
+  credit: number;
+
+  @ApiProperty({ type: String, example: 'Cash payment', nullable: true })
+  description: string | null;
+
+  @ApiProperty({ type: AccountResponseDto, required: false })
+  account?: AccountResponseDto;
+}
+
+export class JournalEntryResponseDto {
+  @ApiProperty({ example: 1 })
+  id: number;
+
+  @ApiProperty({ type: Number, example: 1, nullable: true })
+  branchId: number | null;
+
+  @ApiProperty({ type: String, format: 'date' })
+  date: Date;
+
+  @ApiProperty({ type: String, example: 'ORD-100', nullable: true })
+  reference: string | null;
+
+  @ApiProperty({ example: 'Sales revenue for order 100' })
+  description: string;
+
+  @ApiProperty({ enum: JournalStatus, example: JournalStatus.POSTED })
+  status: JournalStatus;
+
+  @ApiProperty({ type: String, format: 'date-time' })
+  createdAt: Date;
+
+  @ApiProperty({ type: String, format: 'date-time' })
+  updatedAt: Date;
+
+  @ApiProperty({ type: JournalLineResponseDto, isArray: true, required: false })
+  lines?: JournalLineResponseDto[];
+}
+
+export class ProfitLossMonthResponseDto {
+  @ApiProperty({ example: '2026-06' })
+  month: string;
+
+  @ApiProperty({ example: 185000 })
+  revenue: number;
+
+  @ApiProperty({ example: 92000 })
+  expense: number;
+}
+
+export class SeedAccountsResponseDto {
+  @ApiProperty({ example: true })
+  success: boolean;
+
+  @ApiProperty({ example: 'Accounts seeded successfully' })
+  message: string;
+}

@@ -14,47 +14,96 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      docker: ${{ steps.filter.outputs.docker }}
+      root: ${{ steps.filter.outputs.root }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+            frontend:
+              - 'frontend/**'
+            docker:
+              - 'backend/Dockerfile'
+              - 'frontend/Dockerfile'
+              - 'infra/**'
+            root:
+              - 'package.json'
+              - 'package-lock.json'
+              - 'scripts/**'
+              - 'packages/**'
+              - '.github/workflows/ci.yml'
+
   security-audit:
     name: Security — dependency audit
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Use Node.js 22.x
-      uses: actions/setup-node@v4
-      with:
-        node-version: 22.x
-        cache: npm
-        cache-dependency-path: ./package-lock.json
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
 
-    - name: Install Dependencies
-      run: npm ci
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: |
+            node_modules
+            backend/node_modules
+            frontend/node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-
 
-    - name: Dependency audit
-      run: npm run audit:ci
+      - name: Install Dependencies
+        run: npm ci --prefer-offline
+
+      - name: Dependency audit
+        run: npm run audit:ci
 
   docker-build:
     name: Docker — build images
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: security-audit
+    needs: [security-audit, changes]
+    if: >-
+      github.ref == 'refs/heads/main' ||
+      needs.changes.outputs.docker == 'true' ||
+      needs.changes.outputs.backend == 'true' ||
+      needs.changes.outputs.frontend == 'true' ||
+      needs.changes.outputs.root == 'true'
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Build backend image
-      run: docker build -f backend/Dockerfile -t erp-backend:ci .
+      - name: Build backend image
+        run: docker build -f backend/Dockerfile -t erp-backend:ci .
 
-    - name: Build frontend image
-      run: docker build -f frontend/Dockerfile -t erp-frontend:ci --build-arg NEXT_PUBLIC_API_URL=http://localhost:3000 .
+      - name: Build frontend image
+        run: docker build -f frontend/Dockerfile -t erp-frontend:ci --build-arg NEXT_PUBLIC_API_URL=http://localhost:3000 .
 
   backend-tests:
     name: Backend — Jest unit & API e2e
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: security-audit
+    needs: [security-audit, changes]
+    if: >-
+      github.ref == 'refs/heads/main' ||
+      needs.changes.outputs.backend == 'true' ||
+      needs.changes.outputs.root == 'true'
 
     services:
       postgres:
@@ -76,58 +125,125 @@ jobs:
       JWT_SECRET: "test-jwt-secret-for-ci-only-32chars"
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Use Node.js 22.x
-      uses: actions/setup-node@v4
-      with:
-        node-version: 22.x
-        cache: npm
-        cache-dependency-path: ./package-lock.json
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
 
-    - name: Install Dependencies
-      run: npm ci
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: |
+            node_modules
+            backend/node_modules
+            frontend/node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-
 
-    - name: Generate Prisma Client
-      run: npx prisma generate
-      working-directory: ./backend
+      - name: Install Dependencies
+        run: npm ci --prefer-offline
 
-    - name: Backend CI checks
-      run: npm run ci:check:backend
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        working-directory: ./backend
 
-    - name: Apply Migrations
-      run: npm run migrate
+      - name: Verify generated enums are up to date
+        run: |
+          node scripts/generate-enums.mjs
+          git diff --exit-code packages/types/src/enums.ts
 
-    - name: Backend API e2e tests
-      run: npm run test:e2e:backend
+      - name: Export OpenAPI spec
+        run: npm run openapi:export --workspace=backend
+
+      - name: Verify OpenAPI spec is up to date
+        run: git diff --exit-code backend/openapi.json
+
+      - name: Backend CI checks
+        run: npm run ci:check --workspace=backend
+
+      - name: Upload backend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-dist
+          path: backend/dist/
+          retention-days: 1
+
+      - name: Apply Migrations
+        run: npm run migrate
+
+      - name: Backend API e2e tests
+        run: npm run test:e2e:backend
 
   frontend-checks:
     name: Frontend — Vitest, lint & build
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: security-audit
+    needs: [security-audit, changes]
+    if: >-
+      github.ref == 'refs/heads/main' ||
+      needs.changes.outputs.frontend == 'true' ||
+      needs.changes.outputs.root == 'true'
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Use Node.js 22.x
-      uses: actions/setup-node@v4
-      with:
-        node-version: 22.x
-        cache: npm
-        cache-dependency-path: ./package-lock.json
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
 
-    - name: Install Dependencies
-      run: npm ci
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: |
+            node_modules
+            backend/node_modules
+            frontend/node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-
 
-    - name: Frontend CI checks
-      run: npm run ci:check:frontend
+      - name: Install Dependencies
+        run: npm ci --prefer-offline
+
+      - name: Verify generated API types are up to date
+        run: |
+          npm run generate:api --workspace=frontend
+          git diff --exit-code frontend/src/types/generated/api.d.ts
+
+      - name: Frontend CI checks
+        run: npm run ci:check --workspace=frontend
+
+      - name: Upload frontend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: |
+            frontend/.next
+            frontend/public
+          retention-days: 1
 
   frontend-e2e:
     name: Frontend — Playwright smoke
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    needs: [security-audit, backend-tests, frontend-checks, docker-build]
+    needs: [security-audit, changes, backend-tests, frontend-checks]
+    if: >-
+      always() &&
+      needs.security-audit.result == 'success' &&
+      needs.backend-tests.result != 'failure' &&
+      needs.frontend-checks.result != 'failure' &&
+      (
+        github.ref == 'refs/heads/main' ||
+        needs.changes.outputs.frontend == 'true' ||
+        needs.changes.outputs.backend == 'true' ||
+        needs.changes.outputs.root == 'true'
+      )
 
     services:
       postgres:
@@ -154,76 +270,102 @@ jobs:
       E2E_PASSWORD: "password123"
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Use Node.js 22.x
-      uses: actions/setup-node@v4
-      with:
-        node-version: 22.x
-        cache: npm
-        cache-dependency-path: ./package-lock.json
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
 
-    - name: Install Dependencies
-      run: npm ci
+      - name: Restore node_modules cache
+        uses: actions/cache@v4
+        id: npm-cache
+        with:
+          path: |
+            node_modules
+            backend/node_modules
+            frontend/node_modules
+          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            npm-${{ runner.os }}-
 
-    - name: Cache Playwright browsers
-      uses: actions/cache@v4
-      id: playwright-cache
-      with:
-        path: ~/.cache/ms-playwright
-        key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+      - name: Install Dependencies
+        run: npm ci --prefer-offline
 
-    - name: Install Playwright browser
-      if: steps.playwright-cache.outputs.cache-hit != 'true'
-      run: npx playwright install --with-deps chromium
-      working-directory: ./frontend
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
 
-    - name: Install Playwright OS dependencies
-      if: steps.playwright-cache.outputs.cache-hit == 'true'
-      run: npx playwright install-deps chromium
-      working-directory: ./frontend
+      - name: Install Playwright browser
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+        working-directory: ./frontend
 
-    - name: Generate Prisma Client
-      run: npx prisma generate
-      working-directory: ./backend
+      - name: Install Playwright OS dependencies
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+        working-directory: ./frontend
 
-    - name: Apply Migrations
-      run: npm run migrate
+      - name: Download backend build artifact
+        if: needs.backend-tests.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-dist
+          path: backend/dist
 
-    - name: Seed Database
-      run: npm run db:seed
+      - name: Build Backend
+        if: needs.backend-tests.result != 'success'
+        run: npm run build --workspace=backend
 
-    - name: Build Backend
-      run: npm run build --workspace=backend
+      - name: Download frontend build artifact
+        if: needs.frontend-checks.result == 'success'
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend
 
-    - name: Start Backend
-      run: |
-        node backend/dist/src/main.js &
-        for i in $(seq 1 60); do
-          if curl -sf http://localhost:3000/health > /dev/null; then
-            echo "Backend ready"
-            exit 0
-          fi
-          sleep 2
-        done
-        echo "Backend failed to start"
-        exit 1
+      - name: Build Frontend
+        if: needs.frontend-checks.result != 'success'
+        run: NEXT_PUBLIC_API_URL=http://localhost:3000 npm run build --workspace=frontend
 
-    - name: Build Frontend
-      run: NEXT_PUBLIC_API_URL=http://localhost:3000 npm run build --workspace=frontend
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        working-directory: ./backend
 
-    - name: Start Frontend
-      run: |
-        npm run start --workspace=frontend -- -p 3001 &
-        for i in $(seq 1 60); do
-          if curl -sf http://localhost:3001/login > /dev/null; then
-            echo "Frontend ready"
-            exit 0
-          fi
-          sleep 2
-        done
-        echo "Frontend failed to start"
-        exit 1
+      - name: Apply Migrations
+        run: npm run migrate
 
-    - name: Playwright smoke tests
-      run: npm run test:e2e:frontend
+      - name: Seed Database
+        run: npm run db:seed
+
+      - name: Start Backend
+        run: |
+          node backend/dist/src/main.js &
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:3000/health > /dev/null; then
+              echo "Backend ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Backend failed to start"
+          exit 1
+
+      - name: Start Frontend
+        run: |
+          npm run start --workspace=frontend -- -p 3001 &
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:3001/login > /dev/null; then
+              echo "Frontend ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Frontend failed to start"
+          exit 1
+
+      - name: Playwright smoke tests
+        run: npm run test:e2e:frontend

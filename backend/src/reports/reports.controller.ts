@@ -8,6 +8,12 @@ import { resolveOptionalBranchId } from '../auth/branch-scope.util';
 import { parseOptionalPositiveInt } from '../common/query-params.util';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
+import {
+  ExecutiveSummaryResponseDto,
+  ReportsProfitLossResponseDto,
+  SalesTrendPointResponseDto,
+  TopProductReportResponseDto,
+} from './dto/reports-response.dto';
 
 @ApiTags('reports')
 @ApiCommonErrorResponses()
@@ -19,7 +25,11 @@ export class ReportsController {
 
   @Get('sales-trends')
   @ApiOperation({ summary: 'Get sales trends report' })
-  @ApiOkResponse({ description: 'Sales trends retrieved' })
+  @ApiOkResponse({
+    type: SalesTrendPointResponseDto,
+    isArray: true,
+    description: 'Sales trends retrieved',
+  })
   getSalesTrends(
     @Request() req: RequestWithUser,
     @Query('branchId') branchIdQuery?: string,
@@ -33,7 +43,11 @@ export class ReportsController {
 
   @Get('top-products')
   @ApiOperation({ summary: 'Get top products report' })
-  @ApiOkResponse({ description: 'Top products retrieved' })
+  @ApiOkResponse({
+    type: TopProductReportResponseDto,
+    isArray: true,
+    description: 'Top products retrieved',
+  })
   getTopProducts(
     @Request() req: RequestWithUser,
     @Query('branchId') branchIdQuery?: string,
@@ -47,7 +61,10 @@ export class ReportsController {
 
   @Get('profit-loss')
   @ApiOperation({ summary: 'Get profit and loss report' })
-  @ApiOkResponse({ description: 'Profit and loss retrieved' })
+  @ApiOkResponse({
+    type: ReportsProfitLossResponseDto,
+    description: 'Profit and loss retrieved',
+  })
   getProfitLoss(
     @Request() req: RequestWithUser,
     @Query('branchId') branchIdQuery?: string,
@@ -61,7 +78,10 @@ export class ReportsController {
 
   @Get('executive-summary')
   @ApiOperation({ summary: 'Get executive summary report' })
-  @ApiOkResponse({ description: 'Executive summary retrieved' })
+  @ApiOkResponse({
+    type: ExecutiveSummaryResponseDto,
+    description: 'Executive summary retrieved',
+  })
   getExecutiveSummary(
     @Request() req: RequestWithUser,
     @Query('branchId') branchIdQuery?: string,

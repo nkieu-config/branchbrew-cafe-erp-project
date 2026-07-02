@@ -1,7 +1,7 @@
 import { toNumber } from './money';
-import type { Product, RecipeItem, Ingredient } from '@/types/api';
+import type { Product, RecipeItem, IngredientSummary } from '@/types/api';
 
-type RecipeWithIngredient = RecipeItem & { ingredient?: Ingredient };
+type RecipeWithIngredient = RecipeItem & { ingredient?: IngredientSummary };
 
 export function calcProductFoodCost(
   product: Product & { recipeItems?: RecipeWithIngredient[] },

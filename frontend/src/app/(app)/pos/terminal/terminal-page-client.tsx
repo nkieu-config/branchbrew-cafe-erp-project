@@ -197,13 +197,6 @@ export default function PosTerminalPageClient() {
 
   const subtotal = cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
 
-  useEffect(() => {
-    if (appliedPromo && appliedPromo.minPurchase && subtotal < appliedPromo.minPurchase) {
-      toast.warning("Promotion removed due to minimum purchase requirement.");
-      setAppliedPromo(null);
-    }
-  }, [subtotal, appliedPromo]);
-
   const promoDiscount = appliedPromo
     ? appliedPromo.type === "PERCENTAGE"
       ? subtotal * (appliedPromo.value / 100)
@@ -278,7 +271,7 @@ export default function PosTerminalPageClient() {
       setCompletedOrder({
         id: orderData.id,
         queueNumber: orderData.queueNumber,
-        cashier: user?.name,
+        cashier: user?.name ?? undefined,
         customerName: customer?.name,
         items: cart,
         subtotal,

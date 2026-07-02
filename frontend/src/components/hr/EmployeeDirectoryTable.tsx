@@ -91,12 +91,12 @@ export function EmployeeDirectoryTable({
         },
         {
           title: "Branch",
-          dataIndex: ["branch", "name"],
+          dataIndex: "branchId",
           key: "branch",
           responsive: ["lg"],
-          render: (name: string) =>
-            name ? (
-              <span className={text.secondary}>{name}</span>
+          render: (branchId: number | null) =>
+            branchId != null ? (
+              <span className={text.secondary}>Branch #{branchId}</span>
             ) : (
               <span className={text.muted}>HQ</span>
             ),
@@ -202,7 +202,7 @@ export function EmployeeDirectoryTable({
                         ) : null}
                       </div>
                       <p className={cn("mt-1 text-sm", text.secondary)}>
-                        {record.branch?.name ?? "HQ"}
+                        {record.branchId != null ? `Branch #${record.branchId}` : "HQ"}
                         {employeeHasMissingRate(record) ? (
                           <span className={cn("ml-2", text.muted)}>· Rate not set</span>
                         ) : (

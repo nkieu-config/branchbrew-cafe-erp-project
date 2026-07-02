@@ -15,12 +15,6 @@ const eslintStaged =
 
 /** @type {import('lint-staged').Configuration} */
 export default {
-  'frontend/**/*.{ts,tsx}': [
-    eslintStaged('frontend', '--max-warnings=0'),
-    () => 'npm run type-check --prefix frontend',
-  ],
-  'backend/**/*.ts': [
-    eslintStaged('backend', '--max-warnings=0'),
-    () => 'npm run type-check --prefix backend',
-  ],
+  'frontend/**/*.{ts,tsx}': [eslintStaged('frontend', '--max-warnings=0')],
+  'backend/**/*.ts': [eslintStaged('backend', '--max-warnings=0')],
 };

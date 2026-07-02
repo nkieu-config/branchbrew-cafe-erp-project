@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Ingredient, Product, RecipeItem } from "@/types/api";
+import type { IngredientSummary, Product, RecipeItem } from "@/types/api";
 import { calcProductFoodCost, foodCostStatus } from "./food-cost";
 import {
   matchesFoodCostStatusFilter,
@@ -50,8 +50,8 @@ describe("food-cost", () => {
           quantity: 150,
           ingredient: { id: 2, name: "Milk", unit: "ml", costPerUnit: 0.05 },
         },
-      ] as (RecipeItem & { ingredient: Ingredient })[],
-    } satisfies Product & { recipeItems: (RecipeItem & { ingredient: Ingredient })[] };
+      ] as (RecipeItem & { ingredient: IngredientSummary })[],
+    } satisfies Product & { recipeItems: (RecipeItem & { ingredient: IngredientSummary })[] };
 
     const { foodCostPercent } = calcProductFoodCost(latte);
     expect(foodCostPercent).toBeGreaterThan(0);

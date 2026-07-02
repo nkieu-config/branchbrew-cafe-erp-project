@@ -22,6 +22,11 @@ import { AddInventoryBatchDto } from './dto/add-inventory-batch.dto';
 import { ReportWasteDto } from './dto/report-waste.dto';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
+import {
+  BranchResponseDto,
+  SyncBranchInventoryResponseDto,
+} from './dto/branch-response.dto';
+import { StockTransferResponseDto } from './dto/stock-transfer-response.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiTags('branches')
@@ -32,7 +37,11 @@ export class BranchesController {
 
   @Get()
   @ApiOperation({ summary: 'List branches' })
-  @ApiOkResponse({ description: 'Branches retrieved' })
+  @ApiOkResponse({
+    type: BranchResponseDto,
+    isArray: true,
+    description: 'Branches retrieved',
+  })
   findAll(@Request() req: RequestWithUser) {
     if (req.user.role === 'SUPER_ADMIN') {
       return this.branchesService.findAll();
@@ -44,14 +53,18 @@ export class BranchesController {
   @Roles('SUPER_ADMIN')
   @Post()
   @ApiOperation({ summary: 'Create branch' })
-  @ApiOkResponse({ description: 'Branch created' })
+  @ApiOkResponse({ type: BranchResponseDto, description: 'Branch created' })
   createBranch(@Body() dto: CreateBranchDto) {
     return this.branchesService.createBranch(dto);
   }
 
   @Get('transfers/all')
   @ApiOperation({ summary: 'List all transfers' })
-  @ApiOkResponse({ description: 'Transfers retrieved' })
+  @ApiOkResponse({
+    type: StockTransferResponseDto,
+    isArray: true,
+    description: 'Transfers retrieved',
+  })
   getAllTransfers(@Request() req: RequestWithUser) {
     if (req.user.role === 'SUPER_ADMIN') {
       return this.branchesService.getAllTransfers();
@@ -63,7 +76,7 @@ export class BranchesController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('transfers')
   @ApiOperation({ summary: 'Create stock transfer' })
-  @ApiOkResponse({ description: 'Transfer created' })
+  @ApiOkResponse({ type: StockTransferResponseDto, description: 'Transfer created' })
   createTransfer(
     @Body() dto: CreateTransferDto,
     @Request() req: RequestWithUser,
@@ -81,7 +94,7 @@ export class BranchesController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('transfers/:id/accept')
   @ApiOperation({ summary: 'Accept stock transfer' })
-  @ApiOkResponse({ description: 'Transfer accepted' })
+  @ApiOkResponse({ type: StockTransferResponseDto, description: 'Transfer accepted' })
   acceptTransfer(
     @Param('id', ParseIntPipe) id: number,
     @Request() req: RequestWithUser,
@@ -92,7 +105,7 @@ export class BranchesController {
   @Roles('SUPER_ADMIN')
   @Patch(':id')
   @ApiOperation({ summary: 'Update branch' })
-  @ApiOkResponse({ description: 'Branch updated' })
+  @ApiOkResponse({ type: BranchResponseDto, description: 'Branch updated' })
   updateBranch(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateBranchDto,
@@ -103,14 +116,21 @@ export class BranchesController {
   @Roles('SUPER_ADMIN')
   @Post(':id/sync-inventory')
   @ApiOperation({ summary: 'Sync branch inventory' })
-  @ApiOkResponse({ description: 'Inventory synchronized' })
+  @ApiOkResponse({
+    type: SyncBranchInventoryResponseDto,
+    description: 'Inventory synchronized',
+  })
   syncBranchInventory(@Param('id', ParseIntPipe) id: number) {
     return this.branchesService.syncBranchInventory(id);
   }
 
   @Get(':id/transfers')
   @ApiOperation({ summary: 'List transfers for branch' })
-  @ApiOkResponse({ description: 'Branch transfers retrieved' })
+  @ApiOkResponse({
+    type: StockTransferResponseDto,
+    isArray: true,
+    description: 'Branch transfers retrieved',
+  })
   getTransfers(
     @Param('id', ParseIntPipe) id: number,
     @Request() req: RequestWithUser,
@@ -147,7 +167,7 @@ export class BranchesController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get branch by id' })
-  @ApiOkResponse({ description: 'Branch retrieved' })
+  @ApiOkResponse({ type: BranchResponseDto, description: 'Branch retrieved' })
   findOne(
     @Param('id', ParseIntPipe) id: number,
     @Request() req: RequestWithUser,

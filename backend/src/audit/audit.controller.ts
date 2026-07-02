@@ -11,6 +11,7 @@ import {
 } from '../common/query-params.util';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
+import { AuditLogResponseDto } from './dto/audit-response.dto';
 
 @ApiTags('audit')
 @ApiCommonErrorResponses()
@@ -22,7 +23,11 @@ export class AuditController {
   @Get()
   @Roles('SUPER_ADMIN', 'MANAGER')
   @ApiOperation({ summary: 'List audit logs' })
-  @ApiOkResponse({ description: 'Audit logs retrieved' })
+  @ApiOkResponse({
+    type: AuditLogResponseDto,
+    isArray: true,
+    description: 'Audit logs retrieved',
+  })
   async getLogs(
     @Request() req: RequestWithUser,
     @Query('limit') limit?: string,

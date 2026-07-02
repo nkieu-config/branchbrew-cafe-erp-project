@@ -100,7 +100,7 @@ export function matchesEmployeeSearch(user: User, search: string, branchName?: s
     roleLabel(user.role),
     user.employmentType ?? "",
     employmentTypeLabel(user.employmentType),
-    user.branch?.name ?? branchName ?? "",
+    branchName ?? "",
     user.branchId != null ? String(user.branchId) : "hq",
   ]
     .join(" ")

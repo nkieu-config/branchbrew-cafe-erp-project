@@ -14,6 +14,12 @@ import { Roles } from '../auth/roles.decorator';
 import type { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
 import { resolveOptionalBranchId } from '../auth/branch-scope.util';
 import { parseOptionalPositiveInt } from '../common/query-params.util';
+import {
+  AccountResponseDto,
+  JournalEntryResponseDto,
+  ProfitLossMonthResponseDto,
+  SeedAccountsResponseDto,
+} from './dto/accounting-response.dto';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
 
@@ -27,7 +33,11 @@ export class AccountingController {
   @Get('accounts')
   @Roles('SUPER_ADMIN', 'MANAGER')
   @ApiOperation({ summary: 'List chart of accounts' })
-  @ApiOkResponse({ description: 'Accounts retrieved' })
+  @ApiOkResponse({
+    type: AccountResponseDto,
+    isArray: true,
+    description: 'Accounts retrieved',
+  })
   async getAccounts() {
     return this.accountingService.getChartOfAccounts();
   }
@@ -35,7 +45,11 @@ export class AccountingController {
   @Get('journal-entries')
   @Roles('SUPER_ADMIN', 'MANAGER')
   @ApiOperation({ summary: 'List journal entries' })
-  @ApiOkResponse({ description: 'Journal entries retrieved' })
+  @ApiOkResponse({
+    type: JournalEntryResponseDto,
+    isArray: true,
+    description: 'Journal entries retrieved',
+  })
   async getJournalEntries(
     @Request() req: RequestWithUser,
     @Query('branchId') branchId?: string,
@@ -50,7 +64,11 @@ export class AccountingController {
   @Get('profit-loss')
   @Roles('SUPER_ADMIN', 'MANAGER')
   @ApiOperation({ summary: 'Get accounting profit and loss' })
-  @ApiOkResponse({ description: 'Profit and loss retrieved' })
+  @ApiOkResponse({
+    type: ProfitLossMonthResponseDto,
+    isArray: true,
+    description: 'Profit and loss retrieved',
+  })
   async getProfitLoss(
     @Request() req: RequestWithUser,
     @Query('branchId') branchId?: string,
@@ -65,7 +83,7 @@ export class AccountingController {
   @Post('seed')
   @Roles('SUPER_ADMIN')
   @ApiOperation({ summary: 'Seed default chart of accounts' })
-  @ApiOkResponse({ description: 'Accounts seeded' })
+  @ApiOkResponse({ type: SeedAccountsResponseDto, description: 'Accounts seeded' })
   async seedAccounts() {
     await this.accountingService.seedAccounts();
     return { success: true, message: 'Accounts seeded successfully' };

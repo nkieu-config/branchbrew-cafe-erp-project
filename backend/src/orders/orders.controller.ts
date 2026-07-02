@@ -22,6 +22,7 @@ import { Roles } from '../auth/roles.decorator';
 import { parseOptionalPositiveInt } from '../common/query-params.util';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
+import { OrderResponseDto } from './dto/order-response.dto';
 
 @UseGuards(JwtAuthGuard)
 @ApiTags('orders')
@@ -31,7 +32,7 @@ export class OrdersController {
 
   @Post()
   @ApiOperation({ summary: 'Create order' })
-  @ApiOkResponse({ description: 'Order created' })
+  @ApiOkResponse({ type: OrderResponseDto, description: 'Order created' })
   @ApiCommonErrorResponses()
   create(
     @Body() createOrderDto: CreateOrderDto,
@@ -47,7 +48,11 @@ export class OrdersController {
 
   @Get()
   @ApiOperation({ summary: 'List orders' })
-  @ApiOkResponse({ description: 'Orders retrieved' })
+  @ApiOkResponse({
+    type: OrderResponseDto,
+    isArray: true,
+    description: 'Orders retrieved',
+  })
   @ApiCommonErrorResponses()
   findAll(
     @Request() req: RequestWithUser,
@@ -65,7 +70,11 @@ export class OrdersController {
 
   @Get('kds')
   @ApiOperation({ summary: 'List kitchen display orders' })
-  @ApiOkResponse({ description: 'KDS orders retrieved' })
+  @ApiOkResponse({
+    type: OrderResponseDto,
+    isArray: true,
+    description: 'KDS orders retrieved',
+  })
   @ApiCommonErrorResponses()
   getKdsOrders(
     @Query('branchId', ParseIntPipe) branchId: number,
@@ -77,7 +86,7 @@ export class OrdersController {
 
   @Patch(':id/status')
   @ApiOperation({ summary: 'Update order status' })
-  @ApiOkResponse({ description: 'Order status updated' })
+  @ApiOkResponse({ type: OrderResponseDto, description: 'Order status updated' })
   @ApiCommonErrorResponses()
   updateOrderStatus(
     @Param('id', ParseIntPipe) id: number,
@@ -91,7 +100,7 @@ export class OrdersController {
   @UseGuards(RolesGuard)
   @Roles('SUPER_ADMIN', 'MANAGER')
   @ApiOperation({ summary: 'Void order' })
-  @ApiOkResponse({ description: 'Order voided' })
+  @ApiOkResponse({ type: OrderResponseDto, description: 'Order voided' })
   @ApiCommonErrorResponses()
   voidOrder(
     @Param('id', ParseIntPipe) id: number,
@@ -104,7 +113,7 @@ export class OrdersController {
   @UseGuards(RolesGuard)
   @Roles('SUPER_ADMIN', 'MANAGER')
   @ApiOperation({ summary: 'Refund order' })
-  @ApiOkResponse({ description: 'Order refunded' })
+  @ApiOkResponse({ type: OrderResponseDto, description: 'Order refunded' })
   @ApiCommonErrorResponses()
   refundOrder(
     @Param('id', ParseIntPipe) id: number,
@@ -116,7 +125,7 @@ export class OrdersController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get order by id' })
-  @ApiOkResponse({ description: 'Order retrieved' })
+  @ApiOkResponse({ type: OrderResponseDto, description: 'Order retrieved' })
   @ApiCommonErrorResponses()
   findOne(
     @Param('id', ParseIntPipe) id: number,

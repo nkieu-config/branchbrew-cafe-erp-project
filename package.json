@@ -8,25 +8,24 @@
     "npm": ">=10"
   },
   "scripts": {
+    "generate:types": "node scripts/generate-enums.mjs",
+    "openapi:export": "npm run openapi:export --workspace=backend",
     "prepare": "husky",
     "dev:backend": "npm run start:dev --workspace=backend",
     "dev:frontend": "npm run dev --workspace=frontend",
     "docker:up": "docker compose -f infra/docker-compose.yml --env-file infra/.env.compose up --build",
-    "lint": "npm run lint --workspace=backend && npm run lint --workspace=frontend",
-    "format": "npm run format --workspace=backend",
-    "type-check": "npm run type-check --workspace=backend && npm run type-check --workspace=frontend",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "npm run format --workspaces --if-present",
+    "type-check": "npm run type-check --workspaces --if-present",
     "migrate": "npm run migrate:deploy --workspace=backend",
     "db:seed": "npm run db:seed --workspace=backend",
     "audit:ci": "npm audit --audit-level=critical && node scripts/security-audit.mjs",
-    "test": "npm run test --workspace=backend && npm run test --workspace=frontend",
+    "test": "npm run test --workspaces --if-present",
     "test:e2e:backend": "npm run test:e2e --workspace=backend",
     "test:e2e:frontend": "npm run test:e2e --workspace=frontend",
-    "ci:check": "npm run ci:check:backend && npm run ci:check:frontend",
-    "ci:check:push": "npm run ci:check:push:backend && npm run ci:check:push:frontend",
-    "ci:check:push:backend": "npm run type-check --workspace=backend && npm run lint --workspace=backend && npm run test --workspace=backend",
-    "ci:check:push:frontend": "npm run type-check --workspace=frontend && npm run lint --workspace=frontend && npm run test --workspace=frontend",
-    "ci:check:backend": "npm run type-check --workspace=backend && npm run lint --workspace=backend && npm run test:cov --workspace=backend && npm run build --workspace=backend",
-    "ci:check:frontend": "npm run type-check --workspace=frontend && npm run lint --workspace=frontend && npm run test:cov --workspace=frontend && NEXT_PUBLIC_API_URL=http://localhost:3000 npm run build --workspace=frontend"
+    "ci:check": "npm run ci:check --workspaces --if-present",
+    "ci:check:push": "npm run ci:check:push --workspaces --if-present"
   },
   "devDependencies": {
     "husky": "^9.1.7",
@@ -34,6 +33,7 @@
   },
   "workspaces": [
     "frontend",
-    "backend"
+    "backend",
+    "packages/types"
   ]
 }

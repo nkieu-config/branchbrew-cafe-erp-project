@@ -17,6 +17,11 @@ import { assertBranchAccess } from '../auth/branch-scope.util';
 import { RecordWasteDto, StockInDto } from './dto/inventory.dto';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
+import {
+  BranchInventoryResponseDto,
+  StockInResultDto,
+  WasteLogResponseDto,
+} from './dto/inventory-response.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiTags('inventory')
@@ -28,7 +33,11 @@ export class InventoryController {
   @Get('branch/:branchId/balance')
   @Roles('SUPER_ADMIN', 'MANAGER', 'STAFF')
   @ApiOperation({ summary: 'Get inventory balance by branch' })
-  @ApiOkResponse({ description: 'Inventory balance retrieved' })
+  @ApiOkResponse({
+    type: BranchInventoryResponseDto,
+    isArray: true,
+    description: 'Inventory balance retrieved',
+  })
   getBalance(
     @Request() req: RequestWithUser,
     @Param('branchId', ParseIntPipe) branchId: number,
@@ -40,7 +49,11 @@ export class InventoryController {
   @Post('branch/:branchId/stock-in')
   @Roles('SUPER_ADMIN', 'MANAGER')
   @ApiOperation({ summary: 'Receive stock into branch inventory' })
-  @ApiOkResponse({ description: 'Stock received' })
+  @ApiOkResponse({
+    type: StockInResultDto,
+    isArray: true,
+    description: 'Stock received',
+  })
   receiveStock(
     @Request() req: RequestWithUser,
     @Param('branchId', ParseIntPipe) branchId: number,
@@ -58,7 +71,11 @@ export class InventoryController {
   @Post('branch/:branchId/waste')
   @Roles('SUPER_ADMIN', 'MANAGER', 'STAFF')
   @ApiOperation({ summary: 'Record inventory waste' })
-  @ApiOkResponse({ description: 'Waste recorded' })
+  @ApiOkResponse({
+    type: WasteLogResponseDto,
+    isArray: true,
+    description: 'Waste recorded',
+  })
   recordWaste(
     @Request() req: RequestWithUser,
     @Param('branchId', ParseIntPipe) branchId: number,

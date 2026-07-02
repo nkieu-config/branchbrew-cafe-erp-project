@@ -8,13 +8,26 @@ import {
   summarizeProductionBoms,
 } from "./bom-filters";
 
+const ingredient = {
+  id: 10,
+  name: "Espresso",
+  unit: "shot",
+  costPerUnit: 0,
+  primarySupplierId: null,
+  isActive: true,
+  createdAt: "2026-01-01T00:00:00.000Z",
+  updatedAt: "2026-01-01T00:00:00.000Z",
+};
+
 const bomRow: ProductionBOM = {
   id: 1,
   targetIngredientId: 10,
   rawIngredientId: 20,
   quantityNeeded: 2,
-  targetIngredient: { id: 10, name: "Espresso", unit: "shot" },
-  rawIngredient: { id: 20, name: "Beans", unit: "g", costPerUnit: 0.5 },
+  createdAt: "2026-01-01T00:00:00.000Z",
+  updatedAt: "2026-01-01T00:00:00.000Z",
+  targetIngredient: ingredient,
+  rawIngredient: { ...ingredient, id: 20, name: "Beans", unit: "g", costPerUnit: 0.5 },
 };
 
 describe("bom", () => {

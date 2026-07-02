@@ -31,6 +31,13 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { parseOptionalPositiveInt } from '../common/query-params.util';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
+import {
+  AttendanceRecordResponseDto,
+  HrUserResponseDto,
+  LeaveRequestResponseDto,
+  PayrollRunResponseDto,
+  ShiftResponseDto,
+} from './dto/hr-response.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiTags('hr')
@@ -41,7 +48,7 @@ export class HrController {
 
   @Post('clock-in')
   @ApiOperation({ summary: 'Clock in' })
-  @ApiOkResponse({ description: 'Clock-in recorded' })
+  @ApiOkResponse({ type: AttendanceRecordResponseDto, description: 'Clock-in recorded' })
   clockIn(@Request() req: RequestWithUser, @Body() dto: ClockInDto) {
     assertBranchAccess(req.user, dto.branchId);
     return this.hrService.clockIn(req.user.userId, dto.branchId);
@@ -49,21 +56,25 @@ export class HrController {
 
   @Post('clock-out')
   @ApiOperation({ summary: 'Clock out' })
-  @ApiOkResponse({ description: 'Clock-out recorded' })
+  @ApiOkResponse({ type: AttendanceRecordResponseDto, description: 'Clock-out recorded' })
   clockOut(@Request() req: RequestWithUser) {
     return this.hrService.clockOut(req.user.userId);
   }
 
   @Get('attendance/me')
   @ApiOperation({ summary: 'Get my attendance records' })
-  @ApiOkResponse({ description: 'Attendance records retrieved' })
+  @ApiOkResponse({
+    type: AttendanceRecordResponseDto,
+    isArray: true,
+    description: 'Attendance records retrieved',
+  })
   getMyAttendance(@Request() req: RequestWithUser) {
     return this.hrService.getMyAttendance(req.user.userId);
   }
 
   @Get('attendance/status')
   @ApiOperation({ summary: 'Get active clock-in status' })
-  @ApiOkResponse({ description: 'Clock-in status retrieved' })
+  @ApiOkResponse({ type: AttendanceRecordResponseDto, description: 'Clock-in status retrieved' })
   getActiveClockIn(@Request() req: RequestWithUser) {
     return this.hrService.getActiveClockIn(req.user.userId);
   }
@@ -71,7 +82,7 @@ export class HrController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('shifts')
   @ApiOperation({ summary: 'Create shift' })
-  @ApiOkResponse({ description: 'Shift created' })
+  @ApiOkResponse({ type: ShiftResponseDto, description: 'Shift created' })
   createShift(@Request() req: RequestWithUser, @Body() dto: CreateShiftDto) {
     const branchId = resolveBranchId(req.user, dto.branchId);
     return this.hrService.createShift({ ...dto, branchId });
@@ -79,7 +90,11 @@ export class HrController {
 
   @Get('shifts/branch/:branchId')
   @ApiOperation({ summary: 'Get shifts by branch' })
-  @ApiOkResponse({ description: 'Branch shifts retrieved' })
+  @ApiOkResponse({
+    type: ShiftResponseDto,
+    isArray: true,
+    description: 'Branch shifts retrieved',
+  })
   getShiftsByBranch(
     @Request() req: RequestWithUser,
     @Param('branchId', ParseIntPipe) branchId: number,
@@ -90,14 +105,18 @@ export class HrController {
 
   @Get('shifts/me')
   @ApiOperation({ summary: 'Get my shifts' })
-  @ApiOkResponse({ description: 'My shifts retrieved' })
+  @ApiOkResponse({
+    type: ShiftResponseDto,
+    isArray: true,
+    description: 'My shifts retrieved',
+  })
   getMyShifts(@Request() req: RequestWithUser) {
     return this.hrService.getMyShifts(req.user.userId);
   }
 
   @Post('leave')
   @ApiOperation({ summary: 'Request leave' })
-  @ApiOkResponse({ description: 'Leave request submitted' })
+  @ApiOkResponse({ type: LeaveRequestResponseDto, description: 'Leave request submitted' })
   requestLeave(@Request() req: RequestWithUser, @Body() dto: RequestLeaveDto) {
     return this.hrService.requestLeave(req.user.userId, dto);
   }
@@ -105,7 +124,11 @@ export class HrController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Get('leave')
   @ApiOperation({ summary: 'List leave requests' })
-  @ApiOkResponse({ description: 'Leave requests retrieved' })
+  @ApiOkResponse({
+    type: LeaveRequestResponseDto,
+    isArray: true,
+    description: 'Leave requests retrieved',
+  })
   getLeaveRequests(
     @Request() req: RequestWithUser,
     @Query('branchId') branchId?: string,
@@ -119,7 +142,11 @@ export class HrController {
 
   @Get('leave/me')
   @ApiOperation({ summary: 'Get my leave requests' })
-  @ApiOkResponse({ description: 'My leave requests retrieved' })
+  @ApiOkResponse({
+    type: LeaveRequestResponseDto,
+    isArray: true,
+    description: 'My leave requests retrieved',
+  })
   getMyLeaveRequests(@Request() req: RequestWithUser) {
     return this.hrService.getMyLeaveRequests(req.user.userId);
   }
@@ -127,7 +154,7 @@ export class HrController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('leave/:id/status')
   @ApiOperation({ summary: 'Process leave request' })
-  @ApiOkResponse({ description: 'Leave request updated' })
+  @ApiOkResponse({ type: LeaveRequestResponseDto, description: 'Leave request updated' })
   processLeaveRequest(
     @Request() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
@@ -139,7 +166,7 @@ export class HrController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('payroll/generate')
   @ApiOperation({ summary: 'Generate payroll run' })
-  @ApiOkResponse({ description: 'Payroll run generated' })
+  @ApiOkResponse({ type: PayrollRunResponseDto, description: 'Payroll run generated' })
   generatePayrollRun(
     @Request() req: RequestWithUser,
     @Body() dto: GeneratePayrollDto,
@@ -156,7 +183,11 @@ export class HrController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Get('payroll-runs')
   @ApiOperation({ summary: 'List payroll runs' })
-  @ApiOkResponse({ description: 'Payroll runs retrieved' })
+  @ApiOkResponse({
+    type: PayrollRunResponseDto,
+    isArray: true,
+    description: 'Payroll runs retrieved',
+  })
   getPayrollRuns(
     @Request() req: RequestWithUser,
     @Query('branchId', ParseIntPipe) branchId: number,
@@ -168,7 +199,7 @@ export class HrController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('payroll-runs/:id/approve')
   @ApiOperation({ summary: 'Approve payroll run' })
-  @ApiOkResponse({ description: 'Payroll run approved' })
+  @ApiOkResponse({ type: PayrollRunResponseDto, description: 'Payroll run approved' })
   approvePayrollRun(
     @Request() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
@@ -179,7 +210,7 @@ export class HrController {
   @Roles('SUPER_ADMIN')
   @Patch('users/:userId/rate')
   @ApiOperation({ summary: 'Update user hourly rate' })
-  @ApiOkResponse({ description: 'Hourly rate updated' })
+  @ApiOkResponse({ type: HrUserResponseDto, description: 'Hourly rate updated' })
   updateHourlyRate(
     @Param('userId', ParseIntPipe) userId: number,
     @Body() dto: UpdateHourlyRateDto,
@@ -190,7 +221,11 @@ export class HrController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Get('users')
   @ApiOperation({ summary: 'List users' })
-  @ApiOkResponse({ description: 'Users retrieved' })
+  @ApiOkResponse({
+    type: HrUserResponseDto,
+    isArray: true,
+    description: 'Users retrieved',
+  })
   getAllUsers(
     @Request() req: RequestWithUser,
     @Query('branchId') branchId?: string,
@@ -205,7 +240,7 @@ export class HrController {
   @Roles('SUPER_ADMIN')
   @Post('users')
   @ApiOperation({ summary: 'Create user' })
-  @ApiOkResponse({ description: 'User created' })
+  @ApiOkResponse({ type: HrUserResponseDto, description: 'User created' })
   createUser(@Body() dto: CreateUserDto) {
     return this.hrService.createUser(dto);
   }
@@ -213,7 +248,7 @@ export class HrController {
   @Roles('SUPER_ADMIN')
   @Patch('users/:id')
   @ApiOperation({ summary: 'Update user' })
-  @ApiOkResponse({ description: 'User updated' })
+  @ApiOkResponse({ type: HrUserResponseDto, description: 'User updated' })
   updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateUserDto,

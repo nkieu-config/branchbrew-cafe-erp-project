@@ -8,7 +8,7 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { TierIcon } from "@/components/crm/TierIcon";
 import { Progress } from "@/components/ui/progress";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import type { Customer360, Order } from "@/types/api";
+import type { Customer360, Customer360Order } from "@/types/api";
 import {
   crmFavoriteChipClassName,
   crmFavoriteCountClassName,
@@ -94,7 +94,7 @@ function Customer360Profile({ data }: { data: Customer360 }) {
           <ul className="space-y-1">
             {data.favoriteDrinks.map((fav, i) => (
               <li key={i} className={crmFavoriteChipClassName()}>
-                {fav.product.name}
+                {fav.name}
                 <span className={crmFavoriteCountClassName()}> · {fav.count}x</span>
               </li>
             ))}
@@ -108,7 +108,7 @@ function Customer360Profile({ data }: { data: Customer360 }) {
         <h4 className={crmSectionLabelClassName()}>Recent orders</h4>
         {data.recentOrders?.length > 0 ? (
           <div>
-            {data.recentOrders.map((order: Order) => (
+            {data.recentOrders.map((order: Customer360Order) => (
               <div key={order.id} className={crmOrderCardClassName()}>
                 <div>
                   <p className={cn("text-sm", text.secondary)}>

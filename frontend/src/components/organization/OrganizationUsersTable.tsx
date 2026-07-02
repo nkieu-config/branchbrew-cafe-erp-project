@@ -28,9 +28,7 @@ type OrganizationUsersTableProps = {
 function branchLabel(record: User, branchNameById: Map<number, string>) {
   if (record.branchId == null) return "All branches (HQ)";
   return (
-    branchNameById.get(record.branchId) ??
-    record.branch?.name ??
-    `Branch #${record.branchId}`
+    branchNameById.get(record.branchId) ?? `Branch #${record.branchId}`
   );
 }
 

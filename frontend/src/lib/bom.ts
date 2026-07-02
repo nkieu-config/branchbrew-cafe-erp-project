@@ -2,6 +2,8 @@ import type { ProductionBOM, BomGroupRow } from '@/types/api';
 
 export function groupProductionBoms(boms: ProductionBOM[]): BomGroupRow[] {
   const grouped = boms.reduce<Record<number, BomGroupRow>>((acc, bom) => {
+    if (!bom.targetIngredient || !bom.rawIngredient) return acc;
+
     const targetId = bom.targetIngredientId;
     if (!acc[targetId]) {
       acc[targetId] = {

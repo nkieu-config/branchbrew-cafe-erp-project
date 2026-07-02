@@ -16,6 +16,10 @@ import { Roles } from '../auth/roles.decorator';
 import { CreateCustomerDto, UpdateCustomerDto } from './dto/customer.dto';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
+import {
+  Customer360ResponseDto,
+  CustomerResponseDto,
+} from './dto/customer-response.dto';
 
 @ApiTags('customers')
 @ApiCommonErrorResponses()
@@ -26,35 +30,42 @@ export class CustomersController {
 
   @Post()
   @ApiOperation({ summary: 'Create customer' })
-  @ApiOkResponse({ description: 'Customer created' })
+  @ApiOkResponse({ type: CustomerResponseDto, description: 'Customer created' })
   create(@Body() dto: CreateCustomerDto) {
     return this.customersService.create(dto);
   }
 
   @Get()
   @ApiOperation({ summary: 'List customers' })
-  @ApiOkResponse({ description: 'Customers retrieved' })
+  @ApiOkResponse({
+    type: CustomerResponseDto,
+    isArray: true,
+    description: 'Customers retrieved',
+  })
   findAll(@Query('search') search?: string) {
     return this.customersService.findAll(search);
   }
 
   @Get('phone/:phone')
   @ApiOperation({ summary: 'Get customer by phone' })
-  @ApiOkResponse({ description: 'Customer retrieved' })
+  @ApiOkResponse({ type: CustomerResponseDto, description: 'Customer retrieved' })
   findByPhone(@Param('phone') phone: string) {
     return this.customersService.findByPhone(phone);
   }
 
   @Get(':id/360')
   @ApiOperation({ summary: 'Get customer 360 view' })
-  @ApiOkResponse({ description: 'Customer profile retrieved' })
+  @ApiOkResponse({
+    type: Customer360ResponseDto,
+    description: 'Customer profile retrieved',
+  })
   getCustomer360(@Param('id', ParseIntPipe) id: number) {
     return this.customersService.getCustomer360(id);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get customer by id' })
-  @ApiOkResponse({ description: 'Customer retrieved' })
+  @ApiOkResponse({ type: CustomerResponseDto, description: 'Customer retrieved' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.customersService.findOne(id);
   }
@@ -62,7 +73,7 @@ export class CustomersController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch(':id')
   @ApiOperation({ summary: 'Update customer' })
-  @ApiOkResponse({ description: 'Customer updated' })
+  @ApiOkResponse({ type: CustomerResponseDto, description: 'Customer updated' })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateCustomerDto,

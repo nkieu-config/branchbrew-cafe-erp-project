@@ -1,410 +1,110 @@
 // API response / domain types — decoupled from Prisma database models.
 
-export type Role = 'SUPER_ADMIN' | 'MANAGER' | 'STAFF';
-export type EmploymentType = 'FULL_TIME' | 'PART_TIME';
-export type OrderStatus = 'PENDING' | 'PREPARING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED';
-export type PaymentMethod = 'CASH' | 'CREDIT_CARD' | 'QR_PROMPTPAY';
-export type POStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'RECEIVED';
-export type TransferStatus = 'PENDING' | 'SHIPPED' | 'COMPLETED' | 'CANCELLED';
-export type ShiftStatus = 'SCHEDULED' | 'COMPLETED' | 'ABSENT' | 'CANCELLED';
-export type LeaveType = 'SICK' | 'ANNUAL' | 'UNPAID';
-export type LeaveStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
-export type PayrollStatus = 'DRAFT' | 'APPROVED' | 'PAID';
-export type SettlementStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
-export type DiscountType = 'PERCENTAGE' | 'FIXED_AMOUNT';
-export type Tier = 'REGULAR' | 'SILVER' | 'GOLD' | 'PLATINUM';
-export type AccountType = 'ASSET' | 'LIABILITY' | 'EQUITY' | 'REVENUE' | 'EXPENSE';
-export type EquipmentType = 'ESPRESSO_MACHINE' | 'GRINDER' | 'BLENDER' | 'POS_SYSTEM' | 'REFRIGERATOR' | 'OTHER';
-export type EquipmentStatus = 'ACTIVE' | 'MAINTENANCE' | 'BROKEN' | 'RETIRED';
-export type ProductionStatus = 'DRAFT' | 'PLANNED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
-export type BatchStatus = 'ACTIVE' | 'DEPLETED' | 'EXPIRED';
+import type {
+  AccountType,
+  BatchStatus,
+  DiscountType,
+  EmploymentType,
+  EquipmentStatus,
+  EquipmentType,
+  JournalStatus,
+  LeaveStatus,
+  LeaveType,
+  OrderStatus,
+  PaymentMethod,
+  PayrollStatus,
+  POStatus,
+  ProductionStatus,
+  Role,
+  SettlementStatus,
+  ShiftStatus,
+  Tier,
+  TransferStatus,
+} from '@erp/types';
 
-export interface Branch {
-  id: number;
-  name: string;
-  location?: string | null;
-  isCentralKitchen?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
+import type { Account } from './accounting';
+import type { Ingredient } from './ingredients';
+import type { Product } from './products';
+import type { User } from './hr';
+import type { ValidatePromotionResult } from './promotions';
 
-export interface User {
-  id: number;
-  email: string;
-  name: string | null;
-  role: Role;
-  employmentType?: EmploymentType;
-  branchId: number | null;
-  hourlyRate?: number;
-  baseSalary?: number;
-  createdAt?: string;
-  updatedAt?: string;
-  branch?: Branch | null;
-}
+export type { Branch, StockTransfer, SyncBranchInventoryResult } from './branches';
+export type { Customer, Customer360, Customer360Order } from './customers';
+export type {
+  Order,
+  OrderItem,
+  OrderItemModifier,
+  OrderProductSummary,
+  OrderPromotionSummary,
+} from './orders';
+export type { Product, RecipeItem } from './products';
+export type {
+  PurchaseOrder,
+  PurchaseOrderItem,
+  Supplier,
+} from './procurement';
+export type {
+  BranchInventory,
+  IngredientSummary,
+  InventoryBatch,
+  StockInResult,
+  WasteLog,
+} from './inventory';
+export type {
+  AttendanceRecord,
+  HrUser,
+  HrUserSummary,
+  LeaveRequest,
+  LeaveRequestUserSummary,
+  PayrollRun,
+  Payslip,
+  Shift,
+  User,
+} from './hr';
+export type { Account, JournalEntry, JournalLine, ProfitLossMonth } from './accounting';
+export type { Expense, Settlement, SettlementExpected } from './finance';
+export type { ModifierDeleteResult, ModifierGroup, ModifierOption } from './modifiers';
+export type { Equipment, EquipmentDetail, MaintenanceLog } from './equipment';
+export type {
+  ExecutiveSummary,
+  ExecutiveSummaryExpiryAlert,
+  ExecutiveSummaryLowStockAlert,
+  ExecutiveSummaryTopBranch,
+  ReportsProfitLoss,
+  SalesTrendPoint,
+  TopProductReport,
+} from './reports';
+export type {
+  BranchInventoryWithIngredient,
+  Ingredient,
+  SyncIngredientInventoryResult,
+} from './ingredients';
+export type { Promotion, ValidatePromotionResult } from './promotions';
+export type { ProductionBOM, ProductionOrder } from './production';
+export type { SystemSettings } from './settings';
+export type { AuditLog, AuditLogUserSummary } from './audit';
 
-export interface ModifierOption {
-  id: number;
-  groupId: number;
-  name: string;
-  priceDelta: number | string;
-  isDefault: boolean;
-  sortOrder: number;
-  swapToIngredientId?: number | null;
-  swapToIngredient?: Pick<Ingredient, 'id' | 'name' | 'unit'> | null;
-}
-
-export interface ModifierGroup {
-  id: number;
-  name: string;
-  category?: string | null;
-  sortOrder: number;
-  swapIngredientId?: number | null;
-  swapIngredient?: Pick<Ingredient, 'id' | 'name' | 'unit'> | null;
-  options: ModifierOption[];
-}
-
-export interface OrderItemModifier {
-  id: number;
-  orderItemId: number;
-  optionId: number;
-  optionName: string;
-  priceDelta: number | string;
-}
-
-export interface SalesTrendPoint {
-  date: string;
-  total: number;
-  orders: number;
-}
-
-export interface Product {
-  id: number;
-  name: string;
-  price: number;
-  category: string;
-  isActive?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-  recipeItems?: RecipeItem[];
-}
-
-export interface RecipeItem {
-  id: number;
-  productId: number;
-  ingredientId: number;
-  quantity: number;
-  ingredient?: Ingredient;
-}
-
-export interface Ingredient {
-  id: number;
-  name: string;
-  unit: string;
-  costPerUnit?: number;
-  primarySupplierId?: number | null;
-  isActive?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-  primarySupplier?: Supplier | null;
-}
-
-export interface Customer {
-  id: number;
-  phone: string;
-  name: string;
-  points: number;
-  tier: Tier;
-  createdAt?: string;
-  updatedAt?: string;
-  orders?: Order[];
-}
-
-export interface Promotion {
-  id: number;
-  code: string;
-  description: string;
-  discountType: DiscountType;
-  discountValue: number;
-  minPurchase?: number | null;
-  isActive: boolean;
-  startDate?: string | null;
-  endDate?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface OrderItem {
-  id: number;
-  orderId: number;
-  productId: number;
-  quantity: number;
-  price: number;
-  notes?: string | null;
-  product?: Product;
-  modifiers?: OrderItemModifier[];
-}
-
-export interface Order {
-  id: number;
-  totalAmount: number;
-  discountAmount: number;
-  netAmount: number;
-  taxAmount: number;
-  totalCogs: number;
-  pointsEarned: number;
-  pointsRedeemed: number;
-  status: OrderStatus;
-  paymentMethod: PaymentMethod;
-  isTaxInvoiceRequested?: boolean;
-  taxInvoiceName?: string | null;
-  taxInvoiceTaxId?: string | null;
-  taxInvoiceAddress?: string | null;
-  userId: number;
-  branchId: number;
-  customerId?: number | null;
-  promotionId?: number | null;
-  queueNumber?: number | null;
-  queueDate?: string | null;
-  refundReason?: string | null;
-  refundedAt?: string | null;
-  createdAt: string;
-  items?: OrderItem[];
-  customer?: Customer | null;
-  promotion?: Promotion | null;
-  branch?: Branch;
-  user?: User;
-}
-
-export interface Supplier {
-  id: number;
-  name: string;
-  contactEmail?: string | null;
-  phone?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface PurchaseOrderItem {
-  id: number;
-  poId: number;
-  ingredientId: number;
-  quantityRequested: number;
-  unitPrice: number;
-  ingredient?: Ingredient;
-}
-
-export interface PurchaseOrder {
-  id: number;
-  poNumber: string;
-  branchId: number;
-  supplierId: number;
-  status: POStatus;
-  isAutoGenerated?: boolean;
-  createdAt: string;
-  updatedAt?: string;
-  supplier?: Supplier;
-  branch?: Branch;
-  items?: PurchaseOrderItem[];
-}
-
-export interface StockTransfer {
-  id: number;
-  fromBranchId: number;
-  toBranchId: number;
-  ingredientId: number;
-  quantity: number;
-  status: TransferStatus;
-  requestedById: number;
-  approvedById?: number | null;
-  createdAt: string;
-  updatedAt?: string;
-  fromBranch?: Branch;
-  toBranch?: Branch;
-  ingredient?: Ingredient;
-  requestedBy?: User;
-}
-
-export interface InventoryBatch {
-  id: number;
-  branchId: number;
-  ingredientId: number;
-  quantity: number;
-  expiryDate?: string | null;
-  poId?: number | null;
-  status: BatchStatus;
-  createdAt?: string;
-  updatedAt?: string;
-  ingredient?: Ingredient;
-}
-
-export interface BranchInventory {
-  id: number;
-  branchId: number;
-  ingredientId: number;
-  stock: number;
-  minStock: number;
-  updatedAt?: string;
-  ingredient?: Ingredient;
-}
-
-export interface Shift {
-  id: number;
-  userId: number;
-  branchId: number;
-  startTime: string;
-  endTime: string;
-  status: ShiftStatus;
-  createdAt?: string;
-  updatedAt?: string;
-  user?: User;
-  branch?: Branch;
-}
-
-export interface LeaveRequest {
-  id: number;
-  userId: number;
-  type: LeaveType;
-  startDate: string;
-  endDate: string;
-  reason?: string | null;
-  status: LeaveStatus;
-  createdAt?: string;
-  updatedAt?: string;
-  user?: User;
-}
-
-export interface PayrollRun {
-  id: number;
-  month: number;
-  year: number;
-  status: PayrollStatus;
-  branchId?: number | null;
-  createdAt?: string;
-  updatedAt?: string;
-  payslips?: Payslip[];
-  branch?: Branch | null;
-}
-
-export interface Payslip {
-  id: number;
-  payrollRunId: number;
-  userId: number;
-  standardHours: number;
-  otHours: number;
-  basePay: number;
-  otPay: number;
-  bonuses: number;
-  grossPay: number;
-  taxDeduction: number;
-  socialSecurity: number;
-  otherDeductions: number;
-  netPay: number;
-  createdAt?: string;
-  updatedAt?: string;
-  user?: User;
-}
-
-export interface Account {
-  id: number;
-  code: string;
-  name: string;
-  type: AccountType;
-  description?: string | null;
-  isActive: boolean;
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-export interface Equipment {
-  id: number;
-  branchId: number;
-  name: string;
-  type: EquipmentType;
-  serialNumber?: string | null;
-  status: EquipmentStatus;
-  purchaseDate?: string | null;
-  warrantyExpiry?: string | null;
-  nextMaintenanceDate?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
-  branch?: Branch;
-}
-
-export interface ProductionOrder {
-  id: number;
-  orderNumber: string;
-  branchId: number;
-  targetIngredientId: number;
-  quantityToProduce: number;
-  status: ProductionStatus;
-  actualCost?: number;
-  plannedStartDate?: string | null;
-  completedAt?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
-  branch?: Branch;
-  targetIngredient?: Ingredient;
-}
-
-export interface AuditLog {
-  id: number;
-  userId: number;
-  action: string;
-  targetType: string;
-  targetId?: number | null;
-  details?: string | null;
-  createdAt: string;
-  user?: User;
-}
-
-export interface WasteLog {
-  id: number;
-  branchId: number;
-  ingredientId: number;
-  ingredient?: Ingredient;
-  quantity: number;
-  reason: string;
-  recordedById: number;
-  recordedBy?: { name: string };
-  createdAt: string;
-}
-
-export interface Settlement {
-  id: number;
-  branchId: number;
-  branch?: { name: string };
-  date: string;
-  expectedCash: number;
-  actualCash: number;
-  expectedCreditCard?: number;
-  actualCreditCard?: number;
-  expectedQR?: number;
-  actualQR?: number;
-  difference: number;
-  status: SettlementStatus;
-  submittedById: number;
-  createdAt: string;
-  updatedAt?: string;
-}
-
-export interface Expense {
-  id: number;
-  branchId: number;
-  amount: number;
-  category: string;
-  description?: string;
-  recordedById: number;
-  recordedBy?: { name: string };
-  createdAt: string;
-}
-
-export interface SettlementExpected {
-  expectedCash: number;
-  expectedCreditCard: number;
-  expectedQR: number;
-  sales: number;
-  expenses: number;
-}
+export type {
+  AccountType,
+  BatchStatus,
+  DiscountType,
+  EmploymentType,
+  EquipmentStatus,
+  EquipmentType,
+  JournalStatus,
+  LeaveStatus,
+  LeaveType,
+  OrderStatus,
+  PaymentMethod,
+  PayrollStatus,
+  POStatus,
+  ProductionStatus,
+  Role,
+  SettlementStatus,
+  ShiftStatus,
+  Tier,
+  TransferStatus,
+};
 
 // --- Form / UI helper types ---
 
@@ -482,16 +182,7 @@ export interface CreateProductionBOMPayload {
   quantityNeeded: number;
 }
 
-// --- Production BOM ---
-
-export interface ProductionBOM {
-  id: number;
-  targetIngredientId: number;
-  rawIngredientId: number;
-  quantityNeeded: number;
-  targetIngredient: Ingredient;
-  rawIngredient: Ingredient;
-}
+// --- Production BOM UI composites ---
 
 export interface BomChildRow {
   id: number;
@@ -513,25 +204,7 @@ export interface BomGroupRow {
 
 export type BomTableRow = BomGroupRow | (BomChildRow & { isGroup?: never });
 
-// --- Accounting ---
-
-export interface JournalLine {
-  id: number;
-  accountId: number;
-  debit: number;
-  credit: number;
-  description?: string | null;
-  account?: Account;
-}
-
-export interface JournalEntry {
-  id: number;
-  date: string;
-  reference?: string | null;
-  description: string;
-  status: 'DRAFT' | 'POSTED';
-  lines?: JournalLine[];
-}
+// --- Accounting UI composites ---
 
 export interface AccountTreeGroup {
   id: string;
@@ -563,25 +236,4 @@ export interface ReceiptOrder {
   netTotal?: number;
 }
 
-export interface ValidatedPromotion {
-  code: string;
-  type: 'PERCENTAGE' | 'FIXED_AMOUNT';
-  value: number;
-  minPurchase?: number | null;
-}
-
-// --- CRM 360 ---
-
-export type ChurnRisk = 'LOW' | 'MEDIUM' | 'HIGH';
-
-export interface Customer360 {
-  customer: Customer;
-  churnRisk: ChurnRisk;
-  daysSinceLastOrder: number;
-  lifetimeSpend: number;
-  nextTier: Tier | 'MAX';
-  amountToNextTier: number;
-  progressPercentage: number;
-  favoriteDrinks: { product: { name: string }; count: number }[];
-  recentOrders: Order[];
-}
+export type ValidatedPromotion = ValidatePromotionResult;

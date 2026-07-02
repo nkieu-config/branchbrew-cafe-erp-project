@@ -23,6 +23,10 @@ import {
   CreateProductionOrderDto,
   UpdateProductionStatusDto,
 } from './dto/production.dto';
+import {
+  ProductionBomResponseDto,
+  ProductionOrderResponseDto,
+} from './dto/production-response.dto';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
 
@@ -35,7 +39,11 @@ export class ProductionController {
 
   @Get('orders')
   @ApiOperation({ summary: 'List production orders' })
-  @ApiOkResponse({ description: 'Production orders retrieved' })
+  @ApiOkResponse({
+    type: ProductionOrderResponseDto,
+    isArray: true,
+    description: 'Production orders retrieved',
+  })
   getProductionOrders(@Req() req: RequestWithUser) {
     const branchId = resolveOptionalBranchId(req.user);
     return this.productionService.getProductionOrders(branchId);
@@ -43,7 +51,11 @@ export class ProductionController {
 
   @Get('boms')
   @ApiOperation({ summary: 'List production BOMs' })
-  @ApiOkResponse({ description: 'BOMs retrieved' })
+  @ApiOkResponse({
+    type: ProductionBomResponseDto,
+    isArray: true,
+    description: 'BOMs retrieved',
+  })
   getBOMs() {
     return this.productionService.getBOMs();
   }
@@ -51,7 +63,7 @@ export class ProductionController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('orders')
   @ApiOperation({ summary: 'Create production order' })
-  @ApiOkResponse({ description: 'Production order created' })
+  @ApiOkResponse({ type: ProductionOrderResponseDto, description: 'Production order created' })
   createOrder(
     @Req() req: RequestWithUser,
     @Body() dto: CreateProductionOrderDto,
@@ -70,7 +82,10 @@ export class ProductionController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('orders/:id/status')
   @ApiOperation({ summary: 'Update production order status' })
-  @ApiOkResponse({ description: 'Production order status updated' })
+  @ApiOkResponse({
+    type: ProductionOrderResponseDto,
+    description: 'Production order status updated',
+  })
   updateOrderStatus(
     @Req() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
@@ -82,7 +97,7 @@ export class ProductionController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('orders/:id/complete')
   @ApiOperation({ summary: 'Complete production order' })
-  @ApiOkResponse({ description: 'Production order completed' })
+  @ApiOkResponse({ type: ProductionOrderResponseDto, description: 'Production order completed' })
   completeOrder(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: RequestWithUser,
@@ -97,7 +112,7 @@ export class ProductionController {
   @Roles('SUPER_ADMIN')
   @Post('boms')
   @ApiOperation({ summary: 'Create production BOM' })
-  @ApiOkResponse({ description: 'BOM created' })
+  @ApiOkResponse({ type: ProductionBomResponseDto, description: 'BOM created' })
   createBOM(@Body() dto: CreateBomDto) {
     return this.productionService.createBOM(dto);
   }

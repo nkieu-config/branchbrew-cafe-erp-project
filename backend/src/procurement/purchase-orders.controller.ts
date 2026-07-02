@@ -20,6 +20,7 @@ import {
 } from '../auth/branch-scope.util';
 import { CreatePurchaseOrderDto } from './dto/create-purchase-order.dto';
 import { ReceivePurchaseOrderDto } from './dto/receive-purchase-order.dto';
+import { PurchaseOrderResponseDto } from './dto/procurement-response.dto';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
 
@@ -32,7 +33,11 @@ export class PurchaseOrdersController {
 
   @Get()
   @ApiOperation({ summary: 'List purchase orders' })
-  @ApiOkResponse({ description: 'Purchase orders retrieved' })
+  @ApiOkResponse({
+    type: PurchaseOrderResponseDto,
+    isArray: true,
+    description: 'Purchase orders retrieved',
+  })
   findAll(@Req() req: RequestWithUser) {
     const branchId = resolveOptionalBranchId(req.user);
     return this.procurementService.findAllPOs(branchId);
@@ -41,7 +46,7 @@ export class PurchaseOrdersController {
   @Roles('SUPER_ADMIN', 'MANAGER', 'STAFF')
   @Post()
   @ApiOperation({ summary: 'Create purchase order' })
-  @ApiOkResponse({ description: 'Purchase order created' })
+  @ApiOkResponse({ type: PurchaseOrderResponseDto, description: 'Purchase order created' })
   create(@Body() dto: CreatePurchaseOrderDto, @Req() req: RequestWithUser) {
     const branchId = resolveBranchId(req.user, dto.branchId);
     return this.procurementService.createPO(
@@ -61,7 +66,7 @@ export class PurchaseOrdersController {
   @Roles('SUPER_ADMIN', 'MANAGER', 'STAFF')
   @Patch(':id/submit')
   @ApiOperation({ summary: 'Submit purchase order' })
-  @ApiOkResponse({ description: 'Purchase order submitted' })
+  @ApiOkResponse({ type: PurchaseOrderResponseDto, description: 'Purchase order submitted' })
   submit(@Param('id', ParseIntPipe) id: number, @Req() req: RequestWithUser) {
     return this.procurementService.submitPO(id, req.user.userId, req.user);
   }
@@ -69,7 +74,7 @@ export class PurchaseOrdersController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch(':id/approve')
   @ApiOperation({ summary: 'Approve purchase order' })
-  @ApiOkResponse({ description: 'Purchase order approved' })
+  @ApiOkResponse({ type: PurchaseOrderResponseDto, description: 'Purchase order approved' })
   approve(@Param('id', ParseIntPipe) id: number, @Req() req: RequestWithUser) {
     return this.procurementService.approvePO(id, req.user.userId, req.user);
   }
@@ -77,7 +82,7 @@ export class PurchaseOrdersController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch(':id/reject')
   @ApiOperation({ summary: 'Reject purchase order' })
-  @ApiOkResponse({ description: 'Purchase order rejected' })
+  @ApiOkResponse({ type: PurchaseOrderResponseDto, description: 'Purchase order rejected' })
   reject(@Param('id', ParseIntPipe) id: number, @Req() req: RequestWithUser) {
     return this.procurementService.rejectPO(id, req.user.userId, req.user);
   }
@@ -85,7 +90,7 @@ export class PurchaseOrdersController {
   @Roles('SUPER_ADMIN', 'MANAGER', 'STAFF')
   @Post(':id/receive')
   @ApiOperation({ summary: 'Receive purchase order' })
-  @ApiOkResponse({ description: 'Purchase order received' })
+  @ApiOkResponse({ type: PurchaseOrderResponseDto, description: 'Purchase order received' })
   receive(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: ReceivePurchaseOrderDto,
