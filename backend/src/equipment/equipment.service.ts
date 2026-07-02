@@ -74,15 +74,7 @@ export class EquipmentService {
 
   async update(
     id: number,
-    data: Partial<{
-      name: string;
-      type: EquipmentType;
-      serialNumber: string;
-      status: EquipmentStatus;
-      purchaseDate: Date;
-      warrantyExpiry: Date;
-      nextMaintenanceDate: Date;
-    }>,
+    data: Prisma.EquipmentUpdateInput,
     user?: BranchScopedUser,
   ) {
     if (user) {

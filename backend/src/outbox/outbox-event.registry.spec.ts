@@ -26,18 +26,20 @@ describe('outbox-event.registry', () => {
   it('validates purchase-order.received payloads', () => {
     expect(() =>
       assertOutboxPayload(OUTBOX_EVENT_TYPES.PURCHASE_ORDER_RECEIVED, {
-        poId: 1,
-        poNumber: 'PO-000001',
-        branchId: 2,
-        totalAmount: 100,
+        purchaseOrder: {
+          poId: 1,
+          poNumber: 'PO-000001',
+          branchId: 2,
+          totalAmount: 100,
+        },
       }),
     ).not.toThrow();
 
     expect(() =>
       assertOutboxPayload(OUTBOX_EVENT_TYPES.PURCHASE_ORDER_RECEIVED, {
-        poId: 'bad',
+        purchaseOrder: { poId: 'bad' },
       }),
-    ).toThrow('purchase-order.received.poId must be a number.');
+    ).toThrow('purchase-order.received.purchaseOrder.poId must be a number.');
   });
 
   it('dispatches order.status.updated to the event bus', async () => {

@@ -71,12 +71,7 @@ const outboxEventRegistry: Record<OutboxEventType, OutboxDispatchHandler> = {
     );
     await eventEmitter.emitAsync(
       OUTBOX_EVENT_TYPES.PURCHASE_ORDER_RECEIVED,
-      new PurchaseOrderReceivedEvent(
-        data.poId,
-        data.poNumber,
-        data.branchId,
-        data.totalAmount,
-      ),
+      new PurchaseOrderReceivedEvent(data.purchaseOrder),
     );
   },
   [OUTBOX_EVENT_TYPES.PRODUCTION_COMPLETED]: async (payload, eventEmitter) => {
@@ -86,12 +81,7 @@ const outboxEventRegistry: Record<OutboxEventType, OutboxDispatchHandler> = {
     );
     await eventEmitter.emitAsync(
       OUTBOX_EVENT_TYPES.PRODUCTION_COMPLETED,
-      new ProductionCompletedEvent(
-        data.orderNumber,
-        data.targetIngredientName,
-        data.branchId,
-        data.totalRawCost,
-      ),
+      new ProductionCompletedEvent(data.production),
     );
   },
 };

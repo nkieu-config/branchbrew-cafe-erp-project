@@ -13,7 +13,11 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { toNum, roundMoney } from '../common/decimal.util';
-import { AuditService } from '../audit/audit.service';
+import {
+  AuditService,
+  AUDIT_ACTIONS,
+  AUDIT_TARGETS,
+} from '../audit/audit.service';
 
 @Injectable()
 export class HrService {
@@ -276,8 +280,8 @@ export class HrService {
     if (userId) {
       await this.auditService.logAction(
         userId,
-        'GENERATE_PAYROLL',
-        'PayrollRun',
+        AUDIT_ACTIONS.GENERATE_PAYROLL,
+        AUDIT_TARGETS.PAYROLL_RUN,
         run.id,
         { branchId, month, year, payslipCount: payslipsData.length },
       );
@@ -310,8 +314,8 @@ export class HrService {
 
     await this.auditService.logAction(
       user.userId,
-      'APPROVE_PAYROLL',
-      'PayrollRun',
+      AUDIT_ACTIONS.APPROVE_PAYROLL,
+      AUDIT_TARGETS.PAYROLL_RUN,
       runId,
       { branchId: run.branchId, month: run.month, year: run.year },
     );

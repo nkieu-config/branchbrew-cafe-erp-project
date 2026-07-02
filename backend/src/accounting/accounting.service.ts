@@ -5,7 +5,6 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { OrderCreatedEvent } from '../orders/events/order-created.event';
 import { OrderVoidedEvent } from '../orders/events/order-voided.event';
 import { OrderRefundedEvent } from '../orders/events/order-refunded.event';
-import { Order } from '@prisma/client';
 import { PurchaseOrderReceivedEvent } from '../procurement/events/purchase-order-received.event';
 import { ProductionCompletedEvent } from '../production/events/production-completed.event';
 import { toNum, roundMoney, isBalancedMoney } from '../common/decimal.util';
@@ -13,6 +12,7 @@ import {
   paymentAccountLabel,
   resolvePaymentAccountCode,
 } from './payment-accounts.util';
+import { OrderSnapshot } from '../orders/domain/order-snapshot';
 
 @Injectable()
 export class AccountingService {
@@ -89,7 +89,7 @@ export class AccountingService {
   }
 
   private async postOrderSaleReversal(
-    order: Order,
+    order: OrderSnapshot,
     kind: 'VOID' | 'REFUND',
     descriptionSuffix = '',
   ) {

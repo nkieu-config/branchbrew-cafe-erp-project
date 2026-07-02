@@ -1,4 +1,7 @@
-import { assertRefundable } from './order-refund.util';
+import {
+  assertRefundable,
+  OrderRefundValidationError,
+} from './order-refund.util';
 
 describe('order-refund.util', () => {
   it('allows refund for completed orders from a previous day', () => {
@@ -24,10 +27,15 @@ describe('order-refund.util', () => {
   });
 
   it('throws REFUND_SAME_DAY for today completed orders', () => {
+    expect(() => assertRefundable(new Date(), 'COMPLETED')).toThrow(
+      OrderRefundValidationError,
+    );
+
     try {
       assertRefundable(new Date(), 'COMPLETED');
     } catch (e) {
-      expect((e as Error).message).toBe('REFUND_SAME_DAY');
+      const error = e as OrderRefundValidationError;
+      expect(error.detail.kind).toBe('REFUND_SAME_DAY');
     }
   });
 });

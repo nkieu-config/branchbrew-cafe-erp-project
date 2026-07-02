@@ -22,13 +22,20 @@ import {
   LogMaintenanceDto,
   UpdateEquipmentDto,
 } from './dto/equipment.dto';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
+import { Prisma } from '@prisma/client';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
+@ApiTags('equipment')
+@ApiCommonErrorResponses()
 @Controller('equipment')
 export class EquipmentController {
   constructor(private readonly equipmentService: EquipmentService) {}
 
   @Get()
+  @ApiOperation({ summary: 'List equipment by branch' })
+  @ApiOkResponse({ description: 'Equipment list retrieved' })
   findAll(
     @Request() req: RequestWithUser,
     @Query('branchId') branchIdQuery?: string,
@@ -41,6 +48,8 @@ export class EquipmentController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get equipment by id' })
+  @ApiOkResponse({ description: 'Equipment retrieved' })
   findOne(
     @Request() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
@@ -50,6 +59,8 @@ export class EquipmentController {
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post()
+  @ApiOperation({ summary: 'Create equipment' })
+  @ApiOkResponse({ description: 'Equipment created' })
   create(@Body() dto: CreateEquipmentDto, @Request() req: RequestWithUser) {
     const branchId = resolveBranchId(req.user, dto.branchId);
     return this.equipmentService.create({
@@ -69,22 +80,34 @@ export class EquipmentController {
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch(':id')
+  @ApiOperation({ summary: 'Update equipment' })
+  @ApiOkResponse({ description: 'Equipment updated' })
   update(
     @Request() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateEquipmentDto,
   ) {
-    const updateData: Record<string, unknown> = { ...dto };
-    if (dto.purchaseDate) updateData.purchaseDate = new Date(dto.purchaseDate);
-    if (dto.warrantyExpiry)
+    const updateData: Prisma.EquipmentUpdateInput = {};
+    if (dto.name !== undefined) updateData.name = dto.name;
+    if (dto.type !== undefined) updateData.type = dto.type;
+    if (dto.serialNumber !== undefined) updateData.serialNumber = dto.serialNumber;
+    if (dto.status !== undefined) updateData.status = dto.status;
+    if (dto.purchaseDate !== undefined) {
+      updateData.purchaseDate = new Date(dto.purchaseDate);
+    }
+    if (dto.warrantyExpiry !== undefined) {
       updateData.warrantyExpiry = new Date(dto.warrantyExpiry);
-    if (dto.nextMaintenanceDate)
+    }
+    if (dto.nextMaintenanceDate !== undefined) {
       updateData.nextMaintenanceDate = new Date(dto.nextMaintenanceDate);
+    }
     return this.equipmentService.update(id, updateData, req.user);
   }
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post(':id/maintenance')
+  @ApiOperation({ summary: 'Log equipment maintenance' })
+  @ApiOkResponse({ description: 'Maintenance logged' })
   logMaintenance(
     @Request() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,

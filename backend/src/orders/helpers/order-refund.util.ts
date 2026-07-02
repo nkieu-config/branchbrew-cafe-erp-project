@@ -1,9 +1,35 @@
 import { OrderStatus } from '@prisma/client';
 import { isSameCalendarDay, isTerminalOrderStatus } from '../order-void.util';
 
+export type OrderRefundErrorKind =
+  | 'ORDER_ALREADY_REVERSED'
+  | 'REFUND_NOT_COMPLETED'
+  | 'REFUND_SAME_DAY';
+
+export type OrderRefundError = {
+  kind: OrderRefundErrorKind;
+};
+
+export class OrderRefundValidationError extends Error {
+  constructor(public readonly detail: OrderRefundError) {
+    super(detail.kind);
+    this.name = 'OrderRefundValidationError';
+  }
+}
+
+function throwOrderRefundError(kind: OrderRefundErrorKind): never {
+  throw new OrderRefundValidationError({ kind });
+}
+
+export function isOrderRefundValidationError(
+  error: unknown,
+): error is OrderRefundValidationError {
+  return error instanceof OrderRefundValidationError;
+}
+
 export function assertVoidable(createdAt: Date, status: OrderStatus): void {
   if (isTerminalOrderStatus(status)) {
-    throw new Error('ORDER_ALREADY_REVERSED');
+    throwOrderRefundError('ORDER_ALREADY_REVERSED');
   }
   if (!isSameCalendarDay(createdAt, new Date())) {
     throw new Error('VOID_NOT_SAME_DAY');
@@ -12,12 +38,12 @@ export function assertVoidable(createdAt: Date, status: OrderStatus): void {
 
 export function assertRefundable(createdAt: Date, status: OrderStatus): void {
   if (isTerminalOrderStatus(status)) {
-    throw new Error('ORDER_ALREADY_REVERSED');
+    throwOrderRefundError('ORDER_ALREADY_REVERSED');
   }
   if (status !== 'COMPLETED') {
-    throw new Error('REFUND_NOT_COMPLETED');
+    throwOrderRefundError('REFUND_NOT_COMPLETED');
   }
   if (isSameCalendarDay(createdAt, new Date())) {
-    throw new Error('REFUND_SAME_DAY');
+    throwOrderRefundError('REFUND_SAME_DAY');
   }
 }

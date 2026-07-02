@@ -15,6 +15,7 @@ import compression from 'compression';
 import { assertRuntimeConfig, getCorsOrigins } from './config/runtime-config';
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 import { requestContextMiddleware } from './common/middleware/request-context.middleware';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   assertRuntimeConfig();
@@ -65,6 +66,17 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new GlobalExceptionFilter());
   app.enableShutdownHooks();
+
+  if (process.env.NODE_ENV !== 'production') {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('ERP API')
+      .setDescription('ERP backend API documentation')
+      .setVersion('1.0.0')
+      .addBearerAuth()
+      .build();
+    const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('docs', app, swaggerDocument);
+  }
 
   await app.listen(process.env.PORT ?? 3000);
 }

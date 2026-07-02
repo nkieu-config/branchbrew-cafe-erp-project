@@ -8,6 +8,7 @@ import {
 import { ProductionStatus } from '@prisma/client';
 import { OutboxService } from '../outbox/outbox.service';
 import { OUTBOX_EVENT_TYPES } from '../outbox/outbox-event.types';
+import { toProductionCompletedSnapshot } from './domain/production-completed.snapshot';
 
 @Injectable()
 export class ProductionService {
@@ -195,11 +196,14 @@ export class ProductionService {
           tx,
           OUTBOX_EVENT_TYPES.PRODUCTION_COMPLETED,
           {
-          orderNumber: updatedOrder.orderNumber,
-          targetIngredientName: order.targetIngredient.name,
-          branchId: order.branchId,
-          totalRawCost,
-        });
+            production: toProductionCompletedSnapshot({
+              orderNumber: updatedOrder.orderNumber,
+              targetIngredientName: order.targetIngredient.name,
+              branchId: order.branchId,
+              totalRawCost,
+            }),
+          },
+        );
       }
 
       return updatedOrder;

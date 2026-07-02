@@ -20,25 +20,35 @@ import {
   UpdateModifierGroupDto,
   UpdateModifierOptionDto,
 } from './dto/modifier.dto';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
+@ApiTags('modifiers')
+@ApiCommonErrorResponses()
 @Controller('modifiers')
 export class ModifiersController {
   constructor(private readonly modifiersService: ModifiersService) {}
 
   @Get()
+  @ApiOperation({ summary: 'List modifier groups and options' })
+  @ApiOkResponse({ description: 'Modifiers retrieved' })
   findAll(@Query('category') category?: string) {
     return this.modifiersService.findAll(category);
   }
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('groups')
+  @ApiOperation({ summary: 'Create modifier group' })
+  @ApiOkResponse({ description: 'Modifier group created' })
   createGroup(@Body() dto: CreateModifierGroupDto) {
     return this.modifiersService.createGroup(dto);
   }
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('groups/:id')
+  @ApiOperation({ summary: 'Update modifier group' })
+  @ApiOkResponse({ description: 'Modifier group updated' })
   updateGroup(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateModifierGroupDto,
@@ -48,18 +58,24 @@ export class ModifiersController {
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Delete('groups/:id')
+  @ApiOperation({ summary: 'Delete modifier group' })
+  @ApiOkResponse({ description: 'Modifier group deleted' })
   deleteGroup(@Param('id', ParseIntPipe) id: number) {
     return this.modifiersService.deleteGroup(id);
   }
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('options')
+  @ApiOperation({ summary: 'Create modifier option' })
+  @ApiOkResponse({ description: 'Modifier option created' })
   createOption(@Body() dto: CreateModifierOptionForGroupDto) {
     return this.modifiersService.createOption(dto);
   }
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('options/:id')
+  @ApiOperation({ summary: 'Update modifier option' })
+  @ApiOkResponse({ description: 'Modifier option updated' })
   updateOption(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateModifierOptionDto,
@@ -69,6 +85,8 @@ export class ModifiersController {
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Delete('options/:id')
+  @ApiOperation({ summary: 'Delete modifier option' })
+  @ApiOkResponse({ description: 'Modifier option deleted' })
   deleteOption(@Param('id', ParseIntPipe) id: number) {
     return this.modifiersService.deleteOption(id);
   }

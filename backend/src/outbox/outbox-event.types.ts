@@ -1,4 +1,11 @@
-import { Order, OrderStatus, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+import {
+  ORDER_LIFECYCLE_STATUSES,
+  OrderLifecycleStatus,
+  OrderSnapshot,
+} from '../orders/domain/order-snapshot';
+import { PurchaseOrderReceivedSnapshot } from '../procurement/domain/purchase-order-received.snapshot';
+import { ProductionCompletedSnapshot } from '../production/domain/production-completed.snapshot';
 
 export const OUTBOX_EVENT_TYPES = {
   ORDER_CREATED: 'order.created',
@@ -14,34 +21,28 @@ export type OutboxEventType =
 
 export type OutboxEventPayloadMap = {
   [OUTBOX_EVENT_TYPES.ORDER_CREATED]: {
-    order: Order;
+    order: OrderSnapshot;
     ingredientRequirements: [number, number][];
     branchId: number;
     customerId: number | null;
   };
   [OUTBOX_EVENT_TYPES.ORDER_STATUS_UPDATED]: {
     orderId: number;
-    status: OrderStatus;
+    status: OrderLifecycleStatus;
     branchId: number;
   };
   [OUTBOX_EVENT_TYPES.ORDER_VOIDED]: {
-    order: Order;
+    order: OrderSnapshot;
   };
   [OUTBOX_EVENT_TYPES.ORDER_REFUNDED]: {
-    order: Order;
+    order: OrderSnapshot;
     reason?: string;
   };
   [OUTBOX_EVENT_TYPES.PURCHASE_ORDER_RECEIVED]: {
-    poId: number;
-    poNumber: string;
-    branchId: number;
-    totalAmount: number;
+    purchaseOrder: PurchaseOrderReceivedSnapshot;
   };
   [OUTBOX_EVENT_TYPES.PRODUCTION_COMPLETED]: {
-    orderNumber: string;
-    targetIngredientName: string;
-    branchId: number;
-    totalRawCost: number;
+    production: ProductionCompletedSnapshot;
   };
 };
 
@@ -59,68 +60,112 @@ export function isOutboxEventType(value: string): value is OutboxEventType {
   return Object.values(OUTBOX_EVENT_TYPES).includes(value as OutboxEventType);
 }
 
+type OutboxEventValidatorMap = {
+  [K in OutboxEventType]: (payload: unknown) => OutboxEventPayload<K>;
+};
+
+const outboxPayloadValidators: OutboxEventValidatorMap = {
+  [OUTBOX_EVENT_TYPES.ORDER_CREATED]: (payload) => {
+    const eventType = OUTBOX_EVENT_TYPES.ORDER_CREATED;
+    const data = asObject(payload, eventType);
+    assertNumber(data.branchId, `${eventType}.branchId`);
+    if (data.customerId != null) {
+      assertNumber(data.customerId, `${eventType}.customerId`);
+    }
+    if (!Array.isArray(data.ingredientRequirements)) {
+      throw new Error(`${eventType}.ingredientRequirements must be an array.`);
+    }
+    if (data.order == null || typeof data.order !== 'object') {
+      throw new Error(`${eventType}.order is required.`);
+    }
+    return data as OutboxEventPayload<typeof eventType>;
+  },
+  [OUTBOX_EVENT_TYPES.ORDER_STATUS_UPDATED]: (payload) => {
+    const eventType = OUTBOX_EVENT_TYPES.ORDER_STATUS_UPDATED;
+    const data = asObject(payload, eventType);
+    assertNumber(data.orderId, `${eventType}.orderId`);
+    assertNumber(data.branchId, `${eventType}.branchId`);
+    assertOrderStatus(data.status, `${eventType}.status`);
+    return data as OutboxEventPayload<typeof eventType>;
+  },
+  [OUTBOX_EVENT_TYPES.ORDER_VOIDED]: (payload) => {
+    const eventType = OUTBOX_EVENT_TYPES.ORDER_VOIDED;
+    const data = asObject(payload, eventType);
+    if (data.order == null || typeof data.order !== 'object') {
+      throw new Error(`${eventType}.order is required.`);
+    }
+    return data as OutboxEventPayload<typeof eventType>;
+  },
+  [OUTBOX_EVENT_TYPES.ORDER_REFUNDED]: (payload) => {
+    const eventType = OUTBOX_EVENT_TYPES.ORDER_REFUNDED;
+    const data = asObject(payload, eventType);
+    if (data.order == null || typeof data.order !== 'object') {
+      throw new Error(`${eventType}.order is required.`);
+    }
+    if (data.reason != null) {
+      assertString(data.reason, `${eventType}.reason`);
+    }
+    return data as OutboxEventPayload<typeof eventType>;
+  },
+  [OUTBOX_EVENT_TYPES.PURCHASE_ORDER_RECEIVED]: (payload) => {
+    const eventType = OUTBOX_EVENT_TYPES.PURCHASE_ORDER_RECEIVED;
+    const data = asObject(payload, eventType);
+    const purchaseOrder = readObject(
+      data.purchaseOrder,
+      `${eventType}.purchaseOrder`,
+    );
+    assertNumber(purchaseOrder.poId, `${eventType}.purchaseOrder.poId`);
+    assertNumber(purchaseOrder.branchId, `${eventType}.purchaseOrder.branchId`);
+    assertNumber(
+      purchaseOrder.totalAmount,
+      `${eventType}.purchaseOrder.totalAmount`,
+    );
+    assertString(
+      purchaseOrder.poNumber,
+      `${eventType}.purchaseOrder.poNumber`,
+    );
+    return data as OutboxEventPayload<typeof eventType>;
+  },
+  [OUTBOX_EVENT_TYPES.PRODUCTION_COMPLETED]: (payload) => {
+    const eventType = OUTBOX_EVENT_TYPES.PRODUCTION_COMPLETED;
+    const data = asObject(payload, eventType);
+    const production = readObject(data.production, `${eventType}.production`);
+    assertNumber(production.branchId, `${eventType}.production.branchId`);
+    assertNumber(
+      production.totalRawCost,
+      `${eventType}.production.totalRawCost`,
+    );
+    assertString(production.orderNumber, `${eventType}.production.orderNumber`);
+    assertString(
+      production.targetIngredientName,
+      `${eventType}.production.targetIngredientName`,
+    );
+    return data as OutboxEventPayload<typeof eventType>;
+  },
+};
+
 export function assertOutboxPayload<T extends OutboxEventType>(
   eventType: T,
   payload: unknown,
 ): OutboxEventPayload<T> {
+  return outboxPayloadValidators[eventType](payload);
+}
+
+function asObject(
+  payload: unknown,
+  eventType: OutboxEventType,
+): Record<string, unknown> {
   if (payload == null || typeof payload !== 'object') {
     throw new Error(`Outbox payload for ${eventType} must be an object.`);
   }
+  return payload as Record<string, unknown>;
+}
 
-  const data = payload as Record<string, unknown>;
-
-  switch (eventType) {
-    case OUTBOX_EVENT_TYPES.ORDER_CREATED: {
-      assertNumber(data.branchId, `${eventType}.branchId`);
-      if (data.customerId != null) {
-        assertNumber(data.customerId, `${eventType}.customerId`);
-      }
-      if (!Array.isArray(data.ingredientRequirements)) {
-        throw new Error(`${eventType}.ingredientRequirements must be an array.`);
-      }
-      if (data.order == null || typeof data.order !== 'object') {
-        throw new Error(`${eventType}.order is required.`);
-      }
-      return payload as OutboxEventPayload<T>;
-    }
-    case OUTBOX_EVENT_TYPES.ORDER_STATUS_UPDATED: {
-      assertNumber(data.orderId, `${eventType}.orderId`);
-      assertNumber(data.branchId, `${eventType}.branchId`);
-      assertString(data.status, `${eventType}.status`);
-      return payload as OutboxEventPayload<T>;
-    }
-    case OUTBOX_EVENT_TYPES.ORDER_VOIDED:
-    case OUTBOX_EVENT_TYPES.ORDER_REFUNDED: {
-      if (data.order == null || typeof data.order !== 'object') {
-        throw new Error(`${eventType}.order is required.`);
-      }
-      if (data.reason != null) {
-        assertString(data.reason, `${eventType}.reason`);
-      }
-      return payload as OutboxEventPayload<T>;
-    }
-    case OUTBOX_EVENT_TYPES.PURCHASE_ORDER_RECEIVED: {
-      assertNumber(data.poId, `${eventType}.poId`);
-      assertNumber(data.branchId, `${eventType}.branchId`);
-      assertNumber(data.totalAmount, `${eventType}.totalAmount`);
-      assertString(data.poNumber, `${eventType}.poNumber`);
-      return payload as OutboxEventPayload<T>;
-    }
-    case OUTBOX_EVENT_TYPES.PRODUCTION_COMPLETED: {
-      assertNumber(data.branchId, `${eventType}.branchId`);
-      assertNumber(data.totalRawCost, `${eventType}.totalRawCost`);
-      assertString(data.orderNumber, `${eventType}.orderNumber`);
-      assertString(
-        data.targetIngredientName,
-        `${eventType}.targetIngredientName`,
-      );
-      return payload as OutboxEventPayload<T>;
-    }
-    default: {
-      const _exhaustive: never = eventType;
-      throw new Error(`Unhandled outbox event type: ${String(_exhaustive)}`);
-    }
+function readObject(value: unknown, field: string): Record<string, unknown> {
+  if (value == null || typeof value !== 'object') {
+    throw new Error(`${field} must be an object.`);
   }
+  return value as Record<string, unknown>;
 }
 
 function assertNumber(value: unknown, field: string): asserts value is number {
@@ -132,6 +177,21 @@ function assertNumber(value: unknown, field: string): asserts value is number {
 function assertString(value: unknown, field: string): asserts value is string {
   if (typeof value !== 'string' || value.length === 0) {
     throw new Error(`${field} must be a non-empty string.`);
+  }
+}
+
+function assertOrderStatus(
+  value: unknown,
+  field: string,
+): asserts value is OrderLifecycleStatus {
+  const statuses = ORDER_LIFECYCLE_STATUSES;
+  if (
+    typeof value !== 'string' ||
+    !statuses.some((status) => status === value)
+  ) {
+    throw new Error(
+      `${field} must be one of: ${statuses.join(', ')}.`,
+    );
   }
 }
 

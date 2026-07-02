@@ -14,7 +14,11 @@ import {
   applyOrderReversalEffects,
   ORDER_REVERSAL_INCLUDE,
 } from './helpers/order-reversal.helper';
-import { assertRefundable } from './helpers/order-refund.util';
+import {
+  assertRefundable,
+  isOrderRefundValidationError,
+  OrderRefundErrorKind,
+} from './helpers/order-refund.util';
 import { AuditService } from '../audit/audit.service';
 import { orderListInclude } from './orders.types';
 import { ApiErrorCode } from '../common/errors/api-error-code.enum';
@@ -23,6 +27,8 @@ import {
   appNotFound,
   AppException,
 } from '../common/errors/app.exception';
+import { AUDIT_ACTIONS, AUDIT_TARGETS } from '../audit/audit.service';
+import { toOrderSnapshot } from './domain/order-snapshot';
 
 const OPERATIONAL_ORDER_STATUSES: readonly OrderStatus[] = [
   'PENDING',
@@ -147,7 +153,7 @@ export class OrderLifecycleService {
       });
 
       await this.outboxService.enqueue(tx, OUTBOX_EVENT_TYPES.ORDER_VOIDED, {
-        order: updated,
+        order: toOrderSnapshot(updated),
       });
       await this.outboxService.enqueue(
         tx,
@@ -165,8 +171,8 @@ export class OrderLifecycleService {
     if (user) {
       await this.auditService.logAction(
         user.userId,
-        'VOID_ORDER',
-        'Order',
+        AUDIT_ACTIONS.VOID_ORDER,
+        AUDIT_TARGETS.ORDER,
         orderId,
         {
           branchId: existing.branchId,
@@ -208,7 +214,7 @@ export class OrderLifecycleService {
       });
 
       await this.outboxService.enqueue(tx, OUTBOX_EVENT_TYPES.ORDER_REFUNDED, {
-        order: updated,
+        order: toOrderSnapshot(updated),
         reason: trimmedReason,
       });
       await this.outboxService.enqueue(
@@ -227,8 +233,8 @@ export class OrderLifecycleService {
     if (user) {
       await this.auditService.logAction(
         user.userId,
-        'REFUND_ORDER',
-        'Order',
+        AUDIT_ACTIONS.REFUND_ORDER,
+        AUDIT_TARGETS.ORDER,
         orderId,
         {
           branchId: existing.branchId,
@@ -256,7 +262,14 @@ export class OrderLifecycleService {
   }
 
   private mapRefundError(err: unknown): AppException {
-    const code = err instanceof Error ? err.message : String(err);
+    if (!isOrderRefundValidationError(err)) {
+      return appBadRequest(
+        ApiErrorCode.ORDER_REFUND_NOT_ALLOWED,
+        'Order cannot be refunded.',
+      );
+    }
+
+    const code: OrderRefundErrorKind = err.detail.kind;
     switch (code) {
       case 'ORDER_ALREADY_REVERSED':
         return appBadRequest(
@@ -274,10 +287,14 @@ export class OrderLifecycleService {
           'Same-day orders should be voided, not refunded.',
         );
       default:
-        return appBadRequest(
-          ApiErrorCode.ORDER_REFUND_NOT_ALLOWED,
-          'Order cannot be refunded.',
-        );
+        return this.assertNeverRefundError(code);
     }
+  }
+
+  private assertNeverRefundError(code: never): AppException {
+    return appBadRequest(
+      ApiErrorCode.ORDER_REFUND_NOT_ALLOWED,
+      `Order cannot be refunded (${String(code)}).`,
+    );
   }
 }

@@ -20,13 +20,19 @@ import { UpdateBranchDto } from './dto/update-branch.dto';
 import { CreateTransferDto } from './dto/create-transfer.dto';
 import { AddInventoryBatchDto } from './dto/add-inventory-batch.dto';
 import { ReportWasteDto } from './dto/report-waste.dto';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
+@ApiTags('branches')
+@ApiCommonErrorResponses()
 @Controller('branches')
 export class BranchesController {
   constructor(private readonly branchesService: BranchesService) {}
 
   @Get()
+  @ApiOperation({ summary: 'List branches' })
+  @ApiOkResponse({ description: 'Branches retrieved' })
   findAll(@Request() req: RequestWithUser) {
     if (req.user.role === 'SUPER_ADMIN') {
       return this.branchesService.findAll();
@@ -37,11 +43,15 @@ export class BranchesController {
 
   @Roles('SUPER_ADMIN')
   @Post()
+  @ApiOperation({ summary: 'Create branch' })
+  @ApiOkResponse({ description: 'Branch created' })
   createBranch(@Body() dto: CreateBranchDto) {
     return this.branchesService.createBranch(dto);
   }
 
   @Get('transfers/all')
+  @ApiOperation({ summary: 'List all transfers' })
+  @ApiOkResponse({ description: 'Transfers retrieved' })
   getAllTransfers(@Request() req: RequestWithUser) {
     if (req.user.role === 'SUPER_ADMIN') {
       return this.branchesService.getAllTransfers();
@@ -52,6 +62,8 @@ export class BranchesController {
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('transfers')
+  @ApiOperation({ summary: 'Create stock transfer' })
+  @ApiOkResponse({ description: 'Transfer created' })
   createTransfer(
     @Body() dto: CreateTransferDto,
     @Request() req: RequestWithUser,
@@ -68,6 +80,8 @@ export class BranchesController {
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('transfers/:id/accept')
+  @ApiOperation({ summary: 'Accept stock transfer' })
+  @ApiOkResponse({ description: 'Transfer accepted' })
   acceptTransfer(
     @Param('id', ParseIntPipe) id: number,
     @Request() req: RequestWithUser,
@@ -77,6 +91,8 @@ export class BranchesController {
 
   @Roles('SUPER_ADMIN')
   @Patch(':id')
+  @ApiOperation({ summary: 'Update branch' })
+  @ApiOkResponse({ description: 'Branch updated' })
   updateBranch(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateBranchDto,
@@ -86,11 +102,15 @@ export class BranchesController {
 
   @Roles('SUPER_ADMIN')
   @Post(':id/sync-inventory')
+  @ApiOperation({ summary: 'Sync branch inventory' })
+  @ApiOkResponse({ description: 'Inventory synchronized' })
   syncBranchInventory(@Param('id', ParseIntPipe) id: number) {
     return this.branchesService.syncBranchInventory(id);
   }
 
   @Get(':id/transfers')
+  @ApiOperation({ summary: 'List transfers for branch' })
+  @ApiOkResponse({ description: 'Branch transfers retrieved' })
   getTransfers(
     @Param('id', ParseIntPipe) id: number,
     @Request() req: RequestWithUser,
@@ -101,6 +121,8 @@ export class BranchesController {
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post(':id/batches')
+  @ApiOperation({ summary: 'Add inventory batch to branch' })
+  @ApiOkResponse({ description: 'Inventory batch added' })
   addInventoryBatch(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: AddInventoryBatchDto,
@@ -112,6 +134,8 @@ export class BranchesController {
 
   @Roles('SUPER_ADMIN', 'MANAGER', 'STAFF')
   @Post(':id/waste')
+  @ApiOperation({ summary: 'Report branch waste' })
+  @ApiOkResponse({ description: 'Waste recorded' })
   reportWaste(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: ReportWasteDto,
@@ -122,6 +146,8 @@ export class BranchesController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get branch by id' })
+  @ApiOkResponse({ description: 'Branch retrieved' })
   findOne(
     @Param('id', ParseIntPipe) id: number,
     @Request() req: RequestWithUser,

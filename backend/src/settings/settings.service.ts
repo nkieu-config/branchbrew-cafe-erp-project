@@ -1,8 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { parseVatRatePercent } from '../common/vat.util';
-import { fromDbSettings, toDbSettings } from './settings-keys.util';
-import { AuditService } from '../audit/audit.service';
+import {
+  fromDbSettings,
+  SettingsReadable,
+  SettingsUpdateInput,
+  toDbSettings,
+} from './settings-keys.util';
+import {
+  AuditService,
+  AUDIT_ACTIONS,
+  AUDIT_TARGETS,
+} from '../audit/audit.service';
 
 @Injectable()
 export class SettingsService {
@@ -11,15 +20,12 @@ export class SettingsService {
     private auditService: AuditService,
   ) {}
 
-  async getAllSettings() {
+  async getAllSettings(): Promise<SettingsReadable> {
     const settings = await this.prisma.systemSetting.findMany();
-    const raw = settings.reduce(
-      (acc, setting) => {
-        acc[setting.key] = setting.value;
-        return acc;
-      },
-      {} as Record<string, string>,
-    );
+    const raw: Record<string, string> = {};
+    for (const setting of settings) {
+      raw[setting.key] = setting.value;
+    }
     return fromDbSettings(raw);
   }
 
@@ -35,7 +41,7 @@ export class SettingsService {
     return parseVatRatePercent(raw);
   }
 
-  async updateSettings(data: Record<string, string>, userId: number) {
+  async updateSettings(data: SettingsUpdateInput, userId: number) {
     const dbData = toDbSettings(data);
     const updates = Object.entries(dbData).map(async ([key, value]) => {
       return this.prisma.systemSetting.upsert({
@@ -49,8 +55,8 @@ export class SettingsService {
 
     await this.auditService.logAction(
       userId,
-      'UPDATE_SETTINGS',
-      'SystemSetting',
+      AUDIT_ACTIONS.UPDATE_SETTINGS,
+      AUDIT_TARGETS.SYSTEM_SETTING,
       undefined,
       { keys: Object.keys(dbData) },
     );

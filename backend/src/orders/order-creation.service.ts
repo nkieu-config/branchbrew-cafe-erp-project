@@ -24,6 +24,7 @@ import {
 } from './orders.types';
 import { ApiErrorCode } from '../common/errors/api-error-code.enum';
 import { appBadRequest, appNotFound } from '../common/errors/app.exception';
+import { toOrderSnapshot } from './domain/order-snapshot';
 
 const MAX_QUEUE_NUMBER_RETRIES = 2;
 
@@ -320,7 +321,7 @@ export class OrderCreationService {
         });
 
         await this.outboxService.enqueue(tx, OUTBOX_EVENT_TYPES.ORDER_CREATED, {
-          order,
+          order: toOrderSnapshot(order),
           ingredientRequirements: Array.from(ingredientRequirements.entries()),
           branchId: data.branchId,
           customerId,

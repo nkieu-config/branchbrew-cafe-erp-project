@@ -9,7 +9,11 @@ import {
   parseOptionalNonNegativeInt,
   parseOptionalPositiveInt,
 } from '../common/query-params.util';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
 
+@ApiTags('audit')
+@ApiCommonErrorResponses()
 @Controller('audit')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class AuditController {
@@ -17,6 +21,8 @@ export class AuditController {
 
   @Get()
   @Roles('SUPER_ADMIN', 'MANAGER')
+  @ApiOperation({ summary: 'List audit logs' })
+  @ApiOkResponse({ description: 'Audit logs retrieved' })
   async getLogs(
     @Request() req: RequestWithUser,
     @Query('limit') limit?: string,

@@ -19,25 +19,35 @@ import {
   UpdatePromotionDto,
   ValidatePromotionDto,
 } from './dto/promotion.dto';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
+@ApiTags('promotions')
+@ApiCommonErrorResponses()
 @Controller('promotions')
 export class PromotionsController {
   constructor(private readonly promotionsService: PromotionsService) {}
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post()
+  @ApiOperation({ summary: 'Create promotion' })
+  @ApiOkResponse({ description: 'Promotion created' })
   create(@Body() dto: CreatePromotionDto) {
     return this.promotionsService.create(dto);
   }
 
   @Get()
+  @ApiOperation({ summary: 'List promotions' })
+  @ApiOkResponse({ description: 'Promotions retrieved' })
   findAll() {
     return this.promotionsService.findAll();
   }
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch(':id')
+  @ApiOperation({ summary: 'Update promotion' })
+  @ApiOkResponse({ description: 'Promotion updated' })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdatePromotionDto,
@@ -47,12 +57,16 @@ export class PromotionsController {
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete promotion' })
+  @ApiOkResponse({ description: 'Promotion deleted' })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.promotionsService.remove(id);
   }
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch(':id/toggle')
+  @ApiOperation({ summary: 'Toggle promotion active state' })
+  @ApiOkResponse({ description: 'Promotion state updated' })
   toggleActive(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: TogglePromotionDto,
@@ -61,6 +75,8 @@ export class PromotionsController {
   }
 
   @Post('validate')
+  @ApiOperation({ summary: 'Validate promotion code' })
+  @ApiOkResponse({ description: 'Promotion validation result' })
   validateCode(@Body() dto: ValidatePromotionDto) {
     return this.promotionsService.validateCode(dto.code, dto.subtotal);
   }

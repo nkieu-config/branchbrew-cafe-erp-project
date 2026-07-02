@@ -23,25 +23,35 @@ import {
   CreateProductionOrderDto,
   UpdateProductionStatusDto,
 } from './dto/production.dto';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
+@ApiTags('production')
+@ApiCommonErrorResponses()
 @Controller('production')
 export class ProductionController {
   constructor(private readonly productionService: ProductionService) {}
 
   @Get('orders')
+  @ApiOperation({ summary: 'List production orders' })
+  @ApiOkResponse({ description: 'Production orders retrieved' })
   getProductionOrders(@Req() req: RequestWithUser) {
     const branchId = resolveOptionalBranchId(req.user);
     return this.productionService.getProductionOrders(branchId);
   }
 
   @Get('boms')
+  @ApiOperation({ summary: 'List production BOMs' })
+  @ApiOkResponse({ description: 'BOMs retrieved' })
   getBOMs() {
     return this.productionService.getBOMs();
   }
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('orders')
+  @ApiOperation({ summary: 'Create production order' })
+  @ApiOkResponse({ description: 'Production order created' })
   createOrder(
     @Req() req: RequestWithUser,
     @Body() dto: CreateProductionOrderDto,
@@ -59,6 +69,8 @@ export class ProductionController {
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('orders/:id/status')
+  @ApiOperation({ summary: 'Update production order status' })
+  @ApiOkResponse({ description: 'Production order status updated' })
   updateOrderStatus(
     @Req() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
@@ -69,6 +81,8 @@ export class ProductionController {
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('orders/:id/complete')
+  @ApiOperation({ summary: 'Complete production order' })
+  @ApiOkResponse({ description: 'Production order completed' })
   completeOrder(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: RequestWithUser,
@@ -82,6 +96,8 @@ export class ProductionController {
 
   @Roles('SUPER_ADMIN')
   @Post('boms')
+  @ApiOperation({ summary: 'Create production BOM' })
+  @ApiOkResponse({ description: 'BOM created' })
   createBOM(@Body() dto: CreateBomDto) {
     return this.productionService.createBOM(dto);
   }

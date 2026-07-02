@@ -8,30 +8,43 @@ export const SETTINGS_KEY_MAP = {
 } as const;
 
 export type SettingsCamelKey = keyof typeof SETTINGS_KEY_MAP;
+export type SettingsDbKey = (typeof SETTINGS_KEY_MAP)[SettingsCamelKey];
+export type SettingsKnownInput = Partial<Record<SettingsCamelKey, string>>;
+export type SettingsUpdateInput = SettingsKnownInput & Record<string, string>;
+export type SettingsReadable = Record<string, string>;
+export type DbSettingsMap = Record<string, string>;
 
-const DB_TO_CAMEL = Object.fromEntries(
-  Object.entries(SETTINGS_KEY_MAP).map(([camel, snake]) => [snake, camel]),
-) as Record<string, SettingsCamelKey>;
+const DB_TO_CAMEL: Record<SettingsDbKey, SettingsCamelKey> = {
+  company_name: 'companyName',
+  tax_id: 'taxId',
+  vat_rate: 'vatRate',
+  currency: 'currency',
+  receipt_footer: 'receiptFooter',
+};
 
-export function toDbSettings(
-  data: Record<string, string>,
-): Record<string, string> {
-  const out: Record<string, string> = {};
+function isSettingsCamelKey(key: string): key is SettingsCamelKey {
+  return key in SETTINGS_KEY_MAP;
+}
+
+function isSettingsDbKey(key: string): key is SettingsDbKey {
+  return key in DB_TO_CAMEL;
+}
+
+export function toDbSettings(data: SettingsUpdateInput): DbSettingsMap {
+  const out: DbSettingsMap = {};
   for (const [key, value] of Object.entries(data)) {
     const dbKey =
-      SETTINGS_KEY_MAP[key as SettingsCamelKey] ??
+      (isSettingsCamelKey(key) ? SETTINGS_KEY_MAP[key] : undefined) ??
       key.replace(/([A-Z])/g, '_$1').toLowerCase();
     out[dbKey] = value;
   }
   return out;
 }
 
-export function fromDbSettings(
-  data: Record<string, string>,
-): Record<string, string> {
-  const out: Record<string, string> = {};
+export function fromDbSettings(data: DbSettingsMap): SettingsReadable {
+  const out: SettingsReadable = {};
   for (const [key, value] of Object.entries(data)) {
-    out[DB_TO_CAMEL[key] ?? key] = value;
+    out[isSettingsDbKey(key) ? DB_TO_CAMEL[key] : key] = value;
   }
   return out;
 }

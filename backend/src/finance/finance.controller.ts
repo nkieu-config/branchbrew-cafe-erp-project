@@ -24,14 +24,20 @@ import {
 import { parseOptionalPositiveInt } from '../common/query-params.util';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { SubmitSettlementDto } from './dto/submit-settlement.dto';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
+@ApiTags('finance')
+@ApiCommonErrorResponses()
 @Controller('finance')
 export class FinanceController {
   constructor(private readonly financeService: FinanceService) {}
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('expenses')
+  @ApiOperation({ summary: 'Create expense' })
+  @ApiOkResponse({ description: 'Expense created' })
   createExpense(
     @Body() dto: CreateExpenseDto,
     @Request() req: RequestWithUser,
@@ -45,6 +51,8 @@ export class FinanceController {
   }
 
   @Get('expenses')
+  @ApiOperation({ summary: 'List expenses' })
+  @ApiOkResponse({ description: 'Expenses retrieved' })
   getExpenses(
     @Request() req: RequestWithUser,
     @Query('date') date?: string,
@@ -61,6 +69,8 @@ export class FinanceController {
   }
 
   @Get('settlements/expected')
+  @ApiOperation({ summary: 'Get expected settlement balances' })
+  @ApiOkResponse({ description: 'Expected balances retrieved' })
   getExpectedCash(
     @Request() req: RequestWithUser,
     @Query('branchId') branchIdQuery?: string,
@@ -74,6 +84,8 @@ export class FinanceController {
 
   @Roles('SUPER_ADMIN', 'MANAGER', 'STAFF')
   @Post('settlements')
+  @ApiOperation({ summary: 'Submit settlement' })
+  @ApiOkResponse({ description: 'Settlement submitted' })
   submitSettlement(
     @Body() dto: SubmitSettlementDto,
     @Request() req: RequestWithUser,
@@ -89,6 +101,8 @@ export class FinanceController {
   }
 
   @Get('settlements')
+  @ApiOperation({ summary: 'List settlements' })
+  @ApiOkResponse({ description: 'Settlements retrieved' })
   getSettlements(
     @Request() req: RequestWithUser,
     @Query('branchId') branchIdQuery?: string,
@@ -102,6 +116,8 @@ export class FinanceController {
 
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('settlements/:id/approve')
+  @ApiOperation({ summary: 'Approve settlement' })
+  @ApiOkResponse({ description: 'Settlement approved' })
   approveSettlement(
     @Request() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
@@ -110,6 +126,8 @@ export class FinanceController {
   }
 
   @Get('export/sales')
+  @ApiOperation({ summary: 'Export sales report as CSV' })
+  @ApiOkResponse({ description: 'CSV export returned' })
   async exportSales(
     @Request() req: RequestWithUser,
     @Res() res: Response,

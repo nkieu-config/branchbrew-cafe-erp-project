@@ -6,7 +6,11 @@ import { RolesGuard } from '../auth/roles.guard';
 import type { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
 import { resolveOptionalBranchId } from '../auth/branch-scope.util';
 import { parseOptionalPositiveInt } from '../common/query-params.util';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
 
+@ApiTags('reports')
+@ApiCommonErrorResponses()
 @Controller('reports')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('SUPER_ADMIN', 'MANAGER')
@@ -14,6 +18,8 @@ export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
   @Get('sales-trends')
+  @ApiOperation({ summary: 'Get sales trends report' })
+  @ApiOkResponse({ description: 'Sales trends retrieved' })
   getSalesTrends(
     @Request() req: RequestWithUser,
     @Query('branchId') branchIdQuery?: string,
@@ -26,6 +32,8 @@ export class ReportsController {
   }
 
   @Get('top-products')
+  @ApiOperation({ summary: 'Get top products report' })
+  @ApiOkResponse({ description: 'Top products retrieved' })
   getTopProducts(
     @Request() req: RequestWithUser,
     @Query('branchId') branchIdQuery?: string,
@@ -38,6 +46,8 @@ export class ReportsController {
   }
 
   @Get('profit-loss')
+  @ApiOperation({ summary: 'Get profit and loss report' })
+  @ApiOkResponse({ description: 'Profit and loss retrieved' })
   getProfitLoss(
     @Request() req: RequestWithUser,
     @Query('branchId') branchIdQuery?: string,
@@ -50,6 +60,8 @@ export class ReportsController {
   }
 
   @Get('executive-summary')
+  @ApiOperation({ summary: 'Get executive summary report' })
+  @ApiOkResponse({ description: 'Executive summary retrieved' })
   getExecutiveSummary(
     @Request() req: RequestWithUser,
     @Query('branchId') branchIdQuery?: string,

@@ -1,5 +1,5 @@
-import { Order } from '@prisma/client';
+import { OrderSnapshot } from '../domain/order-snapshot';
 
 export class OrderVoidedEvent {
-  constructor(public readonly order: Order) {}
+  constructor(public readonly order: OrderSnapshot) {}
 }
