@@ -7,6 +7,14 @@ import type {
   EquipmentDTO,
   LogMaintenanceDTO,
 } from '../types/schemas';
+import type {
+  CreateIngredientPayload,
+  CreateProductPayload,
+  CreateOrderPayload,
+  CreatePurchaseOrderPayload,
+  CreateProductionOrderPayload,
+  CreateProductionBOMPayload
+} from '../types/api';
 import { API_ENDPOINTS } from './endpoints';
 import { API_URL, fetchAPI } from './api/client';
 
@@ -20,22 +28,17 @@ export const getMe = () => fetchAPI(API_ENDPOINTS.auth.me);
 
 // Ingredients
 export const getIngredients = () => fetchAPI(API_ENDPOINTS.ingredients.list);
-export const createIngredient = (data: { name: string; unit: string; stock: number; minStock: number }) =>
+export const createIngredient = (data: CreateIngredientPayload) =>
   fetchAPI(API_ENDPOINTS.ingredients.create, { method: 'POST', body: JSON.stringify(data) });
 
 // Products
 export const getProducts = () => fetchAPI(API_ENDPOINTS.products.list);
-export const createProduct = (data: { name: string; price: number; category: string; recipeItems?: { ingredientId: number; quantity: number }[] }) =>
+export const createProduct = (data: CreateProductPayload) =>
   fetchAPI(API_ENDPOINTS.products.create, { method: 'POST', body: JSON.stringify(data) });
 
 // Orders
-export const createOrder = (data: {
-  userId: number; branchId: number;
-  items: { productId: number; quantity: number; notes?: string }[];
-  customerPhone?: string; promotionCode?: string; pointsToRedeem?: number;
-  paymentMethod?: string; isTaxInvoiceRequested?: boolean;
-  taxInvoiceName?: string; taxInvoiceTaxId?: string; taxInvoiceAddress?: string;
-}) => fetchAPI(API_ENDPOINTS.orders.create, { method: 'POST', body: JSON.stringify(data) });
+export const createOrder = (data: CreateOrderPayload) =>
+  fetchAPI(API_ENDPOINTS.orders.create, { method: 'POST', body: JSON.stringify(data) });
 export const getOrders = () => fetchAPI(API_ENDPOINTS.orders.list());
 export const getKdsOrders = (branchId: number) => fetchAPI(API_ENDPOINTS.orders.kds(branchId));
 export const updateOrderStatus = (orderId: number, status: string) =>
@@ -51,7 +54,7 @@ export const refundOrder = (orderId: number, reason?: string) =>
 
 // Procurement & Branches
 export const getPurchaseOrders = () => fetchAPI(API_ENDPOINTS.procurement.purchaseOrders);
-export const createPurchaseOrder = (data: { branchId: number; supplierId: number; items: { ingredientId: number; quantity: number; price: number }[] }) =>
+export const createPurchaseOrder = (data: CreatePurchaseOrderPayload) =>
   fetchAPI(API_ENDPOINTS.procurement.createPurchaseOrder, { method: 'POST', body: JSON.stringify(data) });
 export const approvePurchaseOrder = (id: number) =>
   fetchAPI(API_ENDPOINTS.procurement.approvePurchaseOrder(id), { method: 'PATCH' });
@@ -145,14 +148,14 @@ export const getProfitLoss = (branchId?: number | string) => fetchAPI(API_ENDPOI
 
 // Production
 export const getProductionOrders = () => fetchAPI(API_ENDPOINTS.production.orders);
-export const createProductionOrder = (data: { branchId: number; targetIngredientId: number; quantityToProduce: number; plannedStartDate?: string }) =>
+export const createProductionOrder = (data: CreateProductionOrderPayload) =>
   fetchAPI(API_ENDPOINTS.production.createOrder, { method: 'POST', body: JSON.stringify(data) });
 export const updateProductionOrderStatus = (orderId: number, status: string) =>
   fetchAPI(API_ENDPOINTS.production.updateStatus(orderId), { method: 'PATCH', body: JSON.stringify({ status }) });
 export const completeProductionOrder = (orderId: number) =>
   fetchAPI(API_ENDPOINTS.production.complete(orderId), { method: 'PATCH' });
 export const getProductionBOMs = () => fetchAPI(API_ENDPOINTS.production.boms);
-export const createProductionBOM = (data: { targetIngredientId: number; rawIngredientId: number; quantityNeeded: number }) =>
+export const createProductionBOM = (data: CreateProductionBOMPayload) =>
   fetchAPI(API_ENDPOINTS.production.createBom, { method: 'POST', body: JSON.stringify(data) });
 export const seedAccounts = () => fetchAPI(API_ENDPOINTS.accounting.seed, { method: 'POST' });
 

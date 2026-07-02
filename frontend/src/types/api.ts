@@ -435,6 +435,53 @@ export interface CreateUserPayload {
 
 export type UpdateUserPayload = UpdatePayload<User> & Partial<CreateUserPayload>;
 
+export interface CreateIngredientPayload {
+  name: string;
+  unit: string;
+  stock: number;
+  minStock: number;
+}
+
+export interface CreateProductPayload {
+  name: string;
+  price: number;
+  category: string;
+  recipeItems?: { ingredientId: number; quantity: number }[];
+}
+
+export interface CreateOrderPayload {
+  userId: number;
+  branchId: number;
+  items: { productId: number; quantity: number; notes?: string }[];
+  customerPhone?: string;
+  promotionCode?: string;
+  pointsToRedeem?: number;
+  paymentMethod?: string;
+  isTaxInvoiceRequested?: boolean;
+  taxInvoiceName?: string;
+  taxInvoiceTaxId?: string;
+  taxInvoiceAddress?: string;
+}
+
+export interface CreatePurchaseOrderPayload {
+  branchId: number;
+  supplierId: number;
+  items: { ingredientId: number; quantity: number; price: number }[];
+}
+
+export interface CreateProductionOrderPayload {
+  branchId: number;
+  targetIngredientId: number;
+  quantityToProduce: number;
+  plannedStartDate?: string;
+}
+
+export interface CreateProductionBOMPayload {
+  targetIngredientId: number;
+  rawIngredientId: number;
+  quantityNeeded: number;
+}
+
 // --- Production BOM ---
 
 export interface ProductionBOM {
@@ -464,7 +511,7 @@ export interface BomGroupRow {
   children: BomChildRow[];
 }
 
-export type BomTableRow = BomGroupRow | (BomChildRow & { isGroup?: false });
+export type BomTableRow = BomGroupRow | (BomChildRow & { isGroup?: never });
 
 // --- Accounting ---
 
@@ -495,7 +542,7 @@ export interface AccountTreeGroup {
   children: Account[];
 }
 
-export type AccountTableRow = AccountTreeGroup | (Account & { isGroup?: false });
+export type AccountTableRow = AccountTreeGroup | (Account & { isGroup?: never });
 
 // --- POS receipt ---
 

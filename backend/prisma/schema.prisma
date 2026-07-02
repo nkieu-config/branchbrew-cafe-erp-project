@@ -15,8 +15,8 @@ model User {
   employmentType     EmploymentType     @default(PART_TIME)
   branchId           Int?
   branch             Branch?            @relation(fields: [branchId], references: [id])
-  hourlyRate Decimal @db.Decimal(19, 4)              @default(0)
-  baseSalary Decimal @db.Decimal(19, 4)              @default(0)
+  hourlyRate         Decimal            @default(0) @db.Decimal(19, 4)
+  baseSalary         Decimal            @default(0) @db.Decimal(19, 4)
   orders             Order[]
   transfersRequested StockTransfer[]    @relation("TransferRequestedBy")
   transfersApproved  StockTransfer[]    @relation("TransferApprovedBy")
@@ -30,6 +30,8 @@ model User {
   payslips           Payslip[]
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
+
+  @@index([branchId])
 }
 
 enum Role {
@@ -69,26 +71,28 @@ model Branch {
 }
 
 model Ingredient {
-  id                 Int                 @id @default(autoincrement())
-  name               String
-  unit               String
-  costPerUnit Decimal @db.Decimal(19, 4)               @default(0)
-  primarySupplierId  Int?
-  primarySupplier    Supplier?           @relation(fields: [primarySupplierId], references: [id])
-  recipeItems        RecipeItem[]
-  targetBOMs         ProductionBOM[]     @relation("BOMTarget")
-  rawBOMs            ProductionBOM[]     @relation("BOMRaw")
-  productionOrders   ProductionOrder[]
-  branchInventories  BranchInventory[]
-  purchaseOrderItems PurchaseOrderItem[]
-  inventoryBatches   InventoryBatch[]
-  stockTransfers     StockTransfer[]
-  wasteLogs          WasteLog[]
-  isActive           Boolean             @default(true)
-  modifierGroupsSwapTarget ModifierGroup[] @relation("ModifierSwapTarget")
-  modifierOptionsSwapTo    ModifierOption[] @relation("ModifierSwapTo")
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  id                       Int                 @id @default(autoincrement())
+  name                     String
+  unit                     String
+  costPerUnit              Decimal             @default(0) @db.Decimal(19, 4)
+  primarySupplierId        Int?
+  primarySupplier          Supplier?           @relation(fields: [primarySupplierId], references: [id])
+  recipeItems              RecipeItem[]
+  targetBOMs               ProductionBOM[]     @relation("BOMTarget")
+  rawBOMs                  ProductionBOM[]     @relation("BOMRaw")
+  productionOrders         ProductionOrder[]
+  branchInventories        BranchInventory[]
+  purchaseOrderItems       PurchaseOrderItem[]
+  inventoryBatches         InventoryBatch[]
+  stockTransfers           StockTransfer[]
+  wasteLogs                WasteLog[]
+  isActive                 Boolean             @default(true)
+  modifierGroupsSwapTarget ModifierGroup[]     @relation("ModifierSwapTarget")
+  modifierOptionsSwapTo    ModifierOption[]    @relation("ModifierSwapTo")
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+
+  @@index([primarySupplierId])
 }
 
 model BranchInventory {
@@ -102,7 +106,6 @@ model BranchInventory {
   updatedAt    DateTime   @updatedAt
 
   @@unique([branchId, ingredientId])
-  @@index([branchId])
 }
 
 model InventoryBatch {
@@ -121,6 +124,7 @@ model InventoryBatch {
 
   @@index([branchId, ingredientId, status])
   @@index([expiryDate])
+  @@index([poId])
 }
 
 enum BatchStatus {
@@ -149,6 +153,9 @@ model StockTransfer {
   @@index([fromBranchId])
   @@index([toBranchId])
   @@index([status])
+  @@index([ingredientId])
+  @@index([requestedById])
+  @@index([approvedById])
 }
 
 enum TransferStatus {
@@ -167,12 +174,14 @@ model AuditLog {
   targetId   Int?
   details    String? // JSON string or text details
   createdAt  DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Product {
   id          Int          @id @default(autoincrement())
   name        String
-  price Decimal @db.Decimal(19, 4)
+  price       Decimal      @db.Decimal(19, 4)
   category    String
   isActive    Boolean      @default(true)
   recipeItems RecipeItem[]
@@ -188,6 +197,9 @@ model RecipeItem {
   ingredientId Int
   ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
   quantity     Float
+
+  @@index([productId])
+  @@index([ingredientId])
 }
 
 model Customer {
@@ -213,8 +225,8 @@ model Promotion {
   code          String       @unique
   description   String
   discountType  DiscountType
-  discountValue Decimal @db.Decimal(19, 4)
-  minPurchase   Decimal? @db.Decimal(19, 4)
+  discountValue Decimal      @db.Decimal(19, 4)
+  minPurchase   Decimal?     @db.Decimal(19, 4)
   isActive      Boolean      @default(true)
   startDate     DateTime?
   endDate       DateTime?
@@ -244,11 +256,11 @@ enum OrderStatus {
 
 model Order {
   id                    Int           @id @default(autoincrement())
-  totalAmount Decimal @db.Decimal(19, 4)
-  discountAmount Decimal @db.Decimal(19, 4)         @default(0)
-  netAmount Decimal @db.Decimal(19, 4)         @default(0)
-  taxAmount Decimal @db.Decimal(19, 4)         @default(0)
-  totalCogs Decimal @db.Decimal(19, 4)         @default(0)
+  totalAmount           Decimal       @db.Decimal(19, 4)
+  discountAmount        Decimal       @default(0) @db.Decimal(19, 4)
+  netAmount             Decimal       @default(0) @db.Decimal(19, 4)
+  taxAmount             Decimal       @default(0) @db.Decimal(19, 4)
+  totalCogs             Decimal       @default(0) @db.Decimal(19, 4)
   pointsEarned          Int           @default(0)
   pointsRedeemed        Int           @default(0)
   status                OrderStatus   @default(PENDING)
@@ -273,10 +285,8 @@ model Order {
   createdAt             DateTime      @default(now())
 
   @@unique([branchId, queueDate, queueNumber])
-  @@index([branchId])
   @@index([userId])
   @@index([createdAt])
-  @@index([branchId, queueDate])
 }
 
 model OrderItem {
@@ -286,7 +296,7 @@ model OrderItem {
   productId Int
   product   Product             @relation(fields: [productId], references: [id])
   quantity  Int
-  price Decimal @db.Decimal(19, 4)
+  price     Decimal             @db.Decimal(19, 4)
   notes     String?
   modifiers OrderItemModifier[]
 
@@ -304,6 +314,8 @@ model ModifierGroup {
   options          ModifierOption[]
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
+
+  @@index([swapIngredientId])
 }
 
 model ModifierOption {
@@ -311,12 +323,15 @@ model ModifierOption {
   groupId            Int
   group              ModifierGroup       @relation(fields: [groupId], references: [id], onDelete: Cascade)
   name               String
-  priceDelta         Decimal             @db.Decimal(19, 4) @default(0)
+  priceDelta         Decimal             @default(0) @db.Decimal(19, 4)
   isDefault          Boolean             @default(false)
   sortOrder          Int                 @default(0)
   swapToIngredientId Int?
   swapToIngredient   Ingredient?         @relation("ModifierSwapTo", fields: [swapToIngredientId], references: [id], onDelete: SetNull)
   orderItems         OrderItemModifier[]
+
+  @@index([groupId])
+  @@index([swapToIngredientId])
 }
 
 model OrderItemModifier {
@@ -371,7 +386,10 @@ model PurchaseOrderItem {
   ingredientId      Int
   ingredient        Ingredient    @relation(fields: [ingredientId], references: [id])
   quantityRequested Float
-  unitPrice Decimal @db.Decimal(19, 4)
+  unitPrice         Decimal       @db.Decimal(19, 4)
+
+  @@index([poId])
+  @@index([ingredientId])
 }
 
 model Shift {
@@ -435,6 +453,9 @@ model AttendanceRecord {
   totalHours Float? // Calculated on clock out
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([branchId])
 }
 
 model WasteLog {
@@ -451,13 +472,15 @@ model WasteLog {
 
   @@index([branchId])
   @@index([createdAt])
+  @@index([ingredientId])
+  @@index([recordedById])
 }
 
 model Expense {
   id           Int      @id @default(autoincrement())
   branchId     Int
   branch       Branch   @relation(fields: [branchId], references: [id])
-  amount Decimal @db.Decimal(19, 4)
+  amount       Decimal  @db.Decimal(19, 4)
   category     String
   description  String?
   recordedById Int
@@ -466,6 +489,7 @@ model Expense {
 
   @@index([branchId])
   @@index([createdAt])
+  @@index([recordedById])
 }
 
 model ShiftSettlement {
@@ -473,18 +497,21 @@ model ShiftSettlement {
   branchId           Int
   branch             Branch           @relation(fields: [branchId], references: [id])
   date               DateTime         @default(now()) @db.Date
-  expectedCash Decimal @db.Decimal(19, 4)            @default(0)
-  actualCash Decimal @db.Decimal(19, 4)            @default(0)
-  expectedCreditCard Decimal @db.Decimal(19, 4)            @default(0)
-  actualCreditCard Decimal @db.Decimal(19, 4)            @default(0)
-  expectedQR Decimal @db.Decimal(19, 4)            @default(0)
-  actualQR Decimal @db.Decimal(19, 4)            @default(0)
-  difference Decimal @db.Decimal(19, 4)            @default(0)
+  expectedCash       Decimal          @default(0) @db.Decimal(19, 4)
+  actualCash         Decimal          @default(0) @db.Decimal(19, 4)
+  expectedCreditCard Decimal          @default(0) @db.Decimal(19, 4)
+  actualCreditCard   Decimal          @default(0) @db.Decimal(19, 4)
+  expectedQR         Decimal          @default(0) @db.Decimal(19, 4)
+  actualQR           Decimal          @default(0) @db.Decimal(19, 4)
+  difference         Decimal          @default(0) @db.Decimal(19, 4)
   status             SettlementStatus @default(PENDING)
   submittedById      Int
   submittedBy        User             @relation(fields: [submittedById], references: [id])
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
+
+  @@index([branchId])
+  @@index([submittedById])
 }
 
 enum SettlementStatus {
@@ -503,6 +530,8 @@ model PayrollRun {
   payslips  Payslip[]
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
+
+  @@index([branchId])
 }
 
 enum PayrollStatus {
@@ -519,16 +548,19 @@ model Payslip {
   user            User       @relation(fields: [userId], references: [id])
   standardHours   Float      @default(0)
   otHours         Float      @default(0)
-  basePay Decimal @db.Decimal(19, 4)      @default(0)
-  otPay Decimal @db.Decimal(19, 4)      @default(0)
-  bonuses Decimal @db.Decimal(19, 4)      @default(0)
-  grossPay Decimal @db.Decimal(19, 4)      @default(0)
-  taxDeduction Decimal @db.Decimal(19, 4)      @default(0)
-  socialSecurity Decimal @db.Decimal(19, 4)      @default(0)
-  otherDeductions Decimal @db.Decimal(19, 4)      @default(0)
-  netPay Decimal @db.Decimal(19, 4)      @default(0)
+  basePay         Decimal    @default(0) @db.Decimal(19, 4)
+  otPay           Decimal    @default(0) @db.Decimal(19, 4)
+  bonuses         Decimal    @default(0) @db.Decimal(19, 4)
+  grossPay        Decimal    @default(0) @db.Decimal(19, 4)
+  taxDeduction    Decimal    @default(0) @db.Decimal(19, 4)
+  socialSecurity  Decimal    @default(0) @db.Decimal(19, 4)
+  otherDeductions Decimal    @default(0) @db.Decimal(19, 4)
+  netPay          Decimal    @default(0) @db.Decimal(19, 4)
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
+
+  @@index([payrollRunId])
+  @@index([userId])
 }
 
 model Equipment {
@@ -545,6 +577,8 @@ model Equipment {
   maintenanceLogs     MaintenanceLog[]
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
+
+  @@index([branchId])
 }
 
 enum EquipmentType {
@@ -568,11 +602,13 @@ model MaintenanceLog {
   equipmentId Int
   equipment   Equipment @relation(fields: [equipmentId], references: [id])
   description String
-  cost Decimal @db.Decimal(19, 4)     @default(0)
+  cost        Decimal   @default(0) @db.Decimal(19, 4)
   performedBy String? // External technician or internal staff name
   date        DateTime  @default(now())
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  @@index([equipmentId])
 }
 
 // ==========================================
@@ -627,8 +663,8 @@ model JournalEntryLine {
   journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id])
   accountId      Int
   account        Account      @relation(fields: [accountId], references: [id])
-  debit Decimal @db.Decimal(19, 4)        @default(0)
-  credit Decimal @db.Decimal(19, 4)        @default(0)
+  debit          Decimal      @default(0) @db.Decimal(19, 4)
+  credit         Decimal      @default(0) @db.Decimal(19, 4)
   description    String?
 
   @@index([journalEntryId])
@@ -645,11 +681,12 @@ model ProductionBOM {
   targetIngredient   Ingredient @relation("BOMTarget", fields: [targetIngredientId], references: [id])
   rawIngredientId    Int
   rawIngredient      Ingredient @relation("BOMRaw", fields: [rawIngredientId], references: [id])
-  quantityNeeded     Float      // Amount of raw ingredient needed to produce 1 unit of target
+  quantityNeeded     Float // Amount of raw ingredient needed to produce 1 unit of target
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
 
   @@unique([targetIngredientId, rawIngredientId])
+  @@index([rawIngredientId])
 }
 
 enum ProductionStatus {
@@ -661,23 +698,25 @@ enum ProductionStatus {
 }
 
 model ProductionOrder {
-  id                 Int        @id @default(autoincrement())
-  orderNumber        String     @unique
+  id                 Int              @id @default(autoincrement())
+  orderNumber        String           @unique
   branchId           Int
-  branch             Branch     @relation(fields: [branchId], references: [id])
+  branch             Branch           @relation(fields: [branchId], references: [id])
   targetIngredientId Int
-  targetIngredient   Ingredient @relation(fields: [targetIngredientId], references: [id])
+  targetIngredient   Ingredient       @relation(fields: [targetIngredientId], references: [id])
   quantityToProduce  Float
   status             ProductionStatus @default(DRAFT)
-  actualCost Decimal @db.Decimal(19, 4)      @default(0)
+  actualCost         Decimal          @default(0) @db.Decimal(19, 4)
   plannedStartDate   DateTime?
   completedAt        DateTime?
   createdByUserId    Int?
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
 
   @@index([branchId])
   @@index([status])
+  @@index([targetIngredientId])
+  @@index([createdByUserId])
 }
 
 model SystemSetting {

@@ -52,7 +52,7 @@ async function bootstrap() {
   app.use(helmet());
   app.use(requestContextMiddleware);
   app.use(cookieParser());
-  app.use('/reports', compression());
+  app.use(compression());
   app.enableCors({
     origin: getCorsOrigins(),
     credentials: true,
