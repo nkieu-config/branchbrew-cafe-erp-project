@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { BranchInventory, Ingredient, InventoryBatch } from "@/types/api";
+import type { Ingredient } from "@/types/api";
 import {
   batchesForIngredient,
   filterBatchInventories,

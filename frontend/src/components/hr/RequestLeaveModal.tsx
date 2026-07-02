@@ -4,15 +4,26 @@ import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { FormDialog } from "@/components/shared/form-modal";
 import { Button } from "@/components/ui/button";
+import {
+  FormField,
+  FormFieldControl,
+  FormFieldError,
+  FormFieldLabel,
+  FormFieldSelectTrigger,
+  FormFieldTextarea,
+} from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
-  SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  validateLeaveFields,
+  type LeaveFieldErrors,
+} from "@/lib/hr/request-leave-validation";
+import { formFieldInvalidClassName } from "@/lib/theme/color-helpers";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { hrDialogContentClassName } from "@/lib/theme/hub-hr";
 import { formFieldInsetClassName, formLineDateFieldClassName, formSelectContentClassName } from "@/lib/theme/stock";
@@ -47,6 +58,7 @@ export function RequestLeaveModal({
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [reason, setReason] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<LeaveFieldErrors>({});
 
   useEffect(() => {
     if (!open) return;
@@ -54,12 +66,35 @@ export function RequestLeaveModal({
     setStartDate("");
     setEndDate("");
     setReason("");
+    setFieldErrors({});
   }, [open]);
 
+  const clearFieldError = (field: keyof LeaveFieldErrors) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
   const handleSubmit = async () => {
-    if (!leaveType || !startDate || !endDate || !reason.trim()) return;
+    const errors = validateLeaveFields({
+      leaveType,
+      startDate,
+      endDate,
+      reason,
+    });
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+
     const start = new Date(`${startDate}T00:00:00`);
     const end = new Date(`${endDate}T00:00:00`);
+
+    setFieldErrors({});
     await onSubmit({
       type: leaveType,
       startDate: start.toISOString(),
@@ -68,100 +103,114 @@ export function RequestLeaveModal({
     });
   };
 
-  const canSubmit =
-    leaveType.length > 0 &&
-    startDate.length > 0 &&
-    endDate.length > 0 &&
-    reason.trim().length > 0 &&
-    startDate <= endDate;
-
   return (
     <FormDialog
       open={open}
       onOpenChange={(next) => !next && onClose()}
       className={hrDialogContentClassName()}
     >
-        <FormDialog.Title>Request leave</FormDialog.Title>
+      <FormDialog.Title>Request leave</FormDialog.Title>
 
-        <FormDialog.Body className="space-y-4 pt-1">
-          <div className="space-y-2">
-            <Label htmlFor="leave-type" className={text.secondary}>
-              Type
-            </Label>
-            <Select value={leaveType} onValueChange={(value) => value && setLeaveType(value)}>
-              <SelectTrigger id="leave-type" className={formFieldInsetClassName("w-full")}>
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent className={formSelectContentClassName()}>
-                {LEAVE_TYPES.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+      <FormDialog.Body className="flex flex-col gap-stack pt-1">
+        <FormField id="leave-type" error={fieldErrors.type}>
+          <FormFieldLabel className={text.secondary}>Type</FormFieldLabel>
+          <Select
+            value={leaveType}
+            onValueChange={(value) => {
+              if (!value) return;
+              setLeaveType(value);
+              clearFieldError("type");
+            }}
+          >
+            <FormFieldSelectTrigger className={formFieldInsetClassName("w-full")}>
+              <SelectValue placeholder="Select type" />
+            </FormFieldSelectTrigger>
+            <SelectContent className={formSelectContentClassName()}>
+              {LEAVE_TYPES.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormFieldError />
+        </FormField>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="leave-start" className={text.secondary}>
-                Start
-              </Label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-stack">
+          <FormField id="leave-start" error={fieldErrors.startDate}>
+            <FormFieldLabel className={text.secondary}>Start</FormFieldLabel>
+            <FormFieldControl>
               <Input
-                id="leave-start"
                 type="date"
                 value={startDate}
-                onChange={(event) => setStartDate(event.target.value)}
-                className={formLineDateFieldClassName()}
+                onChange={(event) => {
+                  setStartDate(event.target.value);
+                  clearFieldError("startDate");
+                  clearFieldError("endDate");
+                }}
+                className={cn(
+                  formLineDateFieldClassName(),
+                  formFieldInvalidClassName(!!fieldErrors.startDate),
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="leave-end" className={text.secondary}>
-                End
-              </Label>
+            </FormFieldControl>
+            <FormFieldError />
+          </FormField>
+
+          <FormField id="leave-end" error={fieldErrors.endDate}>
+            <FormFieldLabel className={text.secondary}>End</FormFieldLabel>
+            <FormFieldControl>
               <Input
-                id="leave-end"
                 type="date"
                 value={endDate}
                 min={startDate || undefined}
-                onChange={(event) => setEndDate(event.target.value)}
-                className={formLineDateFieldClassName()}
+                onChange={(event) => {
+                  setEndDate(event.target.value);
+                  clearFieldError("endDate");
+                }}
+                className={cn(
+                  formLineDateFieldClassName(),
+                  formFieldInvalidClassName(!!fieldErrors.endDate),
+                )}
               />
-            </div>
-          </div>
+            </FormFieldControl>
+            <FormFieldError />
+          </FormField>
+        </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="leave-reason" className={text.secondary}>
-              Reason
-            </Label>
-            <textarea
-              id="leave-reason"
-              rows={3}
-              value={reason}
-              onChange={(event) => setReason(event.target.value)}
-              placeholder="Brief reason…"
-              className={cn(
-                formFieldInsetClassName("min-h-[80px] resize-y py-2"),
-                "placeholder:text-muted-foreground",
-              )}
-            />
-          </div>
-        </FormDialog.Body>
+        <FormField id="leave-reason" error={fieldErrors.reason}>
+          <FormFieldLabel className={text.secondary}>Reason</FormFieldLabel>
+          <FormFieldTextarea
+            rows={3}
+            value={reason}
+            onChange={(event) => {
+              setReason(event.target.value);
+              clearFieldError("reason");
+            }}
+            placeholder="Brief reason…"
+            className={cn(
+              formFieldInsetClassName("min-h-[80px] resize-y py-2"),
+              "placeholder:text-muted-foreground",
+            )}
+          />
+          <FormFieldError />
+        </FormField>
+      </FormDialog.Body>
 
-        <FormDialog.Footer className="gap-2 sm:gap-0">
-          <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            className={hubCtaClassName("hr")}
-            disabled={!canSubmit || isSubmitting}
-            onClick={() => void handleSubmit()}
-          >
-            {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin motion-reduce:animate-none" aria-hidden />}
-            Submit
-          </Button>
-        </FormDialog.Footer>
+      <FormDialog.Footer className="gap-2 sm:gap-0">
+        <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+          Cancel
+        </Button>
+        <Button
+          type="button"
+          className={hubCtaClassName("hr")}
+          disabled={isSubmitting}
+          onClick={() => void handleSubmit()}
+        >
+          {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin motion-reduce:animate-none" aria-hidden />}
+          Submit
+        </Button>
+      </FormDialog.Footer>
     </FormDialog>
   );
 }

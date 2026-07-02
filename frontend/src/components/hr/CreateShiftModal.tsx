@@ -3,19 +3,28 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 import { FormDialog } from "@/components/shared/form-modal";
 import { Button } from "@/components/ui/button";
+import {
+  FormField,
+  FormFieldControl,
+  FormFieldError,
+  FormFieldLabel,
+  FormFieldSelectTrigger,
+} from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
-  SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import type { User } from "@/types/api";
+import {
+  validateShiftFields,
+  type ShiftFieldErrors,
+} from "@/lib/hr/create-shift-validation";
+import { formFieldInvalidClassName } from "@/lib/theme/color-helpers";
 import { hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
 import { hrDialogContentClassName } from "@/lib/theme/hub-hr";
 import { formFieldInsetClassName, formLineDateFieldClassName, formSelectContentClassName } from "@/lib/theme/stock";
@@ -50,6 +59,12 @@ export function CreateShiftModal({
   const [shiftDate, setShiftDate] = useState("");
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
+  const [fieldErrors, setFieldErrors] = useState<ShiftFieldErrors>({});
+
+  const staffOptions = useMemo(
+    () => employees.filter((employee) => employee.role === "STAFF" || employee.role === "MANAGER"),
+    [employees],
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -57,37 +72,38 @@ export function CreateShiftModal({
     setShiftDate(defaultDate ?? new Date().toISOString().slice(0, 10));
     setStartTime("09:00");
     setEndTime("17:00");
+    setFieldErrors({});
   }, [open, defaultDate]);
 
-  const staffOptions = useMemo(
-    () => employees.filter((employee) => employee.role === "STAFF" || employee.role === "MANAGER"),
-    [employees],
-  );
+  const clearFieldError = (field: keyof ShiftFieldErrors) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   const handleSubmit = async () => {
-    const selectedUserId = userId ? Number(userId) : 0;
-    if (!selectedUserId) {
-      toast.error("Employee is required");
-      return;
-    }
-    if (!shiftDate || !startTime || !endTime) {
-      toast.error("Date and times are required");
+    const errors = validateShiftFields({
+      userId,
+      shiftDate,
+      startTime,
+      endTime,
+      hasStaffOptions: staffOptions.length > 0,
+    });
+
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       return;
     }
 
     const start = new Date(`${shiftDate}T${startTime}:00`);
     const end = new Date(`${shiftDate}T${endTime}:00`);
-    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
-      toast.error("Invalid date or time");
-      return;
-    }
-    if (end <= start) {
-      toast.error("End time must be after start time");
-      return;
-    }
 
+    setFieldErrors({});
     await onSubmit({
-      userId: selectedUserId,
+      userId: Number(userId),
       branchId,
       startTime: start.toISOString(),
       endTime: end.toISOString(),
@@ -102,90 +118,112 @@ export function CreateShiftModal({
       }}
       className={hrDialogContentClassName()}
     >
-        <FormDialog.Title>Schedule shift</FormDialog.Title>
+      <FormDialog.Title>Schedule shift</FormDialog.Title>
 
-        <FormDialog.Body className="space-y-4 pt-1">
-          <div className="space-y-2">
-            <Label htmlFor="shift-employee" className={text.secondary}>
-              Employee
-            </Label>
-            {staffOptions.length === 0 ? (
-              <p className={cn("text-sm", text.muted)}>
-                No employees yet —{" "}
-                <Link href="/hr/employees" className={inlineLinkClassName()}>
-                  add staff
-                </Link>
-              </p>
-            ) : (
-              <Select value={userId} onValueChange={(value) => value != null && setUserId(value)}>
-                <SelectTrigger id="shift-employee" className={formFieldInsetClassName("w-full")}>
-                  <SelectValue placeholder="Select employee" />
-                </SelectTrigger>
-                <SelectContent className={formSelectContentClassName()}>
-                  {staffOptions.map((employee) => (
-                    <SelectItem key={employee.id} value={String(employee.id)}>
-                      {employee.name ?? employee.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
+      <FormDialog.Body className="flex flex-col gap-stack pt-1">
+        <FormField id="shift-employee" error={fieldErrors.employee}>
+          <FormFieldLabel className={text.secondary}>Employee</FormFieldLabel>
+          {staffOptions.length === 0 ? (
+            <p className={cn("text-sm", text.muted)}>
+              No employees yet —{" "}
+              <Link href="/hr/employees" className={inlineLinkClassName()}>
+                add staff
+              </Link>
+            </p>
+          ) : (
+            <Select
+              value={userId}
+              onValueChange={(value) => {
+                if (value == null) return;
+                setUserId(value);
+                clearFieldError("employee");
+              }}
+            >
+              <FormFieldSelectTrigger className={formFieldInsetClassName("w-full")}>
+                <SelectValue placeholder="Select employee" />
+              </FormFieldSelectTrigger>
+              <SelectContent className={formSelectContentClassName()}>
+                {staffOptions.map((employee) => (
+                  <SelectItem key={employee.id} value={String(employee.id)}>
+                    {employee.name ?? employee.email}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+          <FormFieldError />
+        </FormField>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="shift-date" className={text.secondary}>
-                Date
-              </Label>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-stack">
+          <FormField id="shift-date" error={fieldErrors.date}>
+            <FormFieldLabel className={text.secondary}>Date</FormFieldLabel>
+            <FormFieldControl>
               <Input
-                id="shift-date"
                 type="date"
                 value={shiftDate}
-                onChange={(event) => setShiftDate(event.target.value)}
-                className={formLineDateFieldClassName()}
+                onChange={(event) => {
+                  setShiftDate(event.target.value);
+                  clearFieldError("date");
+                  clearFieldError("endTime");
+                }}
+                className={cn(
+                  formLineDateFieldClassName(),
+                  formFieldInvalidClassName(!!fieldErrors.date),
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="shift-start" className={text.secondary}>
-                Start
-              </Label>
+            </FormFieldControl>
+            <FormFieldError />
+          </FormField>
+
+          <FormField id="shift-start" error={fieldErrors.startTime}>
+            <FormFieldLabel className={text.secondary}>Start</FormFieldLabel>
+            <FormFieldControl>
               <Input
-                id="shift-start"
                 type="time"
                 value={startTime}
-                onChange={(event) => setStartTime(event.target.value)}
-                className={formFieldInsetClassName()}
+                onChange={(event) => {
+                  setStartTime(event.target.value);
+                  clearFieldError("startTime");
+                  clearFieldError("endTime");
+                }}
+                className={formFieldInsetClassName(formFieldInvalidClassName(!!fieldErrors.startTime))}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="shift-end" className={text.secondary}>
-                End
-              </Label>
+            </FormFieldControl>
+            <FormFieldError />
+          </FormField>
+
+          <FormField id="shift-end" error={fieldErrors.endTime}>
+            <FormFieldLabel className={text.secondary}>End</FormFieldLabel>
+            <FormFieldControl>
               <Input
-                id="shift-end"
                 type="time"
                 value={endTime}
-                onChange={(event) => setEndTime(event.target.value)}
-                className={formFieldInsetClassName()}
+                onChange={(event) => {
+                  setEndTime(event.target.value);
+                  clearFieldError("endTime");
+                }}
+                className={formFieldInsetClassName(formFieldInvalidClassName(!!fieldErrors.endTime))}
               />
-            </div>
-          </div>
-        </FormDialog.Body>
+            </FormFieldControl>
+            <FormFieldError />
+          </FormField>
+        </div>
+      </FormDialog.Body>
 
-        <FormDialog.Footer className="gap-2 sm:gap-0">
-          <Button type="button" variant="outline" onClick={onClose} className="min-h-[44px]">
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            disabled={isSubmitting || staffOptions.length === 0}
-            className={cn("min-h-[44px]", hubCtaClassName("hr"))}
-            onClick={() => void handleSubmit()}
-          >
-            {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}
-            Save
-          </Button>
-        </FormDialog.Footer>
+      <FormDialog.Footer className="gap-2 sm:gap-0">
+        <Button type="button" variant="outline" onClick={onClose} className="min-h-[44px]">
+          Cancel
+        </Button>
+        <Button
+          type="button"
+          disabled={isSubmitting || staffOptions.length === 0}
+          className={cn("min-h-[44px]", hubCtaClassName("hr"))}
+          onClick={() => void handleSubmit()}
+        >
+          {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" aria-hidden />}
+          Save
+        </Button>
+      </FormDialog.Footer>
     </FormDialog>
   );
 }
