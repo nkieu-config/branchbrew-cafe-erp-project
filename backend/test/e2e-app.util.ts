@@ -5,6 +5,8 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { OutboxProcessor } from '../src/outbox/outbox.processor';
 import { InventoryBatchExpiryProcessor } from '../src/inventory/inventory-batch-expiry.processor';
+import { GlobalExceptionFilter } from '../src/common/filters/global-exception.filter';
+import { requestContextMiddleware } from '../src/common/middleware/request-context.middleware';
 
 class TestOutboxProcessor extends OutboxProcessor {
   async handleCron() {
@@ -13,6 +15,7 @@ class TestOutboxProcessor extends OutboxProcessor {
 }
 
 export async function createE2eApp(): Promise<INestApplication<App>> {
+  process.env.NODE_ENV = process.env.NODE_ENV ?? 'test';
   process.env.JWT_SECRET =
     process.env.JWT_SECRET ?? 'test-jwt-secret-for-e2e-only-32chars';
 
@@ -26,6 +29,7 @@ export async function createE2eApp(): Promise<INestApplication<App>> {
     .compile();
 
   const app = moduleFixture.createNestApplication();
+  app.use(requestContextMiddleware);
   app.use(cookieParser());
   app.useGlobalPipes(
     new ValidationPipe({
@@ -34,6 +38,7 @@ export async function createE2eApp(): Promise<INestApplication<App>> {
       transform: true,
     }),
   );
+  app.useGlobalFilters(new GlobalExceptionFilter());
   await app.init();
   return app;
 }

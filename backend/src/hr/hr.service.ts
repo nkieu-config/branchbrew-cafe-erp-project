@@ -13,10 +13,14 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { toNum, roundMoney } from '../common/decimal.util';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class HrService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private auditService: AuditService,
+  ) {}
 
   // ==================== ATTENDANCE ====================
   async clockIn(userId: number, branchId: number) {
@@ -158,7 +162,12 @@ export class HrService {
   }
 
   // ==================== PAYROLL ====================
-  async generatePayrollRun(branchId: number, month: number, year: number) {
+  async generatePayrollRun(
+    branchId: number,
+    month: number,
+    year: number,
+    userId?: number,
+  ) {
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0, 23, 59, 59);
 
@@ -252,7 +261,7 @@ export class HrService {
       };
     });
 
-    return this.prisma.payrollRun.create({
+    const run = await this.prisma.payrollRun.create({
       data: {
         branchId,
         month,
@@ -263,6 +272,18 @@ export class HrService {
       },
       include: { payslips: true },
     });
+
+    if (userId) {
+      await this.auditService.logAction(
+        userId,
+        'GENERATE_PAYROLL',
+        'PayrollRun',
+        run.id,
+        { branchId, month, year, payslipCount: payslipsData.length },
+      );
+    }
+
+    return run;
   }
 
   async getPayrollRuns(branchId: number) {
@@ -282,10 +303,20 @@ export class HrService {
       assertBranchAccess(user, run.branchId);
     }
 
-    return this.prisma.payrollRun.update({
+    const updated = await this.prisma.payrollRun.update({
       where: { id: runId },
       data: { status: 'APPROVED' },
     });
+
+    await this.auditService.logAction(
+      user.userId,
+      'APPROVE_PAYROLL',
+      'PayrollRun',
+      runId,
+      { branchId: run.branchId, month: run.month, year: run.year },
+    );
+
+    return updated;
   }
 
   async updateHourlyRate(userId: number, hourlyRate: number) {

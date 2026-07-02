@@ -10,7 +10,11 @@ import {
   utilities as nestWinstonModuleUtilities,
 } from 'nest-winston';
 import * as winston from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
+import compression from 'compression';
 import { assertRuntimeConfig, getCorsOrigins } from './config/runtime-config';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
+import { requestContextMiddleware } from './common/middleware/request-context.middleware';
 
 async function bootstrap() {
   assertRuntimeConfig();
@@ -28,8 +32,13 @@ async function bootstrap() {
             }),
           ),
         }),
-        new winston.transports.File({
-          filename: 'application.log',
+        new DailyRotateFile({
+          dirname: 'logs',
+          filename: 'application-%DATE%.log',
+          datePattern: 'YYYY-MM-DD',
+          zippedArchive: true,
+          maxSize: '20m',
+          maxFiles: '14d',
           format: winston.format.combine(
             winston.format.timestamp(),
             winston.format.json(),
@@ -40,7 +49,9 @@ async function bootstrap() {
   });
 
   app.use(helmet());
+  app.use(requestContextMiddleware);
   app.use(cookieParser());
+  app.use('/reports', compression());
   app.enableCors({
     origin: getCorsOrigins(),
     credentials: true,
@@ -52,6 +63,7 @@ async function bootstrap() {
       transform: true,
     }),
   );
+  app.useGlobalFilters(new GlobalExceptionFilter());
   app.enableShutdownHooks();
 
   await app.listen(process.env.PORT ?? 3000);

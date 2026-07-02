@@ -2,10 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { parseVatRatePercent } from '../common/vat.util';
 import { fromDbSettings, toDbSettings } from './settings-keys.util';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class SettingsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private auditService: AuditService,
+  ) {}
 
   async getAllSettings() {
     const settings = await this.prisma.systemSetting.findMany();
@@ -31,7 +35,7 @@ export class SettingsService {
     return parseVatRatePercent(raw);
   }
 
-  async updateSettings(data: Record<string, string>) {
+  async updateSettings(data: Record<string, string>, userId: number) {
     const dbData = toDbSettings(data);
     const updates = Object.entries(dbData).map(async ([key, value]) => {
       return this.prisma.systemSetting.upsert({
@@ -42,6 +46,15 @@ export class SettingsService {
     });
 
     await Promise.all(updates);
+
+    await this.auditService.logAction(
+      userId,
+      'UPDATE_SETTINGS',
+      'SystemSetting',
+      undefined,
+      { keys: Object.keys(dbData) },
+    );
+
     return this.getAllSettings();
   }
 }

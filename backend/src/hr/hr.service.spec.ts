@@ -6,6 +6,7 @@ import {
   PrismaServiceMockProvider,
 } from '../prisma/prisma.service.mock';
 import { BadRequestException } from '@nestjs/common';
+import { AuditService } from '../audit/audit.service';
 
 describe('HrService', () => {
   let service: HrService;
@@ -13,7 +14,11 @@ describe('HrService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [HrService, PrismaServiceMockProvider],
+      providers: [
+        HrService,
+        PrismaServiceMockProvider,
+        { provide: AuditService, useValue: { logAction: jest.fn() } },
+      ],
     }).compile();
 
     service = module.get<HrService>(HrService);

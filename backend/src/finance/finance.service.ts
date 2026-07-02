@@ -1,20 +1,25 @@
-import {
-  Injectable,
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
 import { toNum, roundMoney } from '../common/decimal.util';
 import { Parser } from 'json2csv';
+import { Prisma } from '@prisma/client';
 import {
   assertBranchAccess,
   BranchScopedUser,
 } from '../auth/branch-scope.util';
+import { FinanceRepository } from './finance.repository';
+import { ApiErrorCode } from '../common/errors/api-error-code.enum';
+import {
+  appBadRequest,
+  appNotFound,
+} from '../common/errors/app.exception';
 
 @Injectable()
 export class FinanceService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private financeRepository: FinanceRepository,
+  ) {}
 
   async createExpense(data: {
     branchId: number;
@@ -48,46 +53,19 @@ export class FinanceService {
     const end = new Date(date);
     end.setHours(23, 59, 59, 999);
 
-    const cashOrders = await this.prisma.order.aggregate({
-      where: {
-        branchId,
-        paymentMethod: 'CASH',
-        createdAt: { gte: start, lte: end },
-      },
-      _sum: { netAmount: true },
-    });
-
-    const creditCardOrders = await this.prisma.order.aggregate({
-      where: {
-        branchId,
-        paymentMethod: 'CREDIT_CARD',
-        createdAt: { gte: start, lte: end },
-      },
-      _sum: { netAmount: true },
-    });
-
-    const qrOrders = await this.prisma.order.aggregate({
-      where: {
-        branchId,
-        paymentMethod: 'QR_PROMPTPAY',
-        createdAt: { gte: start, lte: end },
-      },
-      _sum: { netAmount: true },
-    });
-
-    const expenses = await this.prisma.expense.aggregate({
-      where: { branchId, createdAt: { gte: start, lte: end } },
-      _sum: { amount: true },
-    });
+    const [payments, expenses] = await Promise.all([
+      this.financeRepository.aggregateDailyPaymentTotals(branchId, start, end),
+      this.financeRepository.aggregateDailyExpenses(branchId, start, end),
+    ]);
 
     const expectedCash = roundMoney(
-      toNum(cashOrders._sum.netAmount) - toNum(expenses._sum.amount),
+      toNum(payments.cash) - toNum(expenses._sum.amount),
     );
     return {
       expectedCash,
-      expectedCreditCard: roundMoney(toNum(creditCardOrders._sum.netAmount)),
-      expectedQR: roundMoney(toNum(qrOrders._sum.netAmount)),
-      sales: roundMoney(toNum(cashOrders._sum.netAmount)),
+      expectedCreditCard: roundMoney(toNum(payments.creditCard)),
+      expectedQR: roundMoney(toNum(payments.qr)),
+      sales: roundMoney(toNum(payments.cash)),
       expenses: roundMoney(toNum(expenses._sum.amount)),
     };
   }
@@ -111,7 +89,8 @@ export class FinanceService {
     });
 
     if (existing && existing.status === 'APPROVED') {
-      throw new BadRequestException(
+      throw appBadRequest(
+        ApiErrorCode.SETTLEMENT_ALREADY_APPROVED,
         'Settlement for today is already approved.',
       );
     }
@@ -177,7 +156,12 @@ export class FinanceService {
     const settlement = await this.prisma.shiftSettlement.findUnique({
       where: { id },
     });
-    if (!settlement) throw new NotFoundException('Settlement not found');
+    if (!settlement) {
+      throw appNotFound(
+        ApiErrorCode.SETTLEMENT_NOT_FOUND,
+        'Settlement not found',
+      );
+    }
     assertBranchAccess(user, settlement.branchId);
 
     return this.prisma.shiftSettlement.update({
@@ -201,15 +185,7 @@ export class FinanceService {
       where.createdAt = { gte: start, lte: end };
     }
 
-    const orders = await this.prisma.order.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      include: {
-        branch: { select: { name: true } },
-        user: { select: { name: true } },
-        customer: { select: { name: true, phone: true } },
-      },
-    });
+    const orders = await this.financeRepository.findOrdersForExport(where);
 
     if (orders.length === 0) {
       return '';

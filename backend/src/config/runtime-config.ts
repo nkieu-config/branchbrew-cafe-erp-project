@@ -11,7 +11,31 @@ export function getCorsOrigins(): string[] {
     .filter(Boolean);
 }
 
+export function assertDatabaseUrl(): void {
+  const databaseUrl = process.env.DATABASE_URL?.trim();
+  if (!databaseUrl) {
+    throw new Error(
+      'DATABASE_URL environment variable is not set. Server cannot start without it.',
+    );
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(databaseUrl);
+  } catch {
+    throw new Error('DATABASE_URL is not a valid URL.');
+  }
+
+  if (parsed.protocol !== 'postgresql:' && parsed.protocol !== 'postgres:') {
+    throw new Error(
+      'DATABASE_URL must use postgresql:// or postgres:// scheme.',
+    );
+  }
+}
+
 export function assertRuntimeConfig(): void {
+  assertDatabaseUrl();
+
   const jwtSecret = process.env.JWT_SECRET;
   if (!jwtSecret) {
     throw new Error(

@@ -1,13 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrdersService } from './orders.service';
+import { OrderCreationService } from './order-creation.service';
+import { OrderLifecycleService } from './order-lifecycle.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { BadRequestException } from '@nestjs/common';
+import { AppException } from '../common/errors/app.exception';
 import {
   MockPrismaService,
   PrismaServiceMockProvider,
 } from '../prisma/prisma.service.mock';
 import { OutboxService } from '../outbox/outbox.service';
 import { SettingsService } from '../settings/settings.service';
+import { AuditService } from '../audit/audit.service';
 
 describe('OrdersService', () => {
   let service: OrdersService;
@@ -19,6 +23,8 @@ describe('OrdersService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OrdersService,
+        OrderCreationService,
+        OrderLifecycleService,
         PrismaServiceMockProvider,
         {
           provide: OutboxService,
@@ -27,6 +33,10 @@ describe('OrdersService', () => {
         {
           provide: SettingsService,
           useValue: { getVatRatePercent: jest.fn().mockResolvedValue(7) },
+        },
+        {
+          provide: AuditService,
+          useValue: { logAction: jest.fn().mockResolvedValue({ id: 1 }) },
         },
       ],
     }).compile();
@@ -50,7 +60,7 @@ describe('OrdersService', () => {
       prisma.product.findUnique.mockResolvedValue(null);
 
       await expect(service.createOrder(mockOrderData)).rejects.toThrow(
-        new BadRequestException('Product with ID 1 not found'),
+        'Product with ID 1 not found',
       );
     });
 
@@ -184,9 +194,7 @@ describe('OrdersService', () => {
 
       await expect(
         service.createOrder({ ...mockOrderData, promotionCode: 'INVALID' }),
-      ).rejects.toThrow(
-        new BadRequestException('Invalid or inactive promotion'),
-      );
+      ).rejects.toThrow('Invalid or inactive promotion');
     });
 
     it('calculates discounts for points and valid percentage promo', async () => {
@@ -255,9 +263,7 @@ describe('OrdersService', () => {
       } as any);
 
       await expect(service.createOrder(mockOrderData)).rejects.toThrow(
-        new BadRequestException(
-          'Product "Latte" requires a recipe before it can be sold.',
-        ),
+        'Product "Latte" requires a recipe before it can be sold.',
       );
     });
 
@@ -291,7 +297,7 @@ describe('OrdersService', () => {
   describe('updateOrderStatus', () => {
     it('rejects terminal statuses so void/refund effects cannot be bypassed', async () => {
       await expect(service.updateOrderStatus(5, 'REFUNDED')).rejects.toThrow(
-        BadRequestException,
+        AppException,
       );
 
       expect(prisma.order.findUnique).not.toHaveBeenCalled();
@@ -326,7 +332,7 @@ describe('OrdersService', () => {
       } as any);
 
       await expect(service.voidOrder(5)).rejects.toThrow(
-        new BadRequestException('Order is already voided or refunded.'),
+        'Order is already voided or refunded.',
       );
     });
 
@@ -339,7 +345,7 @@ describe('OrdersService', () => {
         createdAt: yesterday,
       } as any);
 
-      await expect(service.voidOrder(5)).rejects.toThrow(BadRequestException);
+      await expect(service.voidOrder(5)).rejects.toThrow(AppException);
     });
 
     it('voids order, restores stock, and reverses loyalty points', async () => {
@@ -410,7 +416,7 @@ describe('OrdersService', () => {
         createdAt: new Date(),
       } as any);
 
-      await expect(service.refundOrder(8)).rejects.toThrow(BadRequestException);
+      await expect(service.refundOrder(8)).rejects.toThrow(AppException);
     });
 
     it('refunds order, restores stock, and enqueues order.refunded', async () => {

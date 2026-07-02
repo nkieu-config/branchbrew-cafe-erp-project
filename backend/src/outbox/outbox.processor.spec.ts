@@ -1,11 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Logger } from '@nestjs/common';
 import { OutboxProcessor } from './outbox.processor';
 import { PrismaService } from '../prisma/prisma.service';
 import { MAX_OUTBOX_ATTEMPTS } from './outbox.constants';
 
 describe('OutboxProcessor', () => {
   let processor: OutboxProcessor;
+  let loggerErrorSpy: jest.SpyInstance;
   let prisma: {
     outboxEvent: {
       findMany: jest.Mock;
@@ -17,6 +19,10 @@ describe('OutboxProcessor', () => {
   let eventEmitter: { emitAsync: jest.Mock };
 
   beforeEach(async () => {
+    loggerErrorSpy = jest
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => undefined);
+
     prisma = {
       outboxEvent: {
         findMany: jest.fn(),
@@ -36,6 +42,10 @@ describe('OutboxProcessor', () => {
     }).compile();
 
     processor = module.get(OutboxProcessor);
+  });
+
+  afterEach(() => {
+    loggerErrorSpy.mockRestore();
   });
 
   it('marks event completed after successful dispatch', async () => {
@@ -119,7 +129,12 @@ describe('OutboxProcessor', () => {
         eventType: 'order.created',
         status: 'FAILED',
         attempts: MAX_OUTBOX_ATTEMPTS - 1,
-        payload: {},
+        payload: {
+          order: { id: 1 },
+          ingredientRequirements: [],
+          branchId: 1,
+          customerId: null,
+        },
       },
     ]);
     prisma.outboxEvent.findUnique.mockResolvedValue({

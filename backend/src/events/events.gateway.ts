@@ -13,14 +13,11 @@ import { OrderStatusUpdatedEvent } from '../orders/events/order-status-updated.e
 import { JwtPayload } from '../auth/interfaces/request-with-user.interface';
 import { Role } from '@prisma/client';
 import { parseAuthCookie } from '../auth/auth-cookie.util';
-
-const corsOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',')
-  : ['http://localhost:3000', 'http://localhost:3001'];
+import { getCorsOrigins } from '../config/runtime-config';
 
 @WebSocketGateway({
   cors: {
-    origin: corsOrigins,
+    origin: getCorsOrigins(),
     credentials: true,
   },
 })

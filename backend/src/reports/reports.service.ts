@@ -1,13 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { Prisma } from '@prisma/client';
 import { toNum } from '../common/decimal.util';
-
-const ACTIVE_ORDER_STATUSES = ['COMPLETED', 'PENDING', 'PREPARING'] as const;
+import { PrismaService } from '../prisma/prisma.service';
+import { ReportsRepository } from './reports.repository';
 
 @Injectable()
 export class ReportsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private reportsRepository: ReportsRepository,
+  ) {}
 
   private startOfToday(): Date {
     const today = new Date();
@@ -15,30 +16,15 @@ export class ReportsService {
     return today;
   }
 
-  private retailBranchIds(): Promise<number[]> {
-    return this.prisma.branch
-      .findMany({
-        where: { isCentralKitchen: false },
-        select: { id: true },
-      })
-      .then((branches) => branches.map((branch) => branch.id));
-  }
-
   private async resolveTopBranchToday(today: Date) {
-    const retailBranchIds = await this.retailBranchIds();
+    const retailBranches = await this.reportsRepository.findRetailBranchIds();
+    const retailBranchIds = retailBranches.map((branch) => branch.id);
     if (retailBranchIds.length === 0) return null;
 
-    const branchSales = await this.prisma.order.groupBy({
-      by: ['branchId'],
-      _sum: { netAmount: true },
-      where: {
-        branchId: { in: retailBranchIds },
-        createdAt: { gte: today },
-        status: { in: [...ACTIVE_ORDER_STATUSES] },
-      },
-      orderBy: { _sum: { netAmount: 'desc' } },
-      take: 1,
-    });
+    const branchSales = await this.reportsRepository.groupTopBranchSalesToday(
+      retailBranchIds,
+      today,
+    );
 
     if (branchSales.length === 0) return null;
 
@@ -55,28 +41,13 @@ export class ReportsService {
   }
 
   async getSalesTrends(branchId?: number) {
-    // Return last 7 days of sales aggregated by day
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const branchFilter = branchId
-      ? Prisma.sql`AND "branchId" = ${branchId}`
-      : Prisma.empty;
-
-    const results = await this.prisma.$queryRaw<
-      { date: string; total: number; orders: bigint }[]
-    >`
-      SELECT 
-        to_char("createdAt", 'YYYY-MM-DD') as date,
-        SUM("netAmount") as total,
-        COUNT(*)::bigint as orders
-      FROM "Order"
-      WHERE "createdAt" >= ${sevenDaysAgo}
-      AND "status" IN ('COMPLETED', 'PENDING', 'PREPARING')
-      ${branchFilter}
-      GROUP BY 1
-      ORDER BY 1 ASC
-    `;
+    const results = await this.reportsRepository.querySalesTrends(
+      sevenDaysAgo,
+      branchId,
+    );
 
     const dailyMap = new Map<string, { total: number; orders: number }>();
     for (let i = 6; i >= 0; i--) {
@@ -104,24 +75,7 @@ export class ReportsService {
 
   async getTopProducts(branchId?: number) {
     const today = this.startOfToday();
-
-    const items = await this.prisma.orderItem.groupBy({
-      by: ['productId'],
-      _sum: {
-        quantity: true,
-      },
-      where: {
-        order: {
-          createdAt: { gte: today },
-          status: 'COMPLETED',
-          ...(branchId ? { branchId } : {}),
-        },
-      },
-      orderBy: {
-        _sum: { quantity: 'desc' },
-      },
-      take: 3,
-    });
+    const items = await this.reportsRepository.groupTopProducts(today, branchId);
 
     if (items.length === 0) return [];
 
@@ -151,27 +105,11 @@ export class ReportsService {
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
-    const whereBranch = branchId ? { branchId } : {};
-
-    const [orders, expenses, payrolls] = await Promise.all([
-      this.prisma.order.aggregate({
-        where: { ...whereBranch, createdAt: { gte: startOfMonth } },
-        _sum: { netAmount: true, totalCogs: true },
-      }),
-      this.prisma.expense.aggregate({
-        where: { ...whereBranch, createdAt: { gte: startOfMonth } },
-        _sum: { amount: true },
-      }),
-      this.prisma.payslip.aggregate({
-        where: {
-          payrollRun: {
-            ...(branchId && { branchId }),
-            createdAt: { gte: startOfMonth },
-          },
-        },
-        _sum: { netPay: true },
-      }),
-    ]);
+    const [orders, expenses, payrolls] =
+      await this.reportsRepository.aggregateMonthlyProfitInputs(
+        startOfMonth,
+        branchId,
+      );
 
     const revenue = toNum(orders._sum.netAmount);
     const cogs = toNum(orders._sum.totalCogs);
@@ -193,11 +131,8 @@ export class ReportsService {
 
   async getExecutiveSummary(branchId?: number) {
     const today = this.startOfToday();
-
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-
-    const whereBranch = branchId ? { branchId } : {};
 
     const warningDate = new Date();
     warningDate.setDate(warningDate.getDate() + 7);
@@ -209,40 +144,14 @@ export class ReportsService {
       inventories,
       expiringBatches,
     ] = await Promise.all([
-      this.prisma.order.aggregate({
-        where: {
-          ...whereBranch,
-          createdAt: { gte: today },
-          status: { in: [...ACTIVE_ORDER_STATUSES] },
-        },
-        _sum: { netAmount: true },
-        _count: { _all: true },
-      }),
-      this.prisma.order.aggregate({
-        where: {
-          ...whereBranch,
-          createdAt: { gte: yesterday, lt: today },
-          status: { in: [...ACTIVE_ORDER_STATUSES] },
-        },
-        _sum: { netAmount: true },
-        _count: { _all: true },
-      }),
+      this.reportsRepository.aggregateSalesWindow({ gte: today }, branchId),
+      this.reportsRepository.aggregateSalesWindow(
+        { gte: yesterday, lt: today },
+        branchId,
+      ),
       branchId ? Promise.resolve(null) : this.resolveTopBranchToday(today),
-      this.prisma.branchInventory.findMany({
-        where: whereBranch,
-        include: { ingredient: true, branch: true },
-      }),
-      this.prisma.inventoryBatch.findMany({
-        where: {
-          ...whereBranch,
-          expiryDate: { not: null, lte: warningDate },
-          status: { in: ['ACTIVE', 'EXPIRED'] },
-          quantity: { gt: 0 },
-        },
-        include: { ingredient: true, branch: true },
-        orderBy: { expiryDate: 'asc' },
-        take: 5,
-      }),
+      this.reportsRepository.findLowStockInventories(branchId),
+      this.reportsRepository.findExpiringBatches(warningDate, branchId),
     ]);
 
     const salesToday = toNum(salesTodayAgg._sum.netAmount);

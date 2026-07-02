@@ -1,0 +1,283 @@
+import { Injectable } from '@nestjs/common';
+import { OrderStatus } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
+import { OutboxService } from '../outbox/outbox.service';
+import { OUTBOX_EVENT_TYPES } from '../outbox/outbox-event.types';
+import { toNum } from '../common/decimal.util';
+import {
+  assertBranchAccess,
+  BranchScopedUser,
+} from '../auth/branch-scope.util';
+import { isSameCalendarDay, isTerminalOrderStatus } from './order-void.util';
+import { kdsOrderInclude } from './kds-order.include';
+import {
+  applyOrderReversalEffects,
+  ORDER_REVERSAL_INCLUDE,
+} from './helpers/order-reversal.helper';
+import { assertRefundable } from './helpers/order-refund.util';
+import { AuditService } from '../audit/audit.service';
+import { orderListInclude } from './orders.types';
+import { ApiErrorCode } from '../common/errors/api-error-code.enum';
+import {
+  appBadRequest,
+  appNotFound,
+  AppException,
+} from '../common/errors/app.exception';
+
+const OPERATIONAL_ORDER_STATUSES: readonly OrderStatus[] = [
+  'PENDING',
+  'PREPARING',
+  'COMPLETED',
+];
+
+@Injectable()
+export class OrderLifecycleService {
+  constructor(
+    private prisma: PrismaService,
+    private outboxService: OutboxService,
+    private auditService: AuditService,
+  ) {}
+
+  findAll() {
+    return this.prisma.order.findMany({
+      include: orderListInclude,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  findByBranch(branchId: number) {
+    return this.prisma.order.findMany({
+      where: { branchId },
+      include: orderListInclude,
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findOne(id: number, user?: BranchScopedUser) {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: orderListInclude,
+    });
+    if (!order) {
+      throw appNotFound(ApiErrorCode.ORDER_NOT_FOUND, 'Order not found');
+    }
+    if (user) assertBranchAccess(user, order.branchId);
+    return order;
+  }
+
+  getKdsOrders(branchId: number) {
+    return this.prisma.order.findMany({
+      where: {
+        branchId,
+        status: { in: ['PENDING', 'PREPARING'] },
+      },
+      include: kdsOrderInclude,
+      orderBy: { createdAt: 'asc' },
+    });
+  }
+
+  async updateOrderStatus(
+    orderId: number,
+    status: OrderStatus,
+    user?: BranchScopedUser,
+  ) {
+    if (!OPERATIONAL_ORDER_STATUSES.includes(status)) {
+      throw appBadRequest(
+        ApiErrorCode.ORDER_STATUS_INVALID,
+        'Use void or refund endpoints for terminal order statuses.',
+      );
+    }
+
+    const existing = await this.prisma.order.findUnique({
+      where: { id: orderId },
+    });
+    if (!existing) {
+      throw appNotFound(ApiErrorCode.ORDER_NOT_FOUND, 'Order not found');
+    }
+    if (user) assertBranchAccess(user, existing.branchId);
+
+    return this.prisma.$transaction(async (tx) => {
+      const order = await tx.order.update({
+        where: { id: orderId },
+        data: { status },
+      });
+
+      await this.outboxService.enqueue(
+        tx,
+        OUTBOX_EVENT_TYPES.ORDER_STATUS_UPDATED,
+        {
+          orderId: order.id,
+          status: order.status,
+          branchId: existing.branchId,
+        },
+      );
+
+      return order;
+    });
+  }
+
+  async voidOrder(orderId: number, user?: BranchScopedUser) {
+    const existing = await this.loadOrderForReversal(orderId, user);
+
+    if (isTerminalOrderStatus(existing.status)) {
+      throw appBadRequest(
+        ApiErrorCode.ORDER_ALREADY_REVERSED,
+        'Order is already voided or refunded.',
+      );
+    }
+
+    if (!isSameCalendarDay(existing.createdAt, new Date())) {
+      throw appBadRequest(
+        ApiErrorCode.ORDER_VOID_SAME_DAY_ONLY,
+        'Only same-day orders can be voided. Use refund flow for older orders.',
+      );
+    }
+
+    const order = await this.prisma.$transaction(async (tx) => {
+      await applyOrderReversalEffects(tx, existing);
+
+      const updated = await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'CANCELLED' },
+        include: {
+          items: { include: { product: true } },
+          customer: true,
+          promotion: true,
+        },
+      });
+
+      await this.outboxService.enqueue(tx, OUTBOX_EVENT_TYPES.ORDER_VOIDED, {
+        order: updated,
+      });
+      await this.outboxService.enqueue(
+        tx,
+        OUTBOX_EVENT_TYPES.ORDER_STATUS_UPDATED,
+        {
+          orderId: updated.id,
+          status: updated.status,
+          branchId: existing.branchId,
+        },
+      );
+
+      return updated;
+    });
+
+    if (user) {
+      await this.auditService.logAction(
+        user.userId,
+        'VOID_ORDER',
+        'Order',
+        orderId,
+        {
+          branchId: existing.branchId,
+          netAmount: toNum(order.netAmount),
+          totalCogs: toNum(order.totalCogs),
+        },
+      );
+    }
+
+    return order;
+  }
+
+  async refundOrder(orderId: number, reason?: string, user?: BranchScopedUser) {
+    const existing = await this.loadOrderForReversal(orderId, user);
+
+    try {
+      assertRefundable(existing.createdAt, existing.status);
+    } catch (err) {
+      throw this.mapRefundError(err);
+    }
+
+    const trimmedReason = reason?.trim();
+
+    const order = await this.prisma.$transaction(async (tx) => {
+      await applyOrderReversalEffects(tx, existing);
+
+      const updated = await tx.order.update({
+        where: { id: orderId },
+        data: {
+          status: 'REFUNDED',
+          refundReason: trimmedReason || null,
+          refundedAt: new Date(),
+        },
+        include: {
+          items: { include: { product: true } },
+          customer: true,
+          promotion: true,
+        },
+      });
+
+      await this.outboxService.enqueue(tx, OUTBOX_EVENT_TYPES.ORDER_REFUNDED, {
+        order: updated,
+        reason: trimmedReason,
+      });
+      await this.outboxService.enqueue(
+        tx,
+        OUTBOX_EVENT_TYPES.ORDER_STATUS_UPDATED,
+        {
+          orderId: updated.id,
+          status: updated.status,
+          branchId: existing.branchId,
+        },
+      );
+
+      return updated;
+    });
+
+    if (user) {
+      await this.auditService.logAction(
+        user.userId,
+        'REFUND_ORDER',
+        'Order',
+        orderId,
+        {
+          branchId: existing.branchId,
+          netAmount: toNum(order.netAmount),
+          totalCogs: toNum(order.totalCogs),
+          reason: trimmedReason,
+        },
+      );
+    }
+
+    return order;
+  }
+
+  private async loadOrderForReversal(orderId: number, user?: BranchScopedUser) {
+    const existing = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: ORDER_REVERSAL_INCLUDE,
+    });
+
+    if (!existing) {
+      throw appNotFound(ApiErrorCode.ORDER_NOT_FOUND, 'Order not found');
+    }
+    if (user) assertBranchAccess(user, existing.branchId);
+    return existing;
+  }
+
+  private mapRefundError(err: unknown): AppException {
+    const code = err instanceof Error ? err.message : String(err);
+    switch (code) {
+      case 'ORDER_ALREADY_REVERSED':
+        return appBadRequest(
+          ApiErrorCode.ORDER_ALREADY_REVERSED,
+          'Order is already voided or refunded.',
+        );
+      case 'REFUND_NOT_COMPLETED':
+        return appBadRequest(
+          ApiErrorCode.ORDER_REFUND_NOT_COMPLETED,
+          'Only completed orders can be refunded.',
+        );
+      case 'REFUND_SAME_DAY':
+        return appBadRequest(
+          ApiErrorCode.ORDER_REFUND_SAME_DAY,
+          'Same-day orders should be voided, not refunded.',
+        );
+      default:
+        return appBadRequest(
+          ApiErrorCode.ORDER_REFUND_NOT_ALLOWED,
+          'Order cannot be refunded.',
+        );
+    }
+  }
+}

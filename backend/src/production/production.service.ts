@@ -7,6 +7,7 @@ import {
 } from '../auth/branch-scope.util';
 import { ProductionStatus } from '@prisma/client';
 import { OutboxService } from '../outbox/outbox.service';
+import { OUTBOX_EVENT_TYPES } from '../outbox/outbox-event.types';
 
 @Injectable()
 export class ProductionService {
@@ -190,7 +191,10 @@ export class ProductionService {
       });
 
       if (totalRawCost > 0) {
-        await this.outboxService.enqueue(tx, 'production.completed', {
+        await this.outboxService.enqueue(
+          tx,
+          OUTBOX_EVENT_TYPES.PRODUCTION_COMPLETED,
+          {
           orderNumber: updatedOrder.orderNumber,
           targetIngredientName: order.targetIngredient.name,
           branchId: order.branchId,

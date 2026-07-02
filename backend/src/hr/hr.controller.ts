@@ -117,7 +117,12 @@ export class HrController {
     @Body() dto: GeneratePayrollDto,
   ) {
     assertBranchAccess(req.user, dto.branchId);
-    return this.hrService.generatePayrollRun(dto.branchId, dto.month, dto.year);
+    return this.hrService.generatePayrollRun(
+      dto.branchId,
+      dto.month,
+      dto.year,
+      req.user.userId,
+    );
   }
 
   @Roles('SUPER_ADMIN', 'MANAGER')
