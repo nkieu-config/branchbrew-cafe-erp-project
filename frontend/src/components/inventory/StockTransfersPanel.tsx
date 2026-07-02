@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useState, useDeferredValue } from "react";
+import { useCallback, useEffect, useImperativeHandle, useMemo, useState, useDeferredValue } from "react";
 import dynamic from "next/dynamic";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -72,10 +72,11 @@ function BranchCell({ name }: { name: string | undefined }) {
   return <span className={cn("font-medium", text.secondary)}>{branchLabel(name)}</span>;
 }
 
-export const StockTransfersPanel = forwardRef<
-  StockTransfersPanelHandle,
-  StockTransfersPanelProps
->(function StockTransfersPanel({ variant: variantProp = "page", sourceInventories }, ref) {
+export function StockTransfersPanel({
+  variant: variantProp = "page",
+  sourceInventories,
+  ref,
+}: StockTransfersPanelProps & { ref?: React.Ref<StockTransfersPanelHandle> }) {
   const variant = variantProp;
   const router = useRouter();
   const pathname = usePathname();
@@ -670,6 +671,6 @@ export const StockTransfersPanel = forwardRef<
       />
     </>
   );
-});
+}
 
-StockTransfersPanel.displayName = "StockTransfersPanel";
+

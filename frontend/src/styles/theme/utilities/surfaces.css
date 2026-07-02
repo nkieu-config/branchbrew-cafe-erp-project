@@ -1,4 +1,4 @@
-@layer utilities {
+@layer components {
   .glass-panel {
     background: var(--glass-panel-bg);
     border: 1px solid var(--glass-panel-border);
@@ -66,11 +66,12 @@
     border-color: var(--border);
   }
 
-  .text-secondary {
-    color: var(--text-secondary);
-  }
+}
 
-  .text-subtle {
-    color: var(--text-subtle);
-  }
+@utility text-secondary {
+  color: var(--text-secondary);
+}
+
+@utility text-subtle {
+  color: var(--text-subtle);
 }

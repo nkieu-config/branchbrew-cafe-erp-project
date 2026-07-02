@@ -11,13 +11,15 @@ import type { Role } from "@/types/api";
 
 export function useSidebarExpandedGroups(role?: Role) {
   const pathname = usePathname();
+  const [prevRole, setPrevRole] = useState(role);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>(() =>
     resolveInitialExpandedGroups(role),
   );
 
-  useEffect(() => {
+  if (role !== prevRole) {
+    setPrevRole(role);
     setExpandedGroups(resolveInitialExpandedGroups(role));
-  }, [role]);
+  }
 
   useEffect(() => {
     setExpandedGroups((prev) => {

@@ -1,4 +1,4 @@
-import React, { forwardRef } from "react";
+import React from "react";
 import { Coffee } from "lucide-react";
 import type { ReceiptOrder } from "@/types/api";
 import { formatDateTime } from "@/lib/intl-date";
@@ -14,10 +14,17 @@ export interface ReceiptSettings {
   receiptFooter?: string;
 }
 
-export const Receipt = forwardRef<
-  HTMLDivElement,
-  { order: ReceiptOrder; branchName?: string; settings?: ReceiptSettings }
->(({ order, branchName, settings }, ref) => {
+export function Receipt({ 
+  order, 
+  branchName, 
+  settings, 
+  ref 
+}: { 
+  order: ReceiptOrder; 
+  branchName?: string; 
+  settings?: ReceiptSettings;
+  ref?: React.Ref<HTMLDivElement>;
+}) {
   if (!order) return null;
 
   const vatRate = settings?.vatRate ?? 7;
@@ -128,6 +135,6 @@ export const Receipt = forwardRef<
       </div>
     </div>
   );
-});
+}
 
-Receipt.displayName = "Receipt";
+

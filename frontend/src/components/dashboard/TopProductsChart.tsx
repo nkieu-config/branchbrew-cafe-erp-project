@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Award } from "lucide-react";
 import { getChartPalette } from "@/lib/theme/chart-styles";
 import { decorativeIconClassName } from "@/lib/theme/color-helpers";
 import { dashboardChartEmptyClass } from "@/lib/theme/dashboard";
 import { text } from "@/lib/theme/surface";
 import { typeUiLabelClassName } from "@/lib/theme/typography";
-import { useChartTheme } from "@/hooks/useChartTheme";
+
 import { cn } from "@/lib/utils";
 
 type TopProduct = { name: string; totalQuantity: number };
@@ -82,12 +82,7 @@ function TopProductsRankedList({
 }
 
 export function TopProductsChart({ data }: { data: TopProduct[] }) {
-  const chartTheme = useChartTheme();
-  const [colors, setColors] = useState<string[]>(() => getChartPalette());
-
-  useEffect(() => {
-    setColors(getChartPalette());
-  }, [chartTheme]);
+  const colors = getChartPalette();
 
   if (data.length === 0) {
     return (

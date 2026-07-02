@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -47,13 +47,6 @@ export function CreateProductionOrderModal({
   const [targetId, setTargetId] = useState<string>("");
   const [quantity, setQuantity] = useState("1");
   const [plannedDate, setPlannedDate] = useState("");
-
-  useEffect(() => {
-    if (!open) return;
-    setTargetId("");
-    setQuantity("1");
-    setPlannedDate("");
-  }, [open]);
 
   const targetIngredientId = targetId ? Number(targetId) : 0;
   const missingBom = targetIngredientId > 0 && !bomTargetIds.has(targetIngredientId);

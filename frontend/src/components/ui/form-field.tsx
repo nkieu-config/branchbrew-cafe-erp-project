@@ -16,7 +16,7 @@ type FormFieldContextValue = {
 const FormFieldContext = React.createContext<FormFieldContextValue | null>(null)
 
 function useFormField() {
-  const context = React.useContext(FormFieldContext)
+  const context = React.use(FormFieldContext)
   if (!context) {
     throw new Error("FormField subcomponents must be used within <FormField>")
   }
