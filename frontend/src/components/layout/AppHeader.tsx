@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/providers/ThemeToggle";
@@ -25,21 +25,23 @@ import {
   destructiveMenuItemClassName,
   profileMenuHeaderDividerClassName,
   profileMenuPanelClassName,
-  shellContentFrameClassName,
   topbarAccountActionsClassName,
   topbarActionButtonClassName,
   topbarActionsDividerClassName,
   topbarActionsRowClassName,
+  topbarBranchRowClassName,
+  topbarContentFrameClassName,
   topbarDesktopBreadcrumbClassName,
+  topbarMainRowClassName,
   topbarMenuButtonClassName,
   topbarMobileTitleClassName,
   topbarRegionClassName,
   topbarShellClassName,
-  topbarWorkActionsClassName,
 } from "@/lib/theme/shell";
 import { text } from "@/lib/theme/surface";
 import { typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
+import type { Branch } from "@/types/api";
 
 function ProfileMenu() {
   const { user, logout } = useAuth();
@@ -164,6 +166,41 @@ function ProfileMenu() {
   );
 }
 
+type TopbarActionsProps = {
+  showBranchPicker: boolean;
+  branches: Branch[];
+  activeBranchId: number | null;
+  onBranchChange: (branchId: number | null) => void;
+};
+
+/** Shared action cluster — branch inline on desktop; full-width row below on mobile. */
+function TopbarActions({
+  showBranchPicker,
+  branches,
+  activeBranchId,
+  onBranchChange,
+}: TopbarActionsProps) {
+  return (
+    <div className={topbarActionsRowClassName()}>
+      {showBranchPicker && (
+        <BranchPicker
+          variant="topbar"
+          branches={branches}
+          activeBranchId={activeBranchId}
+          onChange={onBranchChange}
+          className="hidden lg:flex lg:w-[12.5rem] lg:flex-none"
+        />
+      )}
+      <ClockInOutWidget variant="toolbar" />
+      <div className={topbarActionsDividerClassName()} aria-hidden />
+      <div className={topbarAccountActionsClassName()}>
+        <ThemeToggle />
+        <ProfileMenu />
+      </div>
+    </div>
+  );
+}
+
 type AppHeaderProps = {
   className?: string;
 };
@@ -181,16 +218,17 @@ export function AppHeader({ className }: AppHeaderProps) {
   const showMobileBreadcrumb = shouldShowMobileBreadcrumb(pathname, role);
   const showDesktopBreadcrumb = shouldShowDesktopBreadcrumb(pathname, role, trail) && !compact;
   const mobileTopbarTitle = resolveTopbarPageTitle(pathname);
+  const showBranchPicker = isSuperAdmin && branches.length > 0;
 
   return (
     <div className={topbarRegionClassName({ compact, className })}>
       <header
         className={topbarShellClassName({
-          compact,
-          className: shellContentFrameClassName("justify-between"),
+          stacked: showBranchPicker,
+          className: topbarContentFrameClassName(),
         })}
       >
-        <div className="flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden sm:gap-2">
+        <div className={topbarMainRowClassName({ compact })}>
           <button
             type="button"
             className={topbarMenuButtonClassName()}
@@ -201,49 +239,43 @@ export function AppHeader({ className }: AppHeaderProps) {
             <Menu className="h-4 w-4" aria-hidden />
           </button>
 
-          {showMobileTopbarTitle && (
-            <p
-              className={cn(
-                topbarMobileTitleClassName(),
-                compact && "text-[13px] font-semibold",
-              )}
-            >
-              {mobileTopbarTitle}
-            </p>
-          )}
+          <div className="flex min-w-0 flex-1 items-center overflow-hidden">
+            {showMobileTopbarTitle && (
+              <p className={topbarMobileTitleClassName()}>{mobileTopbarTitle}</p>
+            )}
 
-          {showMobileBreadcrumb && (
-            <BreadcrumbTrail
-              items={trail}
-              className="min-w-0 flex-1 overflow-hidden lg:hidden"
-            />
-          )}
-
-          {showDesktopBreadcrumb && (
-            <BreadcrumbTrail items={trail} className={topbarDesktopBreadcrumbClassName()} />
-          )}
-        </div>
-
-        <div className={topbarActionsRowClassName()}>
-          <div className={topbarWorkActionsClassName()}>
-            {isSuperAdmin && branches.length > 0 && (
-              <BranchPicker
-                variant="topbar"
-                branches={branches}
-                activeBranchId={activeBranchId}
-                onChange={setActiveBranchId}
+            {showMobileBreadcrumb && (
+              <BreadcrumbTrail
+                items={trail}
+                variant="mobile-topbar"
+                className="min-w-0 flex-1 overflow-hidden lg:hidden"
               />
             )}
-            <ClockInOutWidget variant="toolbar" />
+
+            {showDesktopBreadcrumb && (
+              <BreadcrumbTrail items={trail} className={topbarDesktopBreadcrumbClassName()} />
+            )}
           </div>
 
-          <div className={topbarActionsDividerClassName()} aria-hidden />
-
-          <div className={topbarAccountActionsClassName()}>
-            <ThemeToggle />
-            <ProfileMenu />
-          </div>
+          <TopbarActions
+            showBranchPicker={showBranchPicker}
+            branches={branches}
+            activeBranchId={activeBranchId}
+            onBranchChange={setActiveBranchId}
+          />
         </div>
+
+        {showBranchPicker && (
+          <div className={topbarBranchRowClassName()}>
+            <BranchPicker
+              variant="topbar"
+              branches={branches}
+              activeBranchId={activeBranchId}
+              onChange={setActiveBranchId}
+              className="w-full max-w-none h-9 min-h-[36px]"
+            />
+          </div>
+        )}
       </header>
     </div>
   );

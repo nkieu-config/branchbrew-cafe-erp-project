@@ -3,9 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Coffee, PanelLeftOpen } from "lucide-react";
-import { SidebarNavBadge } from "@/components/shared/sidebar-nav-badge";
 import { useAuth } from "@/context/AuthContext";
-import { useSidebarNavBadges } from "@/hooks/useSidebarNavBadges";
 import { FLAT_SIDEBAR_ITEMS, findActiveSidebarItem, isSidebarItemActive } from "@/lib/navigation/sidebar";
 import { sidebarRailExpandButtonClassName, sidebarRailLinkClassName, sidebarBrandMarkClassName, sidebarBrandMarkIconClassName, sidebarRootClassName, shell, shellHeaderInsetClassName } from "@/lib/theme/shell";
 import { cn } from "@/lib/utils";
@@ -21,7 +19,6 @@ export function SidebarRail({ onExpand, onNavigate, className }: SidebarRailProp
   const pathname = usePathname();
   const { user } = useAuth();
   const role = (user?.role ?? "STAFF") as Role;
-  const { badges } = useSidebarNavBadges();
 
   const visibleItems = FLAT_SIDEBAR_ITEMS.filter((item) => item.roles.includes(role));
   const activeItem = findActiveSidebarItem(pathname);
@@ -47,7 +44,6 @@ export function SidebarRail({ onExpand, onNavigate, className }: SidebarRailProp
           const isActive = isSidebarItemActive(item, pathname);
           const isCurrentPage = activeItem?.id === item.id;
           const ItemIcon = item.icon;
-          const badge = badges[item.id];
 
           return (
             <Link
@@ -55,19 +51,11 @@ export function SidebarRail({ onExpand, onNavigate, className }: SidebarRailProp
               href={item.href}
               onClick={onNavigate}
               title={item.label}
-              aria-label={badge ? `${item.label}, ${badge.label}` : item.label}
+              aria-label={item.label}
               aria-current={isCurrentPage ? "page" : undefined}
               className={cn(sidebarRailLinkClassName(isActive, isCurrentPage), "relative")}
             >
               <ItemIcon className="w-[18px] h-[18px] shrink-0" aria-hidden />
-              {badge && (
-                <SidebarNavBadge
-                  count={badge.count}
-                  tone={badge.tone}
-                  label={badge.label}
-                  variant="dot"
-                />
-              )}
             </Link>
           );
         })}

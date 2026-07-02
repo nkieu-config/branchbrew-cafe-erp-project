@@ -13,7 +13,6 @@ import {
   posPanelTopDividerClassName,
   posSecondaryActionClassName,
 } from "@/lib/theme/immersive";
-import { text } from "@/lib/theme/surface";
 import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
 

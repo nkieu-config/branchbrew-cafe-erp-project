@@ -15,10 +15,15 @@ export function formatMoney(
   });
 }
 
-export function formatCurrency(value: number | string | null | undefined): string {
-  return new Intl.NumberFormat(undefined, {
-    style: 'currency',
-    currency: 'USD',
+export const DEFAULT_CURRENCY = "THB";
+
+export function formatCurrency(
+  value: number | string | null | undefined,
+  currency: string = DEFAULT_CURRENCY,
+): string {
+  return new Intl.NumberFormat("th-TH", {
+    style: "currency",
+    currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(toNumber(value));

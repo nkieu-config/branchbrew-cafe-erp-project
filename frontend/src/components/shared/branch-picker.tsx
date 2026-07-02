@@ -51,7 +51,7 @@ export function BranchPicker({
     <div
       className={cn(
         isSidebar ? sidebarBranchPillClassName() : topbarBranchPickerClassName({ scoped: isScoped }),
-        !isSidebar && "w-[5.5rem] max-w-[28vw] sm:w-[11.5rem] sm:max-w-none md:w-[12.5rem]",
+        !isSidebar && "min-w-0 flex-1 w-full max-w-none lg:w-[12.5rem] lg:flex-none lg:max-w-none",
         className,
       )}
     >

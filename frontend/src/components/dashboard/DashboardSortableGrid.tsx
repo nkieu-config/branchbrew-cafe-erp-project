@@ -20,7 +20,6 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { dashboardDragHandleBarClass, dashboardGridClass, dashboardSortableShellClass } from "@/lib/theme/dashboard";
-import { cn } from "@/lib/utils";
 
 export const DASHBOARD_WIDGET_LABELS: Record<string, string> = {
   sales: "Today's Sales",

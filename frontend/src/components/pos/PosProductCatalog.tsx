@@ -4,14 +4,14 @@ import { Loader2, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { decorativeIconClassName } from "@/lib/theme/color-helpers";
+import { listToolbarFieldClassName, listToolbarSearchClassName } from "@/lib/theme/feedback";
 import {
+  posCatalogFilterBarClassName,
   posCategoryChipClassName,
   posCategoryScrollClassName,
   posEmptyProductsClassName,
-  posInputClassName,
   posLoadingSpinnerClassName,
   posPriceClassName,
-  posProductTileAddHintClassName,
   posProductTileCategoryClassName,
   posProductTileClassName,
   posProductTileFooterClassName,
@@ -58,7 +58,7 @@ export function PosProductCatalog({
     filteredProducts.length !== totalProducts;
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto pr-0 lg:pr-1 pb-[calc(7.5rem+env(safe-area-inset-bottom,0px))] lg:pb-6 space-y-3">
+    <div className="flex flex-1 min-h-0 flex-col">
       <HubListPage.Error
         message={
           productsError ? getErrorMessage(productsErr, "Failed to load menu items") : undefined
@@ -67,10 +67,11 @@ export function PosProductCatalog({
         loading={productsFetching}
       />
       <div className={posStickyFilterBarClassName()}>
+        <div className={posCatalogFilterBarClassName()}>
         <div className="relative">
           <Search
             className={decorativeIconClassName(
-              "absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none",
+              "absolute left-3 top-1/2 z-10 -translate-y-1/2 w-4 h-4 pointer-events-none",
             )}
             aria-hidden
           />
@@ -79,7 +80,7 @@ export function PosProductCatalog({
             value={productSearch}
             onChange={(e) => onProductSearchChange(e.target.value)}
             placeholder="Search menu…"
-            className={cn(posInputClassName(), "pl-9 min-h-[44px] rounded-xl border-transparent shadow-none")}
+            className={cn(listToolbarFieldClassName(), listToolbarSearchClassName(), "pl-9 shadow-none")}
             aria-label="Search menu items"
           />
         </div>
@@ -108,7 +109,9 @@ export function PosProductCatalog({
             ))}
           </div>
         ) : null}
+        </div>
       </div>
+      <div className="flex-1 min-h-0 overflow-y-auto pr-0 lg:pr-1 pb-[calc(7.5rem+env(safe-area-inset-bottom,0px))] lg:pb-6 space-y-3">
       {loading ? (
         <div className="flex h-64 items-center justify-center">
           <Loader2 className={`w-10 h-10 animate-spin ${posLoadingSpinnerClassName()}`} />
@@ -135,9 +138,6 @@ export function PosProductCatalog({
                   <span className={posPriceClassName("text-base sm:text-lg")}>
                     {formatCurrency(product.price)}
                   </span>
-                  <span className={posProductTileAddHintClassName()} aria-hidden>
-                    +
-                  </span>
                 </div>
               </button>
             ))}
@@ -151,6 +151,7 @@ export function PosProductCatalog({
           </div>
         </>
       )}
+      </div>
     </div>
   );
 }

@@ -1,11 +1,19 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import QueryProvider from "@/providers/QueryProvider";
+import { themePrimitives } from "@/lib/theme/primitives";
 
 const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400", "500", "600", "700", "800"] });
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: themePrimitives.light.background },
+    { media: "(prefers-color-scheme: dark)", color: themePrimitives.dark.background },
+  ],
+};
 
 export const metadata: Metadata = {
   metadataBase: process.env.NEXT_PUBLIC_APP_URL
@@ -44,7 +52,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${plusJakarta.className} flex min-h-screen bg-background text-foreground bg-[url('/bg-pattern.svg')] dark:bg-none bg-fixed antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
           <QueryProvider>
               {children}
               <Toaster />

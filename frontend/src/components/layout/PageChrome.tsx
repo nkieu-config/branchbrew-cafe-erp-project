@@ -74,7 +74,6 @@ export function usePageChromeExtension(extension: PageChromeExtension) {
     if (!ctx) return;
     ctx.register(extension);
     return () => ctx.clear();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- reset on route change
   }, [
     ctx,
     pathname,
@@ -129,8 +128,8 @@ export function PageChrome({
   const hasStickyBar = Boolean(mergedScope || mergedActions);
 
   return (
-    <div className={cn("w-full space-y-4 lg:space-y-5 h-full flex flex-col", className)}>
-      <div className={cn("space-y-1", (hideOnDesktop || hideOnMobile) && "max-lg:space-y-1")}>
+    <div className={cn("w-full space-y-section lg:space-y-page flex flex-col", className)}>
+      <div className={cn("space-y-field", (hideOnDesktop || hideOnMobile) && "max-lg:space-y-field")}>
         <h1
           className={cn(
             shellPageTitleClassName(),
@@ -177,7 +176,7 @@ export function PageChrome({
         )}
       </div>
 
-      <div className="min-h-0 flex-1 flex flex-col">{children}</div>
+      <div className="min-h-0 flex flex-col">{children}</div>
     </div>
   );
 }

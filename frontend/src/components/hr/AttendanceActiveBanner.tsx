@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { infoBannerClassName, infoBannerTextClassName } from "@/lib/theme/hub-banners";
 import { statusTextClassName } from "@/lib/theme/color-helpers";
 import { formatTime } from "@/lib/intl-date";
-import { cn } from "@/lib/utils";
 
 function useElapsedTimer(clockIn: string | undefined | null) {
   const [elapsed, setElapsed] = useState("");

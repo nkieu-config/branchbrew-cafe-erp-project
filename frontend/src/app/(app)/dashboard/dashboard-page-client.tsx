@@ -17,6 +17,7 @@ import {
   LowStockWidget,
   TopProductsWidget,
 } from "@/components/dashboard/widgets/SummaryWidgets";
+import { OperationalTasksWidget } from "@/components/dashboard/widgets/OperationalTasksWidget";
 import { SalesChartWidget } from "@/components/dashboard/widgets/SalesChartWidget";
 import { WidgetErrorBoundary } from "@/components/dashboard/widgets/WidgetErrorBoundary";
 import {
@@ -186,6 +187,13 @@ function buildWidgetRegistry(
         </WidgetBoundary>
       ),
     },
+    operationalTasks: {
+      content: (
+        <WidgetBoundary onReset={reset}>
+          <OperationalTasksWidget />
+        </WidgetBoundary>
+      ),
+    },
     topProducts: {
       className: "md:col-span-2 xl:col-span-2",
       content: (
@@ -268,7 +276,7 @@ function AnalyticsDashboardContent() {
   );
 
   return (
-    <div className="flex h-full w-full flex-col">
+    <div className="flex w-full flex-col">
       <PageChrome
         title="Dashboard"
         icon={LayoutDashboard}

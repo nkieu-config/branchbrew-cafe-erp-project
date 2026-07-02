@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ShoppingBag } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ChevronUp, ShoppingBag } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { PosCartSidebar, type PosCartSidebarProps } from "@/components/pos/PosCartSidebar";
 import { formatCurrency } from "@/lib/money";
@@ -12,7 +11,6 @@ import {
   posMobileCartIconClassName,
   posMobileCartSheetClassName,
   posMobileCartTotalClassName,
-  posPayActionClassName,
 } from "@/lib/theme/immersive";
 import { text } from "@/lib/theme/surface";
 import { typeUiLabelClassName } from "@/lib/theme/typography";
@@ -33,24 +31,18 @@ export function PosMobileCart(props: PosCartSidebarProps) {
         <button
           type="button"
           onClick={() => setOpen(true)}
+          disabled={props.cart.length === 0}
           className={posMobileCartButtonClassName()}
-          aria-label={`View cart, ${itemCount} items, total ${formatCurrency(props.netTotal)}`}
+          aria-label={`Review order, ${itemCount} items, total ${formatCurrency(props.netTotal)}`}
         >
           <ShoppingBag className={posMobileCartIconClassName("h-4 w-4 shrink-0")} aria-hidden />
           <span className={cn(typeUiLabelClassName("text-sm"), text.secondary)}>
             {itemCount} {itemCount === 1 ? "item" : "items"}
           </span>
-          <span className={posMobileCartTotalClassName()}>
-            {formatCurrency(props.netTotal)}
-          </span>
+          <span className={posMobileCartTotalClassName()}>{formatCurrency(props.netTotal)}</span>
+          <span className={cn("ml-auto text-xs font-medium", text.muted)}>Review</span>
+          <ChevronUp className={cn("h-4 w-4 shrink-0", text.muted)} aria-hidden />
         </button>
-        <Button
-          className={posPayActionClassName("shrink-0 min-h-[44px] px-5 rounded-xl")}
-          disabled={props.cart.length === 0}
-          onClick={handleCheckout}
-        >
-          Pay
-        </Button>
       </div>
 
       <Sheet open={open} onOpenChange={setOpen}>

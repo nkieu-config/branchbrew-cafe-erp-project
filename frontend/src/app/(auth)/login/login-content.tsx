@@ -16,6 +16,7 @@ import {
   authBrandMarkClassName,
   authBrandTaglineClassName,
   authDemoChipClassName,
+  authDemoRowClassName,
   authDemoCredentialsClassName,
   authDemoCredentialsPasswordRowClassName,
   authDemoCredentialsToggleClassName,
@@ -41,25 +42,35 @@ type DemoAccount = {
   id: string;
   label: string;
   email: string;
+  hint?: string;
 };
 
-const demoAccounts: DemoAccount[] = [
-  {
-    id: "admin",
-    label: "Admin",
-    email: "admin@branchbrew.dev",
-  },
+const primaryDemoAccounts: DemoAccount[] = [
   {
     id: "manager",
     label: "Manager",
     email: "manager@branchbrew.dev",
   },
   {
+    id: "admin",
+    label: "Admin",
+    email: "admin@branchbrew.dev",
+  },
+  {
     id: "staff",
     label: "Staff",
-    email: "staff.siam@branchbrew.dev",
+    email: "staff.downtown@branchbrew.dev",
   },
 ];
+
+const riversideDemoAccount: DemoAccount = {
+  id: "riverside",
+  label: "Riverside Manager",
+  email: "manager.riverside@branchbrew.dev",
+  hint: "Alternate branch demo",
+};
+
+const allDemoAccounts: DemoAccount[] = [...primaryDemoAccounts, riversideDemoAccount];
 
 export default function LoginContent() {
   const [email, setEmail] = useState("");
@@ -131,7 +142,7 @@ export default function LoginContent() {
           initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full max-w-[400px]"
+          className="w-full max-w-[400px] pb-14"
         >
           <div className="mb-6 flex items-center gap-2.5">
             <div className={authBrandMarkClassName()}>
@@ -145,7 +156,7 @@ export default function LoginContent() {
 
           <div className="mb-5">
             <h1 className={typeHeadingClassName("text-2xl tracking-tight mb-1")}>Sign in</h1>
-            <p className={cn("text-sm", text.muted)}>Use your work email and password.</p>
+            <p className={cn("text-sm", text.muted)}>Use your work email and password, or start with a demo account.</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
@@ -194,29 +205,50 @@ export default function LoginContent() {
           </form>
 
           <div className={authDemoPanelClassName()}>
-            <p className={cn("mb-2.5 text-xs text-center", text.muted)}>Quick demo</p>
-            <div className="flex gap-2" role="group" aria-label="Demo accounts">
-              {demoAccounts.map((account) => {
-                const isActive = selectedDemoId === account.id;
-                const isLoading = loadingDemoId === account.id;
+            <p className={cn("mb-2.5 text-xs text-center", text.muted)}>Demo accounts</p>
+            <div className="space-y-2">
+              <div className="flex gap-2" role="group" aria-label="Primary demo accounts">
+                {primaryDemoAccounts.map((account) => {
+                  const isActive = selectedDemoId === account.id;
+                  const isLoading = loadingDemoId === account.id;
 
-                return (
-                  <button
-                    key={account.id}
-                    type="button"
-                    onClick={() => handleDemoLogin(account)}
-                    disabled={loading || isDemoBusy}
-                    className={authDemoChipClassName(isActive)}
-                    aria-label={`Sign in as demo ${account.label}`}
-                  >
-                    {isLoading ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-                    ) : (
-                      account.label
-                    )}
-                  </button>
-                );
-              })}
+                  return (
+                    <button
+                      key={account.id}
+                      type="button"
+                      onClick={() => handleDemoLogin(account)}
+                      disabled={loading || isDemoBusy}
+                      className={authDemoChipClassName(isActive)}
+                      aria-label={`Sign in as demo ${account.label}`}
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                      ) : (
+                        account.label
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handleDemoLogin(riversideDemoAccount)}
+                disabled={loading || isDemoBusy}
+                className={authDemoRowClassName(selectedDemoId === riversideDemoAccount.id)}
+                aria-label={`Sign in as demo ${riversideDemoAccount.label}`}
+              >
+                {loadingDemoId === riversideDemoAccount.id ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                ) : (
+                  <>
+                    <span>{riversideDemoAccount.label}</span>
+                    <span className={cn("hidden font-normal sm:inline", text.muted)}>
+                      {riversideDemoAccount.hint}
+                    </span>
+                  </>
+                )}
+              </button>
             </div>
 
             <button
@@ -233,12 +265,12 @@ export default function LoginContent() {
                 )}
                 aria-hidden
               />
-              {showCredentials ? "Hide credentials" : "Show credentials"}
+              {showCredentials ? "Hide demo logins" : "Show demo logins"}
             </button>
 
             {showCredentials ? (
               <div id="demo-credentials" className={authDemoCredentialsClassName()}>
-                {demoAccounts.map((account) => (
+                {allDemoAccounts.map((account) => (
                   <p key={account.email} className="flex justify-between gap-2">
                     <span>{account.label}</span>
                     <span className={cn("text-right break-all", text.primary)}>{account.email}</span>

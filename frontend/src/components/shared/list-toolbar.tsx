@@ -4,7 +4,6 @@ import { ReactNode } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { BranchScopeIndicator } from "@/components/shared/branch-scope-indicator";
 import { decorativeIconClassName } from "@/lib/theme/color-helpers";
 import { listToolbarClassName, listToolbarFieldClassName, listToolbarFiltersClassName, listToolbarSearchClassName } from "@/lib/theme/feedback";
 import { text } from "@/lib/theme/surface";
@@ -17,10 +16,6 @@ type ListToolbarProps = {
   filters?: ReactNode;
   onReset?: () => void;
   showReset?: boolean;
-  /** @deprecated Use branchScope on HubPageHeader / PageChrome instead of toolbar scope. */
-  branchName?: string | null;
-  /** @deprecated Use branchScope on HubPageHeader / PageChrome instead of toolbar scope. */
-  allBranches?: boolean;
   className?: string;
 };
 
@@ -31,8 +26,6 @@ export function ListToolbar({
   filters,
   onReset,
   showReset = false,
-  branchName,
-  allBranches = false,
   className,
 }: ListToolbarProps) {
   const hasSearch = onSearchChange != null;
@@ -61,9 +54,6 @@ export function ListToolbar({
         {filters && <div className={listToolbarFiltersClassName()}>{filters}</div>}
       </div>
       <div className="flex flex-wrap items-center gap-2 shrink-0">
-        {(branchName || allBranches) && (
-          <BranchScopeIndicator branchName={branchName} allBranches={allBranches} />
-        )}
         {showReset && onReset && (
           <Button
             type="button"

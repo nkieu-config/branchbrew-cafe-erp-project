@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import type { ColumnsType } from "antd/es/table";
-import Link from "next/link";
 import { DataTable } from "@/components/shared/data-table";
 import {
   ListMobileCard,

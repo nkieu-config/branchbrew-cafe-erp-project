@@ -62,8 +62,6 @@ import type { StockTransfersPanelHandle } from "@/components/inventory/stock-tra
 export type { StockTransfersPanelHandle };
 
 interface StockTransfersPanelProps {
-  /** @deprecated Use `variant` instead */
-  mode?: "full" | "compact";
   /** `page` — full transfers tab. `compact` — overview widget. */
   variant?: "page" | "compact";
   /** When compact, limit ingredient picker to branch stock on hand. */
@@ -77,8 +75,8 @@ function BranchCell({ name }: { name: string | undefined }) {
 export const StockTransfersPanel = forwardRef<
   StockTransfersPanelHandle,
   StockTransfersPanelProps
->(function StockTransfersPanel({ mode, variant: variantProp, sourceInventories }, ref) {
-  const variant = variantProp ?? (mode === "compact" ? "compact" : "page");
+>(function StockTransfersPanel({ variant: variantProp = "page", sourceInventories }, ref) {
+  const variant = variantProp;
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();

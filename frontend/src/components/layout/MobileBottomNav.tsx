@@ -3,8 +3,6 @@
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useMobileNav } from "@/context/MobileNavContext";
-import { useSidebarNavBadges } from "@/hooks/useSidebarNavBadges";
-import { resolveMobileBottomNavBadge } from "@/lib/sidebar-badges";
 import { getMobileBottomNavItems, isMobileBottomNavActive } from "@/lib/navigation/mobile-nav";
 import {
   MobileBottomNavLink,
@@ -17,7 +15,6 @@ export function MobileBottomNav() {
   const pathname = usePathname();
   const { user } = useAuth();
   const { toggle } = useMobileNav();
-  const { badges } = useSidebarNavBadges();
   const role = (user?.role ?? "STAFF") as Role;
   const items = getMobileBottomNavItems(role);
 
@@ -27,7 +24,6 @@ export function MobileBottomNav() {
     <MobileBottomNavShell ariaLabel="Quick navigation">
       {items.map((item) => {
         const isActive = isMobileBottomNavActive(item, pathname);
-        const badge = resolveMobileBottomNavBadge(item.id, badges);
 
         if (item.action === "menu") {
           return (
@@ -37,7 +33,6 @@ export function MobileBottomNav() {
               icon={item.icon}
               label={item.label}
               isActive={false}
-              badge={badge}
             />
           );
         }
@@ -49,7 +44,6 @@ export function MobileBottomNav() {
             icon={item.icon}
             label={item.label}
             isActive={isActive}
-            badge={badge}
           />
         );
       })}

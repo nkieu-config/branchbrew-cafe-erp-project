@@ -10,5 +10,11 @@ export function AlertsWidgetSkeleton() {
 }
 
 export function ChartWidgetSkeleton({ className }: { className?: string }) {
-  return <div className={dashboardSkeletonClass(cn("h-[320px]", className))} />;
+  return (
+    <div
+      className={dashboardSkeletonClass(
+        cn("min-h-[340px] h-auto sm:min-h-0 sm:h-[340px] lg:h-[380px]", className),
+      )}
+    />
+  );
 }

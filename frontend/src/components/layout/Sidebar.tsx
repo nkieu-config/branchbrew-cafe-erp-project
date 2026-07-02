@@ -6,7 +6,6 @@ import { Coffee, ChevronDown, PanelLeftClose } from "lucide-react";
 import { SidebarNavItem } from "@/components/layout/SidebarNavItem";
 import { useAuth } from "@/context/AuthContext";
 import { useSidebarExpandedGroups } from "@/hooks/useSidebarExpandedGroups";
-import { useSidebarNavBadges } from "@/hooks/useSidebarNavBadges";
 import { SIDEBAR_GROUPS } from "@/lib/navigation/sidebar";
 import { sidebarBrandLinkClassName, sidebarBrandTitleClassName, sidebarBrandMarkClassName, sidebarBrandMarkIconClassName, sidebarGroupButtonClassName, sidebarIconButtonClassName, sidebarRootClassName, shell, shellHeaderInsetClassName } from "@/lib/theme/shell";
 import { cn } from "@/lib/utils";
@@ -27,7 +26,6 @@ export function Sidebar({ onNavigate, onCollapse, className }: SidebarProps) {
   const { user } = useAuth();
   const role = (user?.role ?? "STAFF") as Role;
   const { expandedGroups, toggleGroup } = useSidebarExpandedGroups(user?.role as Role | undefined);
-  const { badges, childTabBadges } = useSidebarNavBadges();
 
   let visibleGroupIndex = 0;
 
@@ -80,8 +78,6 @@ export function Sidebar({ onNavigate, onCollapse, className }: SidebarProps) {
                   pathname={pathname}
                   role={role}
                   onNavigate={onNavigate}
-                  badges={badges}
-                  childTabBadges={childTabBadges}
                 />
               </div>
             );
@@ -121,8 +117,6 @@ export function Sidebar({ onNavigate, onCollapse, className }: SidebarProps) {
                       pathname={pathname}
                       role={role}
                       onNavigate={onNavigate}
-                      badges={badges}
-                      childTabBadges={childTabBadges}
                     />
                   ))}
                 </div>

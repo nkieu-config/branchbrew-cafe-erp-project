@@ -33,7 +33,7 @@ import {
 } from "@/lib/inventory-alerts";
 import { formatDashboardCurrency } from "@/lib/format-dashboard-currency";
 import { formatDate } from "@/lib/intl-date";
-import { dashboardAlertsEmptyClass, dashboardAlertsEmptyIconClassName, dashboardAlertsEmptyTextClassName, dashboardAlertsExpiryMetaClassName, dashboardAlertsExpiryValueClassName, dashboardAlertsFooterClass, dashboardAlertsFooterLinkClass, dashboardAlertCountBadgeClass, dashboardAlertsLowMetaClassName, dashboardAlertsLowValueClassName, dashboardAlertsRowClass, dashboardKpiBodyClass, dashboardSkeletonClass, dashboardTrendBadgeClass, dashboardWidgetCardClass, dashboardWidgetIconSoftClass, dashboardWidgetIconSolidClass, dashboardWidgetLabelClass, dashboardWidgetValueClass } from "@/lib/theme/dashboard";
+import { dashboardAlertsEmptyClass, dashboardAlertsEmptyIconClassName, dashboardAlertsEmptyTextClassName, dashboardAlertsExpiryMetaClassName, dashboardAlertsExpiryValueClassName, dashboardAlertsFooterClass, dashboardAlertsFooterLinkClass, dashboardAlertCountBadgeClass, dashboardAlertsLowMetaClassName, dashboardAlertsLowValueClassName, dashboardAlertsRowClass, dashboardChartWidgetContentClass, dashboardChartWidgetShellClass, dashboardKpiBodyClass, dashboardSkeletonClass, dashboardTrendBadgeClass, dashboardWidgetCardClass, dashboardWidgetIconSoftClass, dashboardWidgetIconSolidClass, dashboardWidgetLabelClass, dashboardWidgetValueClass } from "@/lib/theme/dashboard";
 import { text } from "@/lib/theme/surface";
 import { typeHeadingClassName, typeMetricClassName, typeUiLabelClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
@@ -58,7 +58,8 @@ function hasComparableGrowth(
   );
 }
 
-export function SalesWidget({ branchId: _branchId }: { branchId: string }) {
+export function SalesWidget({ branchId }: { branchId: string }) {
+  void branchId;
   const summary = useDashboardSummary();
   const showGrowth = hasComparableGrowth(summary?.salesGrowth, summary?.salesYesterday);
 
@@ -463,14 +464,14 @@ export function TopProductsWidget({ branchId }: { branchId: string }) {
   const { data: topProducts } = useTopProductsSuspense(branchId);
 
   return (
-    <Card className={dashboardWidgetCardClass("products", "h-[320px] flex flex-col")}>
+    <Card className={dashboardWidgetCardClass("products", dashboardChartWidgetShellClass())}>
       <DashboardWidgetHeader
         variant="products"
         icon={Award}
         title="Top 3 Best Sellers"
         description="Highest volume items today"
       />
-      <CardContent className="flex-1 min-h-0 px-5 pb-4 pt-1">
+      <CardContent className={dashboardChartWidgetContentClass()}>
         <TopProductsChart data={topProducts ?? []} />
       </CardContent>
     </Card>

@@ -12,12 +12,15 @@ import {
   breadcrumbNavClassName,
   breadcrumbParentClassName,
   breadcrumbSeparatorClassName,
+  topbarMobileBreadcrumbCurrentClassName,
 } from "@/lib/theme/shell";
 import { cn } from "@/lib/utils";
 
 type BreadcrumbTrailProps = {
   items: BreadcrumbItem[];
   className?: string;
+  /** Mobile topbar — current page matches title size (text-base semibold). */
+  variant?: "default" | "mobile-topbar";
 };
 
 function BreadcrumbSeparator() {
@@ -30,8 +33,13 @@ function BreadcrumbSeparator() {
   );
 }
 
-export function BreadcrumbTrail({ items, className }: BreadcrumbTrailProps) {
+export function BreadcrumbTrail({
+  items,
+  className,
+  variant = "default",
+}: BreadcrumbTrailProps) {
   const isDesktop = useIsLgUp();
+  const mobileTopbar = variant === "mobile-topbar" && !isDesktop;
   const segments = buildBreadcrumbDisplay(items, isDesktop);
 
   if (segments.length === 0) return null;
@@ -61,7 +69,9 @@ export function BreadcrumbTrail({ items, className }: BreadcrumbTrailProps) {
                 <span
                   className={
                     isLast
-                      ? breadcrumbCurrentClassName("min-w-0")
+                      ? mobileTopbar
+                        ? topbarMobileBreadcrumbCurrentClassName()
+                        : breadcrumbCurrentClassName("min-w-0")
                       : breadcrumbParentClassName()
                   }
                   aria-current={isLast ? "page" : undefined}

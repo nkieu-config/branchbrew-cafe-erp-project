@@ -166,8 +166,8 @@ export function ClockInOutWidget({ variant = "toolbar" }: ClockInOutWidgetProps)
       aria-label="Clock in"
     >
       <Clock className="w-4 h-4 shrink-0" aria-hidden />
-      <span className="hidden sm:inline">Clock in</span>
+      <span className="hidden sm:inline whitespace-nowrap">Clock in</span>
     </button>,
-    "w-auto",
+    "w-10 sm:w-auto",
   );
 }

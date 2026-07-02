@@ -46,7 +46,7 @@ export function authPrimaryButtonClassName(className?: string) {
   return cn(
     "inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors",
     "bg-[var(--brand-solid)] text-[var(--on-brand-solid-fg)]",
-    "hover:opacity-90 w-full h-11 mt-2 border-transparent",
+    "hover:opacity-90 w-full h-11 border-transparent",
     "disabled:pointer-events-none disabled:opacity-50",
     className,
   );
@@ -71,9 +71,18 @@ export function authDemoChipClassName(active?: boolean, className?: string) {
   );
 }
 
+/** Full-width secondary demo action (e.g. alternate branch login). */
+export function authDemoRowClassName(active?: boolean, className?: string) {
+  return cn(
+    authDemoChipClassName(active),
+    "flex w-full flex-none justify-center px-3 text-left sm:justify-between",
+    className,
+  );
+}
+
 export function authDemoCredentialsToggleClassName(className?: string) {
   return cn(
-    "mt-2 flex w-full items-center justify-center gap-1 text-xs transition-colors",
+    "mt-2 flex w-full min-h-[44px] items-center justify-center gap-1 text-xs transition-colors",
     text.muted,
     "hover:text-[var(--foreground)]",
     className,
@@ -92,25 +101,6 @@ export function authDemoCredentialsClassName(className?: string) {
 export function authDemoCredentialsPasswordRowClassName(className?: string) {
   return cn(
     "flex justify-between gap-2 border-t pt-1",
-    "border-[var(--table-row-border)]",
-    className,
-  );
-}
-
-/** @deprecated Use authDemoChipClassName for compact demo role buttons. */
-export function authDemoButtonClassName(className?: string) {
-  return cn(
-    "w-full flex justify-between items-center font-mono text-xs rounded-lg px-3 py-2 transition-colors text-left",
-    "border border-transparent hover:border-[var(--table-container-border)]",
-    "hover:bg-[var(--table-container-bg)]",
-    className,
-  );
-}
-
-/** @deprecated Credentials are shown in a collapsible block. */
-export function authDemoDividerClassName(className?: string) {
-  return cn(
-    "flex justify-between mt-2 pt-2 border-t font-mono text-xs px-1",
     "border-[var(--table-row-border)]",
     className,
   );
@@ -226,8 +216,8 @@ export function authHeroStatLabelClassName(className?: string) {
 
 export function authGitHubLinkClassName(className?: string) {
   return cn(
-    "absolute bottom-6 left-6 sm:left-10 lg:left-14 xl:left-16 z-20",
-    "inline-flex items-center gap-1.5 text-xs transition-colors",
+    "absolute bottom-6 left-1/2 z-20 -translate-x-1/2",
+    "inline-flex items-center gap-1.5 min-h-[44px] px-3 text-xs transition-colors",
     text.muted,
     "hover:text-[var(--foreground)]",
     className,

@@ -9,7 +9,6 @@ import { RouteTransition } from "@/components/layout/RouteTransition";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { MobileNavProvider, useMobileNav } from "@/context/MobileNavContext";
 import { ScrollCompactProvider } from "@/context/ScrollCompactContext";
-import { SidebarBadgesProvider } from "@/context/SidebarBadgesContext";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { isImmersiveRoute, isOperationalImmersiveRoute } from "@/lib/shell-routes";
 import { cn } from "@/lib/utils";
@@ -101,11 +100,9 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
           tabIndex={-1}
           className="flex-1 min-w-0 min-h-0 h-full relative z-10 flex flex-col outline-none"
         >
-          <div className={cn(operationalImmersive && "hidden lg:block")}>
-            <ScrollCompactProvider compact={scrollCompact}>
-              <AppHeader />
-            </ScrollCompactProvider>
-          </div>
+          <ScrollCompactProvider compact={scrollCompact}>
+            <AppHeader />
+          </ScrollCompactProvider>
           <div
             ref={scrollRef}
             onScroll={handleScroll}
@@ -120,7 +117,11 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
             </RouteTransition>
           ) : (
             <RouteTransition
-              className={cn(shellContentFrameClassName(), shellContentPaddingYClassName(), "h-full min-h-0 flex flex-col")}
+              className={cn(
+                shellContentFrameClassName(),
+                shellContentPaddingYClassName(),
+                "min-h-full flex flex-col",
+              )}
             >
               {children}
             </RouteTransition>
@@ -136,9 +137,7 @@ function AppShellInner({ children }: { children: React.ReactNode }) {
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <MobileNavProvider>
-      <SidebarBadgesProvider>
-        <AppShellInner>{children}</AppShellInner>
-      </SidebarBadgesProvider>
+      <AppShellInner>{children}</AppShellInner>
     </MobileNavProvider>
   );
 }

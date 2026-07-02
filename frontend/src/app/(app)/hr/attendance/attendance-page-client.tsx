@@ -31,7 +31,6 @@ import type { Shift } from "@/types/api";
 export default function AttendancePageClient() {
   const { user, activeBranchId } = useAuth();
   const role = user?.role;
-  const branchIdNum = activeBranchId ? Number(activeBranchId) : undefined;
 
   const {
     data: attendanceData,
