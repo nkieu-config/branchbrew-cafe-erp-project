@@ -14,7 +14,11 @@ export class AccountResponseDto {
   @ApiProperty({ enum: AccountType, example: AccountType.ASSET })
   type: AccountType;
 
-  @ApiProperty({ type: String, example: 'Petty cash and register float', nullable: true })
+  @ApiProperty({
+    type: String,
+    example: 'Petty cash and register float',
+    nullable: true,
+  })
   description: string | null;
 
   @ApiProperty({ example: true })

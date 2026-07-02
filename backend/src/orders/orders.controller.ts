@@ -86,7 +86,10 @@ export class OrdersController {
 
   @Patch(':id/status')
   @ApiOperation({ summary: 'Update order status' })
-  @ApiOkResponse({ type: OrderResponseDto, description: 'Order status updated' })
+  @ApiOkResponse({
+    type: OrderResponseDto,
+    description: 'Order status updated',
+  })
   @ApiCommonErrorResponses()
   updateOrderStatus(
     @Param('id', ParseIntPipe) id: number,

@@ -58,7 +58,10 @@ export class EquipmentController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get equipment by id' })
-  @ApiOkResponse({ type: EquipmentDetailResponseDto, description: 'Equipment retrieved' })
+  @ApiOkResponse({
+    type: EquipmentDetailResponseDto,
+    description: 'Equipment retrieved',
+  })
   findOne(
     @Request() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
@@ -69,7 +72,10 @@ export class EquipmentController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post()
   @ApiOperation({ summary: 'Create equipment' })
-  @ApiOkResponse({ type: EquipmentResponseDto, description: 'Equipment created' })
+  @ApiOkResponse({
+    type: EquipmentResponseDto,
+    description: 'Equipment created',
+  })
   create(@Body() dto: CreateEquipmentDto, @Request() req: RequestWithUser) {
     const branchId = resolveBranchId(req.user, dto.branchId);
     return this.equipmentService.create({
@@ -90,7 +96,10 @@ export class EquipmentController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch(':id')
   @ApiOperation({ summary: 'Update equipment' })
-  @ApiOkResponse({ type: EquipmentResponseDto, description: 'Equipment updated' })
+  @ApiOkResponse({
+    type: EquipmentResponseDto,
+    description: 'Equipment updated',
+  })
   update(
     @Request() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
@@ -117,7 +126,10 @@ export class EquipmentController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post(':id/maintenance')
   @ApiOperation({ summary: 'Log equipment maintenance' })
-  @ApiOkResponse({ type: MaintenanceLogResponseDto, description: 'Maintenance logged' })
+  @ApiOkResponse({
+    type: MaintenanceLogResponseDto,
+    description: 'Maintenance logged',
+  })
   logMaintenance(
     @Request() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,

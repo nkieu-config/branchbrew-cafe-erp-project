@@ -76,7 +76,10 @@ export class BranchesController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('transfers')
   @ApiOperation({ summary: 'Create stock transfer' })
-  @ApiOkResponse({ type: StockTransferResponseDto, description: 'Transfer created' })
+  @ApiOkResponse({
+    type: StockTransferResponseDto,
+    description: 'Transfer created',
+  })
   createTransfer(
     @Body() dto: CreateTransferDto,
     @Request() req: RequestWithUser,
@@ -94,7 +97,10 @@ export class BranchesController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('transfers/:id/accept')
   @ApiOperation({ summary: 'Accept stock transfer' })
-  @ApiOkResponse({ type: StockTransferResponseDto, description: 'Transfer accepted' })
+  @ApiOkResponse({
+    type: StockTransferResponseDto,
+    description: 'Transfer accepted',
+  })
   acceptTransfer(
     @Param('id', ParseIntPipe) id: number,
     @Request() req: RequestWithUser,

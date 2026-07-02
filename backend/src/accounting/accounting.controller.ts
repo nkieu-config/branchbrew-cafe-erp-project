@@ -83,7 +83,10 @@ export class AccountingController {
   @Post('seed')
   @Roles('SUPER_ADMIN')
   @ApiOperation({ summary: 'Seed default chart of accounts' })
-  @ApiOkResponse({ type: SeedAccountsResponseDto, description: 'Accounts seeded' })
+  @ApiOkResponse({
+    type: SeedAccountsResponseDto,
+    description: 'Accounts seeded',
+  })
   async seedAccounts() {
     await this.accountingService.seedAccounts();
     return { success: true, message: 'Accounts seeded successfully' };

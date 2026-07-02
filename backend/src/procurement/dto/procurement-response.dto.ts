@@ -10,7 +10,11 @@ export class SupplierResponseDto {
   @ApiProperty({ example: 'Fresh Farms Co.' })
   name: string;
 
-  @ApiProperty({ type: String, example: 'orders@freshfarms.dev', nullable: true })
+  @ApiProperty({
+    type: String,
+    example: 'orders@freshfarms.dev',
+    nullable: true,
+  })
   contactEmail: string | null;
 
   @ApiProperty({ type: String, example: '+66 2 123 4567', nullable: true })
@@ -74,6 +78,10 @@ export class PurchaseOrderResponseDto {
   @ApiProperty({ type: BranchResponseDto, required: false })
   branch?: BranchResponseDto;
 
-  @ApiProperty({ type: PurchaseOrderItemResponseDto, isArray: true, required: false })
+  @ApiProperty({
+    type: PurchaseOrderItemResponseDto,
+    isArray: true,
+    required: false,
+  })
   items?: PurchaseOrderItemResponseDto[];
 }

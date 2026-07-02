@@ -48,7 +48,10 @@ export class HrController {
 
   @Post('clock-in')
   @ApiOperation({ summary: 'Clock in' })
-  @ApiOkResponse({ type: AttendanceRecordResponseDto, description: 'Clock-in recorded' })
+  @ApiOkResponse({
+    type: AttendanceRecordResponseDto,
+    description: 'Clock-in recorded',
+  })
   clockIn(@Request() req: RequestWithUser, @Body() dto: ClockInDto) {
     assertBranchAccess(req.user, dto.branchId);
     return this.hrService.clockIn(req.user.userId, dto.branchId);
@@ -56,7 +59,10 @@ export class HrController {
 
   @Post('clock-out')
   @ApiOperation({ summary: 'Clock out' })
-  @ApiOkResponse({ type: AttendanceRecordResponseDto, description: 'Clock-out recorded' })
+  @ApiOkResponse({
+    type: AttendanceRecordResponseDto,
+    description: 'Clock-out recorded',
+  })
   clockOut(@Request() req: RequestWithUser) {
     return this.hrService.clockOut(req.user.userId);
   }
@@ -74,7 +80,10 @@ export class HrController {
 
   @Get('attendance/status')
   @ApiOperation({ summary: 'Get active clock-in status' })
-  @ApiOkResponse({ type: AttendanceRecordResponseDto, description: 'Clock-in status retrieved' })
+  @ApiOkResponse({
+    type: AttendanceRecordResponseDto,
+    description: 'Clock-in status retrieved',
+  })
   getActiveClockIn(@Request() req: RequestWithUser) {
     return this.hrService.getActiveClockIn(req.user.userId);
   }
@@ -116,7 +125,10 @@ export class HrController {
 
   @Post('leave')
   @ApiOperation({ summary: 'Request leave' })
-  @ApiOkResponse({ type: LeaveRequestResponseDto, description: 'Leave request submitted' })
+  @ApiOkResponse({
+    type: LeaveRequestResponseDto,
+    description: 'Leave request submitted',
+  })
   requestLeave(@Request() req: RequestWithUser, @Body() dto: RequestLeaveDto) {
     return this.hrService.requestLeave(req.user.userId, dto);
   }
@@ -154,7 +166,10 @@ export class HrController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('leave/:id/status')
   @ApiOperation({ summary: 'Process leave request' })
-  @ApiOkResponse({ type: LeaveRequestResponseDto, description: 'Leave request updated' })
+  @ApiOkResponse({
+    type: LeaveRequestResponseDto,
+    description: 'Leave request updated',
+  })
   processLeaveRequest(
     @Request() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
@@ -166,7 +181,10 @@ export class HrController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('payroll/generate')
   @ApiOperation({ summary: 'Generate payroll run' })
-  @ApiOkResponse({ type: PayrollRunResponseDto, description: 'Payroll run generated' })
+  @ApiOkResponse({
+    type: PayrollRunResponseDto,
+    description: 'Payroll run generated',
+  })
   generatePayrollRun(
     @Request() req: RequestWithUser,
     @Body() dto: GeneratePayrollDto,
@@ -199,7 +217,10 @@ export class HrController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('payroll-runs/:id/approve')
   @ApiOperation({ summary: 'Approve payroll run' })
-  @ApiOkResponse({ type: PayrollRunResponseDto, description: 'Payroll run approved' })
+  @ApiOkResponse({
+    type: PayrollRunResponseDto,
+    description: 'Payroll run approved',
+  })
   approvePayrollRun(
     @Request() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
@@ -210,7 +231,10 @@ export class HrController {
   @Roles('SUPER_ADMIN')
   @Patch('users/:userId/rate')
   @ApiOperation({ summary: 'Update user hourly rate' })
-  @ApiOkResponse({ type: HrUserResponseDto, description: 'Hourly rate updated' })
+  @ApiOkResponse({
+    type: HrUserResponseDto,
+    description: 'Hourly rate updated',
+  })
   updateHourlyRate(
     @Param('userId', ParseIntPipe) userId: number,
     @Body() dto: UpdateHourlyRateDto,

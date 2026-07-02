@@ -1,9 +1,10 @@
 import { test, expect } from "@playwright/test";
+import { expectPosTerminalReady } from "./helpers";
 
 test.describe("authenticated routes", () => {
   test("manager can open POS terminal", async ({ page }) => {
     await page.goto("/pos/terminal");
-    await expect(page.getByText(/select a branch|product|cart/i).first()).toBeVisible();
+    await expectPosTerminalReady(page);
   });
 
   test("manager can open inventory balance", async ({ page }) => {

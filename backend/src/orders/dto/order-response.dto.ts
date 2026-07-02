@@ -56,7 +56,11 @@ export class OrderItemResponseDto {
   @ApiProperty({ type: OrderProductSummaryDto, required: false })
   product?: OrderProductSummaryDto;
 
-  @ApiProperty({ type: OrderItemModifierResponseDto, isArray: true, required: false })
+  @ApiProperty({
+    type: OrderItemModifierResponseDto,
+    isArray: true,
+    required: false,
+  })
   modifiers?: OrderItemModifierResponseDto[];
 }
 
@@ -129,13 +133,23 @@ export class OrderResponseDto {
   @ApiProperty({ type: Number, example: 42, nullable: true, required: false })
   queueNumber?: number | null;
 
-  @ApiProperty({ type: String, format: 'date', nullable: true, required: false })
+  @ApiProperty({
+    type: String,
+    format: 'date',
+    nullable: true,
+    required: false,
+  })
   queueDate?: Date | null;
 
   @ApiProperty({ type: String, nullable: true, required: false })
   refundReason?: string | null;
 
-  @ApiProperty({ type: String, format: 'date-time', nullable: true, required: false })
+  @ApiProperty({
+    type: String,
+    format: 'date-time',
+    nullable: true,
+    required: false,
+  })
   refundedAt?: Date | null;
 
   @ApiProperty({ type: String, format: 'date-time' })
@@ -150,6 +164,10 @@ export class OrderResponseDto {
   @ApiProperty({ type: BranchResponseDto, required: false })
   branch?: BranchResponseDto;
 
-  @ApiProperty({ type: OrderPromotionSummaryDto, required: false, nullable: true })
+  @ApiProperty({
+    type: OrderPromotionSummaryDto,
+    required: false,
+    nullable: true,
+  })
   promotion?: OrderPromotionSummaryDto | null;
 }

@@ -9,7 +9,7 @@ export const surface = {
 
 export const text = {
   primary: "text-foreground",
-  secondary: "text-secondary",
+  secondary: "text-text-secondary",
   subtle: "text-subtle",
   muted: "text-muted-foreground",
   brand: "text-brand-text",

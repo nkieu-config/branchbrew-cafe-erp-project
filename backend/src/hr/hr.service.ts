@@ -133,7 +133,9 @@ export class HrService {
   async getLeaveRequests(branchId?: number) {
     return this.prisma.leaveRequest.findMany({
       where: branchId ? { user: { branchId } } : {},
-      include: { user: { select: { name: true, email: true, branchId: true } } },
+      include: {
+        user: { select: { name: true, email: true, branchId: true } },
+      },
       orderBy: { createdAt: 'desc' },
     });
   }

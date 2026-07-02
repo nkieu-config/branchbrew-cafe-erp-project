@@ -85,7 +85,10 @@ export class IngredientsController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post()
   @ApiOperation({ summary: 'Create ingredient' })
-  @ApiOkResponse({ type: IngredientResponseDto, description: 'Ingredient created' })
+  @ApiOkResponse({
+    type: IngredientResponseDto,
+    description: 'Ingredient created',
+  })
   create(@Body() dto: CreateIngredientDto) {
     return this.ingredientsService.create(dto);
   }
@@ -103,7 +106,10 @@ export class IngredientsController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get ingredient by id' })
-  @ApiOkResponse({ type: IngredientResponseDto, description: 'Ingredient retrieved' })
+  @ApiOkResponse({
+    type: IngredientResponseDto,
+    description: 'Ingredient retrieved',
+  })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.ingredientsService.findOne(id);
   }
@@ -111,7 +117,10 @@ export class IngredientsController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch(':id')
   @ApiOperation({ summary: 'Update ingredient' })
-  @ApiOkResponse({ type: IngredientResponseDto, description: 'Ingredient updated' })
+  @ApiOkResponse({
+    type: IngredientResponseDto,
+    description: 'Ingredient updated',
+  })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateIngredientDto,
@@ -122,7 +131,10 @@ export class IngredientsController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Delete(':id')
   @ApiOperation({ summary: 'Delete ingredient' })
-  @ApiOkResponse({ type: IngredientResponseDto, description: 'Ingredient deleted' })
+  @ApiOkResponse({
+    type: IngredientResponseDto,
+    description: 'Ingredient deleted',
+  })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.ingredientsService.remove(id);
   }

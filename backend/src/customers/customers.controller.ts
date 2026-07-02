@@ -48,7 +48,10 @@ export class CustomersController {
 
   @Get('phone/:phone')
   @ApiOperation({ summary: 'Get customer by phone' })
-  @ApiOkResponse({ type: CustomerResponseDto, description: 'Customer retrieved' })
+  @ApiOkResponse({
+    type: CustomerResponseDto,
+    description: 'Customer retrieved',
+  })
   findByPhone(@Param('phone') phone: string) {
     return this.customersService.findByPhone(phone);
   }
@@ -65,7 +68,10 @@ export class CustomersController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get customer by id' })
-  @ApiOkResponse({ type: CustomerResponseDto, description: 'Customer retrieved' })
+  @ApiOkResponse({
+    type: CustomerResponseDto,
+    description: 'Customer retrieved',
+  })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.customersService.findOne(id);
   }

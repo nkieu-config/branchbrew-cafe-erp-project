@@ -53,7 +53,11 @@ export class Customer360OrderDto {
   @ApiProperty({ type: String, format: 'date-time' })
   createdAt: Date;
 
-  @ApiProperty({ type: Customer360OrderItemDto, isArray: true, required: false })
+  @ApiProperty({
+    type: Customer360OrderItemDto,
+    isArray: true,
+    required: false,
+  })
   items?: Customer360OrderItemDto[];
 }
 

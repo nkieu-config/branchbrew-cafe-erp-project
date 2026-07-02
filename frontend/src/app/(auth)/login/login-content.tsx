@@ -143,6 +143,7 @@ export default function LoginContent() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           className="w-full max-w-[400px] pb-14"
+          data-testid="login-panel"
         >
           <div className="mb-6 flex items-center gap-2.5">
             <div className={authBrandMarkClassName()}>
@@ -286,7 +287,7 @@ export default function LoginContent() {
         </motion.div>
       </div>
 
-      <div className={authHeroPanelClassName()}>
+      <div className={authHeroPanelClassName()} data-testid="login-hero">
         <div className={authHeroGlowClassName("top-[-10%] left-[-10%] w-[50%] h-[50%]")} />
         <div className={authHeroGlowClassName("bottom-[-10%] right-[-10%] w-[60%] h-[60%] blur-[130px]")} />
 

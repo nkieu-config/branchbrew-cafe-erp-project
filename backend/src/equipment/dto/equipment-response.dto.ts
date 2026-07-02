@@ -67,6 +67,10 @@ export class EquipmentResponseDto {
 }
 
 export class EquipmentDetailResponseDto extends EquipmentResponseDto {
-  @ApiProperty({ type: MaintenanceLogResponseDto, isArray: true, required: false })
+  @ApiProperty({
+    type: MaintenanceLogResponseDto,
+    isArray: true,
+    required: false,
+  })
   maintenanceLogs?: MaintenanceLogResponseDto[];
 }

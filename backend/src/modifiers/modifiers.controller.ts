@@ -49,7 +49,10 @@ export class ModifiersController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('groups')
   @ApiOperation({ summary: 'Create modifier group' })
-  @ApiOkResponse({ type: ModifierGroupResponseDto, description: 'Modifier group created' })
+  @ApiOkResponse({
+    type: ModifierGroupResponseDto,
+    description: 'Modifier group created',
+  })
   createGroup(@Body() dto: CreateModifierGroupDto) {
     return this.modifiersService.createGroup(dto);
   }
@@ -57,7 +60,10 @@ export class ModifiersController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('groups/:id')
   @ApiOperation({ summary: 'Update modifier group' })
-  @ApiOkResponse({ type: ModifierGroupResponseDto, description: 'Modifier group updated' })
+  @ApiOkResponse({
+    type: ModifierGroupResponseDto,
+    description: 'Modifier group updated',
+  })
   updateGroup(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateModifierGroupDto,
@@ -68,7 +74,10 @@ export class ModifiersController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Delete('groups/:id')
   @ApiOperation({ summary: 'Delete modifier group' })
-  @ApiOkResponse({ type: ModifierDeleteResponseDto, description: 'Modifier group deleted' })
+  @ApiOkResponse({
+    type: ModifierDeleteResponseDto,
+    description: 'Modifier group deleted',
+  })
   deleteGroup(@Param('id', ParseIntPipe) id: number) {
     return this.modifiersService.deleteGroup(id);
   }
@@ -76,7 +85,10 @@ export class ModifiersController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('options')
   @ApiOperation({ summary: 'Create modifier option' })
-  @ApiOkResponse({ type: ModifierOptionResponseDto, description: 'Modifier option created' })
+  @ApiOkResponse({
+    type: ModifierOptionResponseDto,
+    description: 'Modifier option created',
+  })
   createOption(@Body() dto: CreateModifierOptionForGroupDto) {
     return this.modifiersService.createOption(dto);
   }
@@ -84,7 +96,10 @@ export class ModifiersController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('options/:id')
   @ApiOperation({ summary: 'Update modifier option' })
-  @ApiOkResponse({ type: ModifierOptionResponseDto, description: 'Modifier option updated' })
+  @ApiOkResponse({
+    type: ModifierOptionResponseDto,
+    description: 'Modifier option updated',
+  })
   updateOption(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateModifierOptionDto,
@@ -95,7 +110,10 @@ export class ModifiersController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Delete('options/:id')
   @ApiOperation({ summary: 'Delete modifier option' })
-  @ApiOkResponse({ type: ModifierDeleteResponseDto, description: 'Modifier option deleted' })
+  @ApiOkResponse({
+    type: ModifierDeleteResponseDto,
+    description: 'Modifier option deleted',
+  })
   deleteOption(@Param('id', ParseIntPipe) id: number) {
     return this.modifiersService.deleteOption(id);
   }

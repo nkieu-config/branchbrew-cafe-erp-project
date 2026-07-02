@@ -25,7 +25,10 @@ export class SettingsController {
 
   @Get()
   @ApiOperation({ summary: 'Get system settings' })
-  @ApiOkResponse({ type: SettingsResponseDto, description: 'Settings retrieved' })
+  @ApiOkResponse({
+    type: SettingsResponseDto,
+    description: 'Settings retrieved',
+  })
   getAllSettings() {
     return this.settingsService.getAllSettings();
   }

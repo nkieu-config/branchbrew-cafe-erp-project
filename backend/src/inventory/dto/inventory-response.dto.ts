@@ -51,7 +51,12 @@ export class InventoryBatchResponseDto {
   @ApiProperty({ example: 12 })
   quantity: number;
 
-  @ApiProperty({ type: String, format: 'date-time', nullable: true, required: false })
+  @ApiProperty({
+    type: String,
+    format: 'date-time',
+    nullable: true,
+    required: false,
+  })
   expiryDate?: Date | null;
 
   @ApiProperty({ type: Number, nullable: true, required: false })

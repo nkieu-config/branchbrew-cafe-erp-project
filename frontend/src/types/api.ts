@@ -23,7 +23,6 @@ import type {
 } from '@erp/types';
 
 import type { Account } from './accounting';
-import type { Ingredient } from './ingredients';
 import type { Product } from './products';
 import type { User } from './hr';
 import type { ValidatePromotionResult } from './promotions';

@@ -63,7 +63,10 @@ export class ProductionController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post('orders')
   @ApiOperation({ summary: 'Create production order' })
-  @ApiOkResponse({ type: ProductionOrderResponseDto, description: 'Production order created' })
+  @ApiOkResponse({
+    type: ProductionOrderResponseDto,
+    description: 'Production order created',
+  })
   createOrder(
     @Req() req: RequestWithUser,
     @Body() dto: CreateProductionOrderDto,
@@ -97,7 +100,10 @@ export class ProductionController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('orders/:id/complete')
   @ApiOperation({ summary: 'Complete production order' })
-  @ApiOkResponse({ type: ProductionOrderResponseDto, description: 'Production order completed' })
+  @ApiOkResponse({
+    type: ProductionOrderResponseDto,
+    description: 'Production order completed',
+  })
   completeOrder(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: RequestWithUser,

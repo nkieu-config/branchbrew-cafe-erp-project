@@ -31,7 +31,11 @@ export class AuditLogResponseDto {
   @ApiProperty({ type: Number, example: 10, nullable: true })
   targetId: number | null;
 
-  @ApiProperty({ type: String, example: '{"poNumber":"PO-2026-0001"}', nullable: true })
+  @ApiProperty({
+    type: String,
+    example: '{"poNumber":"PO-2026-0001"}',
+    nullable: true,
+  })
   details: string | null;
 
   @ApiProperty({ type: String, format: 'date-time' })

@@ -68,10 +68,6 @@
 
 }
 
-@utility text-secondary {
-  color: var(--text-secondary);
-}
-
 @utility text-subtle {
   color: var(--text-subtle);
 }

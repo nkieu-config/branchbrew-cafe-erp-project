@@ -36,7 +36,10 @@ export class PromotionsController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Post()
   @ApiOperation({ summary: 'Create promotion' })
-  @ApiOkResponse({ type: PromotionResponseDto, description: 'Promotion created' })
+  @ApiOkResponse({
+    type: PromotionResponseDto,
+    description: 'Promotion created',
+  })
   create(@Body() dto: CreatePromotionDto) {
     return this.promotionsService.create(dto);
   }
@@ -55,7 +58,10 @@ export class PromotionsController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch(':id')
   @ApiOperation({ summary: 'Update promotion' })
-  @ApiOkResponse({ type: PromotionResponseDto, description: 'Promotion updated' })
+  @ApiOkResponse({
+    type: PromotionResponseDto,
+    description: 'Promotion updated',
+  })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdatePromotionDto,
@@ -66,7 +72,10 @@ export class PromotionsController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Delete(':id')
   @ApiOperation({ summary: 'Delete promotion' })
-  @ApiOkResponse({ type: PromotionResponseDto, description: 'Promotion deleted' })
+  @ApiOkResponse({
+    type: PromotionResponseDto,
+    description: 'Promotion deleted',
+  })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.promotionsService.remove(id);
   }
@@ -74,7 +83,10 @@ export class PromotionsController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch(':id/toggle')
   @ApiOperation({ summary: 'Toggle promotion active state' })
-  @ApiOkResponse({ type: PromotionResponseDto, description: 'Promotion state updated' })
+  @ApiOkResponse({
+    type: PromotionResponseDto,
+    description: 'Promotion state updated',
+  })
   toggleActive(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: TogglePromotionDto,

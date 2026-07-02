@@ -97,7 +97,10 @@ export class FinanceController {
   @Roles('SUPER_ADMIN', 'MANAGER', 'STAFF')
   @Post('settlements')
   @ApiOperation({ summary: 'Submit settlement' })
-  @ApiOkResponse({ type: SettlementResponseDto, description: 'Settlement submitted' })
+  @ApiOkResponse({
+    type: SettlementResponseDto,
+    description: 'Settlement submitted',
+  })
   submitSettlement(
     @Body() dto: SubmitSettlementDto,
     @Request() req: RequestWithUser,
@@ -133,7 +136,10 @@ export class FinanceController {
   @Roles('SUPER_ADMIN', 'MANAGER')
   @Patch('settlements/:id/approve')
   @ApiOperation({ summary: 'Approve settlement' })
-  @ApiOkResponse({ type: SettlementResponseDto, description: 'Settlement approved' })
+  @ApiOkResponse({
+    type: SettlementResponseDto,
+    description: 'Settlement approved',
+  })
   approveSettlement(
     @Request() req: RequestWithUser,
     @Param('id', ParseIntPipe) id: number,
