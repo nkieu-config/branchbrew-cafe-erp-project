@@ -1,4 +1,5 @@
 import { dateDaysAgo } from '../helpers';
+import { seedHeroNarrative } from './hero-narrative';
 import type { SeedContext } from '../types';
 
 export async function seedOperationsDemo(ctx: SeedContext): Promise<void> {
@@ -16,35 +17,11 @@ export async function seedOperationsDemo(ctx: SeedContext): Promise<void> {
 
   console.log('Seeding ledger, payroll & audit demo...');
 
+  await seedHeroNarrative(ctx);
+
   const accountIds = Object.fromEntries(
     (await prisma.account.findMany()).map((account) => [account.code, account.id]),
   );
-
-  await prisma.journalEntry.create({
-    data: {
-      branchId: mainBranch.id,
-      date: dateDaysAgo(3),
-      reference: 'ORD-SEED-001',
-      description: 'POS sales — Iced Latte batch (demo)',
-      status: 'POSTED',
-      lines: {
-        create: [
-          {
-            accountId: accountIds['1010'],
-            debit: 4250,
-            credit: 0,
-            description: 'Cash from retail sales',
-          },
-          {
-            accountId: accountIds['4010'],
-            debit: 0,
-            credit: 4250,
-            description: 'Sales revenue',
-          },
-        ],
-      },
-    },
-  });
 
   await prisma.journalEntry.create({
     data: {
@@ -119,10 +96,6 @@ export async function seedOperationsDemo(ctx: SeedContext): Promise<void> {
   });
   const pendingSettlement = await prisma.shiftSettlement.findFirst({
     where: { branchId: mainBranch.id, status: 'PENDING' },
-    orderBy: { createdAt: 'desc' },
-  });
-  const recentCompletedOrder = await prisma.order.findFirst({
-    where: { branchId: mainBranch.id, status: 'COMPLETED' },
     orderBy: { createdAt: 'desc' },
   });
 
@@ -200,14 +173,6 @@ export async function seedOperationsDemo(ctx: SeedContext): Promise<void> {
       targetType: 'ShiftSettlement',
       details: JSON.stringify({ branch: 'Downtown', date: 'yesterday' }),
       daysAgo: 1,
-    },
-    {
-      userId: manager.id,
-      action: 'ORDER_CREATED',
-      targetType: 'Order',
-      targetId: recentCompletedOrder?.id,
-      details: JSON.stringify({ paymentMethod: 'CASH', items: 1 }),
-      daysAgo: 2,
     },
     {
       userId: admin.id,

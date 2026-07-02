@@ -53,7 +53,7 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
     data: [
       {
         code: 'SAVE20',
-        description: '$20 off orders over $150',
+        description: '20 baht off orders over 150 baht',
         discountType: 'FIXED_AMOUNT',
         discountValue: 20,
         minPurchase: 150,
@@ -80,12 +80,6 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
         status: 'PENDING',
       },
       {
-        poNumber: 'PO-DEMO-003',
-        branchId: secondBranch.id,
-        supplierId: supplier1.id,
-        status: 'RECEIVED',
-      },
-      {
         poNumber: 'PO-DEMO-004',
         branchId: mainBranch.id,
         supplierId: supplier2.id,
@@ -95,7 +89,6 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
   });
 
   const poPending = await prisma.purchaseOrder.findFirst({ where: { poNumber: 'PO-DEMO-002' } });
-  const poReceived = await prisma.purchaseOrder.findFirst({ where: { poNumber: 'PO-DEMO-003' } });
 
   if (poPending) {
     await prisma.purchaseOrderItem.create({
@@ -104,16 +97,6 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
         ingredientId: milk.id,
         quantityRequested: 5000,
         unitPrice: 0.05,
-      },
-    });
-  }
-  if (poReceived) {
-    await prisma.purchaseOrderItem.create({
-      data: {
-        poId: poReceived.id,
-        ingredientId: cup.id,
-        quantityRequested: 500,
-        unitPrice: 3.2,
       },
     });
   }
@@ -307,32 +290,6 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
   }
 
   // Historical orders — Riverside branch, mixed statuses
-  for (let daysAgo = 5; daysAgo >= 1; daysAgo--) {
-    const createdAt = dateDaysAgo(daysAgo);
-    createdAt.setHours(14, 30, 0, 0);
-    const net = 45 * (2 + (5 - daysAgo));
-    await prisma.order.create({
-      data: {
-        userId: asokStaff.id,
-        branchId: secondBranch.id,
-        customerId: daysAgo % 2 === 0 ? goldCustomer.id : undefined,
-        status: 'COMPLETED',
-        paymentMethod: daysAgo % 2 === 0 ? 'QR_PROMPTPAY' : 'CASH',
-        totalAmount: net,
-        netAmount: net,
-        discountAmount: 0,
-        taxAmount: (net * 0.07) / 1.07,
-        totalCogs: 3.5 * (2 + (5 - daysAgo)),
-        queueNumber: 50 + daysAgo,
-        queueDate: parseQueueBusinessDate(getQueueBusinessDateString(createdAt)),
-        createdAt,
-        items: {
-          create: [{ productId: croissant.id, quantity: 2 + (5 - daysAgo), price: 45 }],
-        },
-      },
-    });
-  }
-
   await prisma.order.create({
     data: {
       userId: manager.id,
@@ -475,20 +432,6 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
     data: [
       {
         branchId: mainBranch.id,
-        date: dateDaysAgo(5),
-        reference: 'ORD-SEED-002',
-        description: 'Card sales settlement batch',
-        status: 'POSTED',
-      },
-      {
-        branchId: mainBranch.id,
-        date: dateDaysAgo(4),
-        reference: 'PO-RECV-003',
-        description: 'Inventory received — paper cups',
-        status: 'POSTED',
-      },
-      {
-        branchId: mainBranch.id,
         date: dateDaysAgo(2),
         reference: 'PAY-SEED-001',
         description: 'Payroll accrual — Downtown branch',
@@ -498,26 +441,10 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
   });
 
   const journalEntries = await prisma.journalEntry.findMany({
-    where: { reference: { in: ['ORD-SEED-002', 'PO-RECV-003', 'PAY-SEED-001'] } },
+    where: { reference: { in: ['PAY-SEED-001'] } },
   });
   const journalByRef = Object.fromEntries(journalEntries.map((entry) => [entry.reference, entry.id]));
 
-  if (journalByRef['ORD-SEED-002']) {
-    await prisma.journalEntryLine.createMany({
-      data: [
-        { journalEntryId: journalByRef['ORD-SEED-002'], accountId: accountIds['1040'], debit: 3200, credit: 0, description: 'Card clearing' },
-        { journalEntryId: journalByRef['ORD-SEED-002'], accountId: accountIds['4010'], debit: 0, credit: 3200, description: 'Card revenue' },
-      ],
-    });
-  }
-  if (journalByRef['PO-RECV-003']) {
-    await prisma.journalEntryLine.createMany({
-      data: [
-        { journalEntryId: journalByRef['PO-RECV-003'], accountId: accountIds['1030'], debit: 1600, credit: 0, description: 'Cup inventory' },
-        { journalEntryId: journalByRef['PO-RECV-003'], accountId: accountIds['2010'], debit: 0, credit: 1600, description: 'Supplier payable' },
-      ],
-    });
-  }
   if (journalByRef['PAY-SEED-001']) {
     await prisma.journalEntryLine.createMany({
       data: [
@@ -718,7 +645,6 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
   // ——— Audit trail ———
   const extraAudit = [
     { userId: asokManager.id, action: 'CREATE_PO', targetType: 'PurchaseOrder', targetId: poPending?.id, details: { poNumber: 'PO-DEMO-002' }, daysAgo: 2 },
-    { userId: admin.id, action: 'RECEIVE_PO', targetType: 'PurchaseOrder', targetId: poReceived?.id, details: { poNumber: 'PO-DEMO-003', qty: 500 }, daysAgo: 4 },
     { userId: manager.id, action: 'ORDER_CREATED', targetType: 'Order', details: { branch: 'Downtown', paymentMethod: 'QR' }, daysAgo: 0 },
     { userId: asokStaff.id, action: 'ORDER_CREATED', targetType: 'Order', details: { branch: 'Riverside', items: 2 }, daysAgo: 1 },
     { userId: admin.id, action: 'SETTLEMENT_APPROVED', targetType: 'ShiftSettlement', details: { branch: 'Riverside' }, daysAgo: 1 },

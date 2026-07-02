@@ -12,15 +12,15 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
   const hashedPassword = await bcrypt.hash('password123', 10);
 
   const mainBranch = await prisma.branch.create({
-    data: { name: 'Downtown Branch', location: 'Metro City' },
+    data: { name: 'Downtown Branch', location: 'Bangkok' },
   });
   const secondBranch = await prisma.branch.create({
-    data: { name: 'Riverside Branch', location: 'Metro City' },
+    data: { name: 'Riverside Branch', location: 'Bangkok' },
   });
   const centralKitchen = await prisma.branch.create({
     data: {
       name: 'BranchBrew Central Kitchen',
-      location: 'Metro City',
+      location: 'Bangkok',
       isCentralKitchen: true,
     },
   });
@@ -46,7 +46,7 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
 
   const staff = await prisma.user.create({
     data: {
-      email: 'staff.siam@branchbrew.dev',
+      email: 'staff.downtown@branchbrew.dev',
       name: 'Downtown Cashier',
       password: hashedPassword,
       role: 'STAFF',
@@ -56,7 +56,7 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
 
   const asokManager = await prisma.user.create({
     data: {
-      email: 'manager.asok@branchbrew.dev',
+      email: 'manager.riverside@branchbrew.dev',
       name: 'Riverside Manager',
       password: hashedPassword,
       role: 'MANAGER',
@@ -66,7 +66,7 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
 
   const asokStaff = await prisma.user.create({
     data: {
-      email: 'staff.asok@branchbrew.dev',
+      email: 'staff.riverside@branchbrew.dev',
       name: 'Riverside Barista',
       password: hashedPassword,
       role: 'STAFF',
@@ -344,8 +344,8 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
       { key: 'company_name', value: 'BranchBrew Demo' },
       { key: 'tax_id', value: '0105560000000' },
       { key: 'vat_rate', value: '7' },
-      { key: 'currency', value: 'USD' },
-      { key: 'receipt_footer', value: 'Thank you for visiting BranchBrew!' },
+      { key: 'currency', value: 'THB' },
+      { key: 'receipt_footer', value: 'ขอบคุณที่ใช้บริการ BranchBrew' },
     ],
   });
 
@@ -363,54 +363,6 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
   ];
   for (const acct of defaultAccounts) {
     await prisma.account.create({ data: acct });
-  }
-
-  const icedOption = tempGroup.options.find((o) => o.name === 'Iced')!;
-  for (let daysAgo = 6; daysAgo >= 0; daysAgo--) {
-    const createdAt = new Date();
-    createdAt.setDate(createdAt.getDate() - daysAgo);
-    createdAt.setHours(12, 0, 0, 0);
-    const qty = 5 + (6 - daysAgo);
-    const unitPrice = 85;
-    const net = unitPrice * qty;
-
-    await prisma.order.create({
-      data: {
-        userId: admin.id,
-        branchId: mainBranch.id,
-        customerId: daysAgo % 2 === 0 ? customer.id : undefined,
-        status: 'COMPLETED',
-        paymentMethod: daysAgo % 3 === 0 ? 'CREDIT_CARD' : 'CASH',
-        totalAmount: net,
-        netAmount: net,
-        discountAmount: 0,
-        taxAmount: (net * 0.07) / 1.07,
-        totalCogs: 18 * 0.5 * qty + 150 * 0.05 * qty + 3.5 * qty,
-        pointsEarned: Math.floor(net / 100),
-        queueNumber: 100 + (6 - daysAgo),
-        queueDate: parseQueueBusinessDate(getQueueBusinessDateString(createdAt)),
-        createdAt,
-        items: {
-          create: [
-            {
-              productId: icedLatte.id,
-              quantity: qty,
-              price: unitPrice,
-              notes: 'Temperature: Iced, Sweetness: 100%, Milk Type: Normal',
-              modifiers: {
-                create: [
-                  {
-                    optionId: icedOption.id,
-                    optionName: 'Temperature: Iced',
-                    priceDelta: 0,
-                  },
-                ],
-              },
-            },
-          ],
-        },
-      },
-    });
   }
 
   const hotOption = tempGroup.options.find((o) => o.name === 'Hot');

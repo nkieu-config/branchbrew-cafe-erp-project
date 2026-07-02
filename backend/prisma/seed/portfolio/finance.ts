@@ -2,7 +2,7 @@ import { dateDaysAgo, settlementDifference } from '../helpers';
 import type { SeedContext } from '../types';
 
 export async function seedFinanceDemo(ctx: SeedContext): Promise<void> {
-  const { prisma, mainBranch, secondBranch, manager } = ctx;
+  const { prisma, mainBranch, secondBranch, manager, asokManager } = ctx;
 
   console.log('Seeding finance demo (settlements & expenses)...');
 
@@ -98,7 +98,7 @@ export async function seedFinanceDemo(ctx: SeedContext): Promise<void> {
         },
       ),
       status: 'REJECTED',
-      submittedById: manager.id,
+      submittedById: asokManager.id,
     },
   });
 
