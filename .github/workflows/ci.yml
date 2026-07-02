@@ -6,10 +6,55 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  security-audit:
+    name: Security — dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js 22.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22.x
+        cache: npm
+        cache-dependency-path: ./package-lock.json
+
+    - name: Install Dependencies
+      run: npm ci
+
+    - name: Dependency audit
+      run: npm run audit:ci
+
+  docker-build:
+    name: Docker — build images
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: security-audit
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Build backend image
+      run: docker build -f backend/Dockerfile -t erp-backend:ci .
+
+    - name: Build frontend image
+      run: docker build -f frontend/Dockerfile -t erp-frontend:ci --build-arg NEXT_PUBLIC_API_URL=http://localhost:3000 .
+
   backend-tests:
     name: Backend — Jest unit & API e2e
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: security-audit
 
     services:
       postgres:
@@ -26,88 +71,63 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+    env:
+      DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
+      JWT_SECRET: "test-jwt-secret-for-ci-only-32chars"
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Use Node.js 22.x
       uses: actions/setup-node@v4
       with:
         node-version: 22.x
-        cache: 'npm'
-        cache-dependency-path: './package-lock.json'
-    
+        cache: npm
+        cache-dependency-path: ./package-lock.json
+
     - name: Install Dependencies
       run: npm ci
 
     - name: Generate Prisma Client
       run: npx prisma generate
       working-directory: ./backend
-      env:
-        DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
+
+    - name: Backend CI checks
+      run: npm run ci:check:backend
 
     - name: Apply Migrations
-      run: npx prisma migrate deploy
-      working-directory: ./backend
-      env:
-        DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
-
-    - name: Backend Type Check
-      run: npm run type-check
-      working-directory: ./backend
-
-    - name: Backend Lint
-      run: npm run lint
-      working-directory: ./backend
-
-    - name: Backend unit tests
-      run: npm run test
-      working-directory: ./backend
+      run: npm run migrate
 
     - name: Backend API e2e tests
-      run: npm run test:e2e
-      working-directory: ./backend
-      env:
-        DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
-        JWT_SECRET: "test-jwt-secret-for-ci-only-32chars"
+      run: npm run test:e2e:backend
 
   frontend-checks:
     name: Frontend — Vitest, lint & build
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: security-audit
 
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Use Node.js 22.x
       uses: actions/setup-node@v4
       with:
         node-version: 22.x
-        cache: 'npm'
-        cache-dependency-path: './package-lock.json'
-    
+        cache: npm
+        cache-dependency-path: ./package-lock.json
+
     - name: Install Dependencies
       run: npm ci
 
-    - name: Frontend Type Check
-      run: npm run type-check
-      working-directory: ./frontend
-
-    - name: Frontend Lint
-      run: npm run lint
-      working-directory: ./frontend
-
-    - name: Frontend Unit Tests
-      run: npm run test
-      working-directory: ./frontend
-
-    - name: Build Next.js
-      run: npm run build
-      working-directory: ./frontend
-      env:
-        NEXT_PUBLIC_API_URL: "http://localhost:3000"
+    - name: Frontend CI checks
+      run: npm run ci:check:frontend
 
   frontend-e2e:
     name: Frontend — Playwright smoke
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: [security-audit, backend-tests, frontend-checks, docker-build]
 
     services:
       postgres:
@@ -140,31 +160,45 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: 22.x
-        cache: 'npm'
-        cache-dependency-path: './package-lock.json'
+        cache: npm
+        cache-dependency-path: ./package-lock.json
 
     - name: Install Dependencies
       run: npm ci
+
+    - name: Cache Playwright browsers
+      uses: actions/cache@v4
+      id: playwright-cache
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+
+    - name: Install Playwright browser
+      if: steps.playwright-cache.outputs.cache-hit != 'true'
+      run: npx playwright install --with-deps chromium
+      working-directory: ./frontend
+
+    - name: Install Playwright OS dependencies
+      if: steps.playwright-cache.outputs.cache-hit == 'true'
+      run: npx playwright install-deps chromium
+      working-directory: ./frontend
 
     - name: Generate Prisma Client
       run: npx prisma generate
       working-directory: ./backend
 
     - name: Apply Migrations
-      run: npx prisma migrate deploy
-      working-directory: ./backend
+      run: npm run migrate
 
     - name: Seed Database
       run: npm run db:seed
-      working-directory: ./backend
 
     - name: Build Backend
-      run: npm run build
-      working-directory: ./backend
+      run: npm run build --workspace=backend
 
     - name: Start Backend
       run: |
-        npm run start:prod --workspace=backend &
+        node backend/dist/src/main.js &
         for i in $(seq 1 60); do
           if curl -sf http://localhost:3000/health > /dev/null; then
             echo "Backend ready"
@@ -176,8 +210,7 @@ jobs:
         exit 1
 
     - name: Build Frontend
-      run: npm run build
-      working-directory: ./frontend
+      run: NEXT_PUBLIC_API_URL=http://localhost:3000 npm run build --workspace=frontend
 
     - name: Start Frontend
       run: |
@@ -192,10 +225,5 @@ jobs:
         echo "Frontend failed to start"
         exit 1
 
-    - name: Install Playwright Browser
-      run: npx playwright install --with-deps chromium
-      working-directory: ./frontend
-
     - name: Playwright smoke tests
-      run: npm run test:e2e
-      working-directory: ./frontend
+      run: npm run test:e2e:frontend

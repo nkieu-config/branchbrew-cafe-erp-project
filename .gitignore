@@ -1,11 +1,16 @@
 node_modules
 dist
+coverage/
 .env
 !.env.example
-.env.compose
-!.env.compose.example
+infra/.env.compose
+!infra/.env.compose.example
+!infra/.env.supabase.example
 .DS_Store
 *.log
+application.log
+playwright-report/
+test-results/
 
 # Ignored Reference Files
 erp_reference.md

@@ -13,11 +13,14 @@ frontend/out
 coverage
 test-results
 playwright-report
+frontend/e2e
+backend/test
 
 .env
 .env.*
 !.env.example
-!.env.compose.example
+!infra/.env.compose.example
+!infra/.env.supabase.example
 
 *.log
 application.log

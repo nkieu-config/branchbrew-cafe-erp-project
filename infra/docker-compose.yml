@@ -1,6 +1,7 @@
 services:
   db:
-    image: postgres:15-alpine
+    image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: erp_user
       POSTGRES_PASSWORD: erp_password
@@ -17,8 +18,9 @@ services:
 
   backend:
     build:
-      context: .
+      context: ..
       dockerfile: backend/Dockerfile
+    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
@@ -32,19 +34,26 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
     command: >
-      sh -c "npm run migrate:deploy --workspace=backend && npm run start:prod --workspace=backend"
+      sh -c "npm run migrate:deploy --workspace=backend && node backend/dist/src/main.js"
 
   frontend:
     build:
-      context: .
+      context: ..
       dockerfile: frontend/Dockerfile
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+    restart: unless-stopped
     environment:
       # Server-side Next.js fetches run inside this container, so use the Compose service name.
       - INTERNAL_API_URL=http://backend:3000
@@ -53,6 +62,17 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3001/login').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   pgdata:
