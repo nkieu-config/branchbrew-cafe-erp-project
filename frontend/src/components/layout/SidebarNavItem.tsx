@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { SidebarNavBadge } from "@/components/shared/sidebar-nav-badge";
 import {
   getHubConfig,
   getVisibleHubTabs,
@@ -10,8 +9,6 @@ import {
 } from "@/lib/navigation/hub-utils";
 import { isSidebarItemActive, resolveSidebarHubId } from "@/lib/navigation/sidebar";
 import type { SidebarItem } from "@/lib/navigation/types";
-import { resolveChildTabHref, resolveSidebarItemHref } from "@/lib/operational-links";
-import type { SidebarNavBadgeMap } from "@/lib/sidebar-badges";
 import { sidebarNavChildLinkClassName, sidebarNavIconClassName, sidebarNavLinkClassName, sidebarTreeIndentClassName } from "@/lib/theme/shell";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types/api";
@@ -21,8 +18,6 @@ type SidebarNavItemProps = {
   pathname: string;
   role: Role;
   onNavigate?: () => void;
-  badges?: SidebarNavBadgeMap;
-  childTabBadges?: SidebarNavBadgeMap;
 };
 
 export function SidebarNavItem({
@@ -30,8 +25,6 @@ export function SidebarNavItem({
   pathname,
   role,
   onNavigate,
-  badges,
-  childTabBadges,
 }: SidebarNavItemProps) {
   const ItemIcon = item.icon;
   const hubId = resolveSidebarHubId(item.id);
@@ -40,13 +33,6 @@ export function SidebarNavItem({
   const isHubActive = isSidebarItemActive(item, pathname);
   const showTree =
     hub != null && isHubActive && shouldShowHubSubNav(childTabs, hub.basePath);
-  const badge = badges?.[item.id];
-  const parentHref = resolveSidebarItemHref(
-    item.id,
-    item.href,
-    badges,
-    childTabBadges,
-  );
 
   const activeChildTab = hub
     ? childTabs.find((tab) => isTabActive(pathname, tab.path, hub.basePath))
@@ -57,16 +43,13 @@ export function SidebarNavItem({
   return (
     <div className="space-y-0.5">
       <Link
-        href={parentHref}
+        href={item.href}
         onClick={onNavigate}
         aria-current={isParentCurrentPage ? "page" : undefined}
         className={sidebarNavLinkClassName(isHubActive, isParentCurrentPage)}
       >
         <ItemIcon className={sidebarNavIconClassName(isHubActive)} aria-hidden />
         <span className="truncate">{item.label}</span>
-        {badge && (
-          <SidebarNavBadge count={badge.count} tone={badge.tone} label={badge.label} />
-        )}
       </Link>
 
       {showTree && (
@@ -77,25 +60,15 @@ export function SidebarNavItem({
         >
           {childTabs.map((tab) => {
             const isChildActive = isTabActive(pathname, tab.path, hub.basePath);
-            const tabBadge = childTabBadges?.[tab.path];
             return (
               <li key={tab.path}>
                 <Link
-                  href={resolveChildTabHref(tab.path, childTabBadges)}
+                  href={tab.path}
                   onClick={onNavigate}
                   aria-current={isChildActive ? "page" : undefined}
-                  aria-label={tabBadge ? `${tab.label}, ${tabBadge.label}` : tab.label}
-                  className={cn(sidebarNavChildLinkClassName(isChildActive), "justify-between gap-2")}
+                  className={sidebarNavChildLinkClassName(isChildActive)}
                 >
                   <span className="truncate">{tab.label}</span>
-                  {tabBadge && (
-                    <SidebarNavBadge
-                      count={tabBadge.count}
-                      tone={tabBadge.tone}
-                      label={tabBadge.label}
-                      className="ml-0 shrink-0"
-                    />
-                  )}
                 </Link>
               </li>
             );

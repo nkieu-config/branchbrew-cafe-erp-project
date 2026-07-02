@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
-const DEFAULT_LAYOUT = ["sales", "topBranch", "lowStock", "topProducts", "salesChart"] as const;
+const DEFAULT_LAYOUT = ["sales", "topBranch", "lowStock", "operationalTasks", "topProducts", "salesChart"] as const;
 const VALID_WIDGET_IDS = new Set<string>(DEFAULT_LAYOUT);
 const LAYOUT_PARAM = "layout";
 const LAYOUT_STORAGE_KEY = "executive_dashboard_layout";

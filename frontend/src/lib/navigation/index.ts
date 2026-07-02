@@ -41,7 +41,6 @@ export {
   isMobileBottomNavPathCovered,
   shouldShowMobileBreadcrumb,
   shouldShowDesktopBreadcrumb,
-  getMobileBottomNavBadgeId,
 } from "./mobile-nav";
 
 export {

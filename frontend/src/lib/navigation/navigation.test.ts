@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   HUBS,
   findHubByPathname,
-  getMobileBottomNavBadgeId,
   getMobileBottomNavItems,
   getVisibleHubTabs,
   isMobileBottomNavActive,
@@ -173,6 +172,7 @@ describe("getMobileBottomNavItems", () => {
     const pos = getMobileBottomNavItems("STAFF")[0];
     expect(isMobileBottomNavActive(pos, "/pos/terminal")).toBe(true);
     expect(isMobileBottomNavActive(pos, "/pos/orders")).toBe(false);
+    expect(isMobileBottomNavActive(pos, "/pos/settlement")).toBe(false);
   });
 });
 
@@ -180,14 +180,6 @@ describe("resolveSidebarHubId", () => {
   it("maps hub sidebar items to hub ids", () => {
     expect(resolveSidebarHubId("inventory")).toBe("inventory");
     expect(resolveSidebarHubId("pos")).toBe("pos");
-  });
-
-  it("returns aggregate key for more item", () => {
-    expect(getMobileBottomNavBadgeId("more")).toBe("aggregate");
-  });
-
-  it("returns kds key for kitchen bottom nav", () => {
-    expect(getMobileBottomNavBadgeId("kds")).toBe("kds");
   });
 
   it("returns null for non-hub items", () => {
@@ -213,8 +205,8 @@ describe("mobile breadcrumb visibility", () => {
 });
 
 describe("desktop breadcrumb visibility", () => {
-  it("hides on dashboard", () => {
-    expect(shouldShowDesktopBreadcrumb("/", "MANAGER", resolveBreadcrumbTrail("/"))).toBe(false);
+  it("shows on dashboard", () => {
+    expect(shouldShowDesktopBreadcrumb("/", "MANAGER", resolveBreadcrumbTrail("/"))).toBe(true);
   });
 
   it("hides on hub roots with sidebar sub-nav", () => {
@@ -248,9 +240,12 @@ describe("desktop breadcrumb visibility", () => {
     expect(
       shouldShowDesktopBreadcrumb("/assets", "MANAGER", resolveBreadcrumbTrail("/assets")),
     ).toBe(true);
+  });
+
+  it("hides on KDS immersive route", () => {
     expect(
       shouldShowDesktopBreadcrumb("/kds", "STAFF", resolveBreadcrumbTrail("/kds")),
-    ).toBe(true);
+    ).toBe(false);
   });
 });
 

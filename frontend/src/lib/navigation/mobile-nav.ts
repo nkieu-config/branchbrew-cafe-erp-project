@@ -69,7 +69,7 @@ export function isMobileBottomNavActive(item: MobileBottomNavItem, pathname: str
   if (item.action === "menu") return false;
   if (item.href === "/") return pathname === "/";
   if (item.id === "pos") {
-    return pathname.startsWith("/pos") && !pathname.startsWith("/pos/orders");
+    return pathname === "/pos/terminal" || pathname.startsWith("/pos/terminal/");
   }
   if (item.id === "orders") {
     return pathname.startsWith("/pos/orders");
@@ -96,7 +96,8 @@ export function shouldShowDesktopBreadcrumb(
   role: string,
   trail: BreadcrumbItem[],
 ): boolean {
-  if (pathname === "/") return false;
+  if (pathname === "/") return true;
+  if (pathname === "/kds" || pathname.startsWith("/kds/")) return false;
   if (trail.length > 1) return true;
 
   const hub = findHubByPathname(pathname);
@@ -111,12 +112,4 @@ export function shouldShowDesktopBreadcrumb(
   }
 
   return trail.length === 1;
-}
-
-/** Maps mobile bottom-nav item ids to sidebar badge keys. */
-export function getMobileBottomNavBadgeId(navItemId: string): string | null {
-  if (navItemId === "inventory") return "inventory";
-  if (navItemId === "kds") return "kds";
-  if (navItemId === "more") return "aggregate";
-  return null;
 }
