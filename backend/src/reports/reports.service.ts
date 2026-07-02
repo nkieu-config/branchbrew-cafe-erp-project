@@ -75,7 +75,10 @@ export class ReportsService {
 
   async getTopProducts(branchId?: number) {
     const today = this.startOfToday();
-    const items = await this.reportsRepository.groupTopProducts(today, branchId);
+    const items = await this.reportsRepository.groupTopProducts(
+      today,
+      branchId,
+    );
 
     if (items.length === 0) return [];
 

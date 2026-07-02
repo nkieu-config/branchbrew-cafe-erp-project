@@ -54,7 +54,8 @@ describe('runtime-config', () => {
     it('enforces production CORS rules', () => {
       process.env.NODE_ENV = 'production';
       process.env.JWT_SECRET = 'x'.repeat(32);
-      process.env.DATABASE_URL = 'postgresql://user:pass@db.example.com:5432/erp';
+      process.env.DATABASE_URL =
+        'postgresql://user:pass@db.example.com:5432/erp';
       process.env.CORS_ORIGIN = 'http://localhost:3001';
 
       expect(() => assertRuntimeConfig()).toThrow(

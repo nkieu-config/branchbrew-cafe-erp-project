@@ -12,4 +12,3 @@ export class HealthErrorResponseDto {
   @ApiProperty({ example: 'Database unreachable' })
   message: string;
 }
-

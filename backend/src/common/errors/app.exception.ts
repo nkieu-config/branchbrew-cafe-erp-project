@@ -63,7 +63,7 @@ export function readAppErrorBody(error: HttpException): AppErrorBody {
       : typeof response === 'object' &&
           response !== null &&
           'message' in response
-        ? String((response as { message: unknown }).message)
+        ? String(response.message)
         : error.message;
 
   return {

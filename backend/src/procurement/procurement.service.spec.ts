@@ -34,7 +34,9 @@ describe('ProcurementService', () => {
         status: 'DRAFT',
         poNumber: 'PO-000001',
       } as any);
-      prisma.$transaction.mockImplementation(async (cb: Function) => cb(prisma));
+      prisma.$transaction.mockImplementation(async (cb: Function) =>
+        cb(prisma),
+      );
       prisma.$queryRaw.mockResolvedValue([{ nextval: BigInt(1) }]);
 
       await service.createPO(

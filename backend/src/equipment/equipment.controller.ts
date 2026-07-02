@@ -90,7 +90,8 @@ export class EquipmentController {
     const updateData: Prisma.EquipmentUpdateInput = {};
     if (dto.name !== undefined) updateData.name = dto.name;
     if (dto.type !== undefined) updateData.type = dto.type;
-    if (dto.serialNumber !== undefined) updateData.serialNumber = dto.serialNumber;
+    if (dto.serialNumber !== undefined)
+      updateData.serialNumber = dto.serialNumber;
     if (dto.status !== undefined) updateData.status = dto.status;
     if (dto.purchaseDate !== undefined) {
       updateData.purchaseDate = new Date(dto.purchaseDate);

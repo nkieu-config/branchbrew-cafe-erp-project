@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-enum-comparison */
 import {
   ArgumentsHost,
   Catch,
@@ -112,10 +113,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     };
   }
 
-  private mapHttpStatusToCode(
-    status: number,
-    message: string,
-  ): ApiErrorCode {
+  private mapHttpStatusToCode(status: number, message: string): ApiErrorCode {
     switch (status) {
       case HttpStatus.BAD_REQUEST:
         return this.inferBadRequestCode(message);

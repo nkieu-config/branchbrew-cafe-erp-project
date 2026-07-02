@@ -19,19 +19,11 @@ type OutboxDispatchHandler = (
 
 const outboxEventRegistry: Record<OutboxEventType, OutboxDispatchHandler> = {
   [OUTBOX_EVENT_TYPES.ORDER_CREATED]: async (payload, eventEmitter) => {
-    const data = assertOutboxPayload(
-      OUTBOX_EVENT_TYPES.ORDER_CREATED,
-      payload,
-    );
+    const data = assertOutboxPayload(OUTBOX_EVENT_TYPES.ORDER_CREATED, payload);
     const map = new Map<number, number>(data.ingredientRequirements);
     await eventEmitter.emitAsync(
       OUTBOX_EVENT_TYPES.ORDER_CREATED,
-      new OrderCreatedEvent(
-        data.order,
-        map,
-        data.branchId,
-        data.customerId,
-      ),
+      new OrderCreatedEvent(data.order, map, data.branchId, data.customerId),
     );
   },
   [OUTBOX_EVENT_TYPES.ORDER_STATUS_UPDATED]: async (payload, eventEmitter) => {

@@ -23,4 +23,3 @@ export class ApiErrorResponseDto {
   @ApiProperty({ example: '/orders/1/void' })
   path: string;
 }
-

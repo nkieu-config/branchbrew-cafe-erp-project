@@ -90,10 +90,7 @@ export class ReportsRepository {
     ]);
   }
 
-  aggregateSalesWindow(
-    window: { gte: Date; lt?: Date },
-    branchId?: number,
-  ) {
+  aggregateSalesWindow(window: { gte: Date; lt?: Date }, branchId?: number) {
     const whereBranch = branchId ? { branchId } : {};
     return this.prisma.order.aggregate({
       where: {

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   AUDIT_ACTIONS,
   AuditAction,
@@ -46,7 +47,9 @@ type _OrderCreatedPayloadShape = Assert<
 
 type _OrderStatusPayloadStatus = Assert<
   IsEqual<
-    OutboxEventPayload<typeof OUTBOX_EVENT_TYPES.ORDER_STATUS_UPDATED>['status'],
+    OutboxEventPayload<
+      typeof OUTBOX_EVENT_TYPES.ORDER_STATUS_UPDATED
+    >['status'],
     OrderLifecycleStatus
   >
 >;
@@ -57,14 +60,18 @@ type _OrderStatusUnionMatchesConstant = Assert<
 
 type _PoReceivedPayloadShape = Assert<
   IsEqual<
-    OutboxEventPayload<typeof OUTBOX_EVENT_TYPES.PURCHASE_ORDER_RECEIVED>['purchaseOrder'],
+    OutboxEventPayload<
+      typeof OUTBOX_EVENT_TYPES.PURCHASE_ORDER_RECEIVED
+    >['purchaseOrder'],
     PurchaseOrderReceivedSnapshot
   >
 >;
 
 type _ProductionCompletedPayloadShape = Assert<
   IsEqual<
-    OutboxEventPayload<typeof OUTBOX_EVENT_TYPES.PRODUCTION_COMPLETED>['production'],
+    OutboxEventPayload<
+      typeof OUTBOX_EVENT_TYPES.PRODUCTION_COMPLETED
+    >['production'],
     ProductionCompletedSnapshot
   >
 >;
@@ -80,7 +87,10 @@ type _AuditActionUnion = Assert<
 >;
 
 type _AuditTargetConstraint = Assert<
-  IsEqual<AuditTargetByAction[typeof AUDIT_ACTIONS.UPDATE_SETTINGS], 'SystemSetting'>
+  IsEqual<
+    AuditTargetByAction[typeof AUDIT_ACTIONS.UPDATE_SETTINGS],
+    'SystemSetting'
+  >
 >;
 
 type _AuditDetailsConstraint = Assert<
@@ -95,6 +105,4 @@ type _AuditDetailsConstraint = Assert<
   >
 >;
 
-type _AuditTargetLiteral = Assert<
-  IsEqual<typeof AUDIT_TARGETS.ORDER, 'Order'>
->;
+type _AuditTargetLiteral = Assert<IsEqual<typeof AUDIT_TARGETS.ORDER, 'Order'>>;

@@ -9,10 +9,7 @@ import {
 } from '../auth/branch-scope.util';
 import { FinanceRepository } from './finance.repository';
 import { ApiErrorCode } from '../common/errors/api-error-code.enum';
-import {
-  appBadRequest,
-  appNotFound,
-} from '../common/errors/app.exception';
+import { appBadRequest, appNotFound } from '../common/errors/app.exception';
 
 @Injectable()
 export class FinanceService {

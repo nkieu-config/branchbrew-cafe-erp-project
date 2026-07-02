@@ -49,10 +49,7 @@ function lineAmount(value: JournalLine['debit']): number {
   return Number(value);
 }
 
-async function expectBalancedJournal(
-  prisma: PrismaService,
-  reference: string,
-) {
+async function expectBalancedJournal(prisma: PrismaService, reference: string) {
   const entry = await waitForJournal(prisma, reference);
   expect(entry).not.toBeNull();
 

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { Customer, OrderStatus, Prisma } from '@prisma/client';
+import { Customer, Prisma } from '@prisma/client';
 import { InventoryHelper } from './helpers/inventory.helper';
 import { OutboxService } from '../outbox/outbox.service';
 import { OUTBOX_EVENT_TYPES } from '../outbox/outbox-event.types';
@@ -190,7 +190,10 @@ export class OrderCreationService {
             where: { phone: data.customerPhone },
           });
           if (!customer) {
-            throw appNotFound(ApiErrorCode.CUSTOMER_NOT_FOUND, 'Customer not found');
+            throw appNotFound(
+              ApiErrorCode.CUSTOMER_NOT_FOUND,
+              'Customer not found',
+            );
           }
           customerId = customer.id;
 

@@ -16,9 +16,7 @@ describe('po-number.helper', () => {
   describe('allocatePoNumber', () => {
     it('reads the next sequence value inside a transaction', async () => {
       const tx = {
-        $queryRaw: jest
-          .fn()
-          .mockResolvedValue([{ nextval: BigInt(7) }]),
+        $queryRaw: jest.fn().mockResolvedValue([{ nextval: BigInt(7) }]),
       };
 
       await expect(allocatePoNumber(tx, 'PO')).resolves.toBe('PO-000007');

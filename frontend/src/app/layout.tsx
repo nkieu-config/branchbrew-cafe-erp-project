@@ -51,7 +51,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${plusJakarta.className} flex min-h-screen bg-background text-foreground bg-[url('/bg-pattern.svg')] dark:bg-none bg-fixed antialiased`}>
+      <body className={`${plusJakarta.className} flex flex-col min-h-screen bg-background text-foreground bg-[url('/bg-pattern.svg')] dark:bg-none bg-fixed antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="light" disableTransitionOnChange>
           <QueryProvider>
               {children}

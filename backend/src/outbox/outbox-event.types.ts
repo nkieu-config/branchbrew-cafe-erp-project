@@ -120,10 +120,7 @@ const outboxPayloadValidators: OutboxEventValidatorMap = {
       purchaseOrder.totalAmount,
       `${eventType}.purchaseOrder.totalAmount`,
     );
-    assertString(
-      purchaseOrder.poNumber,
-      `${eventType}.purchaseOrder.poNumber`,
-    );
+    assertString(purchaseOrder.poNumber, `${eventType}.purchaseOrder.poNumber`);
     return data as OutboxEventPayload<typeof eventType>;
   },
   [OUTBOX_EVENT_TYPES.PRODUCTION_COMPLETED]: (payload) => {
@@ -189,14 +186,12 @@ function assertOrderStatus(
     typeof value !== 'string' ||
     !statuses.some((status) => status === value)
   ) {
-    throw new Error(
-      `${field} must be one of: ${statuses.join(', ')}.`,
-    );
+    throw new Error(`${field} must be one of: ${statuses.join(', ')}.`);
   }
 }
 
 export function toOutboxJsonValue<T extends OutboxEventType>(
   payload: OutboxEventPayload<T>,
 ): Prisma.InputJsonValue {
-  return payload as Prisma.InputJsonValue;
+  return payload;
 }
