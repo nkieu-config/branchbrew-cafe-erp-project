@@ -5,7 +5,6 @@ import type { MetricTone } from "./metric";
 import { metricValueClassName } from "./metric";
 import type { StatusTone } from "./status";
 import { hubCardIconClass } from "./hub-accent";
-import { summaryChipClassName } from "./hub-primitives";
 import { text } from "./surface";
 
 export type StockLevel = "out" | "low" | "ok";
@@ -186,11 +185,6 @@ export function inventorySummaryStripClassName(className?: string) {
     "border-[var(--table-row-border)]",
     className,
   );
-}
-
-/** @deprecated Use summaryChipClassName("inventory", ...) from @/lib/theme/hub-primitives */
-export function inventorySummaryChipClassName(active = false, className?: string) {
-  return summaryChipClassName("inventory", active, className);
 }
 
 export function inventorySectionPanelClassName(className?: string) {

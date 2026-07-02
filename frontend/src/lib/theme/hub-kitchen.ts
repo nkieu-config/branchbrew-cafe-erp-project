@@ -6,7 +6,7 @@ export {
   kitchenDialogContentClassName,
   kitchenMetaBadgeClassName,
   kitchenSectionPanelClassName,
-} from "./hub-section-aliases";
+} from "./hub-panel";
 
 export function productionColumnTone(status: string): StatusTone {
   switch (status) {

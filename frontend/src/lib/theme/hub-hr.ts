@@ -6,7 +6,7 @@ export {
   hrDialogContentClassName,
   hrMetaBadgeClassName,
   hrSectionPanelClassName,
-} from "./hub-section-aliases";
+} from "./hub-panel";
 
 export function hrMutedMetaClassName(className?: string) {
   return cn("text-sm", text.muted, className);

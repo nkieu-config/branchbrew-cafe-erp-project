@@ -1,8 +1,5 @@
-import { cn } from "@/lib/utils";
+import { cn, focusRing } from "@/lib/utils";
 import { text } from "./surface";
-
-const focusRing =
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]/50 motion-reduce:transition-none";
 
 export const shell = {
   bg: "bg-[var(--shell-bg)]",
@@ -16,8 +13,13 @@ export function shellContentFrameClassName(className?: string) {
   return cn(shell.maxWidth, "mx-auto w-full px-4 md:px-6 lg:px-8", className);
 }
 
+/** Topbar uses slightly tighter horizontal inset on phones. */
+export function topbarContentFrameClassName(className?: string) {
+  return cn(shell.maxWidth, "mx-auto w-full px-4 md:px-6 lg:px-8", className);
+}
+
 export function shellContentPaddingYClassName(className?: string) {
-  return cn("py-4 md:py-6 lg:py-8", className);
+  return cn("pt-4 pb-6 md:pt-6 md:pb-8 lg:pt-8 lg:pb-10", className);
 }
 
 export function shellPageTitleClassName(className?: string) {
@@ -49,7 +51,13 @@ export function shellHeaderInsetClassName(className?: string) {
 /** Inner header row height — matches sidebar brand row (`h-14`) on desktop. */
 export function shellHeaderBarRowClassName(options: { compact?: boolean } = {}) {
   const { compact = false } = options;
-  return compact ? "min-h-11 lg:min-h-12" : "min-h-12 lg:min-h-14";
+  return compact ? "min-h-11 lg:min-h-12" : "min-h-11 sm:min-h-12 lg:min-h-14";
+}
+
+/** Vertical padding for a topbar content row. */
+export function topbarRowPaddingClassName(options: { compact?: boolean } = {}) {
+  const { compact = false } = options;
+  return compact ? "py-1" : "py-1.5 sm:py-2 lg:py-0";
 }
 
 /** Full-width topbar region — frosted surface, subtle bottom edge. */
@@ -74,29 +82,46 @@ export function topbarRegionClassName(options: { compact?: boolean; className?: 
   );
 }
 
-/** Inner topbar row — aligns with sidebar brand row; uses min-height so controls never clip. */
-export function topbarShellClassName(options: { compact?: boolean; className?: string } = {}) {
-  const { compact = false, className } = options;
+/** Inner topbar shell — second row on mobile for full-width branch picker. */
+export function topbarShellClassName(
+  options: { stacked?: boolean; className?: string } = {},
+) {
+  const { stacked = false, className } = options;
   return cn(
-    "relative z-20 flex w-full items-center gap-1.5 sm:gap-2",
-    shellHeaderBarRowClassName({ compact }),
+    "relative z-20 flex w-full flex-col",
+    stacked ? "gap-2" : "gap-0",
     "transition-[min-height,padding] duration-200 motion-reduce:transition-none",
     className,
   );
 }
 
+/** Primary topbar row — nav context plus the same action cluster as desktop. */
+export function topbarMainRowClassName(options: { compact?: boolean; className?: string } = {}) {
+  const { compact = false, className } = options;
+  return cn(
+    "flex w-full min-w-0 items-center gap-1.5 sm:gap-2",
+    shellHeaderBarRowClassName({ compact }),
+    topbarRowPaddingClassName({ compact }),
+    className,
+  );
+}
+
+/** Mobile-only full-width branch picker row — bottom padding matches main-row rhythm. */
+export function topbarBranchRowClassName(className?: string) {
+  return cn("w-full lg:hidden max-lg:pb-3 sm:max-lg:pb-2.5", className);
+}
 /** Work-context actions (branch, clock). */
 export function topbarWorkActionsClassName(className?: string) {
   return cn("flex min-w-0 shrink items-center gap-0.5 sm:gap-1", className);
 }
 
-/** Account / preference actions — lightly grouped on sm+. */
+/** Account / preference actions — grouped pill on all breakpoints. */
 export function topbarAccountActionsClassName(className?: string) {
   return cn(
     "flex items-center gap-0.5 shrink-0 self-center",
-    "sm:rounded-xl sm:border sm:border-[var(--border)]/45",
-    "sm:bg-[color-mix(in_oklch,var(--topbar-action-hover)_40%,transparent)]",
-    "sm:px-0.5 sm:py-0",
+    "rounded-xl border border-[var(--border)]/45",
+    "bg-[color-mix(in_oklch,var(--topbar-action-hover)_40%,transparent)]",
+    "px-0.5 py-0",
     className,
   );
 }
@@ -104,23 +129,31 @@ export function topbarAccountActionsClassName(className?: string) {
 /** Current page title in the mobile topbar (replaces breadcrumb on covered routes). */
 export function topbarMobileTitleClassName(className?: string) {
   return cn(
-    "lg:hidden flex-1 min-w-0 truncate text-sm font-semibold tracking-tight",
+    "lg:hidden flex-1 min-w-0 truncate text-base font-semibold leading-tight tracking-tight",
     text.primary,
     className,
   );
 }
 
-/** Right-side topbar actions row. */
+/** Mobile topbar breadcrumb — current segment matches page title weight. */
+export function topbarMobileBreadcrumbCurrentClassName(className?: string) {
+  return cn(
+    "min-w-0 truncate text-base font-semibold text-[var(--breadcrumb-current)]",
+    className,
+  );
+}
+
+/** Right-side topbar actions row — branch (desktop), clock, divider, account. */
 export function topbarActionsRowClassName(className?: string) {
   return cn(
-    "flex min-w-0 max-w-full flex-nowrap items-center justify-end gap-0.5 sm:gap-1 shrink",
+    "flex min-w-0 items-center justify-end gap-1 sm:gap-1.5 shrink-0",
     className,
   );
 }
 
 /** Subtle divider between work actions and account controls. */
 export function topbarActionsDividerClassName(className?: string) {
-  return cn("hidden sm:block w-px h-5 shrink-0 bg-[var(--border)]/50 mx-0.5", className);
+  return cn("w-px h-5 shrink-0 bg-[var(--border)]/50 mx-0.5", className);
 }
 
 /** Standalone topbar icon control — ghost style, no pill chrome. */
@@ -128,11 +161,6 @@ export function topbarActionButtonClassName(
   options: { active?: boolean; className?: string } = {},
 ) {
   return cn(topbarIconButtonClassName(options), options.className);
-}
-
-/** @deprecated Prefer topbarActionsRowClassName — grouped pill obscures distinct control types. */
-export function topbarActionGroupClassName(className?: string) {
-  return topbarActionsRowClassName(className);
 }
 
 /** Fixed slot for toolbar clock — stable width between idle / active states. */
@@ -145,7 +173,7 @@ export function topbarClockActiveClassName(className?: string) {
   return cn(
     "inline-flex items-center justify-center shrink-0 rounded-lg px-2 sm:px-2.5",
     shellTopbarControlHeightClassName(),
-    "min-w-[4.5rem] sm:min-w-[5.75rem]",
+      "min-w-[4.5rem] sm:min-w-[5.75rem] max-lg:min-w-[5.25rem]",
     "bg-[var(--topbar-action-active-bg)] text-[var(--topbar-action-active-fg)]",
     "font-mono text-xs tabular-nums transition-colors hover:opacity-90",
     focusRing,
@@ -206,6 +234,7 @@ export function topbarPrimaryActionClassName(className?: string) {
     "inline-flex items-center justify-center gap-1.5 shrink-0 rounded-lg",
     shellTopbarControlHeightClassName(),
     "px-2.5 sm:px-3 text-xs sm:text-sm font-medium transition-colors",
+    "max-sm:gap-0 max-sm:px-0 max-sm:w-10 max-sm:min-w-[40px]",
     "bg-[var(--brand-solid)] text-[var(--on-brand-solid-fg)]",
     "hover:opacity-90",
     focusRing,
@@ -221,7 +250,7 @@ export function topbarProfileButtonClassName(className?: string) {
 export function topbarDesktopBreadcrumbClassName(className?: string) {
   return cn(
     breadcrumbNavClassName(),
-    "hidden lg:flex min-w-0 flex-1 overflow-hidden text-xs font-medium",
+    "hidden lg:flex min-w-0 flex-1 overflow-hidden",
     className,
   );
 }
@@ -326,14 +355,17 @@ export function mobileNavBadgePlacementClassName(className?: string) {
 }
 
 export function mainContentWithMobileNavClassName(className?: string) {
-  return cn("pb-[var(--mobile-nav-offset)] lg:pb-0", className);
+  return cn(
+    "pb-[calc(var(--mobile-nav-offset)+0.75rem)] scroll-pb-[calc(var(--mobile-nav-offset)+0.75rem)] lg:pb-0 lg:scroll-pb-0",
+    className,
+  );
 }
 
-/** Immersive routes (POS terminal, KDS) — roomier mobile padding + safe-area top. */
+/** Immersive routes (POS terminal, KDS) — mobile uses global AppHeader for top chrome. */
 export function immersiveMobileShellClassName(className?: string) {
   return cn(
     "flex h-full min-h-0 flex-col",
-    "px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2",
+    "px-4 py-2",
     "sm:p-4 lg:p-8",
     className,
   );
@@ -551,7 +583,7 @@ export function breadcrumbNavClassName(className?: string) {
 
 export function breadcrumbLinkClassName(className?: string) {
   return cn(
-    "max-w-[9rem] truncate transition-colors rounded-sm sm:max-w-[12rem]",
+    "truncate transition-colors rounded-sm max-w-[11rem] sm:max-w-[12rem] lg:max-w-[14rem]",
     "hover:text-[var(--breadcrumb-link-hover)]",
     focusRing,
     className,
@@ -625,5 +657,5 @@ export function skipLinkClassName() {
 }
 
 export function selectFocusClassName(className?: string) {
-  return cn("focus-visible:ring-[var(--focus-ring)]/50", className);
+  return cn(focusRing, className);
 }

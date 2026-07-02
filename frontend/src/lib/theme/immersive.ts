@@ -1,6 +1,7 @@
 import { cn } from "@/lib/utils";
 import { dashboardErrorPanelClass } from "./dashboard";
-import { statusToneClassName, text } from "./index";
+import { statusToneClassName } from "./status";
+import { text } from "./surface";
 import {
   typeHeadingClassName,
   typeMetricClassName,
@@ -51,21 +52,22 @@ export function posCartPanelClassName(className?: string) {
   );
 }
 
-/** Sticky cart summary above POS bottom nav on mobile. */
+/** Contextual cart strip above POS bottom nav — not a second tab bar. */
 export function posMobileCartBarClassName(className?: string) {
   return cn(
-    "fixed inset-x-0 z-40 flex items-center gap-2 border-t px-3 py-2.5 lg:hidden",
+    "fixed inset-x-0 z-40 border-t px-3 py-2 lg:hidden",
     "bottom-[var(--mobile-nav-offset)]",
-    "bg-[var(--pos-filter-bar-bg)] backdrop-blur-md border-[var(--pos-panel-border)] shadow-[var(--shadow-lg)]",
+    "bg-[var(--background)] border-[var(--pos-panel-border)]",
     className,
   );
 }
 
 export function posMobileCartButtonClassName(className?: string) {
   return cn(
-    "flex flex-1 min-h-[44px] items-center gap-2 rounded-xl border px-3 text-left transition-colors",
-    "border-[var(--pos-panel-border)] bg-[var(--pos-panel-bg)] hover:bg-[var(--table-row-hover)]",
+    "flex w-full min-h-[44px] items-center gap-2 rounded-xl border px-3 text-left transition-colors",
+    "border-[var(--pos-panel-border)] bg-[var(--pos-panel-muted-bg)] hover:bg-[var(--table-row-hover)]",
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]/50",
+    "disabled:pointer-events-none disabled:opacity-50",
     className,
   );
 }
@@ -75,7 +77,7 @@ export function posMobileCartIconClassName(className?: string) {
 }
 
 export function posMobileCartTotalClassName(className?: string) {
-  return cn(typeHeadingClassName("ml-auto tabular-nums"), className);
+  return cn(typeHeadingClassName("tabular-nums"), className);
 }
 
 export function posMobileCartSheetClassName(className?: string) {
@@ -146,32 +148,37 @@ export function posAccentTextClassName(className?: string) {
 }
 
 export function posSummaryMutedClassName(className?: string) {
-  return cn("text-sm text-[var(--pos-summary-muted)]", className);
+  return cn("text-sm", text.secondary, className);
 }
 
 export function posSummaryTotalClassName(className?: string) {
-  return cn("text-[var(--pos-summary-total)] tabular-nums", className);
+  return cn(posPriceClassName("text-2xl"), className);
 }
 
 export function posSummaryTotalRowClassName(className?: string) {
   return cn(
-    "flex justify-between text-2xl font-bold pt-2 border-t border-[var(--pos-summary-divider)]",
+    "flex justify-between text-2xl font-bold pt-2 border-t border-[var(--pos-panel-border)]",
+    text.primary,
     className,
   );
 }
 
 export function posSummaryDiscountClassName(className?: string) {
-  return cn("text-sm text-[var(--pos-summary-discount)]", className);
+  return cn("text-sm text-[var(--status-success-fg)]", className);
 }
 
 export function posSummaryRewardClassName(className?: string) {
-  return cn("text-xs text-[var(--pos-summary-reward)]", className);
+  return cn("text-xs", text.muted, className);
 }
 
 export function posStickyFilterBarClassName(className?: string) {
+  return cn("shrink-0 pb-3", className);
+}
+
+export function posCatalogFilterBarClassName(className?: string) {
   return cn(
-    "sticky top-0 z-20 space-y-2.5 pb-3",
-    "bg-[var(--background)]/90 supports-backdrop-filter:backdrop-blur-sm",
+    "space-y-2.5 rounded-xl border px-3 py-2.5",
+    "bg-[var(--surface-inset)] border-[var(--border)]",
     className,
   );
 }
@@ -267,8 +274,7 @@ export function posPaymentMethodTileClassName(isSelected: boolean, className?: s
 export function posSummaryPanelClassName(className?: string) {
   return cn(
     "border-t p-4 space-y-2 rounded-b-xl",
-    "bg-[var(--pos-summary-bg)] text-[var(--pos-summary-fg)] border-[var(--pos-summary-divider)]",
-    "shadow-[inset_0_1px_0_color-mix(in_oklch,var(--pos-summary-fg)_8%,transparent)]",
+    "bg-[var(--pos-panel-muted-bg)] border-[var(--pos-panel-border)]",
     className,
   );
 }
@@ -864,11 +870,6 @@ export function kdsTimerClassName(urgency: KdsTicketUrgency, className?: string)
   );
 }
 
-/** @deprecated Use kdsTimerClassName */
-export function kdsTimerChipClassName(className?: string) {
-  return kdsTimerClassName("on-time", className);
-}
-
 export function kdsImmersiveHeaderClassName(className?: string) {
   return cn(
     "shrink-0 space-y-2.5 pb-3 mb-1 border-b sm:space-y-2 sm:pb-3 sm:mb-3 lg:mb-4",
@@ -924,7 +925,7 @@ export function posDialogContentClassName(className?: string) {
 
 export function posCategoryChipClassName(isActive: boolean, className?: string) {
   return cn(
-    "shrink-0 min-h-[36px] rounded-full px-3.5 text-sm font-medium transition-colors",
+    "shrink-0 min-h-11 lg:min-h-9 rounded-full px-3.5 text-sm font-medium transition-colors",
     isActive
       ? "bg-[var(--pos-category-active-bg)] text-[var(--pos-category-active-fg)]"
       : "text-[var(--pos-category-inactive-fg)] hover:bg-[var(--pos-product-tile-hover)]",
@@ -937,13 +938,9 @@ export function posCartEmptyIconClassName(className?: string) {
 }
 
 export function posImmersiveHeaderClassName(className?: string) {
-  return cn(
-    "shrink-0 space-y-2.5 pb-3 mb-1 border-b sm:space-y-2 sm:pb-3 sm:mb-3 lg:mb-4",
-    "border-[var(--pos-panel-border)]",
-    className,
-  );
+  return cn("shrink-0 pb-3 mb-3 border-b border-[var(--pos-panel-border)]", className);
 }
 
 export { text };
 
-export { posSectionPanelClassName } from "./hub-section-aliases";
+export { posSectionPanelClassName } from "./hub-panel";

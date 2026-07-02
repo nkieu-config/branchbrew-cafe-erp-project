@@ -1,4 +1,4 @@
-import { cn } from "@/lib/utils";
+import { cn, focusRing } from "@/lib/utils";
 
 /** Reusable surface + typography classes backed by CSS variables. */
 export const surface = {
@@ -40,7 +40,7 @@ export function hubTabClassName(isActive: boolean, className?: string) {
   return cn(
     "flex items-center gap-2 px-4 py-2.5 min-h-[44px] text-sm font-medium rounded-lg",
     "transition-opacity duration-150 whitespace-nowrap snap-start shrink-0",
-    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]/50 motion-reduce:transition-none",
+    focusRing,
     isActive
       ? "bg-[var(--hub-tab-active)] text-[var(--hub-tab-active-fg)] shadow-sm"
       : "text-[var(--hub-tab-inactive-fg)] hover:text-[var(--hub-tab-inactive-hover)]",

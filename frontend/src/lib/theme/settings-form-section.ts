@@ -12,18 +12,3 @@ export function settingsSectionLabelClassName(className?: string) {
     className,
   );
 }
-
-/** @deprecated Use settingsSectionLabelClassName with a single panel layout */
-export function settingsSectionClassName(className?: string) {
-  return cn("space-y-4", className);
-}
-
-/** @deprecated Use settingsSectionLabelClassName */
-export function settingsSectionHeaderClassName(className?: string) {
-  return cn("mb-3", className);
-}
-
-/** @deprecated Use settingsSectionLabelClassName */
-export function settingsSectionTitleClassName(className?: string) {
-  return cn("text-sm font-medium", text.secondary, className);
-}

@@ -58,11 +58,6 @@ export function summaryChipClassName(hubId: HubId, active = false, className?: s
   );
 }
 
-/** @deprecated Use summaryChipClassName("kitchen", ...) */
-export function kitchenSummaryChipClassName(active = false, className?: string) {
-  return summaryChipClassName("kitchen", active, className);
-}
-
 export function tableActionAccentClassName(tone: MetricTone, className?: string) {
   return cn(metricValueClassName(tone), "font-bold", className);
 }

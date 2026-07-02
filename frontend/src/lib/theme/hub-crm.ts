@@ -3,15 +3,7 @@ import type { StatusTone } from "./status";
 import { metricValueClassName } from "./metric";
 import { text } from "./surface";
 
-export { crmSectionPanelClassName } from "./hub-section-aliases";
-
-/** @deprecated Use listToolbarFieldClassName from @/lib/theme/hub-primitives instead. */
-export function crmSearchInputClassName(className?: string) {
-  return cn(
-    "pl-9 bg-[var(--table-container-bg)] border-[var(--table-container-border)]",
-    className,
-  );
-}
+export { crmSectionPanelClassName } from "./hub-panel";
 
 export function crmPointsClassName(className?: string) {
   return cn("tabular-nums font-semibold", text.primary, className);

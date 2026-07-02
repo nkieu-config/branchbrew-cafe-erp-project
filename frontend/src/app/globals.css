@@ -1,10 +1,10 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "../styles/theme/animations.css";
 @import "../styles/theme/tokens.css";
-@import "../styles/theme/utilities.css";
+@import "../styles/theme/utilities/index.css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -21,6 +21,7 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -34,6 +35,7 @@
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
   --color-brand-text: var(--brand-text);
+  --color-success: var(--success);
   --color-surface: var(--surface);
   --color-surface-elevated: var(--surface-elevated);
   --color-text-secondary: var(--text-secondary);
@@ -69,83 +71,87 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  --spacing-field: var(--space-sm);
+  --spacing-stack: var(--space-md);
+  --spacing-section: var(--space-lg);
+  --spacing-page: var(--space-xl);
 }
 
-/* BranchBrew — warm cream + roast orange (light) */
+/* BranchBrew — warm cream + roast orange (light). Values synced via lib/theme/primitives.ts */
 :root {
-  --background: #f7f7f4;
-  --foreground: #26251e;
-  --card: #ffffff;
-  --card-foreground: #26251e;
-  --popover: #ffffff;
-  --popover-foreground: #26251e;
+  --background: oklch(97.6% 0.004 106);
+  --foreground: oklch(24.8% 0.01 99);
+  --card: oklch(100% 0 0);
+  --card-foreground: oklch(24.8% 0.01 99);
+  --popover: oklch(100% 0 0);
+  --popover-foreground: oklch(24.8% 0.01 99);
 
-  --primary: #26251e;
-  --primary-foreground: #f7f7f4;
+  --primary: oklch(24.8% 0.01 99);
+  --primary-foreground: oklch(97.6% 0.004 106);
 
-  --secondary: #ebeae5;
-  --secondary-foreground: #26251e;
+  --secondary: oklch(93.5% 0.005 106);
+  --secondary-foreground: oklch(24.8% 0.01 99);
 
-  --muted: #ebeae5;
-  --muted-foreground: #6b675c;
+  --muted: oklch(93.5% 0.005 106);
+  --muted-foreground: oklch(48.3% 0.014 98);
 
-  --accent: #d4842a;
-  --accent-foreground: #ffffff;
+  --accent: oklch(67.9% 0.138 55);
+  --accent-foreground: oklch(100% 0 0);
 
-  --destructive: #cf2d56;
-  --destructive-foreground: #ffffff;
+  --destructive: oklch(55.3% 0.199 12);
+  --destructive-foreground: oklch(100% 0 0);
 
-  --border: #e6e5e0;
-  --input: #e6e5e0;
-  --ring: #d4842a;
+  --border: oklch(91.6% 0.005 106);
+  --input: oklch(91.6% 0.005 106);
+  --ring: oklch(67.9% 0.138 55);
 
   /* Café chart palette — chart-1 = brand caramel; chart-5 = deep roast umber (not brass) */
-  --chart-1: #d4842a;
-  --chart-2: #7ec8b8;
-  --chart-3: #b8a9c9;
-  --chart-4: #e8a87c;
-  --chart-5: #7a5540;
+  --chart-1: oklch(67.9% 0.138 55);
+  --chart-2: oklch(76.5% 0.075 175);
+  --chart-3: oklch(72.1% 0.049 295);
+  --chart-4: oklch(75.9% 0.098 54);
+  --chart-5: oklch(44.8% 0.059 54);
 
-  --success: #1f8a65;
+  --success: oklch(52.1% 0.115 160);
 
   --radius: 0.75rem;
 }
 
 /* Warm dark — espresso night (not cold slate) */
 .dark {
-  --background: #1a1814;
-  --foreground: #f7f7f4;
-  --card: #222019;
-  --card-foreground: #f7f7f4;
-  --popover: #222019;
-  --popover-foreground: #f7f7f4;
+  --background: oklch(16.1% 0.01 85);
+  --foreground: oklch(97.6% 0.004 106);
+  --card: oklch(19.9% 0.01 85);
+  --card-foreground: oklch(97.6% 0.004 106);
+  --popover: oklch(19.9% 0.01 85);
+  --popover-foreground: oklch(97.6% 0.004 106);
 
-  --primary: #f7f7f4;
-  --primary-foreground: #1a1814;
+  --primary: oklch(97.6% 0.004 106);
+  --primary-foreground: oklch(16.1% 0.01 85);
 
-  --secondary: #3d3b33;
-  --secondary-foreground: #f7f7f4;
+  --secondary: oklch(30.1% 0.012 85);
+  --secondary-foreground: oklch(97.6% 0.004 106);
 
-  --muted: #3d3b33;
-  --muted-foreground: #a09c92;
+  --muted: oklch(30.1% 0.012 85);
+  --muted-foreground: oklch(67.9% 0.015 85);
 
-  --accent: #d4842a;
-  --accent-foreground: #ffffff;
+  --accent: oklch(67.9% 0.138 55);
+  --accent-foreground: oklch(100% 0 0);
 
-  --destructive: #cf2d56;
-  --destructive-foreground: #ffffff;
+  --destructive: oklch(55.3% 0.199 12);
+  --destructive-foreground: oklch(100% 0 0);
 
-  --border: #4a4740;
-  --input: #4a4740;
-  --ring: #d4842a;
+  --border: oklch(34.9% 0.013 85);
+  --input: oklch(34.9% 0.013 85);
+  --ring: oklch(67.9% 0.138 55);
 
-  --chart-1: #d4842a;
-  --chart-2: #7ec8b8;
-  --chart-3: #b8a9c9;
-  --chart-4: #e8a87c;
-  --chart-5: #b8a088;
+  --chart-1: oklch(67.9% 0.138 55);
+  --chart-2: oklch(76.5% 0.075 175);
+  --chart-3: oklch(72.1% 0.049 295);
+  --chart-4: oklch(75.9% 0.098 54);
+  --chart-5: oklch(71.5% 0.043 54);
 
-  --success: #2dab7a;
+  --success: oklch(58.2% 0.136 160);
 }
 
 @layer base {

@@ -7,7 +7,7 @@ export {
   productsCategoryBadgeClassName,
   productsDialogContentClassName,
   productsSectionPanelClassName,
-} from "./hub-section-aliases";
+} from "./hub-panel";
 
 export function foodCostStatusMetricTone(status: "good" | "warn" | "bad"): MetricTone {
   switch (status) {

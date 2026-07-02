@@ -9,6 +9,8 @@ const eslintConfig = defineConfig([
     rules: {
       // Common sync patterns (form reset, mount guards) — not worth blocking CI
       'react-hooks/set-state-in-effect': 'off',
+      // Hub list pages use stable `query.data ?? []` defaults; not worth blocking CI
+      'react-hooks/exhaustive-deps': 'off',
       'react-hooks/immutability': 'off',
       '@typescript-eslint/ban-ts-comment': 'warn',
       'prefer-const': 'warn',

@@ -53,7 +53,18 @@ export function dashboardKpiBodyClass(className?: string) {
 }
 
 export function dashboardWidgetHeaderClass(className?: string) {
-  return cn("shrink-0 space-y-0 px-5 pt-4 pb-2", className);
+  return cn("shrink-0 space-y-0 px-3 pt-4 pb-2 sm:px-5", className);
+}
+
+export function dashboardChartWidgetShellClass(className?: string) {
+  return cn(
+    "flex flex-col min-h-[340px] h-auto sm:min-h-0 sm:h-[340px] lg:h-[380px]",
+    className,
+  );
+}
+
+export function dashboardChartWidgetContentClass(className?: string) {
+  return cn("flex-1 min-h-0 px-3 pb-3 pt-1 sm:px-5 sm:pb-4", className);
 }
 
 export function dashboardAlertCountBadgeClass(tone: "low" | "expiry" | "neutral") {
@@ -77,7 +88,7 @@ export function dashboardCustomizeHintClass(className?: string) {
 
 export function dashboardGridClass(className?: string) {
   return cn(
-    "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 auto-rows-[minmax(128px,auto)]",
+    "grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 auto-rows-[minmax(128px,auto)] pb-1",
     className,
   );
 }
@@ -243,11 +254,6 @@ export function dashboardDragHandleBarClass() {
     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--widget-drag-ring)]",
     typeMicroClassName("uppercase tracking-wider font-medium"),
   );
-}
-
-/** @deprecated Use dashboardDragHandleBarClass — kept for theme token tests */
-export function dashboardDragHandleClass() {
-  return dashboardDragHandleBarClass();
 }
 
 export function dashboardHeaderClass(className?: string) {

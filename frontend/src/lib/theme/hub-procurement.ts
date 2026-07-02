@@ -6,7 +6,7 @@ export {
   procurementDialogContentClassName,
   procurementMetaBadgeClassName,
   procurementSectionPanelClassName,
-} from "./hub-section-aliases";
+} from "./hub-panel";
 
 export function procurementMutedMetaClassName(className?: string) {
   return cn("text-xs", text.muted, className);

@@ -1,0 +1,160 @@
+/**
+ * Native Tailwind v4 entry/exit animations (replaces tw-animate-css).
+ * Used by dialog, select, and route transitions.
+ */
+@theme {
+  --animate-fade-in: fade-in var(--tw-duration, 0.1s) ease-out;
+  --animate-fade-out: fade-out var(--tw-duration, 0.1s) ease-in;
+  --animate-zoom-in-95: zoom-in-95 var(--tw-duration, 0.1s) ease-out;
+  --animate-zoom-out-95: zoom-out-95 var(--tw-duration, 0.1s) ease-in;
+  --animate-slide-in-from-top-2: slide-in-from-top-2 var(--tw-duration, 0.1s) ease-out;
+  --animate-slide-in-from-bottom-2: slide-in-from-bottom-2 var(--tw-duration, 0.1s) ease-out;
+  --animate-slide-in-from-bottom-1: slide-in-from-bottom-1 var(--tw-duration, 0.2s) ease-out;
+  --animate-slide-in-from-left-2: slide-in-from-left-2 var(--tw-duration, 0.1s) ease-out;
+  --animate-slide-in-from-right-2: slide-in-from-right-2 var(--tw-duration, 0.1s) ease-out;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes zoom-in-95 {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes zoom-out-95 {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+  }
+
+  @keyframes slide-in-from-top-2 {
+    from {
+      opacity: 0;
+      transform: translateY(-0.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slide-in-from-bottom-2 {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slide-in-from-bottom-1 {
+    from {
+      opacity: 0;
+      transform: translateY(0.25rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slide-in-from-left-2 {
+    from {
+      opacity: 0;
+      transform: translateX(-0.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes slide-in-from-right-2 {
+    from {
+      opacity: 0;
+      transform: translateX(0.5rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+}
+
+@utility animate-in {
+  animation-name: var(--tw-animation-name, fade-in);
+  animation-duration: var(--tw-duration, 0.1s);
+  animation-timing-function: ease-out;
+  animation-fill-mode: both;
+}
+
+@utility animate-out {
+  animation-name: var(--tw-animation-name, fade-out);
+  animation-duration: var(--tw-duration, 0.1s);
+  animation-timing-function: ease-in;
+  animation-fill-mode: both;
+}
+
+@utility fade-in-0 {
+  --tw-animation-name: fade-in;
+}
+
+@utility fade-out-0 {
+  --tw-animation-name: fade-out;
+}
+
+@utility zoom-in-95 {
+  --tw-animation-name: zoom-in-95;
+}
+
+@utility zoom-out-95 {
+  --tw-animation-name: zoom-out-95;
+}
+
+@utility slide-in-from-top-2 {
+  --tw-animation-name: slide-in-from-top-2;
+}
+
+@utility slide-in-from-bottom-2 {
+  --tw-animation-name: slide-in-from-bottom-2;
+}
+
+@utility slide-in-from-bottom-1 {
+  --tw-animation-name: slide-in-from-bottom-1;
+}
+
+@utility slide-in-from-left-2 {
+  --tw-animation-name: slide-in-from-left-2;
+}
+
+@utility slide-in-from-right-2 {
+  --tw-animation-name: slide-in-from-right-2;
+}

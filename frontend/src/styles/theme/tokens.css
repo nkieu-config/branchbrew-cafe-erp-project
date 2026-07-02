@@ -246,7 +246,7 @@
   --mobile-nav-bg: var(--card);
   --mobile-nav-border: var(--border);
   --mobile-nav-shadow: 0 8px 32px -10px color-mix(in oklch, var(--foreground) 12%, transparent);
-  --mobile-nav-offset: calc(4.75rem + env(safe-area-inset-bottom, 0px));
+  --mobile-nav-offset: calc(5.5rem + env(safe-area-inset-bottom, 0px));
 
   --topbar-shadow: 0 1px 0 color-mix(in oklch, var(--border) 60%, transparent);
   --sidebar-nav-inactive-fg: var(--muted-foreground);
