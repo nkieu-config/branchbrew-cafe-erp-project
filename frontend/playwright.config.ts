@@ -39,6 +39,12 @@ export default defineConfig({
       },
     },
     {
+      name: "a11y",
+      testMatch: /a11y\.spec\.ts/,
+      dependencies: ["setup"],
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
       name: "flows",
       testMatch: /-flow\.spec\.ts/,
       testIgnore: /super-admin-branch-flow\.spec\.ts/,
