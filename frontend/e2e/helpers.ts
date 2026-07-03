@@ -15,7 +15,8 @@ export const testIds = {
   loginDemoPanel: "login-demo-panel",
   demoLogin: (id: string) => `demo-login-${id}`,
   posTerminal: "pos-terminal",
-  branchPicker: "branch-picker",
+  branchPickerTopbar: "branch-picker-topbar",
+  branchPickerSidebar: "branch-picker-sidebar",
   branchEmptyState: "branch-empty-state",
   nav: (id: string) => `nav-${id}`,
   dashboardSales: "dashboard-sales",
@@ -38,7 +39,11 @@ export const locators = {
   demoLogin: (page: Page, id: string) => page.getByTestId(testIds.demoLogin(id)),
   demoManager: (page: Page) => page.getByTestId(testIds.demoLogin("manager")),
   posTerminal: (page: Page) => page.getByTestId(testIds.posTerminal),
-  branchPicker: (page: Page) => page.getByTestId(testIds.branchPicker),
+  /** Visible topbar branch picker (desktop or mobile row — never both at once). */
+  branchPicker: (page: Page) =>
+    page.getByTestId(testIds.branchPickerTopbar).locator("visible=true"),
+  branchPickerSidebar: (page: Page) =>
+    page.getByTestId(testIds.branchPickerSidebar).locator("visible=true"),
   branchEmptyState: (page: Page) => page.getByTestId(testIds.branchEmptyState),
   navFinance: (page: Page) => page.getByTestId(testIds.nav("finance")),
   dashboardSales: (page: Page) => page.getByTestId(testIds.dashboardSales),
@@ -105,7 +110,20 @@ export async function openBranchPicker(page: Page) {
   await locators.branchPicker(page).getByRole("combobox", { name: "Select branch" }).click();
 }
 
+/** Open branch picker on empty-state pages (sidebar variant below the message). */
+export async function openBranchPickerFromEmptyState(page: Page) {
+  await locators.branchPickerSidebar(page).getByRole("combobox", { name: "Select branch" }).click();
+}
+
 export async function selectBranchOption(page: Page, optionName: RegExp | string) {
   await openBranchPicker(page);
+  await page.getByRole("option", { name: optionName }).click();
+}
+
+export async function selectBranchOptionFromEmptyState(
+  page: Page,
+  optionName: RegExp | string,
+) {
+  await openBranchPickerFromEmptyState(page);
   await page.getByRole("option", { name: optionName }).click();
 }

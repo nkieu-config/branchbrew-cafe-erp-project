@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import {
   locators,
   selectBranchOption,
+  selectBranchOptionFromEmptyState,
 } from "./helpers";
 
 const ACTIVE_BRANCH_STORAGE_KEY = "branchbrew_active_branch_id";
@@ -31,7 +32,7 @@ test.describe("super admin branch flow", () => {
       locators.branchEmptyState(page).getByText("Select a branch", { exact: true }),
     ).toBeVisible();
 
-    await selectBranchOption(page, /downtown/i);
+    await selectBranchOptionFromEmptyState(page, /downtown/i);
 
     await expect(locators.inventorySearch(page)).toBeVisible({
       timeout: 15_000,
