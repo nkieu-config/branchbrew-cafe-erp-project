@@ -23,7 +23,7 @@ jobs:
       docker: ${{ steps.filter.outputs.docker }}
       root: ${{ steps.filter.outputs.root }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dorny/paths-filter@v3
         id: filter
         with:
@@ -49,7 +49,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Use Node.js 22.x
         uses: actions/setup-node@v6
@@ -88,7 +88,7 @@ jobs:
       needs.changes.outputs.root == 'true'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Build backend image
         run: docker build -f backend/Dockerfile -t erp-backend:ci .
@@ -126,7 +126,7 @@ jobs:
       JWT_SECRET: "test-jwt-secret-for-ci-only-32chars"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Use Node.js 22.x
         uses: actions/setup-node@v6
@@ -191,7 +191,7 @@ jobs:
       needs.changes.outputs.root == 'true'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Use Node.js 22.x
         uses: actions/setup-node@v6
@@ -276,7 +276,7 @@ jobs:
       E2E_PASSWORD: "password123"
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Use Node.js 22.x
         uses: actions/setup-node@v6
