@@ -54,6 +54,7 @@ export function BranchPicker({
         !isSidebar && "min-w-0 flex-1 w-full max-w-none lg:w-[12.5rem] lg:flex-none lg:max-w-none",
         className,
       )}
+      data-testid={isSidebar ? "branch-picker-sidebar" : "branch-picker-topbar"}
     >
       {isSidebar && (
         <MapPin className="w-3.5 h-3.5 shrink-0 text-[var(--topbar-picker-icon)]" aria-hidden="true" />

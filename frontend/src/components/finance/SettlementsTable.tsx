@@ -50,7 +50,7 @@ export function SettlementsTable({
   const emptyMessage = settlementEmptyMessage(settlementFilter);
 
   return (
-    <div className="flex min-w-0 flex-col">
+    <div className="flex min-w-0 flex-col" data-testid="finance-settlements">
       <h2 className={financeSectionLabelClassName()}>Settlements</h2>
 
       <ResponsiveDataTableLayout

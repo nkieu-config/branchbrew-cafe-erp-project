@@ -110,6 +110,7 @@ export default function InventoryPageClient() {
           search={search}
           onSearchChange={setSearch}
           searchPlaceholder="Search ingredients…"
+          searchTestId="inventory-search"
           showReset={hasActiveFilters}
           onReset={() => {
             setSearch("");
