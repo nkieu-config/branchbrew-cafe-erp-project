@@ -117,6 +117,7 @@ export function CreateShiftModal({
         if (!next) onClose();
       }}
       className={hrDialogContentClassName()}
+      testId="hr-schedule-shift-dialog"
     >
       <FormDialog.Title>Schedule shift</FormDialog.Title>
 

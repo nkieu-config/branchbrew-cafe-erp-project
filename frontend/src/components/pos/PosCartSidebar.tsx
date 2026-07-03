@@ -101,7 +101,10 @@ export function PosCartSidebar({
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className={posCartPanelClassName(cn("w-full lg:w-[min(400px,100%)] lg:shrink-0 flex flex-col min-h-0 max-h-full", className))}>
+    <div
+      className={posCartPanelClassName(cn("w-full lg:w-[min(400px,100%)] lg:shrink-0 flex flex-col min-h-0 max-h-full", className))}
+      data-testid="pos-terminal"
+    >
       <div className={posCartHeaderClassName("shrink-0")}>
         <h2 className={posCartTitleClassName()}>
           <ShoppingBag size={20} className={posAccentIconClassName()} /> Current Order

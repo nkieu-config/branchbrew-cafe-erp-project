@@ -20,6 +20,7 @@ type FormDialogRootProps = {
   children: ReactNode;
   className?: string;
   width?: number | string;
+  testId?: string;
 };
 
 function FormDialogRoot({
@@ -28,11 +29,13 @@ function FormDialogRoot({
   children,
   className,
   width = 800,
+  testId,
 }: FormDialogRootProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={className ?? formDialogContentClassName(width)}
+        data-testid={testId}
       >
         {children}
       </DialogContent>

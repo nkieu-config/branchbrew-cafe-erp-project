@@ -156,7 +156,12 @@ export default function LoginContent() {
           </div>
 
           <div className="mb-5">
-            <h1 className={typeHeadingClassName("text-2xl tracking-tight mb-1")}>Sign in</h1>
+            <h1
+              className={typeHeadingClassName("text-2xl tracking-tight mb-1")}
+              data-testid="login-heading"
+            >
+              Sign in
+            </h1>
             <p className={cn("text-sm", text.muted)}>Use your work email and password, or start with a demo account.</p>
           </div>
 
@@ -200,12 +205,13 @@ export default function LoginContent() {
               type="submit"
               className={authPrimaryButtonClassName()}
               disabled={loading || isDemoBusy}
+              data-testid="login-submit"
             >
               {loading && !loadingDemoId ? "Signing in…" : "Sign in"}
             </button>
           </form>
 
-          <div className={authDemoPanelClassName()}>
+          <div className={authDemoPanelClassName()} data-testid="login-demo-panel">
             <p className={cn("mb-2.5 text-xs text-center", text.muted)}>Demo accounts</p>
             <div className="space-y-2">
               <div className="flex gap-2" role="group" aria-label="Primary demo accounts">
@@ -221,6 +227,7 @@ export default function LoginContent() {
                       disabled={loading || isDemoBusy}
                       className={authDemoChipClassName(isActive)}
                       aria-label={`Sign in as demo ${account.label}`}
+                      data-testid={`demo-login-${account.id}`}
                     >
                       {isLoading ? (
                         <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />

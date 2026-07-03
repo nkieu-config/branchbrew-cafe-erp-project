@@ -111,7 +111,7 @@ export default function ShiftsPageClient() {
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button className={hubCtaClassName("hr")} onClick={() => setIsModalOpen(true)}>
+        <Button className={hubCtaClassName("hr")} onClick={() => setIsModalOpen(true)} data-testid="hr-schedule-shift">
           <Plus className="w-4 h-4 mr-2" aria-hidden />
           Schedule shift
         </Button>

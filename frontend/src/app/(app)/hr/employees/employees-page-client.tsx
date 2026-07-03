@@ -125,6 +125,7 @@ export default function EmployeesPageClient() {
           search={search}
           onSearchChange={setSearch}
           searchPlaceholder="Search name, email, role…"
+          searchTestId="employees-search"
           showReset={hasActiveFilters}
           onReset={() => {
             setSearch("");

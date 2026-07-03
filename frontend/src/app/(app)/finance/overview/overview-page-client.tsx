@@ -148,12 +148,13 @@ export default function OverviewPageClient() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="finance-overview">
       <div className="flex justify-end">
         <Button
           onClick={() => void handleExport()}
           disabled={isExporting}
           className={hubCtaClassName("finance")}
+          data-testid="finance-export-sales"
         >
           {isExporting ? (
             <>
@@ -190,6 +191,7 @@ export default function OverviewPageClient() {
           search={expenseSearch}
           onSearchChange={setExpenseSearch}
           searchPlaceholder="Search expenses…"
+          searchTestId="finance-expense-search"
           showReset={hasActiveFilters}
           onReset={() => {
             setSettlementFilterAndUrl("ALL");

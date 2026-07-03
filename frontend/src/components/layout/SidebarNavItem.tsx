@@ -47,6 +47,7 @@ export function SidebarNavItem({
         onClick={onNavigate}
         aria-current={isParentCurrentPage ? "page" : undefined}
         className={sidebarNavLinkClassName(isHubActive, isParentCurrentPage)}
+        data-testid={`nav-${item.id}`}
       >
         <ItemIcon className={sidebarNavIconClassName(isHubActive)} aria-hidden />
         <span className="truncate">{item.label}</span>

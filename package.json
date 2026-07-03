@@ -24,6 +24,7 @@
     "test": "npm run test --workspaces --if-present",
     "test:e2e:backend": "npm run test:e2e --workspace=backend",
     "test:e2e:frontend": "npm run test:e2e --workspace=frontend",
+    "test:e2e:ci-local": "./scripts/run-e2e-ci-local.sh",
     "ci:check": "npm run ci:check --workspaces --if-present",
     "ci:check:push": "npm run ci:check:push --workspaces --if-present"
   },

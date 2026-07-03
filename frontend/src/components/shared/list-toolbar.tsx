@@ -13,6 +13,7 @@ type ListToolbarProps = {
   search?: string;
   onSearchChange?: (value: string) => void;
   searchPlaceholder?: string;
+  searchTestId?: string;
   filters?: ReactNode;
   onReset?: () => void;
   showReset?: boolean;
@@ -23,6 +24,7 @@ export function ListToolbar({
   search,
   onSearchChange,
   searchPlaceholder = "Search…",
+  searchTestId,
   filters,
   onReset,
   showReset = false,
@@ -48,6 +50,7 @@ export function ListToolbar({
               placeholder={searchPlaceholder}
               className={cn(listToolbarFieldClassName(), listToolbarSearchClassName(), "pl-9")}
               aria-label={searchPlaceholder}
+              data-testid={searchTestId}
             />
           </div>
         )}

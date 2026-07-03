@@ -3,17 +3,26 @@ import { defineConfig, devices } from "@playwright/test";
 const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3001";
 const managerAuthFile = "e2e/.auth/manager.json";
 const adminAuthFile = "e2e/.auth/admin.json";
+const isCI = !!process.env.CI;
 
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: process.env.CI ? "github" : "list",
+  forbidOnly: isCI,
+  retries: isCI ? 2 : 0,
+  workers: isCI ? 1 : undefined,
+  reporter: isCI
+    ? [["github"], ["html", { open: "never", outputFolder: "playwright-report" }]]
+    : "list",
+  outputDir: "test-results",
+  expect: {
+    timeout: 10_000,
+  },
   use: {
     baseURL,
-    trace: "on-first-retry",
+    trace: isCI ? "retain-on-failure" : "on-first-retry",
+    screenshot: isCI ? "only-on-failure" : "off",
+    video: isCI ? "retain-on-failure" : "off",
   },
   projects: [
     {
@@ -65,7 +74,7 @@ export default defineConfig({
     : {
         command: "npm run dev",
         url: baseURL,
-        reuseExistingServer: !process.env.CI,
+        reuseExistingServer: !isCI,
         timeout: 120_000,
       },
 });

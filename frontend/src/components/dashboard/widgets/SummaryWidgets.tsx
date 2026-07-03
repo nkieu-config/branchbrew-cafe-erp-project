@@ -64,7 +64,7 @@ export function SalesWidget({ branchId }: { branchId: string }) {
   const showGrowth = hasComparableGrowth(summary?.salesGrowth, summary?.salesYesterday);
 
   return (
-    <Card className={dashboardWidgetCardClass("sales")}>
+    <Card className={dashboardWidgetCardClass("sales")} data-testid="dashboard-sales">
       <CardContent className={dashboardKpiBodyClass()}>
         <div className="flex justify-between items-start gap-3">
           <div className="min-w-0">

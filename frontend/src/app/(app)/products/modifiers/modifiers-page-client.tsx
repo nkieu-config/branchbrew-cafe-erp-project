@@ -429,7 +429,7 @@ export default function ModifiersPageClient() {
   return (
     <>
       <div className="mb-4 flex justify-end">
-        <Button onClick={openCreateGroup} className={hubCtaClassName("products")}>
+        <Button onClick={openCreateGroup} className={hubCtaClassName("products")} data-testid="modifiers-new-group">
           <Plus className="w-4 h-4 mr-2" aria-hidden />
           New group
         </Button>
@@ -446,6 +446,7 @@ export default function ModifiersPageClient() {
           search={search}
           onSearchChange={setSearch}
           searchPlaceholder="Search groups and options…"
+          searchTestId="modifiers-search"
           showReset={hasActiveFilters}
           onReset={() => {
             setSearch("");
