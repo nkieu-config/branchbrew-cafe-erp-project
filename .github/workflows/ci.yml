@@ -59,7 +59,7 @@ jobs:
           cache: npm
 
       - name: Restore node_modules cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         id: npm-cache
         with:
           path: |
@@ -136,7 +136,7 @@ jobs:
           cache: npm
 
       - name: Restore node_modules cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         id: npm-cache
         with:
           path: |
@@ -201,7 +201,7 @@ jobs:
           cache: npm
 
       - name: Restore node_modules cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         id: npm-cache
         with:
           path: |
@@ -286,7 +286,7 @@ jobs:
           cache: npm
 
       - name: Restore node_modules cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         id: npm-cache
         with:
           path: |
@@ -301,7 +301,7 @@ jobs:
         run: ./scripts/npm-ci-retry.sh
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
