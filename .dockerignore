@@ -20,6 +20,7 @@ backend/test
 .env.*
 !.env.example
 !infra/.env.compose.example
+!infra/.env.compose.ci
 !infra/.env.supabase.example
 
 *.log

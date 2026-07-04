@@ -1,3 +1,6 @@
+# Production-oriented Compose overlay. Requires explicit env vars (see infra/.env.supabase.example).
+#
+#   docker compose -f infra/docker-compose.prod.yml --env-file infra/.env.compose up --build
 name: erp
 
 services:
@@ -8,12 +11,18 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER must be set}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
       POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB must be set}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
       - backend
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
     healthcheck:
       test:
         [
@@ -31,9 +40,15 @@ services:
       target: migrate
     restart: "no"
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL must be set}
+      - DIRECT_URL=${DIRECT_URL:-}
     networks:
       - backend
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
     depends_on:
       db:
         condition: service_healthy
@@ -42,18 +57,27 @@ services:
     build:
       context: ..
       dockerfile: backend/Dockerfile
-      target: development
+      target: production
     restart: unless-stopped
     ports:
       - "${BACKEND_PORT:-3000}:3000"
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+      - DATABASE_URL=${DATABASE_URL:?DATABASE_URL must be set}
+      - DIRECT_URL=${DIRECT_URL:-}
       - JWT_SECRET=${JWT_SECRET:?JWT_SECRET must be set}
-      - CORS_ORIGIN=http://localhost:3001
+      - CORS_ORIGIN=${CORS_ORIGIN:?CORS_ORIGIN must be set}
       - PORT=3000
     networks:
       - frontend
       - backend
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
     depends_on:
       db:
         condition: service_healthy
@@ -76,15 +100,22 @@ services:
       context: ..
       dockerfile: frontend/Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?NEXT_PUBLIC_API_URL must be set}
     restart: unless-stopped
     environment:
-      # Server-side Next.js fetches run inside this container, so use the Compose service name.
       - INTERNAL_API_URL=http://backend:3000
     ports:
       - "${FRONTEND_PORT:-3001}:3001"
     networks:
       - frontend
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.25"
+          memory: 256M
     depends_on:
       backend:
         condition: service_healthy

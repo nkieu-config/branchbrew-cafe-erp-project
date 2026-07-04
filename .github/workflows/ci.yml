@@ -76,9 +76,9 @@ jobs:
         run: npm run audit:ci
 
   docker-build:
-    name: Docker — build images
+    name: Docker — build & smoke test
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     needs: [security-audit, changes]
     if: >-
       github.ref == 'refs/heads/main' ||
@@ -90,11 +90,35 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - name: Validate compose configs
+        run: |
+          JWT_SECRET=test-jwt-secret-for-ci-only-32chars \
+          POSTGRES_USER=erp_user \
+          POSTGRES_PASSWORD=erp_password \
+          POSTGRES_DB=erp_db \
+          NEXT_PUBLIC_API_URL=http://localhost:3000 \
+          docker compose -f infra/docker-compose.yml config --quiet
+
+          JWT_SECRET=test-jwt-secret-for-ci-only-32chars \
+          CORS_ORIGIN=https://example.com \
+          DATABASE_URL=postgresql://erp_user:erp_password@db:5432/erp_db?schema=public \
+          NEXT_PUBLIC_API_URL=https://example.com \
+          POSTGRES_USER=erp_user \
+          POSTGRES_PASSWORD=erp_password \
+          POSTGRES_DB=erp_db \
+          docker compose -f infra/docker-compose.prod.yml config --quiet
+
       - name: Build backend image
-        run: docker build -f backend/Dockerfile -t erp-backend:ci .
+        run: docker build -f backend/Dockerfile --target production -t erp-backend:ci .
+
+      - name: Build backend migrate image
+        run: docker build -f backend/Dockerfile --target migrate -t erp-backend-migrate:ci .
 
       - name: Build frontend image
         run: docker build -f frontend/Dockerfile -t erp-frontend:ci --build-arg NEXT_PUBLIC_API_URL=http://localhost:3000 .
+
+      - name: Compose smoke test
+        run: ./scripts/docker-compose-smoke.sh
 
   backend-tests:
     name: Backend — Jest unit & API e2e

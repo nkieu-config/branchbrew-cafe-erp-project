@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { existsSync } from 'fs';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
@@ -20,32 +21,42 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   assertRuntimeConfig();
 
+  const logTransports: winston.transport[] = [
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.ms(),
+        nestWinstonModuleUtilities.format.nestLike('ERP-API', {
+          colors: true,
+          prettyPrint: true,
+        }),
+      ),
+    }),
+  ];
+
+  const useFileLogs =
+    process.env.LOG_TO_FILE === 'true' || !existsSync('/.dockerenv');
+
+  if (useFileLogs) {
+    logTransports.push(
+      new DailyRotateFile({
+        dirname: 'logs',
+        filename: 'application-%DATE%.log',
+        datePattern: 'YYYY-MM-DD',
+        zippedArchive: true,
+        maxSize: '20m',
+        maxFiles: '14d',
+        format: winston.format.combine(
+          winston.format.timestamp(),
+          winston.format.json(),
+        ),
+      }),
+    );
+  }
+
   const app = await NestFactory.create(AppModule, {
     logger: WinstonModule.createLogger({
-      transports: [
-        new winston.transports.Console({
-          format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.ms(),
-            nestWinstonModuleUtilities.format.nestLike('ERP-API', {
-              colors: true,
-              prettyPrint: true,
-            }),
-          ),
-        }),
-        new DailyRotateFile({
-          dirname: 'logs',
-          filename: 'application-%DATE%.log',
-          datePattern: 'YYYY-MM-DD',
-          zippedArchive: true,
-          maxSize: '20m',
-          maxFiles: '14d',
-          format: winston.format.combine(
-            winston.format.timestamp(),
-            winston.format.json(),
-          ),
-        }),
-      ],
+      transports: logTransports,
     }),
   });
 

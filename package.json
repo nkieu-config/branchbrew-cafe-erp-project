@@ -14,6 +14,8 @@
     "dev:backend": "npm run start:dev --workspace=backend",
     "dev:frontend": "npm run dev --workspace=frontend",
     "docker:up": "docker compose -f infra/docker-compose.yml --env-file infra/.env.compose up --build",
+    "docker:up:prod": "docker compose -f infra/docker-compose.prod.yml --env-file infra/.env.compose up --build",
+    "docker:down": "docker compose -f infra/docker-compose.yml --env-file infra/.env.compose down",
     "build": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "format": "npm run format --workspaces --if-present",
