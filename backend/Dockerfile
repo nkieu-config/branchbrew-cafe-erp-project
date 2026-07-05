@@ -4,13 +4,16 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 ENV HUSKY=0
+ENV NPM_CONFIG_FETCH_RETRIES=5 \
+    NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=20000 \
+    NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=120000
 
 COPY package*.json ./
 COPY frontend/package.json ./frontend/
 COPY backend/package.json ./backend/
 COPY packages/types/package.json ./packages/types/
 
-RUN --mount=type=cache,target=/root/.npm \
+RUN --mount=type=cache,id=erp-npm-backend,target=/root/.npm \
     npm ci
 
 COPY . .
@@ -24,6 +27,9 @@ WORKDIR /app
 
 ENV HUSKY=0
 ENV NODE_ENV=production
+ENV NPM_CONFIG_FETCH_RETRIES=5 \
+    NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=20000 \
+    NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=120000
 
 COPY package*.json ./
 COPY frontend/package.json ./frontend/
@@ -32,7 +38,7 @@ COPY packages/types/package.json ./packages/types/
 COPY backend/prisma ./backend/prisma
 COPY backend/prisma.config.ts ./backend/prisma.config.ts
 
-RUN --mount=type=cache,target=/root/.npm \
+RUN --mount=type=cache,id=erp-npm-backend,target=/root/.npm \
     npm ci --workspace=backend --include-workspace-root --omit=dev --ignore-scripts
 
 FROM node:22-alpine AS migrate
@@ -40,6 +46,9 @@ FROM node:22-alpine AS migrate
 WORKDIR /app
 
 ENV HUSKY=0
+ENV NPM_CONFIG_FETCH_RETRIES=5 \
+    NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=20000 \
+    NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=120000
 
 COPY package*.json ./
 COPY frontend/package.json ./frontend/
@@ -48,7 +57,7 @@ COPY packages/types/package.json ./packages/types/
 COPY backend/prisma ./backend/prisma
 COPY backend/prisma.config.ts ./backend/prisma.config.ts
 
-RUN --mount=type=cache,target=/root/.npm \
+RUN --mount=type=cache,id=erp-npm-backend,target=/root/.npm \
     npm ci --workspace=backend --include-workspace-root --ignore-scripts
 RUN npx prisma generate --schema=backend/prisma/schema.prisma
 

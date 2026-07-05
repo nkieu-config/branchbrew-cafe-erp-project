@@ -4,6 +4,9 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 ENV HUSKY=0
+ENV NPM_CONFIG_FETCH_RETRIES=5 \
+    NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=20000 \
+    NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=120000
 
 ARG NEXT_PUBLIC_API_URL=http://localhost:3000
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
@@ -13,7 +16,7 @@ COPY frontend/package*.json ./frontend/
 COPY backend/package.json ./backend/
 COPY packages/types/package.json ./packages/types/
 
-RUN --mount=type=cache,target=/root/.npm \
+RUN --mount=type=cache,id=erp-npm-frontend,target=/root/.npm \
     npm ci --workspace=frontend --include-workspace-root --ignore-scripts
 
 COPY packages/types ./packages/types
