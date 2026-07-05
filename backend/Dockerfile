@@ -63,6 +63,17 @@ RUN npx prisma generate --schema=backend/prisma/schema.prisma
 
 CMD ["npm", "run", "migrate:deploy", "--workspace=backend"]
 
+FROM migrate AS seed
+
+COPY backend/tsconfig.json backend/tsconfig.seed.json ./backend/
+COPY backend/src ./backend/src
+COPY scripts/docker-seed-if-empty.sh /usr/local/bin/docker-seed-if-empty.sh
+RUN chmod +x /usr/local/bin/docker-seed-if-empty.sh
+
+ENV NODE_ENV=development
+
+ENTRYPOINT ["/usr/local/bin/docker-seed-if-empty.sh"]
+
 FROM node:22-alpine AS production
 
 WORKDIR /app

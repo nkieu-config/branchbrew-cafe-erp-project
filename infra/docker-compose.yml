@@ -38,6 +38,20 @@ services:
       db:
         condition: service_healthy
 
+  seed:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+      target: seed
+    restart: "no"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?schema=public
+    networks:
+      - backend
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
   backend:
     build:
       context: ..
@@ -57,7 +71,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      migrate:
+      seed:
         condition: service_completed_successfully
     healthcheck:
       test:

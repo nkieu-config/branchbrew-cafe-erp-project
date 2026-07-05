@@ -14,7 +14,7 @@
     "start:prod": "node dist/src/main",
     "migrate:dev": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
-    "db:seed": "ts-node prisma/seed.ts",
+    "db:seed": "ts-node --project tsconfig.seed.json prisma/seed.ts",
     "type-check": "tsc --noEmit",
     "test:types": "tsc --noEmit",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --max-warnings=0",

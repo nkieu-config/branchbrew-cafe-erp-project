@@ -5,7 +5,12 @@
 ```bash
 cp infra/.env.compose.example infra/.env.compose
 npm run docker:up
-npm run docker:seed    # once per fresh database volume
+```
+
+Demo data is seeded automatically on first startup (empty database). To reset demo data:
+
+```bash
+npm run docker:seed
 ```
 
 Open http://localhost:3001/login — demo login `manager@branchbrew.dev` / `password123`.
@@ -16,7 +21,7 @@ Open http://localhost:3001/login — demo login `manager@branchbrew.dev` / `pass
 |--------|---------|
 | `npm run docker:up` | Build and start db, migrate, backend, frontend |
 | `npm run docker:down` | Stop the local stack |
-| `npm run docker:seed` | Load demo data (requires stack up, Postgres on `localhost:5432`) |
+| `npm run docker:seed` | Wipe and reload demo data (runs seed container with `FORCE_SEED=1`) |
 | `npm run docker:up:prod` | Production-oriented compose (`docker-compose.prod.yml`) |
 
 ## Environment files
@@ -61,5 +66,6 @@ Production vars include `DATABASE_URL` (pooler), `DIRECT_URL` (migrations), `COR
 ## Notes
 
 - Migrations run automatically via the one-shot `migrate` service.
-- `docker:seed` runs on the host (runs `prisma generate` if needed).
+- Demo seed runs automatically via the one-shot `seed` service when the database has no users.
+- `docker:seed` re-runs demo seed inside the Docker network (no host Postgres port required).
 - API: http://localhost:3000 — Swagger (dev image): http://localhost:3000/docs
