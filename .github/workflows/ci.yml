@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   changes:
-    name: Detect changed paths
+    name: Path filter
     runs-on: ubuntu-latest
     outputs:
       backend: ${{ steps.filter.outputs.backend }}
@@ -44,7 +44,7 @@ jobs:
               - '.github/workflows/**'
 
   security-audit:
-    name: Security — dependency audit
+    name: Security — npm audit
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -76,10 +76,10 @@ jobs:
         run: npm run audit:ci
 
   docker-build:
-    name: Docker — build & smoke test
+    name: Docker — build, scan & smoke
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    needs: [security-audit, changes]
+    needs: [changes]
     if: >-
       github.ref == 'refs/heads/main' ||
       needs.changes.outputs.docker == 'true' ||
@@ -108,20 +108,44 @@ jobs:
           POSTGRES_DB=erp_db \
           docker compose -f infra/docker-compose.prod.yml config --quiet
 
-      - name: Build backend image
-        run: docker build -f backend/Dockerfile --target production -t erp-backend:ci .
+          docker compose -f infra/docker-compose.ci-smoke.yml --env-file infra/.env.compose.ci config --quiet
 
-      - name: Build backend migrate image
-        run: docker build -f backend/Dockerfile --target migrate -t erp-backend-migrate:ci .
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Build frontend image
-        run: docker build -f frontend/Dockerfile -t erp-frontend:ci --build-arg NEXT_PUBLIC_API_URL=http://localhost:3000 .
+      - name: Build images (parallel)
+        run: ./scripts/docker-ci-build.sh
+
+      - name: Scan backend image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: erp-backend:ci
+          format: table
+          exit-code: 1
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          scanners: vuln
+          skip-dirs: usr/local/lib/node_modules/npm,opt/yarn-v1.22.22,usr/local/lib/node_modules/corepack
+
+      - name: Scan frontend image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: erp-frontend:ci
+          format: table
+          exit-code: 1
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          scanners: vuln
+          skip-dirs: usr/local/lib/node_modules/npm,opt/yarn-v1.22.22,usr/local/lib/node_modules/corepack
+          skip-setup-trivy: true
 
       - name: Compose smoke test
+        env:
+          SKIP_COMPOSE_VALIDATE: "1"
         run: ./scripts/docker-compose-smoke.sh
 
   backend-tests:
-    name: Backend — Jest unit & API e2e
+    name: Backend — checks, build & API e2e
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [security-audit, changes]
@@ -205,7 +229,7 @@ jobs:
         run: npm run test:e2e:backend
 
   frontend-checks:
-    name: Frontend — Vitest, lint & build
+    name: Frontend — checks & build
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: [security-audit, changes]
@@ -259,7 +283,7 @@ jobs:
           retention-days: 1
 
   frontend-e2e:
-    name: Frontend — Playwright smoke
+    name: E2E — Playwright (full stack)
     runs-on: ubuntu-latest
     timeout-minutes: 45
     needs: [security-audit, changes, backend-tests, frontend-checks]

@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.4
 FROM node:22-alpine AS builder
 
 WORKDIR /app
@@ -12,9 +13,11 @@ COPY frontend/package*.json ./frontend/
 COPY backend/package.json ./backend/
 COPY packages/types/package.json ./packages/types/
 
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --workspace=frontend --include-workspace-root --ignore-scripts
 
-COPY . .
+COPY packages/types ./packages/types
+COPY frontend ./frontend
 
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build --workspace=frontend

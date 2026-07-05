@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-COMPOSE_FILE="${COMPOSE_FILE:-infra/docker-compose.yml}"
+COMPOSE_FILE="${COMPOSE_FILE:-infra/docker-compose.ci-smoke.yml}"
 ENV_FILE="${ENV_FILE:-infra/.env.compose.ci}"
 COMPOSE=(docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE")
 PROJECT="${COMPOSE_PROJECT_NAME:-erp-ci-smoke}"
@@ -30,26 +30,35 @@ wait_for_url() {
   return 1
 }
 
-echo "==> Validating compose config"
-JWT_SECRET=test-jwt-secret-for-ci-only-32chars \
-  POSTGRES_USER=erp_user \
-  POSTGRES_PASSWORD=erp_password \
-  POSTGRES_DB=erp_db \
-  NEXT_PUBLIC_API_URL=http://localhost:3000 \
-  docker compose -f infra/docker-compose.yml config --quiet
+if [[ "${SKIP_COMPOSE_VALIDATE:-0}" != "1" ]]; then
+  echo "==> Validating compose config"
+  JWT_SECRET=test-jwt-secret-for-ci-only-32chars \
+    POSTGRES_USER=erp_user \
+    POSTGRES_PASSWORD=erp_password \
+    POSTGRES_DB=erp_db \
+    NEXT_PUBLIC_API_URL=http://localhost:3000 \
+    docker compose -f infra/docker-compose.yml config --quiet
 
-JWT_SECRET=test-jwt-secret-for-ci-only-32chars \
-  CORS_ORIGIN=https://example.com \
-  DATABASE_URL=postgresql://erp_user:erp_password@db:5432/erp_db?schema=public \
-  NEXT_PUBLIC_API_URL=https://example.com \
-  POSTGRES_USER=erp_user \
-  POSTGRES_PASSWORD=erp_password \
-  POSTGRES_DB=erp_db \
-  docker compose -f infra/docker-compose.prod.yml config --quiet
+  JWT_SECRET=test-jwt-secret-for-ci-only-32chars \
+    CORS_ORIGIN=https://example.com \
+    DATABASE_URL=postgresql://erp_user:erp_password@db:5432/erp_db?schema=public \
+    NEXT_PUBLIC_API_URL=https://example.com \
+    POSTGRES_USER=erp_user \
+    POSTGRES_PASSWORD=erp_password \
+    POSTGRES_DB=erp_db \
+    docker compose -f infra/docker-compose.prod.yml config --quiet
 
-echo "==> Starting stack (project: $PROJECT)"
+  docker compose -f "$COMPOSE_FILE" --env-file "$ENV_FILE" config --quiet
+fi
+
+echo "==> Starting stack from pre-built images (project: $PROJECT)"
 export COMPOSE_PROJECT_NAME="$PROJECT"
-"${COMPOSE[@]}" up -d --build
+if ! "${COMPOSE[@]}" up -d; then
+  echo "==> Compose up failed; dumping service logs"
+  COMPOSE_PROJECT_NAME="$PROJECT" "${COMPOSE[@]}" ps
+  COMPOSE_PROJECT_NAME="$PROJECT" "${COMPOSE[@]}" logs --tail=100
+  exit 1
+fi
 
 wait_for_url "http://localhost:3000/health" "Backend"
 wait_for_url "http://localhost:3001/api/health" "Frontend"

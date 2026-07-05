@@ -16,6 +16,17 @@ playwright-report
 frontend/e2e
 backend/test
 
+**/*.md
+!infra/README.md
+**/*.spec.ts
+**/*.test.ts
+**/*.e2e-spec.ts
+**/*.e2e-spec.tsx
+
+.vscode
+.idea
+*.tsbuildinfo
+
 .env
 .env.*
 !.env.example
@@ -28,3 +39,4 @@ application.log
 .DS_Store
 
 erp_reference.md
+docs
