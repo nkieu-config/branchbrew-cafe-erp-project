@@ -1,13 +1,14 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtPayload } from './interfaces/request-with-user.interface';
 import { parseAuthCookie } from './auth-cookie.util';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
+  constructor(private readonly prisma: PrismaService) {
     const secret = process.env.JWT_SECRET;
     if (!secret) {
       throw new Error(
@@ -21,10 +22,19 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       ]),
       ignoreExpiration: false,
       secretOrKey: secret,
+      algorithms: ['HS256'],
     });
   }
 
-  validate(payload: JwtPayload) {
+  async validate(payload: JwtPayload) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: { tokenVersion: true },
+    });
+    if (!user || (payload.tokenVersion ?? 0) !== user.tokenVersion) {
+      throw new UnauthorizedException('Token has been revoked');
+    }
+
     return {
       userId: payload.sub,
       email: payload.email,

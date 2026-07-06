@@ -5,8 +5,13 @@ import {
   ValidateNested,
   IsOptional,
   IsString,
+  IsBoolean,
+  IsNotEmpty,
+  Matches,
+  MaxLength,
   Min,
   IsEnum,
+  ValidateIf,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { PaymentMethod } from '@prisma/client';
@@ -22,6 +27,7 @@ export class OrderItemDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(500)
   notes?: string;
 
   @IsOptional()
@@ -42,11 +48,14 @@ export class CreateOrderDto {
   items: OrderItemDto[];
 
   @IsOptional()
-  @IsString()
+  @Matches(/^\d{8,15}$/, {
+    message: 'customerPhone must be 8-15 digits',
+  })
   customerPhone?: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(50)
   promotionCode?: string;
 
   @IsOptional()
@@ -59,17 +68,23 @@ export class CreateOrderDto {
   paymentMethod?: PaymentMethod;
 
   @IsOptional()
+  @IsBoolean()
   isTaxInvoiceRequested?: boolean;
 
-  @IsOptional()
+  @ValidateIf((o: CreateOrderDto) => o.isTaxInvoiceRequested === true)
   @IsString()
+  @IsNotEmpty({ message: 'taxInvoiceName is required for a tax invoice' })
+  @MaxLength(200)
   taxInvoiceName?: string;
 
-  @IsOptional()
-  @IsString()
+  @ValidateIf((o: CreateOrderDto) => o.isTaxInvoiceRequested === true)
+  @Matches(/^\d{13}$/, {
+    message: 'taxInvoiceTaxId must be a 13-digit Thai tax ID',
+  })
   taxInvoiceTaxId?: string;
 
   @IsOptional()
   @IsString()
+  @MaxLength(500)
   taxInvoiceAddress?: string;
 }

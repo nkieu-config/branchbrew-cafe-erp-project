@@ -35,6 +35,7 @@ export class AuthService {
       email: user.email,
       role: user.role,
       branchId: user.branchId,
+      tokenVersion: user.tokenVersion,
     };
     const accessToken = this.jwtService.sign(payload);
     return {
@@ -48,6 +49,13 @@ export class AuthService {
         branch: user.branch ? user.branch.name : null,
       },
     };
+  }
+
+  async revokeTokens(userId: number) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { tokenVersion: { increment: 1 } },
+    });
   }
 
   async getProfile(userId: number) {

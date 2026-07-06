@@ -103,6 +103,21 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       };
     }
 
+    const clientErrorStatus = this.readClientErrorStatus(exception);
+    if (clientErrorStatus) {
+      return {
+        statusCode: clientErrorStatus,
+        code: ApiErrorCode.VALIDATION_ERROR,
+        message:
+          clientErrorStatus === HttpStatus.PAYLOAD_TOO_LARGE
+            ? 'Request body is too large.'
+            : 'Invalid request.',
+        requestId,
+        timestamp,
+        path,
+      };
+    }
+
     return {
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       code: ApiErrorCode.INTERNAL_ERROR,
@@ -111,6 +126,20 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       timestamp,
       path,
     };
+  }
+
+  private readClientErrorStatus(exception: unknown): number | null {
+    if (
+      exception &&
+      typeof exception === 'object' &&
+      'statusCode' in exception
+    ) {
+      const status = exception.statusCode;
+      if (typeof status === 'number' && status >= 400 && status < 500) {
+        return status;
+      }
+    }
+    return null;
   }
 
   private mapHttpStatusToCode(status: number, message: string): ApiErrorCode {

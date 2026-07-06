@@ -56,10 +56,14 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Clear auth cookie' })
+  @ApiOperation({ summary: 'Revoke tokens and clear auth cookie' })
   @ApiNoContentResponse({ description: 'Logout successful' })
   @ApiAuthErrorResponses()
-  logout(@Res({ passthrough: true }) res: Response) {
+  async logout(
+    @Req() req: RequestWithUser,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    await this.authService.revokeTokens(req.user.userId);
     clearAuthCookie(res);
   }
 

@@ -5,6 +5,7 @@ export interface JwtPayload {
   email: string;
   role: Role;
   branchId: number | null;
+  tokenVersion?: number;
 }
 
 export interface RequestWithUser extends Request {

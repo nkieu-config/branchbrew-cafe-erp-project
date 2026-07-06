@@ -51,6 +51,28 @@ describe('runtime-config', () => {
       expect(() => assertRuntimeConfig()).not.toThrow();
     });
 
+    it('rejects placeholder JWT_SECRET in production', () => {
+      process.env.NODE_ENV = 'production';
+      process.env.JWT_SECRET = 'dev-secret-qafacafe-erp-change-in-production';
+      process.env.DATABASE_URL =
+        'postgresql://user:pass@db.example.com:5432/erp';
+      process.env.CORS_ORIGIN = 'https://erp.example.com';
+
+      expect(() => assertRuntimeConfig()).toThrow(
+        'JWT_SECRET looks like a placeholder/dev value',
+      );
+    });
+
+    it('accepts a random JWT_SECRET in production', () => {
+      process.env.NODE_ENV = 'production';
+      process.env.JWT_SECRET = 'f3a9'.repeat(16);
+      process.env.DATABASE_URL =
+        'postgresql://user:pass@db.example.com:5432/erp';
+      process.env.CORS_ORIGIN = 'https://erp.example.com';
+
+      expect(() => assertRuntimeConfig()).not.toThrow();
+    });
+
     it('enforces production CORS rules', () => {
       process.env.NODE_ENV = 'production';
       process.env.JWT_SECRET = 'x'.repeat(32);

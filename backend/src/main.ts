@@ -1,6 +1,6 @@
 import 'dotenv/config';
-import { existsSync } from 'fs';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
@@ -34,8 +34,7 @@ async function bootstrap() {
     }),
   ];
 
-  const useFileLogs =
-    process.env.LOG_TO_FILE === 'true' || !existsSync('/.dockerenv');
+  const useFileLogs = process.env.LOG_TO_FILE === 'true';
 
   if (useFileLogs) {
     logTransports.push(
@@ -54,11 +53,17 @@ async function bootstrap() {
     );
   }
 
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: WinstonModule.createLogger({
       transports: logTransports,
     }),
+    bodyParser: false,
   });
+
+  app.useBodyParser('json', { limit: '100kb' });
+  app.useBodyParser('urlencoded', { extended: true, limit: '100kb' });
+
+  app.set('trust proxy', 1);
 
   app.use(helmet());
   app.use(requestContextMiddleware);

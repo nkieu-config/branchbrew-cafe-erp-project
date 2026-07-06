@@ -1,6 +1,9 @@
 const LOCAL_ORIGIN_PATTERN =
   /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(?::\d+)?$/;
 
+const PLACEHOLDER_JWT_SECRET_PATTERN =
+  /change[-_]?me|dev[-_]?secret|test[-_]?jwt|placeholder|example/i;
+
 export function getCorsOrigins(): string[] {
   const raw = process.env.CORS_ORIGIN;
   if (!raw) return ['http://localhost:3000', 'http://localhost:3001'];
@@ -47,6 +50,13 @@ export function assertRuntimeConfig(): void {
 
   if (jwtSecret.length < 32) {
     throw new Error('JWT_SECRET must be at least 32 characters in production.');
+  }
+
+  if (PLACEHOLDER_JWT_SECRET_PATTERN.test(jwtSecret)) {
+    throw new Error(
+      'JWT_SECRET looks like a placeholder/dev value. Generate a random one: ' +
+        `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`,
+    );
   }
 
   const corsOrigins = getCorsOrigins();
