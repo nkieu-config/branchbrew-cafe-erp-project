@@ -10,6 +10,8 @@ import { JwtService } from '@nestjs/jwt';
 import { OnEvent } from '@nestjs/event-emitter';
 import { OrderCreatedEvent } from '../orders/events/order-created.event';
 import { OrderStatusUpdatedEvent } from '../orders/events/order-status-updated.event';
+import { NOTIFICATION_CREATED_EVENT } from '../notifications/notifications.service';
+import type { Notification } from '@prisma/client';
 import { JwtPayload } from '../auth/interfaces/request-with-user.interface';
 import { Role } from '@prisma/client';
 import { parseAuthCookie } from '../auth/auth-cookie.util';
@@ -92,6 +94,21 @@ export class RealtimeGateway
     this.server
       .to(`branch:${event.branchId}`)
       .emit('orderCreated', event.order);
+  }
+
+  @OnEvent(NOTIFICATION_CREATED_EVENT, { async: true })
+  handleNotificationCreated(notification: Notification) {
+    if (notification.branchId == null) return;
+    this.server
+      .to(`branch:${notification.branchId}`)
+      .emit('notificationCreated', {
+        id: notification.id,
+        type: notification.type,
+        title: notification.title,
+        link: notification.link,
+        userId: notification.userId,
+        minRole: notification.minRole,
+      });
   }
 
   @OnEvent('order.status.updated', { async: true })

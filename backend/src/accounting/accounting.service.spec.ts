@@ -310,6 +310,227 @@ describe('AccountingService', () => {
     });
   });
 
+  describe('VAT split on sales', () => {
+    it('credits sales ex-VAT and output VAT separately', async () => {
+      const createSpy = jest
+        .spyOn(service, 'createJournalEntry')
+        .mockResolvedValue({ id: 1 } as any);
+
+      await service.handleOrderCreated({
+        order: {
+          id: 99,
+          branchId: 1,
+          netAmount: 107,
+          taxAmount: 7,
+          totalCogs: 0,
+          paymentMethod: 'CASH',
+        },
+      } as any);
+
+      expect(createSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lines: [
+            expect.objectContaining({ accountCode: '1010', debit: 107 }),
+            expect.objectContaining({ accountCode: '4010', credit: 100 }),
+            expect.objectContaining({ accountCode: '2020', credit: 7 }),
+          ],
+        }),
+      );
+      createSpy.mockRestore();
+    });
+  });
+
+  describe('handlePayrollApproved', () => {
+    it('posts gross payroll against withholdings and cash', async () => {
+      const createSpy = jest
+        .spyOn(service, 'createJournalEntry')
+        .mockResolvedValue({ id: 1 } as any);
+
+      await service.handlePayrollApproved({
+        payrollRunId: 3,
+        branchId: 2,
+        month: 6,
+        year: 2026,
+        totalGross: 50000,
+        totalNet: 46000,
+        totalDeductions: 4000,
+      } as any);
+
+      expect(createSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          reference: 'PAYROLL-3',
+          lines: [
+            expect.objectContaining({ accountCode: '5020', debit: 50000 }),
+            expect.objectContaining({ accountCode: '2030', credit: 4000 }),
+            expect.objectContaining({ accountCode: '1010', credit: 46000 }),
+          ],
+        }),
+      );
+      createSpy.mockRestore();
+    });
+  });
+
+  describe('handleExpenseCreated', () => {
+    it('posts operating expenses against cash', async () => {
+      const createSpy = jest
+        .spyOn(service, 'createJournalEntry')
+        .mockResolvedValue({ id: 1 } as any);
+
+      await service.handleExpenseCreated({
+        expenseId: 12,
+        branchId: 2,
+        amount: 320,
+        category: 'Utilities',
+      } as any);
+
+      expect(createSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          reference: 'EXP-12',
+          lines: [
+            expect.objectContaining({ accountCode: '5050', debit: 320 }),
+            expect.objectContaining({ accountCode: '1010', credit: 320 }),
+          ],
+        }),
+      );
+      createSpy.mockRestore();
+    });
+  });
+
+  describe('handlePurchaseOrderPaid', () => {
+    it('settles AP against cash with an idempotent reference', async () => {
+      const createSpy = jest
+        .spyOn(service, 'createJournalEntry')
+        .mockResolvedValue({ id: 1 } as any);
+
+      await service.handlePurchaseOrderPaid({
+        poId: 5,
+        poNumber: 'PO-000005',
+        branchId: 2,
+        amount: 450,
+        method: 'BANK_TRANSFER',
+      } as any);
+
+      expect(createSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          branchId: 2,
+          reference: 'PAY-PO-000005',
+          lines: [
+            expect.objectContaining({
+              accountCode: '2010',
+              debit: 450,
+              credit: 0,
+            }),
+            expect.objectContaining({
+              accountCode: '1010',
+              debit: 0,
+              credit: 450,
+            }),
+          ],
+        }),
+      );
+      createSpy.mockRestore();
+    });
+
+    it('skips zero-amount payments', async () => {
+      const createSpy = jest
+        .spyOn(service, 'createJournalEntry')
+        .mockResolvedValue({ id: 1 } as any);
+
+      await service.handlePurchaseOrderPaid({
+        poId: 6,
+        poNumber: 'PO-000006',
+        branchId: 2,
+        amount: 0,
+        method: 'CASH',
+      } as any);
+
+      expect(createSpy).not.toHaveBeenCalled();
+      createSpy.mockRestore();
+    });
+  });
+
+  describe('handleStockAdjusted', () => {
+    it('posts shrinkage for a count shortage', async () => {
+      const createSpy = jest
+        .spyOn(service, 'createJournalEntry')
+        .mockResolvedValue({ id: 1 } as any);
+
+      await service.handleStockAdjusted({
+        reference: 'STOCKCOUNT-7',
+        branchId: 2,
+        netVarianceValue: -125.5,
+        description: 'Stock count #7 variance',
+      } as any);
+
+      expect(createSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          branchId: 2,
+          reference: 'STOCKCOUNT-7',
+          lines: [
+            expect.objectContaining({
+              accountCode: '5040',
+              debit: 125.5,
+              credit: 0,
+            }),
+            expect.objectContaining({
+              accountCode: '1030',
+              debit: 0,
+              credit: 125.5,
+            }),
+          ],
+        }),
+      );
+      createSpy.mockRestore();
+    });
+
+    it('posts a write-up for a count overage', async () => {
+      const createSpy = jest
+        .spyOn(service, 'createJournalEntry')
+        .mockResolvedValue({ id: 1 } as any);
+
+      await service.handleStockAdjusted({
+        reference: 'ADJ-3',
+        branchId: 1,
+        netVarianceValue: 40,
+        description: 'Manual stock adjustment #3 (CORRECTION)',
+      } as any);
+
+      expect(createSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          lines: [
+            expect.objectContaining({
+              accountCode: '1030',
+              debit: 40,
+              credit: 0,
+            }),
+            expect.objectContaining({
+              accountCode: '5040',
+              debit: 0,
+              credit: 40,
+            }),
+          ],
+        }),
+      );
+      createSpy.mockRestore();
+    });
+
+    it('skips zero-value adjustments', async () => {
+      const createSpy = jest
+        .spyOn(service, 'createJournalEntry')
+        .mockResolvedValue({ id: 1 } as any);
+
+      await service.handleStockAdjusted({
+        reference: 'STOCKCOUNT-9',
+        branchId: 1,
+        netVarianceValue: 0,
+        description: 'Stock count #9 variance',
+      } as any);
+
+      expect(createSpy).not.toHaveBeenCalled();
+      createSpy.mockRestore();
+    });
+  });
+
   describe('handleOrderCreated', () => {
     it('uses the payment clearing account for card sales', async () => {
       const createSpy = jest

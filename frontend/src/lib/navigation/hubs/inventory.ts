@@ -2,6 +2,7 @@ import {
   Package,
   PackageOpen,
   ClipboardCheck,
+  ClipboardList,
   ArrowDownToLine,
   ArrowRightLeft,
   Trash2,
@@ -42,6 +43,13 @@ export const inventoryHub: HubConfig = {
       label: "Stock Transfers",
       path: "/inventory/transfers",
       icon: ArrowRightLeft,
+      roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
+    },
+    {
+      id: "stocktake",
+      label: "Stocktake",
+      path: "/inventory/stocktake",
+      icon: ClipboardList,
       roles: ["SUPER_ADMIN", "MANAGER", "STAFF"],
     },
     {

@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { ApAgingCard } from "@/components/finance/ApAgingCard";
+import { VatReportCard } from "@/components/finance/VatReportCard";
 import { ExpensesTable } from "@/components/finance/ExpensesTable";
 import { SettlementsTable } from "@/components/finance/SettlementsTable";
 import {
@@ -168,6 +170,11 @@ export default function OverviewPageClient() {
             </>
           )}
         </Button>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <ApAgingCard />
+        <VatReportCard />
       </div>
 
       <HubListPage className={financeSectionPanelClassName()}>

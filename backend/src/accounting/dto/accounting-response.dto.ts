@@ -94,6 +94,23 @@ export class ProfitLossMonthResponseDto {
   expense: number;
 }
 
+export class VatReportMonthResponseDto {
+  @ApiProperty({ example: '2026-06' })
+  month: string;
+
+  @ApiProperty({ example: 198500 })
+  grossSales: number;
+
+  @ApiProperty({ example: 185514.02 })
+  salesExVat: number;
+
+  @ApiProperty({ example: 12985.98 })
+  outputVat: number;
+
+  @ApiProperty({ example: 412 })
+  orderCount: number;
+}
+
 export class SeedAccountsResponseDto {
   @ApiProperty({ example: true })
   success: boolean;

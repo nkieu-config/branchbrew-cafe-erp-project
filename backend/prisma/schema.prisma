@@ -7,30 +7,35 @@ datasource db {
 }
 
 model User {
-  id                 Int                @id @default(autoincrement())
-  email              String             @unique
-  name               String?
-  password           String
-  role               Role               @default(STAFF)
-  employmentType     EmploymentType     @default(PART_TIME)
-  branchId           Int?
-  branch             Branch?            @relation(fields: [branchId], references: [id])
-  hourlyRate         Decimal            @default(0) @db.Decimal(19, 4)
-  baseSalary         Decimal            @default(0) @db.Decimal(19, 4)
-  tokenVersion       Int                @default(0)
-  orders             Order[]
-  transfersRequested StockTransfer[]    @relation("TransferRequestedBy")
-  transfersApproved  StockTransfer[]    @relation("TransferApprovedBy")
-  auditLogs          AuditLog[]
-  shifts             Shift[]
-  attendanceRecords  AttendanceRecord[]
-  leaveRequests      LeaveRequest[]
-  wasteLogs          WasteLog[]
-  expenses           Expense[]
-  shiftSettlements   ShiftSettlement[]
-  payslips           Payslip[]
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  id                  Int                @id @default(autoincrement())
+  email               String             @unique
+  name                String?
+  password            String
+  role                Role               @default(STAFF)
+  employmentType      EmploymentType     @default(PART_TIME)
+  branchId            Int?
+  branch              Branch?            @relation(fields: [branchId], references: [id])
+  hourlyRate          Decimal            @default(0) @db.Decimal(19, 4)
+  baseSalary          Decimal            @default(0) @db.Decimal(19, 4)
+  tokenVersion        Int                @default(0)
+  orders              Order[]
+  transfersRequested  StockTransfer[]    @relation("TransferRequestedBy")
+  transfersApproved   StockTransfer[]    @relation("TransferApprovedBy")
+  auditLogs           AuditLog[]
+  shifts              Shift[]
+  attendanceRecords   AttendanceRecord[]
+  leaveRequests       LeaveRequest[]
+  wasteLogs           WasteLog[]
+  expenses            Expense[]
+  shiftSettlements    ShiftSettlement[]
+  payslips            Payslip[]
+  stockCountsCreated  StockCount[]       @relation("StockCountCreatedBy")
+  stockCountsApproved StockCount[]       @relation("StockCountApprovedBy")
+  stockAdjustments    StockAdjustment[]
+  supplierPayments    SupplierPayment[]
+  notifications       Notification[]
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 
   @@index([branchId])
 }
@@ -67,6 +72,10 @@ model Branch {
   payrollRuns       PayrollRun[]
   equipment         Equipment[]
   journalEntries    JournalEntry[]
+  stockCounts       StockCount[]
+  stockAdjustments  StockAdjustment[]
+  supplierPayments  SupplierPayment[]
+  notifications     Notification[]
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 }
@@ -90,6 +99,8 @@ model Ingredient {
   isActive                 Boolean             @default(true)
   modifierGroupsSwapTarget ModifierGroup[]     @relation("ModifierSwapTarget")
   modifierOptionsSwapTo    ModifierOption[]    @relation("ModifierSwapTo")
+  stockCountLines          StockCountLine[]
+  stockAdjustments         StockAdjustment[]
   createdAt                DateTime            @default(now())
   updatedAt                DateTime            @updatedAt
 
@@ -164,6 +175,104 @@ enum TransferStatus {
   SHIPPED
   COMPLETED
   CANCELLED
+}
+
+model StockCount {
+  id               Int               @id @default(autoincrement())
+  branchId         Int
+  branch           Branch            @relation(fields: [branchId], references: [id])
+  status           StockCountStatus  @default(DRAFT)
+  isBlind          Boolean           @default(false)
+  notes            String?
+  createdByUserId  Int
+  createdBy        User              @relation("StockCountCreatedBy", fields: [createdByUserId], references: [id])
+  approvedByUserId Int?
+  approvedBy       User?             @relation("StockCountApprovedBy", fields: [approvedByUserId], references: [id])
+  submittedAt      DateTime?
+  approvedAt       DateTime?
+  lines            StockCountLine[]
+  adjustments      StockAdjustment[]
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([branchId, status])
+  @@index([createdByUserId])
+  @@index([approvedByUserId])
+}
+
+enum StockCountStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  CANCELLED
+}
+
+model StockCountLine {
+  id           Int        @id @default(autoincrement())
+  stockCountId Int
+  stockCount   StockCount @relation(fields: [stockCountId], references: [id], onDelete: Cascade)
+  ingredientId Int
+  ingredient   Ingredient @relation(fields: [ingredientId], references: [id])
+  expectedQty  Float?
+  countedQty   Float?
+
+  @@unique([stockCountId, ingredientId])
+  @@index([ingredientId])
+}
+
+model StockAdjustment {
+  id              Int                   @id @default(autoincrement())
+  branchId        Int
+  branch          Branch                @relation(fields: [branchId], references: [id])
+  ingredientId    Int
+  ingredient      Ingredient            @relation(fields: [ingredientId], references: [id])
+  quantityDelta   Float
+  reason          StockAdjustmentReason
+  notes           String?
+  stockCountId    Int?
+  stockCount      StockCount?           @relation(fields: [stockCountId], references: [id])
+  createdByUserId Int
+  createdBy       User                  @relation(fields: [createdByUserId], references: [id])
+  createdAt       DateTime              @default(now())
+
+  @@index([branchId, ingredientId])
+  @@index([stockCountId])
+  @@index([createdByUserId])
+}
+
+enum StockAdjustmentReason {
+  COUNT_VARIANCE
+  DAMAGE
+  CORRECTION
+}
+
+model Notification {
+  id        Int              @id @default(autoincrement())
+  type      NotificationType
+  title     String
+  body      String?
+  link      String?
+  branchId  Int?
+  branch    Branch?          @relation(fields: [branchId], references: [id])
+  minRole   Role             @default(STAFF)
+  userId    Int?
+  user      User?            @relation(fields: [userId], references: [id])
+  dedupeKey String?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([branchId, readAt])
+  @@index([userId, readAt])
+  @@index([type, branchId, dedupeKey])
+}
+
+enum NotificationType {
+  LOW_STOCK
+  BATCH_EXPIRING
+  MAINTENANCE_DUE
+  LEAVE_DECIDED
+  PO_PENDING_APPROVAL
+  STOCK_COUNT_PENDING
 }
 
 model AuditLog {
@@ -350,14 +459,15 @@ model OrderItemModifier {
 }
 
 model Supplier {
-  id             Int             @id @default(autoincrement())
+  id             Int               @id @default(autoincrement())
   name           String
   contactEmail   String?
   phone          String?
   purchaseOrders PurchaseOrder[]
+  payments       SupplierPayment[]
   ingredients    Ingredient[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
 }
 
 model PurchaseOrder {
@@ -368,11 +478,16 @@ model PurchaseOrder {
   supplierId       Int
   supplier         Supplier            @relation(fields: [supplierId], references: [id])
   status           POStatus            @default(PENDING)
+  paymentStatus    POPaymentStatus     @default(UNPAID)
+  paidAt           DateTime?
+  payment          SupplierPayment?
   isAutoGenerated  Boolean             @default(false)
   items            PurchaseOrderItem[]
   inventoryBatches InventoryBatch[]
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
+
+  @@index([status, paymentStatus])
 }
 
 enum POStatus {
@@ -380,6 +495,36 @@ enum POStatus {
   PENDING
   APPROVED
   RECEIVED
+}
+
+enum POPaymentStatus {
+  UNPAID
+  PAID
+}
+
+model SupplierPayment {
+  id            Int                   @id @default(autoincrement())
+  poId          Int                   @unique
+  purchaseOrder PurchaseOrder         @relation(fields: [poId], references: [id])
+  supplierId    Int
+  supplier      Supplier              @relation(fields: [supplierId], references: [id])
+  branchId      Int
+  branch        Branch                @relation(fields: [branchId], references: [id])
+  amount        Decimal               @db.Decimal(19, 4)
+  method        SupplierPaymentMethod
+  notes         String?
+  paidByUserId  Int
+  paidBy        User                  @relation(fields: [paidByUserId], references: [id])
+  createdAt     DateTime              @default(now())
+
+  @@index([supplierId])
+  @@index([branchId])
+  @@index([paidByUserId])
+}
+
+enum SupplierPaymentMethod {
+  CASH
+  BANK_TRANSFER
 }
 
 model PurchaseOrderItem {

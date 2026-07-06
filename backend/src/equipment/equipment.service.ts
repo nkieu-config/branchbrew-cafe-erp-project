@@ -6,12 +6,16 @@ import {
   assertBranchAccess,
   BranchScopedUser,
 } from '../auth/branch-scope.util';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class EquipmentService {
   private readonly logger = new Logger(EquipmentService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   // Run every day at midnight
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
@@ -38,7 +42,16 @@ export class EquipmentService {
       this.logger.warn(
         `Alert: Equipment [${eq.name}] at Branch [${eq.branch.name}] is due for maintenance by ${eq.nextMaintenanceDate?.toLocaleDateString()}`,
       );
-      // In a real app, send an email, push notification, or WebSocket event here
+      await this.notifications.notifyBranch({
+        branchId: eq.branchId,
+        type: 'MAINTENANCE_DUE',
+        title: `${eq.name} is due for maintenance`,
+        body: eq.nextMaintenanceDate
+          ? `Scheduled by ${eq.nextMaintenanceDate.toISOString().slice(0, 10)}`
+          : undefined,
+        link: '/assets',
+        dedupeKey: `equipment-${eq.id}`,
+      });
     }
   }
 

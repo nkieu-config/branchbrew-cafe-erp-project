@@ -10,6 +10,8 @@ describe("buildOperationalTasks", () => {
     pendingPurchaseOrders: 2,
     pendingSettlements: 1,
     pendingLeave: 1,
+    pendingStockCounts: 1,
+    unreadNotifications: 2,
   };
 
   it("omits inventory counts handled by the inventory widget", () => {
@@ -26,6 +28,7 @@ describe("buildOperationalTasks", () => {
       "purchase-orders",
       "settlements",
       "leave",
+      "stock-counts",
     ]);
   });
 

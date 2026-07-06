@@ -11,6 +11,8 @@ export type NavCountsSnapshot = {
   pendingPurchaseOrders: number;
   pendingSettlements: number;
   pendingLeave: number;
+  pendingStockCounts: number;
+  unreadNotifications: number;
 };
 
 export type OperationalTask = {
@@ -74,6 +76,15 @@ export function buildOperationalTasks(
       label: "Leave requests pending",
       href: "/hr/leave?status=PENDING",
       count: counts.pendingLeave,
+    });
+  }
+
+  if (isManagerOrAdmin && counts.pendingStockCounts > 0) {
+    tasks.push({
+      id: "stock-counts",
+      label: "Stock counts awaiting approval",
+      href: "/inventory/stocktake",
+      count: counts.pendingStockCounts,
     });
   }
 

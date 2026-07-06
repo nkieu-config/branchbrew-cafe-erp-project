@@ -19,6 +19,7 @@ import {
   JournalEntryResponseDto,
   ProfitLossMonthResponseDto,
   SeedAccountsResponseDto,
+  VatReportMonthResponseDto,
 } from './dto/accounting-response.dto';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
@@ -59,6 +60,25 @@ export class AccountingController {
       parseOptionalPositiveInt(branchId, 'branchId'),
     );
     return this.accountingService.getJournalEntries(resolvedBranchId);
+  }
+
+  @Get('vat-report')
+  @Roles('SUPER_ADMIN', 'MANAGER')
+  @ApiOperation({ summary: 'Monthly output-VAT summary (ภ.พ.30-style)' })
+  @ApiOkResponse({
+    type: VatReportMonthResponseDto,
+    isArray: true,
+    description: 'VAT report retrieved',
+  })
+  async getVatReport(
+    @Request() req: RequestWithUser,
+    @Query('branchId') branchId?: string,
+  ) {
+    const resolvedBranchId = resolveOptionalBranchId(
+      req.user,
+      parseOptionalPositiveInt(branchId, 'branchId'),
+    );
+    return this.accountingService.getVatReport(resolvedBranchId);
   }
 
   @Get('profit-loss')

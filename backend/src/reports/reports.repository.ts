@@ -71,8 +71,12 @@ export class ReportsRepository {
 
     return Promise.all([
       this.prisma.order.aggregate({
-        where: { ...whereBranch, createdAt: { gte: startOfMonth } },
-        _sum: { netAmount: true, totalCogs: true },
+        where: {
+          ...whereBranch,
+          createdAt: { gte: startOfMonth },
+          status: { in: [...ACTIVE_ORDER_STATUSES] },
+        },
+        _sum: { netAmount: true, taxAmount: true, totalCogs: true },
       }),
       this.prisma.expense.aggregate({
         where: { ...whereBranch, createdAt: { gte: startOfMonth } },
@@ -85,7 +89,7 @@ export class ReportsRepository {
             createdAt: { gte: startOfMonth },
           },
         },
-        _sum: { netPay: true },
+        _sum: { grossPay: true },
       }),
     ]);
   }

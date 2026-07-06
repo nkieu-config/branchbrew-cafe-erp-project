@@ -3,6 +3,7 @@ import { ProcurementService } from './procurement.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { OutboxService } from '../outbox/outbox.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { BadRequestException } from '@nestjs/common';
 import {
   MockPrismaService,
@@ -20,6 +21,10 @@ describe('ProcurementService', () => {
         PrismaServiceMockProvider,
         { provide: AuditService, useValue: { logAction: jest.fn() } },
         { provide: OutboxService, useValue: { enqueue: jest.fn() } },
+        {
+          provide: NotificationsService,
+          useValue: { notifyBranch: jest.fn(), notifyUser: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -97,6 +102,120 @@ describe('ProcurementService', () => {
       await expect(
         service.submitPO(1, 9, { userId: 9, role: 'MANAGER', branchId: 2 }),
       ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('payPO', () => {
+    const manager = { userId: 9, role: 'MANAGER', branchId: 2 } as const;
+    const receivedPO = {
+      id: 5,
+      poNumber: 'PO-000005',
+      branchId: 2,
+      supplierId: 3,
+      status: 'RECEIVED',
+      paymentStatus: 'UNPAID',
+      items: [{ id: 1, ingredientId: 4, quantityRequested: 10, unitPrice: 45 }],
+    };
+
+    beforeEach(() => {
+      prisma.$transaction.mockImplementation(async (cb: Function) =>
+        cb(prisma),
+      );
+    });
+
+    it('records the payment, flips paymentStatus, and enqueues the GL event', async () => {
+      prisma.purchaseOrder.findUnique
+        .mockResolvedValueOnce(receivedPO as any)
+        .mockResolvedValueOnce({
+          ...receivedPO,
+          paymentStatus: 'PAID',
+        } as any);
+      prisma.purchaseOrder.updateMany.mockResolvedValue({ count: 1 });
+      prisma.supplierPayment.create.mockResolvedValue({ id: 1 } as any);
+
+      const outbox = (service as any).outboxService as { enqueue: jest.Mock };
+
+      await service.payPO(5, 9, manager, { method: 'BANK_TRANSFER' });
+
+      expect(prisma.purchaseOrder.updateMany).toHaveBeenCalledWith({
+        where: { id: 5, paymentStatus: 'UNPAID' },
+        data: { paymentStatus: 'PAID', paidAt: expect.any(Date) },
+      });
+      expect(prisma.supplierPayment.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          poId: 5,
+          supplierId: 3,
+          branchId: 2,
+          amount: 450,
+          method: 'BANK_TRANSFER',
+        }),
+      });
+
+      const [, eventType, payload] = outbox.enqueue.mock.calls[0];
+      expect(eventType).toBe('purchase-order.paid');
+      expect(payload.payment).toMatchObject({
+        poNumber: 'PO-000005',
+        amount: 450,
+        method: 'BANK_TRANSFER',
+      });
+    });
+
+    it('rejects paying a PO that is not received', async () => {
+      prisma.purchaseOrder.findUnique.mockResolvedValue({
+        ...receivedPO,
+        status: 'APPROVED',
+      } as any);
+
+      await expect(
+        service.payPO(5, 9, manager, { method: 'CASH' }),
+      ).rejects.toThrow('Cannot pay PO with status APPROVED');
+    });
+
+    it('rejects double payment', async () => {
+      prisma.purchaseOrder.findUnique.mockResolvedValue({
+        ...receivedPO,
+        paymentStatus: 'PAID',
+      } as any);
+
+      await expect(
+        service.payPO(5, 9, manager, { method: 'CASH' }),
+      ).rejects.toThrow('This purchase order has already been paid.');
+
+      expect(prisma.supplierPayment.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getApAging', () => {
+    it('buckets unpaid received POs by age', async () => {
+      const daysAgo = (n: number) =>
+        new Date(Date.now() - n * 24 * 60 * 60 * 1000);
+      prisma.purchaseOrder.findMany.mockResolvedValue([
+        {
+          id: 1,
+          updatedAt: daysAgo(5),
+          items: [{ quantityRequested: 10, unitPrice: 10 }],
+        },
+        {
+          id: 2,
+          updatedAt: daysAgo(45),
+          items: [{ quantityRequested: 2, unitPrice: 100 }],
+        },
+        {
+          id: 3,
+          updatedAt: daysAgo(90),
+          items: [{ quantityRequested: 1, unitPrice: 50 }],
+        },
+      ] as any);
+
+      const aging = await service.getApAging(2);
+
+      expect(aging.totalOutstanding).toBe(350);
+      expect(aging.poCount).toBe(3);
+      expect(aging.buckets).toEqual([
+        { range: '0-30', amount: 100, count: 1 },
+        { range: '31-60', amount: 200, count: 1 },
+        { range: '61+', amount: 50, count: 1 },
+      ]);
     });
   });
 });

@@ -11,7 +11,11 @@ export const AUDIT_ACTIONS = {
   APPROVE_PO: 'APPROVE_PO',
   REJECT_PO: 'REJECT_PO',
   RECEIVE_PO: 'RECEIVE_PO',
+  PAY_PO: 'PAY_PO',
   UPDATE_SETTINGS: 'UPDATE_SETTINGS',
+  CREATE_STOCK_COUNT: 'CREATE_STOCK_COUNT',
+  APPROVE_STOCK_COUNT: 'APPROVE_STOCK_COUNT',
+  MANUAL_ADJUSTMENT: 'MANUAL_ADJUSTMENT',
 } as const;
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS];
@@ -21,6 +25,8 @@ export const AUDIT_TARGETS = {
   PAYROLL_RUN: 'PayrollRun',
   PURCHASE_ORDER: 'PurchaseOrder',
   SYSTEM_SETTING: 'SystemSetting',
+  STOCK_COUNT: 'StockCount',
+  STOCK_ADJUSTMENT: 'StockAdjustment',
 } as const;
 
 type JsonLike =
@@ -41,7 +47,11 @@ export type AuditTargetByAction = {
   [AUDIT_ACTIONS.APPROVE_PO]: typeof AUDIT_TARGETS.PURCHASE_ORDER;
   [AUDIT_ACTIONS.REJECT_PO]: typeof AUDIT_TARGETS.PURCHASE_ORDER;
   [AUDIT_ACTIONS.RECEIVE_PO]: typeof AUDIT_TARGETS.PURCHASE_ORDER;
+  [AUDIT_ACTIONS.PAY_PO]: typeof AUDIT_TARGETS.PURCHASE_ORDER;
   [AUDIT_ACTIONS.UPDATE_SETTINGS]: typeof AUDIT_TARGETS.SYSTEM_SETTING;
+  [AUDIT_ACTIONS.CREATE_STOCK_COUNT]: typeof AUDIT_TARGETS.STOCK_COUNT;
+  [AUDIT_ACTIONS.APPROVE_STOCK_COUNT]: typeof AUDIT_TARGETS.STOCK_COUNT;
+  [AUDIT_ACTIONS.MANUAL_ADJUSTMENT]: typeof AUDIT_TARGETS.STOCK_ADJUSTMENT;
 };
 
 export type AuditDetailsByAction = {
@@ -83,8 +93,29 @@ export type AuditDetailsByAction = {
   [AUDIT_ACTIONS.RECEIVE_PO]: {
     poNumber: string;
   };
+  [AUDIT_ACTIONS.PAY_PO]: {
+    poNumber: string;
+    amount: number;
+    method: string;
+  };
   [AUDIT_ACTIONS.UPDATE_SETTINGS]: {
     keys: string[];
+  };
+  [AUDIT_ACTIONS.CREATE_STOCK_COUNT]: {
+    branchId: number;
+    isBlind: boolean;
+    lineCount: number;
+  };
+  [AUDIT_ACTIONS.APPROVE_STOCK_COUNT]: {
+    branchId: number;
+    adjustedLines: number;
+    netVarianceValue: number;
+  };
+  [AUDIT_ACTIONS.MANUAL_ADJUSTMENT]: {
+    branchId: number;
+    ingredientId: number;
+    quantityDelta: number;
+    reason: string;
   };
 };
 

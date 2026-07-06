@@ -114,10 +114,10 @@ export class ReportsService {
         branchId,
       );
 
-    const revenue = toNum(orders._sum.netAmount);
+    const revenue = toNum(orders._sum.netAmount) - toNum(orders._sum.taxAmount);
     const cogs = toNum(orders._sum.totalCogs);
     const expenseTotal = toNum(expenses._sum.amount);
-    const payrollTotal = toNum(payrolls._sum.netPay);
+    const payrollTotal = toNum(payrolls._sum.grossPay);
 
     const grossProfit = revenue - cogs;
     const netProfit = grossProfit - expenseTotal - payrollTotal;

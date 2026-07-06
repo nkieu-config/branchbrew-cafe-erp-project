@@ -7,6 +7,8 @@ import {
 } from '../prisma/prisma.service.mock';
 import { BadRequestException } from '@nestjs/common';
 import { AuditService } from '../audit/audit.service';
+import { OutboxService } from '../outbox/outbox.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 describe('HrService', () => {
   let service: HrService;
@@ -18,6 +20,11 @@ describe('HrService', () => {
         HrService,
         PrismaServiceMockProvider,
         { provide: AuditService, useValue: { logAction: jest.fn() } },
+        { provide: OutboxService, useValue: { enqueue: jest.fn() } },
+        {
+          provide: NotificationsService,
+          useValue: { notifyBranch: jest.fn(), notifyUser: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -65,6 +72,7 @@ describe('HrService', () => {
         },
       ] as any);
 
+      prisma.user.findMany.mockResolvedValue([]);
       prisma.payrollRun.create.mockResolvedValue({ id: 2 } as any);
 
       await service.generatePayrollRun(mockBranchId, 6, 2026);
@@ -93,6 +101,47 @@ describe('HrService', () => {
                   socialSecurity: 750, // Math.min(16000 * 0.05, 750) = Math.min(800, 750) = 750
                 }),
               ]),
+            },
+          }),
+        }),
+      );
+    });
+
+    it('includes full-time employees with no attendance records', async () => {
+      prisma.payrollRun.findFirst.mockResolvedValue(null);
+      prisma.attendanceRecord.findMany.mockResolvedValue([]);
+      prisma.user.findMany.mockResolvedValue([
+        {
+          id: 5,
+          hourlyRate: 0,
+          baseSalary: 30000,
+          employmentType: 'FULL_TIME',
+        },
+      ] as any);
+      prisma.payrollRun.create.mockResolvedValue({ id: 3 } as any);
+
+      await service.generatePayrollRun(2, 6, 2026);
+
+      expect(prisma.user.findMany).toHaveBeenCalledWith({
+        where: { branchId: 2, employmentType: 'FULL_TIME' },
+      });
+      expect(prisma.payrollRun.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            payslips: {
+              create: [
+                expect.objectContaining({
+                  userId: 5,
+                  standardHours: 0,
+                  otHours: 0,
+                  basePay: 30000,
+                  otPay: 0,
+                  grossPay: 30000,
+                  socialSecurity: 750,
+                  taxDeduction: 900,
+                  netPay: 28350,
+                }),
+              ],
             },
           }),
         }),

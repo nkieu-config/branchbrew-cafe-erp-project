@@ -24,4 +24,10 @@ export class NavCountsResponseDto {
 
   @ApiProperty({ example: 0 })
   pendingLeave: number;
+
+  @ApiProperty({ example: 1 })
+  pendingStockCounts: number;
+
+  @ApiProperty({ example: 3 })
+  unreadNotifications: number;
 }

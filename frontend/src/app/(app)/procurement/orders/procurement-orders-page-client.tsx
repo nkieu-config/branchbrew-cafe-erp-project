@@ -12,6 +12,7 @@ import {
   useApprovePurchaseOrder,
   useRejectPurchaseOrder,
   useReceivePurchaseOrder,
+  usePayPurchaseOrder,
 } from "@/hooks/domains/useProcurementQueries";
 import { useIngredients } from "@/hooks/domains/useProductQueries";
 import { useAuth } from "@/context/AuthContext";
@@ -26,6 +27,7 @@ import {
   CheckSquare,
   Send,
   Loader2,
+  Banknote,
 } from "lucide-react";
 import { toast } from "sonner";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
@@ -38,6 +40,7 @@ import {
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { CreatePOModal } from "@/components/procurement/CreatePOModal";
+import { PayPurchaseOrderDialog } from "@/components/procurement/PayPurchaseOrderDialog";
 import {
   PurchaseOrderExpandedPanel,
   ReceivePurchaseOrderDialog,
@@ -99,9 +102,11 @@ export default function ProcurementOrdersPageClient() {
   const receiveMutation = useReceivePurchaseOrder();
   const createMutation = useCreatePurchaseOrder();
   const submitMutation = useSubmitPurchaseOrder();
+  const payMutation = usePayPurchaseOrder();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [receivePo, setReceivePo] = useState<PurchaseOrder | null>(null);
+  const [payPo, setPayPo] = useState<PurchaseOrder | null>(null);
   const [expiryByIngredient, setExpiryByIngredient] = useState<Record<number, string>>({});
   const [confirmAction, setConfirmAction] = useState<
     { type: "approve" | "reject"; po: PurchaseOrder } | null
@@ -229,6 +234,17 @@ export default function ProcurementOrdersPageClient() {
     }
   };
 
+  const handlePay = async (method: "CASH" | "BANK_TRANSFER", notes?: string) => {
+    if (!payPo) return;
+    try {
+      await payMutation.mutateAsync({ id: payPo.id, method, notes });
+      toast.success(`Payment recorded for ${payPo.poNumber}`);
+      setPayPo(null);
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to record payment"));
+    }
+  };
+
   const handleSubmit = async (poId: number) => {
     setSubmittingPoId(poId);
     try {
@@ -286,6 +302,15 @@ export default function ProcurementOrdersPageClient() {
             className={tableActionAccentClassName("emerald")}
           />
         )}
+        {po.status === "RECEIVED" && po.paymentStatus === "UNPAID" && canApprove && (
+          <TableActionButton
+            icon={Banknote}
+            label={`Pay ${po.poNumber}`}
+            iconOnly
+            onClick={() => setPayPo(po)}
+            className={tableActionAccentClassName("emerald")}
+          />
+        )}
       </div>
     ),
     [canApprove, handleSubmit, openReceive, submittingPoId],
@@ -336,7 +361,16 @@ export default function ProcurementOrdersPageClient() {
           title: "Status",
           key: "status",
           render: (_: unknown, record: PurchaseOrder) => (
-            <StatusBadge tone={poStatusTone(record.status)}>{record.status}</StatusBadge>
+            <div className="flex flex-wrap items-center gap-1">
+              <StatusBadge tone={poStatusTone(record.status)}>{record.status}</StatusBadge>
+              {record.status === "RECEIVED" ? (
+                <StatusBadge
+                  tone={record.paymentStatus === "PAID" ? "success" : "warning"}
+                >
+                  {record.paymentStatus}
+                </StatusBadge>
+              ) : null}
+            </div>
           ),
         },
         {
@@ -530,6 +564,13 @@ export default function ProcurementOrdersPageClient() {
         ingredients={ingredients}
         onSubmit={handleCreateSubmit}
         isSubmitting={createMutation.isPending}
+      />
+
+      <PayPurchaseOrderDialog
+        purchaseOrder={payPo}
+        onClose={() => setPayPo(null)}
+        onConfirm={handlePay}
+        isSubmitting={payMutation.isPending}
       />
 
       <ReceivePurchaseOrderDialog

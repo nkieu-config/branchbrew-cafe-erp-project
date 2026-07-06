@@ -91,6 +91,38 @@ export const useReceivePurchaseOrder = () => {
   });
 };
 
+export const usePayPurchaseOrder = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      method,
+      notes,
+    }: {
+      id: number;
+      method: 'CASH' | 'BANK_TRANSFER';
+      notes?: string;
+    }) =>
+      fetchAPI(PROCUREMENT_ENDPOINTS.payPurchaseOrder(id), {
+        method: 'POST',
+        body: JSON.stringify({ method, notes: notes || undefined }),
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['purchaseOrders'] });
+      queryClient.invalidateQueries({ queryKey: ['apAging'] });
+      queryClient.invalidateQueries({ queryKey: [NAV_COUNTS_QUERY_KEY] });
+    },
+  });
+};
+
+export const useApAging = (enabled = true) => {
+  return useQuery({
+    queryKey: ['apAging'],
+    queryFn: () => fetchAPI(PROCUREMENT_ENDPOINTS.apAging),
+    enabled,
+  });
+};
+
 export const useCreateSupplier = () => {
   const queryClient = useQueryClient();
   return useMutation({

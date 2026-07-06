@@ -8,3 +8,8 @@ export type JournalEntry = components['schemas']['JournalEntryResponseDto'];
 
 export type ProfitLossMonth =
   components['schemas']['ProfitLossMonthResponseDto'];
+
+export type VatReportMonth =
+  components['schemas']['VatReportMonthResponseDto'];
+
+export type AppNotification = components['schemas']['NotificationResponseDto'];

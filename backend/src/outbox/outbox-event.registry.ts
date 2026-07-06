@@ -4,7 +4,11 @@ import { OrderVoidedEvent } from '../orders/events/order-voided.event';
 import { OrderRefundedEvent } from '../orders/events/order-refunded.event';
 import { OrderStatusUpdatedEvent } from '../orders/events/order-status-updated.event';
 import { PurchaseOrderReceivedEvent } from '../procurement/events/purchase-order-received.event';
+import { PurchaseOrderPaidEvent } from '../procurement/events/purchase-order-paid.event';
 import { ProductionCompletedEvent } from '../production/events/production-completed.event';
+import { StockAdjustedEvent } from '../inventory/events/stock-adjusted.event';
+import { PayrollApprovedEvent } from '../hr/events/payroll-approved.event';
+import { ExpenseCreatedEvent } from '../finance/events/expense-created.event';
 import {
   assertOutboxPayload,
   isOutboxEventType,
@@ -66,6 +70,16 @@ const outboxEventRegistry: Record<OutboxEventType, OutboxDispatchHandler> = {
       new PurchaseOrderReceivedEvent(data.purchaseOrder),
     );
   },
+  [OUTBOX_EVENT_TYPES.PURCHASE_ORDER_PAID]: async (payload, eventEmitter) => {
+    const data = assertOutboxPayload(
+      OUTBOX_EVENT_TYPES.PURCHASE_ORDER_PAID,
+      payload,
+    );
+    await eventEmitter.emitAsync(
+      OUTBOX_EVENT_TYPES.PURCHASE_ORDER_PAID,
+      new PurchaseOrderPaidEvent(data.payment),
+    );
+  },
   [OUTBOX_EVENT_TYPES.PRODUCTION_COMPLETED]: async (payload, eventEmitter) => {
     const data = assertOutboxPayload(
       OUTBOX_EVENT_TYPES.PRODUCTION_COMPLETED,
@@ -74,6 +88,36 @@ const outboxEventRegistry: Record<OutboxEventType, OutboxDispatchHandler> = {
     await eventEmitter.emitAsync(
       OUTBOX_EVENT_TYPES.PRODUCTION_COMPLETED,
       new ProductionCompletedEvent(data.production),
+    );
+  },
+  [OUTBOX_EVENT_TYPES.STOCK_ADJUSTED]: async (payload, eventEmitter) => {
+    const data = assertOutboxPayload(
+      OUTBOX_EVENT_TYPES.STOCK_ADJUSTED,
+      payload,
+    );
+    await eventEmitter.emitAsync(
+      OUTBOX_EVENT_TYPES.STOCK_ADJUSTED,
+      new StockAdjustedEvent(data.adjustment),
+    );
+  },
+  [OUTBOX_EVENT_TYPES.PAYROLL_APPROVED]: async (payload, eventEmitter) => {
+    const data = assertOutboxPayload(
+      OUTBOX_EVENT_TYPES.PAYROLL_APPROVED,
+      payload,
+    );
+    await eventEmitter.emitAsync(
+      OUTBOX_EVENT_TYPES.PAYROLL_APPROVED,
+      new PayrollApprovedEvent(data.payroll),
+    );
+  },
+  [OUTBOX_EVENT_TYPES.EXPENSE_CREATED]: async (payload, eventEmitter) => {
+    const data = assertOutboxPayload(
+      OUTBOX_EVENT_TYPES.EXPENSE_CREATED,
+      payload,
+    );
+    await eventEmitter.emitAsync(
+      OUTBOX_EVENT_TYPES.EXPENSE_CREATED,
+      new ExpenseCreatedEvent(data.expense),
     );
   },
 };

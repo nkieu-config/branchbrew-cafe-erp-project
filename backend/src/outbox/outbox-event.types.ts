@@ -5,7 +5,11 @@ import {
   OrderSnapshot,
 } from '../orders/domain/order.snapshot';
 import { PurchaseOrderReceivedSnapshot } from '../procurement/domain/purchase-order-received.snapshot';
+import { PurchaseOrderPaidSnapshot } from '../procurement/domain/purchase-order-paid.snapshot';
 import { ProductionCompletedSnapshot } from '../production/domain/production-completed.snapshot';
+import { StockAdjustedSnapshot } from '../inventory/domain/stock-adjusted.snapshot';
+import { PayrollApprovedSnapshot } from '../hr/domain/payroll-approved.snapshot';
+import { ExpenseCreatedSnapshot } from '../finance/domain/expense-created.snapshot';
 
 export const OUTBOX_EVENT_TYPES = {
   ORDER_CREATED: 'order.created',
@@ -13,7 +17,11 @@ export const OUTBOX_EVENT_TYPES = {
   ORDER_VOIDED: 'order.voided',
   ORDER_REFUNDED: 'order.refunded',
   PURCHASE_ORDER_RECEIVED: 'purchase-order.received',
+  PURCHASE_ORDER_PAID: 'purchase-order.paid',
   PRODUCTION_COMPLETED: 'production.completed',
+  STOCK_ADJUSTED: 'inventory.stock-adjusted',
+  PAYROLL_APPROVED: 'payroll.approved',
+  EXPENSE_CREATED: 'expense.created',
 } as const;
 
 export type OutboxEventType =
@@ -41,8 +49,20 @@ export type OutboxEventPayloadMap = {
   [OUTBOX_EVENT_TYPES.PURCHASE_ORDER_RECEIVED]: {
     purchaseOrder: PurchaseOrderReceivedSnapshot;
   };
+  [OUTBOX_EVENT_TYPES.PURCHASE_ORDER_PAID]: {
+    payment: PurchaseOrderPaidSnapshot;
+  };
   [OUTBOX_EVENT_TYPES.PRODUCTION_COMPLETED]: {
     production: ProductionCompletedSnapshot;
+  };
+  [OUTBOX_EVENT_TYPES.STOCK_ADJUSTED]: {
+    adjustment: StockAdjustedSnapshot;
+  };
+  [OUTBOX_EVENT_TYPES.PAYROLL_APPROVED]: {
+    payroll: PayrollApprovedSnapshot;
+  };
+  [OUTBOX_EVENT_TYPES.EXPENSE_CREATED]: {
+    expense: ExpenseCreatedSnapshot;
   };
 };
 
@@ -123,6 +143,17 @@ const outboxPayloadValidators: OutboxEventValidatorMap = {
     assertString(purchaseOrder.poNumber, `${eventType}.purchaseOrder.poNumber`);
     return data as OutboxEventPayload<typeof eventType>;
   },
+  [OUTBOX_EVENT_TYPES.PURCHASE_ORDER_PAID]: (payload) => {
+    const eventType = OUTBOX_EVENT_TYPES.PURCHASE_ORDER_PAID;
+    const data = asObject(payload, eventType);
+    const payment = readObject(data.payment, `${eventType}.payment`);
+    assertNumber(payment.poId, `${eventType}.payment.poId`);
+    assertNumber(payment.branchId, `${eventType}.payment.branchId`);
+    assertNumber(payment.amount, `${eventType}.payment.amount`);
+    assertString(payment.poNumber, `${eventType}.payment.poNumber`);
+    assertString(payment.method, `${eventType}.payment.method`);
+    return data as OutboxEventPayload<typeof eventType>;
+  },
   [OUTBOX_EVENT_TYPES.PRODUCTION_COMPLETED]: (payload) => {
     const eventType = OUTBOX_EVENT_TYPES.PRODUCTION_COMPLETED;
     const data = asObject(payload, eventType);
@@ -137,6 +168,45 @@ const outboxPayloadValidators: OutboxEventValidatorMap = {
       production.targetIngredientName,
       `${eventType}.production.targetIngredientName`,
     );
+    return data as OutboxEventPayload<typeof eventType>;
+  },
+  [OUTBOX_EVENT_TYPES.STOCK_ADJUSTED]: (payload) => {
+    const eventType = OUTBOX_EVENT_TYPES.STOCK_ADJUSTED;
+    const data = asObject(payload, eventType);
+    const adjustment = readObject(data.adjustment, `${eventType}.adjustment`);
+    assertString(adjustment.reference, `${eventType}.adjustment.reference`);
+    assertNumber(adjustment.branchId, `${eventType}.adjustment.branchId`);
+    assertNumber(
+      adjustment.netVarianceValue,
+      `${eventType}.adjustment.netVarianceValue`,
+    );
+    assertString(adjustment.description, `${eventType}.adjustment.description`);
+    return data as OutboxEventPayload<typeof eventType>;
+  },
+  [OUTBOX_EVENT_TYPES.PAYROLL_APPROVED]: (payload) => {
+    const eventType = OUTBOX_EVENT_TYPES.PAYROLL_APPROVED;
+    const data = asObject(payload, eventType);
+    const payroll = readObject(data.payroll, `${eventType}.payroll`);
+    assertNumber(payroll.payrollRunId, `${eventType}.payroll.payrollRunId`);
+    if (payroll.branchId != null) {
+      assertNumber(payroll.branchId, `${eventType}.payroll.branchId`);
+    }
+    assertNumber(payroll.totalGross, `${eventType}.payroll.totalGross`);
+    assertNumber(payroll.totalNet, `${eventType}.payroll.totalNet`);
+    assertNumber(
+      payroll.totalDeductions,
+      `${eventType}.payroll.totalDeductions`,
+    );
+    return data as OutboxEventPayload<typeof eventType>;
+  },
+  [OUTBOX_EVENT_TYPES.EXPENSE_CREATED]: (payload) => {
+    const eventType = OUTBOX_EVENT_TYPES.EXPENSE_CREATED;
+    const data = asObject(payload, eventType);
+    const expense = readObject(data.expense, `${eventType}.expense`);
+    assertNumber(expense.expenseId, `${eventType}.expense.expenseId`);
+    assertNumber(expense.branchId, `${eventType}.expense.branchId`);
+    assertNumber(expense.amount, `${eventType}.expense.amount`);
+    assertString(expense.category, `${eventType}.expense.category`);
     return data as OutboxEventPayload<typeof eventType>;
   },
 };

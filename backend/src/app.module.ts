@@ -27,6 +27,7 @@ import { SettingsModule } from './settings/settings.module';
 import { OutboxModule } from './outbox/outbox.module';
 import { ModifiersModule } from './modifiers/modifiers.module';
 import { NavigationModule } from './navigation/navigation.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 @Module({
@@ -61,6 +62,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     OutboxModule,
     ModifiersModule,
     NavigationModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [

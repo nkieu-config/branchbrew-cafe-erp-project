@@ -44,6 +44,8 @@ export function useNavCounts(enabled = true) {
       pendingPurchaseOrders: data.pendingPurchaseOrders,
       pendingSettlements: data.pendingSettlements,
       pendingLeave: data.pendingLeave,
+      pendingStockCounts: data.pendingStockCounts,
+      unreadNotifications: data.unreadNotifications,
     }),
   });
 }

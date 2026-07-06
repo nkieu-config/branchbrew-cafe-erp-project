@@ -3,6 +3,7 @@ import { Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import type { BranchScopedUser } from '../auth/branch-scope.util';
 import { resolveOptionalBranchId } from '../auth/branch-scope.util';
+import { NotificationsService } from '../notifications/notifications.service';
 
 export type NavCountsResponse = {
   branchId: number | null;
@@ -13,11 +14,16 @@ export type NavCountsResponse = {
   pendingPurchaseOrders: number;
   pendingSettlements: number;
   pendingLeave: number;
+  pendingStockCounts: number;
+  unreadNotifications: number;
 };
 
 @Injectable()
 export class NavigationService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   async getNavCounts(
     user: BranchScopedUser,
@@ -42,6 +48,8 @@ export class NavigationService {
       pendingPurchaseOrders,
       pendingSettlements,
       pendingLeave,
+      pendingStockCounts,
+      unreadNotifications,
     ] = await Promise.all([
       branchId != null ? this.countLowStock(branchId) : Promise.resolve(0),
       branchId != null
@@ -56,6 +64,10 @@ export class NavigationService {
         ? this.countPendingSettlements(branchId)
         : Promise.resolve(0),
       isManagerOrAdmin ? this.countPendingLeave(branchId) : Promise.resolve(0),
+      isManagerOrAdmin
+        ? this.countPendingStockCounts(branchId)
+        : Promise.resolve(0),
+      this.notifications.countUnread(user, branchId),
     ]);
 
     return {
@@ -67,6 +79,8 @@ export class NavigationService {
       pendingPurchaseOrders,
       pendingSettlements,
       pendingLeave,
+      pendingStockCounts,
+      unreadNotifications,
     };
   }
 
@@ -135,6 +149,15 @@ export class NavigationService {
       where: {
         status: 'PENDING',
         ...(branchId != null ? { user: { branchId } } : {}),
+      },
+    });
+  }
+
+  private async countPendingStockCounts(branchId?: number): Promise<number> {
+    return this.prisma.stockCount.count({
+      where: {
+        status: 'SUBMITTED',
+        ...(branchId != null ? { branchId } : {}),
       },
     });
   }

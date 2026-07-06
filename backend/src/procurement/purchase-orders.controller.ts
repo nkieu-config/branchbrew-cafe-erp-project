@@ -20,7 +20,11 @@ import {
 } from '../auth/branch-scope.util';
 import { CreatePurchaseOrderDto } from './dto/create-purchase-order.dto';
 import { ReceivePurchaseOrderDto } from './dto/receive-purchase-order.dto';
-import { PurchaseOrderResponseDto } from './dto/procurement-response.dto';
+import { PayPurchaseOrderDto } from './dto/pay-purchase-order.dto';
+import {
+  ApAgingResponseDto,
+  PurchaseOrderResponseDto,
+} from './dto/procurement-response.dto';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
 
@@ -41,6 +45,18 @@ export class PurchaseOrdersController {
   findAll(@Req() req: RequestWithUser) {
     const branchId = resolveOptionalBranchId(req.user);
     return this.procurementService.findAllPOs(branchId);
+  }
+
+  @Roles('SUPER_ADMIN', 'MANAGER')
+  @Get('ap-aging')
+  @ApiOperation({ summary: 'Accounts-payable aging for unpaid received POs' })
+  @ApiOkResponse({
+    type: ApAgingResponseDto,
+    description: 'AP aging retrieved',
+  })
+  apAging(@Req() req: RequestWithUser) {
+    const branchId = resolveOptionalBranchId(req.user);
+    return this.procurementService.getApAging(branchId);
   }
 
   @Roles('SUPER_ADMIN', 'MANAGER', 'STAFF')
@@ -123,5 +139,23 @@ export class PurchaseOrdersController {
       expiryDates,
       req.user,
     );
+  }
+
+  @Roles('SUPER_ADMIN', 'MANAGER')
+  @Post(':id/pay')
+  @ApiOperation({ summary: 'Record supplier payment for a received PO' })
+  @ApiOkResponse({
+    type: PurchaseOrderResponseDto,
+    description: 'Purchase order paid',
+  })
+  pay(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: PayPurchaseOrderDto,
+    @Req() req: RequestWithUser,
+  ) {
+    return this.procurementService.payPO(id, req.user.userId, req.user, {
+      method: dto.method,
+      notes: dto.notes,
+    });
   }
 }

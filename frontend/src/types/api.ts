@@ -38,14 +38,20 @@ export type {
 } from './orders';
 export type { Product, RecipeItem } from './products';
 export type {
+  ApAging,
+  ApAgingBucket,
   PurchaseOrder,
   PurchaseOrderItem,
   Supplier,
+  SupplierPayment,
 } from './procurement';
 export type {
   BranchInventory,
   IngredientSummary,
   InventoryBatch,
+  StockAdjustment,
+  StockCount,
+  StockCountLine,
   StockInResult,
   WasteLog,
 } from './inventory';
@@ -60,7 +66,14 @@ export type {
   Shift,
   User,
 } from './hr';
-export type { Account, JournalEntry, JournalLine, ProfitLossMonth } from './accounting';
+export type {
+  Account,
+  AppNotification,
+  JournalEntry,
+  JournalLine,
+  ProfitLossMonth,
+  VatReportMonth,
+} from './accounting';
 export type { Expense, Settlement, SettlementExpected } from './finance';
 export type { ModifierDeleteResult, ModifierGroup, ModifierOption } from './modifiers';
 export type { Equipment, EquipmentDetail, MaintenanceLog } from './equipment';

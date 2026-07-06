@@ -24,6 +24,7 @@ export type OrderSnapshot = {
   status: OrderLifecycleStatus;
   paymentMethod: OrderPaymentMethod;
   netAmount: number;
+  taxAmount: number;
   totalCogs: number;
   createdAt: Date;
 };
@@ -34,6 +35,7 @@ type OrderSnapshotSource = {
   status: OrderLifecycleStatus;
   paymentMethod: OrderPaymentMethod;
   netAmount: number | string | { toNumber(): number } | null;
+  taxAmount: number | string | { toNumber(): number } | null;
   totalCogs: number | string | { toNumber(): number } | null;
   createdAt: Date;
 };
@@ -45,6 +47,7 @@ export function toOrderSnapshot(order: OrderSnapshotSource): OrderSnapshot {
     status: order.status,
     paymentMethod: order.paymentMethod,
     netAmount: toNum(order.netAmount),
+    taxAmount: toNum(order.taxAmount),
     totalCogs: toNum(order.totalCogs),
     createdAt: order.createdAt,
   };

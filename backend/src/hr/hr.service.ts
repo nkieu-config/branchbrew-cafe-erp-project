@@ -18,12 +18,18 @@ import {
   AUDIT_ACTIONS,
   AUDIT_TARGETS,
 } from '../audit/audit.service';
+import { OutboxService } from '../outbox/outbox.service';
+import { OUTBOX_EVENT_TYPES } from '../outbox/outbox-event.types';
+import { toPayrollApprovedSnapshot } from './domain/payroll-approved.snapshot';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class HrService {
   constructor(
     private prisma: PrismaService,
     private auditService: AuditService,
+    private outboxService: OutboxService,
+    private notifications: NotificationsService,
   ) {}
 
   // ==================== ATTENDANCE ====================
@@ -161,10 +167,22 @@ export class HrService {
       assertBranchAccess(user, leave.user.branchId);
     }
 
-    return this.prisma.leaveRequest.update({
+    const updated = await this.prisma.leaveRequest.update({
       where: { id },
       data: { status },
     });
+
+    if (status === 'APPROVED' || status === 'REJECTED') {
+      await this.notifications.notifyUser({
+        userId: leave.userId,
+        branchId: leave.user.branchId,
+        type: 'LEAVE_DECIDED',
+        title: `Your ${leave.type.toLowerCase()} leave was ${status.toLowerCase()}`,
+        link: '/hr/leave',
+      });
+    }
+
+    return updated;
   }
 
   // ==================== PAYROLL ====================
@@ -226,6 +244,23 @@ export class HrService {
         p.otHours += hrs - 8;
       } else {
         p.standardHours += hrs;
+      }
+    }
+
+    const fullTimeUsers = await this.prisma.user.findMany({
+      where: { branchId, employmentType: 'FULL_TIME' },
+    });
+
+    for (const u of fullTimeUsers) {
+      if (!userMap.has(u.id)) {
+        userMap.set(u.id, {
+          userId: u.id,
+          hourlyRate: u.hourlyRate,
+          baseSalary: toNum(u.baseSalary),
+          employmentType: 'FULL_TIME',
+          standardHours: 0,
+          otHours: 0,
+        });
       }
     }
 
@@ -301,28 +336,73 @@ export class HrService {
   }
 
   async approvePayrollRun(runId: number, user: BranchScopedUser) {
-    const run = await this.prisma.payrollRun.findUnique({
-      where: { id: runId },
+    return this.prisma.$transaction(async (tx) => {
+      const run = await tx.payrollRun.findUnique({
+        where: { id: runId },
+        include: { payslips: true },
+      });
+      if (!run) throw new NotFoundException('Payroll run not found');
+      if (run.branchId != null) {
+        assertBranchAccess(user, run.branchId);
+      }
+      if (run.status !== 'DRAFT') {
+        throw new BadRequestException(
+          `Payroll run is already ${run.status.toLowerCase()}.`,
+        );
+      }
+
+      const claimed = await tx.payrollRun.updateMany({
+        where: { id: runId, status: 'DRAFT' },
+        data: { status: 'APPROVED' },
+      });
+      if (claimed.count === 0) {
+        throw new BadRequestException(
+          'Payroll run changed while approving. Please retry.',
+        );
+      }
+
+      const totalGross = roundMoney(
+        run.payslips.reduce((sum, p) => sum + toNum(p.grossPay), 0),
+      );
+      const totalNet = roundMoney(
+        run.payslips.reduce((sum, p) => sum + toNum(p.netPay), 0),
+      );
+      const totalDeductions = roundMoney(totalGross - totalNet);
+
+      await tx.auditLog.create({
+        data: {
+          userId: user.userId,
+          action: AUDIT_ACTIONS.APPROVE_PAYROLL,
+          targetType: AUDIT_TARGETS.PAYROLL_RUN,
+          targetId: runId,
+          details: JSON.stringify({
+            branchId: run.branchId,
+            month: run.month,
+            year: run.year,
+          }),
+        },
+      });
+
+      if (totalGross > 0) {
+        await this.outboxService.enqueue(
+          tx,
+          OUTBOX_EVENT_TYPES.PAYROLL_APPROVED,
+          {
+            payroll: toPayrollApprovedSnapshot({
+              payrollRunId: runId,
+              branchId: run.branchId,
+              month: run.month,
+              year: run.year,
+              totalGross,
+              totalNet,
+              totalDeductions,
+            }),
+          },
+        );
+      }
+
+      return tx.payrollRun.findUnique({ where: { id: runId } });
     });
-    if (!run) throw new NotFoundException('Payroll run not found');
-    if (run.branchId != null) {
-      assertBranchAccess(user, run.branchId);
-    }
-
-    const updated = await this.prisma.payrollRun.update({
-      where: { id: runId },
-      data: { status: 'APPROVED' },
-    });
-
-    await this.auditService.logAction(
-      user.userId,
-      AUDIT_ACTIONS.APPROVE_PAYROLL,
-      AUDIT_TARGETS.PAYROLL_RUN,
-      runId,
-      { branchId: run.branchId, month: run.month, year: run.year },
-    );
-
-    return updated;
   }
 
   async updateHourlyRate(userId: number, hourlyRate: number) {

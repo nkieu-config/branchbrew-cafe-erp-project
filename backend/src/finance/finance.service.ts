@@ -10,12 +10,16 @@ import {
 import { FinanceRepository } from './finance.repository';
 import { ApiErrorCode } from '../common/errors/api-error-code.enum';
 import { appBadRequest, appNotFound } from '../common/errors/app.exception';
+import { OutboxService } from '../outbox/outbox.service';
+import { OUTBOX_EVENT_TYPES } from '../outbox/outbox-event.types';
+import { toExpenseCreatedSnapshot } from './domain/expense-created.snapshot';
 
 @Injectable()
 export class FinanceService {
   constructor(
     private prisma: PrismaService,
     private financeRepository: FinanceRepository,
+    private outboxService: OutboxService,
   ) {}
 
   async createExpense(data: {
@@ -25,7 +29,27 @@ export class FinanceService {
     description?: string;
     recordedById: number;
   }) {
-    return this.prisma.expense.create({ data });
+    return this.prisma.$transaction(async (tx) => {
+      const expense = await tx.expense.create({ data });
+
+      const amount = roundMoney(toNum(expense.amount));
+      if (amount > 0) {
+        await this.outboxService.enqueue(
+          tx,
+          OUTBOX_EVENT_TYPES.EXPENSE_CREATED,
+          {
+            expense: toExpenseCreatedSnapshot({
+              expenseId: expense.id,
+              branchId: expense.branchId,
+              amount,
+              category: expense.category,
+            }),
+          },
+        );
+      }
+
+      return expense;
+    });
   }
 
   async getExpenses(branchId: number, date?: Date) {

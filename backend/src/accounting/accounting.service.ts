@@ -6,7 +6,11 @@ import { OrderCreatedEvent } from '../orders/events/order-created.event';
 import { OrderVoidedEvent } from '../orders/events/order-voided.event';
 import { OrderRefundedEvent } from '../orders/events/order-refunded.event';
 import { PurchaseOrderReceivedEvent } from '../procurement/events/purchase-order-received.event';
+import { PurchaseOrderPaidEvent } from '../procurement/events/purchase-order-paid.event';
 import { ProductionCompletedEvent } from '../production/events/production-completed.event';
+import { StockAdjustedEvent } from '../inventory/events/stock-adjusted.event';
+import { PayrollApprovedEvent } from '../hr/events/payroll-approved.event';
+import { ExpenseCreatedEvent } from '../finance/events/expense-created.event';
 import {
   dec,
   toNum,
@@ -34,6 +38,8 @@ export class AccountingService {
 
     const { order } = event;
     const netAmount = roundMoney(toNum(order.netAmount));
+    const taxAmount = roundMoney(toNum(order.taxAmount ?? 0));
+    const salesExVat = roundMoney(netAmount - taxAmount);
     const totalCogs = roundMoney(toNum(order.totalCogs));
 
     if (netAmount > 0 || totalCogs > 0) {
@@ -53,9 +59,19 @@ export class AccountingService {
           {
             accountCode: '4010',
             debit: 0,
-            credit: netAmount,
-            description: 'Sales Revenue',
+            credit: salesExVat,
+            description: 'Sales Revenue (ex VAT)',
           },
+          ...(taxAmount > 0
+            ? [
+                {
+                  accountCode: '2020',
+                  debit: 0,
+                  credit: taxAmount,
+                  description: 'Output VAT payable',
+                },
+              ]
+            : []),
           ...(totalCogs > 0
             ? [
                 {
@@ -100,6 +116,8 @@ export class AccountingService {
     descriptionSuffix = '',
   ) {
     const netAmount = roundMoney(toNum(order.netAmount));
+    const taxAmount = roundMoney(toNum(order.taxAmount ?? 0));
+    const salesExVat = roundMoney(netAmount - taxAmount);
     const totalCogs = roundMoney(toNum(order.totalCogs));
 
     if (netAmount <= 0 && totalCogs <= 0) return;
@@ -120,10 +138,20 @@ export class AccountingService {
         },
         {
           accountCode: '4010',
-          debit: netAmount,
+          debit: salesExVat,
           credit: 0,
-          description: 'Sales revenue reversed',
+          description: 'Sales revenue reversed (ex VAT)',
         },
+        ...(taxAmount > 0
+          ? [
+              {
+                accountCode: '2020',
+                debit: taxAmount,
+                credit: 0,
+                description: 'Output VAT reversed',
+              },
+            ]
+          : []),
         ...(totalCogs > 0
           ? [
               {
@@ -165,6 +193,35 @@ export class AccountingService {
           debit: 0,
           credit: totalAmount,
           description: 'Accounts Payable recognized',
+        },
+      ],
+    });
+  }
+
+  @OnEvent('purchase-order.paid', { async: true })
+  async handlePurchaseOrderPaid(event: PurchaseOrderPaidEvent) {
+    const amount = roundMoney(event.amount);
+    if (amount <= 0) return;
+
+    const methodLabel =
+      event.method === 'BANK_TRANSFER' ? 'bank transfer' : 'cash';
+
+    await this.createJournalEntry({
+      branchId: event.branchId,
+      reference: `PAY-${event.poNumber}`,
+      description: `Supplier payment for PO ${event.poNumber} (${methodLabel})`,
+      lines: [
+        {
+          accountCode: '2010',
+          debit: amount,
+          credit: 0,
+          description: 'Accounts Payable settled',
+        },
+        {
+          accountCode: '1010',
+          debit: 0,
+          credit: amount,
+          description: `Paid by ${methodLabel}`,
         },
       ],
     });
@@ -215,6 +272,114 @@ export class AccountingService {
               description: 'Production cost variance (favorable)',
             },
       ],
+    });
+  }
+
+  @OnEvent('payroll.approved', { async: true })
+  async handlePayrollApproved(event: PayrollApprovedEvent) {
+    const totalGross = roundMoney(event.totalGross);
+    const totalNet = roundMoney(event.totalNet);
+    const totalDeductions = roundMoney(event.totalDeductions);
+    if (totalGross <= 0) return;
+
+    await this.createJournalEntry({
+      branchId: event.branchId ?? undefined,
+      reference: `PAYROLL-${event.payrollRunId}`,
+      description: `Payroll for ${event.month}/${event.year}`,
+      lines: [
+        {
+          accountCode: '5020',
+          debit: totalGross,
+          credit: 0,
+          description: 'Payroll expense (gross)',
+        },
+        ...(totalDeductions > 0
+          ? [
+              {
+                accountCode: '2030',
+                debit: 0,
+                credit: totalDeductions,
+                description: 'Withholdings payable (SSO + tax)',
+              },
+            ]
+          : []),
+        {
+          accountCode: '1010',
+          debit: 0,
+          credit: totalNet,
+          description: 'Net pay disbursed',
+        },
+      ],
+    });
+  }
+
+  @OnEvent('expense.created', { async: true })
+  async handleExpenseCreated(event: ExpenseCreatedEvent) {
+    const amount = roundMoney(event.amount);
+    if (amount <= 0) return;
+
+    await this.createJournalEntry({
+      branchId: event.branchId,
+      reference: `EXP-${event.expenseId}`,
+      description: `Operating expense — ${event.category}`,
+      lines: [
+        {
+          accountCode: '5050',
+          debit: amount,
+          credit: 0,
+          description: 'Operating expense',
+        },
+        {
+          accountCode: '1010',
+          debit: 0,
+          credit: amount,
+          description: 'Paid in cash',
+        },
+      ],
+    });
+  }
+
+  @OnEvent('inventory.stock-adjusted', { async: true })
+  async handleStockAdjusted(event: StockAdjustedEvent) {
+    const netValue = dec(event.netVarianceValue).toDecimalPlaces(2);
+    if (netValue.isZero()) return;
+
+    const amount = netValue.abs().toNumber();
+    const isShortage = netValue.isNegative();
+
+    await this.createJournalEntry({
+      branchId: event.branchId,
+      reference: event.reference,
+      description: event.description,
+      lines: isShortage
+        ? [
+            {
+              accountCode: '5040',
+              debit: amount,
+              credit: 0,
+              description: 'Inventory shrinkage (count shortage)',
+            },
+            {
+              accountCode: '1030',
+              debit: 0,
+              credit: amount,
+              description: 'Inventory written down',
+            },
+          ]
+        : [
+            {
+              accountCode: '1030',
+              debit: amount,
+              credit: 0,
+              description: 'Inventory written up',
+            },
+            {
+              accountCode: '5040',
+              debit: 0,
+              credit: amount,
+              description: 'Inventory shrinkage recovery (count overage)',
+            },
+          ],
     });
   }
 
@@ -330,6 +495,12 @@ export class AccountingService {
       { code: '1040', name: 'Card Clearing', type: 'ASSET' as const },
       { code: '1050', name: 'QR Payment Clearing', type: 'ASSET' as const },
       { code: '2010', name: 'Accounts Payable', type: 'LIABILITY' as const },
+      { code: '2020', name: 'Output VAT Payable', type: 'LIABILITY' as const },
+      {
+        code: '2030',
+        name: 'Payroll Liabilities',
+        type: 'LIABILITY' as const,
+      },
       { code: '3010', name: 'Owner Equity', type: 'EQUITY' as const },
       { code: '4010', name: 'Sales Revenue', type: 'REVENUE' as const },
       {
@@ -343,6 +514,8 @@ export class AccountingService {
         name: 'Production Cost Variance',
         type: 'EXPENSE' as const,
       },
+      { code: '5040', name: 'Inventory Shrinkage', type: 'EXPENSE' as const },
+      { code: '5050', name: 'Operating Expenses', type: 'EXPENSE' as const },
     ];
 
     for (const acc of defaultAccounts) {
@@ -354,6 +527,45 @@ export class AccountingService {
     }
 
     this.logger.log('Default accounts seeded.');
+  }
+
+  async getVatReport(branchId?: number, months = 6) {
+    const branchFilter = branchId
+      ? Prisma.sql`AND "branchId" = ${branchId}`
+      : Prisma.empty;
+
+    const rows = await this.prisma.$queryRaw<
+      {
+        month: string;
+        gross_sales: number;
+        output_vat: number;
+        orders: bigint;
+      }[]
+    >`
+      SELECT
+        to_char("createdAt", 'YYYY-MM') AS month,
+        SUM("netAmount") AS gross_sales,
+        SUM("taxAmount") AS output_vat,
+        COUNT(*)::bigint AS orders
+      FROM "Order"
+      WHERE "status" IN ('COMPLETED', 'PENDING', 'PREPARING')
+      ${branchFilter}
+      GROUP BY 1
+      ORDER BY 1 DESC
+      LIMIT ${months}
+    `;
+
+    return rows.map((row) => {
+      const grossSales = roundMoney(Number(row.gross_sales));
+      const outputVat = roundMoney(Number(row.output_vat));
+      return {
+        month: row.month,
+        grossSales,
+        outputVat,
+        salesExVat: roundMoney(grossSales - outputVat),
+        orderCount: Number(row.orders),
+      };
+    });
   }
 
   async getProfitLoss(branchId?: number) {
