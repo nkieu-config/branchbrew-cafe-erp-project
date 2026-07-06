@@ -43,6 +43,9 @@ wait_for_url() {
 echo "==> Installing dependencies (if needed)"
 npm ci --prefer-offline
 
+echo "==> Generating Prisma client"
+npx prisma generate --schema=backend/prisma/schema.prisma
+
 echo "==> Building backend"
 npm run build --workspace=backend
 
@@ -51,7 +54,6 @@ NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" npm run build --workspace=frontend
 test -f frontend/.next/BUILD_ID
 
 echo "==> Preparing database"
-npx prisma generate --schema=backend/prisma/schema.prisma
 npm run migrate
 npm run db:seed
 

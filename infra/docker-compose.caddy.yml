@@ -1,0 +1,25 @@
+name: erp
+
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DEMO_DOMAIN=${DEMO_DOMAIN:?DEMO_DOMAIN must be set}
+      - API_DOMAIN=${API_DOMAIN:?API_DOMAIN must be set}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - frontend
+    depends_on:
+      frontend:
+        condition: service_healthy
+
+volumes:
+  caddy_data:
+  caddy_config:

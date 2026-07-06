@@ -148,7 +148,7 @@ jobs:
     name: Backend — checks, build & API e2e
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: [security-audit, changes]
+    needs: [changes]
     if: >-
       github.ref == 'refs/heads/main' ||
       needs.changes.outputs.backend == 'true' ||
@@ -232,7 +232,7 @@ jobs:
     name: Frontend — checks & build
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: [security-audit, changes]
+    needs: [changes]
     if: >-
       github.ref == 'refs/heads/main' ||
       needs.changes.outputs.frontend == 'true' ||
@@ -286,10 +286,9 @@ jobs:
     name: E2E — Playwright (full stack)
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    needs: [security-audit, changes, backend-tests, frontend-checks]
+    needs: [changes, backend-tests, frontend-checks]
     if: >-
       always() &&
-      needs.security-audit.result == 'success' &&
       needs.backend-tests.result != 'failure' &&
       needs.frontend-checks.result != 'failure' &&
       (

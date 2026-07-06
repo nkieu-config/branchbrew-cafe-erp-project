@@ -1,0 +1,9 @@
+{$DEMO_DOMAIN} {
+	encode gzip
+	reverse_proxy frontend:3001
+}
+
+{$API_DOMAIN} {
+	encode gzip
+	reverse_proxy backend:3000
+}

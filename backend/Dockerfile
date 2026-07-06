@@ -14,7 +14,7 @@ COPY backend/package.json ./backend/
 COPY packages/types/package.json ./packages/types/
 
 RUN --mount=type=cache,id=erp-npm-backend,target=/root/.npm \
-    npm ci
+    npm ci --workspace=backend --include-workspace-root
 
 COPY . .
 
