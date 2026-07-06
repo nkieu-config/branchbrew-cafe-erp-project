@@ -101,6 +101,27 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
     });
   }
 
+  const poDraft = await prisma.purchaseOrder.findFirst({ where: { poNumber: 'PO-DEMO-004' } });
+
+  if (poDraft) {
+    await prisma.purchaseOrderItem.createMany({
+      data: [
+        {
+          poId: poDraft.id,
+          ingredientId: oatMilk.id,
+          quantityRequested: 4000,
+          unitPrice: 0.09,
+        },
+        {
+          poId: poDraft.id,
+          ingredientId: cup.id,
+          quantityRequested: 300,
+          unitPrice: 1.2,
+        },
+      ],
+    });
+  }
+
   // ——— Kitchen / production ———
   await prisma.productionOrder.createMany({
     data: [
@@ -158,7 +179,7 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
         quantity: 120,
         reason: 'Taste test batch discarded',
         recordedById: manager.id,
-        createdAt: dateDaysAgo(5),
+        createdAt: dateDaysAgo(5, 10, 20),
       },
       {
         branchId: secondBranch.id,
@@ -166,7 +187,7 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
         quantity: 400,
         reason: 'Fridge temperature spike overnight',
         recordedById: asokManager.id,
-        createdAt: dateDaysAgo(1),
+        createdAt: dateDaysAgo(1, 8, 5),
       },
       {
         branchId: mainBranch.id,
@@ -174,7 +195,7 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
         quantity: 60,
         reason: 'Expired vanilla syrup partial bottle',
         recordedById: manager.id,
-        createdAt: dateDaysAgo(7),
+        createdAt: dateDaysAgo(7, 16, 40),
       },
     ],
   });
@@ -189,7 +210,7 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
         status: 'SHIPPED',
         requestedById: asokManager.id,
         approvedById: admin.id,
-        createdAt: dateDaysAgo(1),
+        createdAt: dateDaysAgo(1, 9, 45),
       },
       {
         fromBranchId: mainBranch.id,
@@ -198,7 +219,7 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
         quantity: 200,
         status: 'CANCELLED',
         requestedById: manager.id,
-        createdAt: dateDaysAgo(6),
+        createdAt: dateDaysAgo(6, 15, 10),
       },
     ],
   });
@@ -248,6 +269,12 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
     },
   ];
 
+  const kdsCogsByProduct = new Map<number, number>([
+    [icedLatte.id, 20],
+    [cappuccino.id, 18.5],
+    [vanillaLatte.id, 26],
+  ]);
+
   for (const spec of kdsOrderSpecs) {
     const branchId = spec.branchId ?? mainBranch.id;
     const net = spec.price;
@@ -261,7 +288,7 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
         netAmount: net,
         discountAmount: 0,
         taxAmount: (net * 0.07) / 1.07,
-        totalCogs: 18 * 0.5 + 150 * 0.05 + 3.5,
+        totalCogs: kdsCogsByProduct.get(spec.productId) ?? 20,
         queueNumber: spec.queueNumber,
         queueDate: todayQueueDate,
         createdAt: spec.createdAt,
@@ -298,17 +325,17 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
       promotionId: welcomePromo?.id,
       status: 'COMPLETED',
       paymentMethod: 'CREDIT_CARD',
-      totalAmount: 180,
-      netAmount: 162,
-      discountAmount: 18,
-      taxAmount: (162 * 0.07) / 1.07,
-      totalCogs: 28,
+      totalAmount: 130,
+      netAmount: 117,
+      discountAmount: 13,
+      taxAmount: (117 * 0.07) / 1.07,
+      totalCogs: 52,
       pointsEarned: 1,
       queueNumber: 88,
       queueDate: dateDaysAgo(2),
       createdAt: dateDaysAgo(2),
       items: {
-        create: [{ productId: vanillaLatte.id, quantity: 2, price: 90 }],
+        create: [{ productId: vanillaLatte.id, quantity: 2, price: 65 }],
       },
     },
   });
@@ -404,12 +431,13 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
   });
 
   const extraExpenses = [
-    { daysAgo: 0, branchId: mainBranch.id, amount: 2800, category: 'Equipment', description: 'Steam wand repair parts' },
-    { daysAgo: 1, branchId: secondBranch.id, amount: 650, category: 'Supplies', description: 'Labels and receipt rolls' },
-    { daysAgo: 3, branchId: mainBranch.id, amount: 3400, category: 'Rent', description: 'Mall kiosk surcharge' },
-    { daysAgo: 8, branchId: mainBranch.id, amount: 520, category: 'Training', description: 'Barista certification course' },
-    { daysAgo: 10, branchId: secondBranch.id, amount: 1100, category: 'Utilities', description: 'Water filtration service' },
-    { daysAgo: 12, branchId: mainBranch.id, amount: 900, category: 'Marketing', description: 'LINE OA ads boost' },
+    { daysAgo: 0, hour: 10, minute: 35, branchId: mainBranch.id, amount: 180, category: 'Supplies', description: 'Ice bags for the afternoon rush' },
+    { daysAgo: 2, hour: 14, minute: 5, branchId: mainBranch.id, amount: 2800, category: 'Equipment', description: 'Steam wand repair parts' },
+    { daysAgo: 1, hour: 11, minute: 25, branchId: secondBranch.id, amount: 650, category: 'Supplies', description: 'Labels and receipt rolls' },
+    { daysAgo: 3, hour: 9, minute: 10, branchId: mainBranch.id, amount: 3400, category: 'Rent', description: 'Mall kiosk surcharge' },
+    { daysAgo: 8, hour: 13, minute: 50, branchId: mainBranch.id, amount: 520, category: 'Training', description: 'Barista certification course' },
+    { daysAgo: 10, hour: 15, minute: 30, branchId: secondBranch.id, amount: 1100, category: 'Utilities', description: 'Water filtration service' },
+    { daysAgo: 12, hour: 17, minute: 15, branchId: mainBranch.id, amount: 900, category: 'Marketing', description: 'LINE OA ads boost' },
   ];
   for (const row of extraExpenses) {
     await prisma.expense.create({
@@ -419,7 +447,7 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
         category: row.category,
         description: row.description,
         recordedById: row.branchId === mainBranch.id ? manager.id : asokManager.id,
-        createdAt: dateDaysAgo(row.daysAgo),
+        createdAt: dateDaysAgo(row.daysAgo, row.hour, row.minute),
       },
     });
   }
@@ -434,7 +462,7 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
         branchId: mainBranch.id,
         date: dateDaysAgo(2),
         reference: 'PAY-SEED-001',
-        description: 'Payroll accrual — Downtown branch',
+        description: 'Payroll for previous month — Downtown branch',
         status: 'POSTED',
       },
     ],
@@ -448,8 +476,9 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
   if (journalByRef['PAY-SEED-001']) {
     await prisma.journalEntryLine.createMany({
       data: [
-        { journalEntryId: journalByRef['PAY-SEED-001'], accountId: accountIds['5020'], debit: 42000, credit: 0, description: 'Payroll expense' },
-        { journalEntryId: journalByRef['PAY-SEED-001'], accountId: accountIds['1010'], debit: 0, credit: 42000, description: 'Payroll cash out' },
+        { journalEntryId: journalByRef['PAY-SEED-001'], accountId: accountIds['5020'], debit: 46400, credit: 0, description: 'Payroll expense (gross)' },
+        { journalEntryId: journalByRef['PAY-SEED-001'], accountId: accountIds['2030'], debit: 0, credit: 4320, description: 'Withholdings payable (SSO + tax)' },
+        { journalEntryId: journalByRef['PAY-SEED-001'], accountId: accountIds['1010'], debit: 0, credit: 42080, description: 'Net pay disbursed' },
       ],
     });
   }
@@ -607,7 +636,7 @@ export async function seedExpansionDemo(ctx: SeedContext): Promise<void> {
       {
         branchId: secondBranch.id,
         name: 'Bunn Iced Tea Brewer',
-        type: 'REFRIGERATOR',
+        type: 'OTHER',
         serialNumber: 'BN-ASOK-02',
         status: 'ACTIVE',
         purchaseDate: dateDaysAgo(150),

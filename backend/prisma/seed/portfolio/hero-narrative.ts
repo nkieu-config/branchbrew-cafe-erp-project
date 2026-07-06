@@ -64,6 +64,8 @@ export async function seedHeroNarrative(ctx: SeedContext): Promise<HeroNarrative
   });
 
   const orderNet = HERO_ORDER_UNIT_PRICE * HERO_ORDER_QTY;
+  const orderTax = Math.round(((orderNet * 0.07) / 1.07) * 100) / 100;
+  const orderSalesExVat = Math.round((orderNet - orderTax) * 100) / 100;
   const orderCogs = heroOrderCogsPerUnit() * HERO_ORDER_QTY;
   const orderCreatedAt = dateDaysAgo(3);
   orderCreatedAt.setHours(10, 15, 0, 0);
@@ -77,7 +79,7 @@ export async function seedHeroNarrative(ctx: SeedContext): Promise<HeroNarrative
       totalAmount: orderNet,
       netAmount: orderNet,
       discountAmount: 0,
-      taxAmount: (orderNet * 0.07) / 1.07,
+      taxAmount: orderTax,
       totalCogs: orderCogs,
       pointsEarned: Math.floor(orderNet / 100),
       queueNumber: 201,
@@ -140,8 +142,14 @@ export async function seedHeroNarrative(ctx: SeedContext): Promise<HeroNarrative
           {
             accountId: accountIds['4010'],
             debit: 0,
-            credit: orderNet,
-            description: 'Sales Revenue',
+            credit: orderSalesExVat,
+            description: 'Sales Revenue (ex VAT)',
+          },
+          {
+            accountId: accountIds['2020'],
+            debit: 0,
+            credit: orderTax,
+            description: 'Output VAT payable',
           },
           {
             accountId: accountIds['5010'],

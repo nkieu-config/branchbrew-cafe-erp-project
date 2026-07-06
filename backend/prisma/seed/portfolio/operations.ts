@@ -1,4 +1,4 @@
-import { dateDaysAgo } from '../helpers';
+import { dateDaysAgo, dateMinutesAgo } from '../helpers';
 import { seedHeroNarrative } from './hero-narrative';
 import type { SeedContext } from '../types';
 
@@ -33,7 +33,7 @@ export async function seedOperationsDemo(ctx: SeedContext): Promise<void> {
       lines: {
         create: [
           {
-            accountId: accountIds['5010'],
+            accountId: accountIds['5050'],
             debit: 450,
             credit: 0,
             description: 'Operating supplies expense',
@@ -120,7 +120,7 @@ export async function seedOperationsDemo(ctx: SeedContext): Promise<void> {
       quantity: 800,
       status: 'PENDING',
       requestedById: manager.id,
-      createdAt: dateDaysAgo(0),
+      createdAt: dateMinutesAgo(90),
     },
   });
 

@@ -1,4 +1,4 @@
-import { dateAtDayOffset, dateDaysAgo, shiftWindow } from '../helpers';
+import { dateMinutesAgo, dateAtDayOffset, dateDaysAgo, shiftWindow } from '../helpers';
 import type { SeedContext } from '../types';
 
 export async function seedHrAssetsDemo(ctx: SeedContext): Promise<void> {
@@ -56,7 +56,7 @@ export async function seedHrAssetsDemo(ctx: SeedContext): Promise<void> {
   const staffYesterdayClockOut = dateAtDayOffset(-1, 16, 5);
   const staffTwoDaysClockIn = dateAtDayOffset(-2, 8, 0);
   const staffTwoDaysClockOut = dateAtDayOffset(-2, 15, 55);
-  const managerActiveClockIn = dateAtDayOffset(0, 9, 15);
+  const managerActiveClockIn = dateMinutesAgo(135);
 
   await prisma.attendanceRecord.createMany({
     data: [

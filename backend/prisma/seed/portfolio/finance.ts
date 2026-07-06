@@ -103,11 +103,11 @@ export async function seedFinanceDemo(ctx: SeedContext): Promise<void> {
   });
 
   const expenseRows = [
-    { daysAgo: 1, branchId: mainBranch.id, amount: 450, category: 'Supplies', description: 'Napkins and stirrers' },
-    { daysAgo: 2, branchId: mainBranch.id, amount: 1200, category: 'Utilities', description: 'Electricity top-up' },
-    { daysAgo: 4, branchId: secondBranch.id, amount: 320, category: 'Cleaning', description: 'Floor detergent' },
-    { daysAgo: 5, branchId: mainBranch.id, amount: 800, category: 'Marketing', description: 'Weekend flyer printing' },
-    { daysAgo: 6, branchId: mainBranch.id, amount: 150, category: 'Misc', description: 'Courier for spare parts' },
+    { daysAgo: 1, hour: 14, minute: 40, branchId: mainBranch.id, amount: 450, category: 'Supplies', description: 'Napkins and stirrers' },
+    { daysAgo: 2, hour: 16, minute: 20, branchId: mainBranch.id, amount: 1200, category: 'Utilities', description: 'Electricity top-up' },
+    { daysAgo: 4, hour: 8, minute: 50, branchId: secondBranch.id, amount: 320, category: 'Cleaning', description: 'Floor detergent' },
+    { daysAgo: 5, hour: 13, minute: 15, branchId: mainBranch.id, amount: 800, category: 'Marketing', description: 'Weekend flyer printing' },
+    { daysAgo: 6, hour: 10, minute: 5, branchId: mainBranch.id, amount: 150, category: 'Misc', description: 'Courier for spare parts' },
   ];
   for (const row of expenseRows) {
     await prisma.expense.create({
@@ -117,7 +117,7 @@ export async function seedFinanceDemo(ctx: SeedContext): Promise<void> {
         category: row.category,
         description: row.description,
         recordedById: manager.id,
-        createdAt: dateDaysAgo(row.daysAgo),
+        createdAt: dateDaysAgo(row.daysAgo, row.hour, row.minute),
       },
     });
   }

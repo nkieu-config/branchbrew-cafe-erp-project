@@ -2,7 +2,7 @@ import {
   getQueueBusinessDateString,
   parseQueueBusinessDate,
 } from '../../../src/orders/helpers/queue-number.helper';
-import { dateAtDayOffset } from '../helpers';
+import { dateAtDayOffset, dateMinutesAgo } from '../helpers';
 import type { SeedContext } from '../types';
 import type { PaymentMethod } from '@prisma/client';
 
@@ -112,7 +112,7 @@ export async function seedDashboardDemo(ctx: SeedContext): Promise<void> {
     {
       branchKey: 'main',
       userKey: 'staff',
-      createdAt: dateAtDayOffset(0, 8, 15),
+      createdAt: dateMinutesAgo(465),
       paymentMethod: 'CASH',
       lines: [
         { productName: 'Iced Latte', quantity: 3, unitPrice: 85 },
@@ -122,7 +122,7 @@ export async function seedDashboardDemo(ctx: SeedContext): Promise<void> {
     {
       branchKey: 'main',
       userKey: 'staff',
-      createdAt: dateAtDayOffset(0, 10, 40),
+      createdAt: dateMinutesAgo(320),
       paymentMethod: 'CREDIT_CARD',
       customerKey: 'customer',
       lines: [
@@ -133,7 +133,7 @@ export async function seedDashboardDemo(ctx: SeedContext): Promise<void> {
     {
       branchKey: 'main',
       userKey: 'manager',
-      createdAt: dateAtDayOffset(0, 12, 5),
+      createdAt: dateMinutesAgo(235),
       paymentMethod: 'QR_PROMPTPAY',
       customerKey: 'goldCustomer',
       lines: [
@@ -144,7 +144,7 @@ export async function seedDashboardDemo(ctx: SeedContext): Promise<void> {
     {
       branchKey: 'main',
       userKey: 'staff',
-      createdAt: dateAtDayOffset(0, 14, 20),
+      createdAt: dateMinutesAgo(100),
       paymentMethod: 'CASH',
       lines: [
         { productName: 'Cold Brew', quantity: 3, unitPrice: 80 },
@@ -154,7 +154,7 @@ export async function seedDashboardDemo(ctx: SeedContext): Promise<void> {
     {
       branchKey: 'main',
       userKey: 'staff',
-      createdAt: dateAtDayOffset(0, 16, 45),
+      createdAt: dateMinutesAgo(35),
       paymentMethod: 'CREDIT_CARD',
       lines: [
         { productName: 'Honey Oat Latte', quantity: 2, unitPrice: 92 },
@@ -165,7 +165,7 @@ export async function seedDashboardDemo(ctx: SeedContext): Promise<void> {
     {
       branchKey: 'second',
       userKey: 'asokStaff',
-      createdAt: dateAtDayOffset(0, 9, 30),
+      createdAt: dateMinutesAgo(390),
       paymentMethod: 'CASH',
       lines: [
         { productName: 'Iced Latte', quantity: 2, unitPrice: 85 },
@@ -175,7 +175,7 @@ export async function seedDashboardDemo(ctx: SeedContext): Promise<void> {
     {
       branchKey: 'second',
       userKey: 'asokStaff',
-      createdAt: dateAtDayOffset(0, 13, 10),
+      createdAt: dateMinutesAgo(170),
       paymentMethod: 'QR_PROMPTPAY',
       lines: [
         { productName: 'Classic Milk Tea', quantity: 3, unitPrice: 65 },
@@ -185,7 +185,7 @@ export async function seedDashboardDemo(ctx: SeedContext): Promise<void> {
     {
       branchKey: 'second',
       userKey: 'asokManager',
-      createdAt: dateAtDayOffset(0, 15, 55),
+      createdAt: dateMinutesAgo(80),
       paymentMethod: 'CREDIT_CARD',
       customerKey: 'goldCustomer',
       lines: [

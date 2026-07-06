@@ -2,6 +2,11 @@ import type { PrismaClient } from '@prisma/client';
 
 export async function cleanDatabase(prisma: PrismaClient): Promise<void> {
   console.log('Cleaning existing data...');
+  await prisma.notification.deleteMany();
+  await prisma.supplierPayment.deleteMany();
+  await prisma.stockAdjustment.deleteMany();
+  await prisma.stockCountLine.deleteMany();
+  await prisma.stockCount.deleteMany();
   await prisma.orderItemModifier.deleteMany();
   await prisma.expense.deleteMany();
   await prisma.shiftSettlement.deleteMany();

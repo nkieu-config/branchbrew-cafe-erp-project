@@ -41,6 +41,9 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
       password: hashedPassword,
       role: 'MANAGER',
       branchId: mainBranch.id,
+      employmentType: 'FULL_TIME',
+      baseSalary: 28000,
+      hourlyRate: 160,
     },
   });
 
@@ -51,6 +54,8 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
       password: hashedPassword,
       role: 'STAFF',
       branchId: mainBranch.id,
+      employmentType: 'PART_TIME',
+      hourlyRate: 65,
     },
   });
 
@@ -61,6 +66,9 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
       password: hashedPassword,
       role: 'MANAGER',
       branchId: secondBranch.id,
+      employmentType: 'FULL_TIME',
+      baseSalary: 26000,
+      hourlyRate: 150,
     },
   });
 
@@ -71,6 +79,8 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
       password: hashedPassword,
       role: 'STAFF',
       branchId: secondBranch.id,
+      employmentType: 'PART_TIME',
+      hourlyRate: 62,
     },
   });
 
@@ -356,11 +366,15 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
     { code: '1040', name: 'Card Clearing', type: 'ASSET' as const },
     { code: '1050', name: 'QR Payment Clearing', type: 'ASSET' as const },
     { code: '2010', name: 'Accounts Payable', type: 'LIABILITY' as const },
+    { code: '2020', name: 'Output VAT Payable', type: 'LIABILITY' as const },
+    { code: '2030', name: 'Payroll Liabilities', type: 'LIABILITY' as const },
     { code: '3010', name: 'Owner Equity', type: 'EQUITY' as const },
     { code: '4010', name: 'Sales Revenue', type: 'REVENUE' as const },
     { code: '5010', name: 'Cost of Goods Sold (COGS)', type: 'EXPENSE' as const },
     { code: '5020', name: 'Payroll Expense', type: 'EXPENSE' as const },
     { code: '5030', name: 'Production Cost Variance', type: 'EXPENSE' as const },
+    { code: '5040', name: 'Inventory Shrinkage', type: 'EXPENSE' as const },
+    { code: '5050', name: 'Operating Expenses', type: 'EXPENSE' as const },
   ];
   for (const acct of defaultAccounts) {
     await prisma.account.create({ data: acct });
