@@ -24,6 +24,7 @@ import {
 } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
 import { formatDate } from "@/lib/intl-date";
+import { formatQuantity } from "@/lib/money";
 import {
   buildIngredientBatchIndex,
   getIngredientBatchIndexEntry,
@@ -83,7 +84,7 @@ function BatchMobileRows({
           >
             <div className="min-w-0">
               <p className={cn("tabular-nums", text.primary)}>
-                {Number(batch.quantity).toFixed(2)} {record.ingredient.unit}
+                {formatQuantity(batch.quantity, { unit: record.ingredient.unit })}
               </p>
               <p className={cn("text-xs", text.muted)}>
                 {batch.expiryDate ? (
@@ -160,7 +161,7 @@ function BatchInventoryMobileCard({
             {ingredientDisplayName(record)}
           </p>
           <p className={cn("text-sm tabular-nums", text.secondary)}>
-            {Number(record.stock).toFixed(2)} {record.ingredient.unit}
+            {formatQuantity(record.stock, { unit: record.ingredient.unit })}
             <span className={text.muted}>
               {" "}
               · {batchCount} batch
@@ -213,7 +214,7 @@ export function BatchInventoryTable({
           sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) => a.stock - b.stock,
           render: (_: unknown, record: InventoryWithIngredient) => (
             <span className={cn("tabular-nums", text.primary)}>
-              {Number(record.stock).toFixed(2)} {record.ingredient.unit}
+              {formatQuantity(record.stock, { unit: record.ingredient.unit })}
             </span>
           ),
         },
@@ -224,7 +225,7 @@ export function BatchInventoryTable({
           sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) => a.minStock - b.minStock,
           render: (_: unknown, record: InventoryWithIngredient) => (
             <span className={cn("tabular-nums", tableCellMutedClassName())}>
-              {Number(record.minStock).toFixed(2)}
+              {formatQuantity(record.minStock)}
             </span>
           ),
         },
@@ -298,7 +299,7 @@ export function BatchInventoryTable({
           key: "quantity",
           render: (_: unknown, b: BatchWithSupplier) => (
             <span className={cn("tabular-nums", text.primary)}>
-              {Number(b.quantity).toFixed(2)} {record.ingredient.unit}
+              {formatQuantity(b.quantity, { unit: record.ingredient.unit })}
             </span>
           ),
         },

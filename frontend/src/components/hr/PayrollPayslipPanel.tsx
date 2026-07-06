@@ -6,7 +6,7 @@ import { Table } from "antd";
 import { DataTable } from "@/components/shared/data-table";
 import { ListMobileCard } from "@/components/shared/responsive-data-table";
 import type { Payslip } from "@/types/api";
-import { formatCurrency } from "@/lib/money";
+import { formatCurrency, formatQuantity } from "@/lib/money";
 import { antTableSummaryRowClassName } from "@/lib/theme/data-table";
 import { tableCellMutedClassName } from "@/lib/theme/feedback";
 import {
@@ -95,7 +95,7 @@ export function PayrollPayslipPanel({
           width: 72,
           align: "right" as const,
           render: (val: number) => (
-            <span className={cn("tabular-nums", text.muted)}>{val.toFixed(1)}</span>
+            <span className={cn("tabular-nums", text.muted)}>{formatQuantity(val, { decimals: 1 })}</span>
           ),
         },
         {
@@ -105,7 +105,7 @@ export function PayrollPayslipPanel({
           width: 72,
           align: "right" as const,
           render: (val: number) => (
-            <span className={payrollOtMetricClassName()}>{val.toFixed(1)}</span>
+            <span className={payrollOtMetricClassName()}>{formatQuantity(val, { decimals: 1 })}</span>
           ),
         },
         {
@@ -179,12 +179,12 @@ export function PayrollPayslipPanel({
               <div>
                 <dt className={text.muted}>Std hrs</dt>
                 <dd className={cn("tabular-nums", text.secondary)}>
-                  {record.standardHours.toFixed(1)}
+                  {formatQuantity(record.standardHours, { decimals: 1 })}
                 </dd>
               </div>
               <div>
                 <dt className={text.muted}>OT hrs</dt>
-                <dd className={payrollOtMetricClassName()}>{record.otHours.toFixed(1)}</dd>
+                <dd className={payrollOtMetricClassName()}>{formatQuantity(record.otHours, { decimals: 1 })}</dd>
               </div>
               <div>
                 <dt className={text.muted}>Gross</dt>

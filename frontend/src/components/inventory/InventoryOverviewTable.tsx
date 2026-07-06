@@ -20,6 +20,7 @@ import {
   stockLevelStatusTone,
 } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
+import { formatQuantity } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import type { BranchInventory } from "@/types/api";
 
@@ -88,9 +89,8 @@ function InventoryOverviewMobileCard({
         <div className="min-w-0">
           <p className={cn("font-medium", text.primary)}>{name}</p>
           <p className={cn("text-sm tabular-nums", text.secondary)}>
-            {row.stock.toFixed(2)}
-            {unit ? ` ${unit}` : ""}
-            <span className={text.muted}> · min {row.minStock.toFixed(2)}</span>
+            {formatQuantity(row.stock, { unit: unit || undefined })}
+            <span className={text.muted}> · min {formatQuantity(row.minStock)}</span>
           </p>
         </div>
         <StatusBadge tone={tone} className="shrink-0">
@@ -145,7 +145,7 @@ export function InventoryOverviewTable({
           sorter: (a: InventoryRow, b: InventoryRow) => a.stock - b.stock,
           render: (_: unknown, record: InventoryRow) => (
             <span className={cn("tabular-nums font-medium", text.primary)}>
-              {record.stock.toFixed(2)}
+              {formatQuantity(record.stock)}
             </span>
           ),
         },
@@ -156,7 +156,7 @@ export function InventoryOverviewTable({
           sorter: (a: InventoryRow, b: InventoryRow) => a.minStock - b.minStock,
           render: (_: unknown, record: InventoryRow) => (
             <span className={cn("tabular-nums", tableCellMutedClassName())}>
-              {record.minStock.toFixed(2)}
+              {formatQuantity(record.minStock)}
             </span>
           ),
         },

@@ -12,6 +12,7 @@ import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterDate, ListFilterRow, ListFilterSelect } from "@/components/shared/list-filters";
 import { getErrorMessage } from "@/lib/errors";
 import { formatDateTime } from "@/lib/intl-date";
+import { formatQuantity } from "@/lib/money";
 import { useHubListPagination } from "@/hooks/useHubListPagination";
 import { tableCellMutedClassName } from "@/lib/theme/feedback";
 import { inventorySectionPanelClassName } from "@/lib/theme/stock";
@@ -54,7 +55,7 @@ function WasteLogMobileCard({ row }: { row: WasteLog }) {
           </time>
         </div>
         <span className={cn("shrink-0 font-mono text-sm tabular-nums", text.subtle)}>
-          {Number(row.quantity).toFixed(2)}
+          {formatQuantity(row.quantity)}
           {row.ingredient?.unit ? (
             <span className={cn("ml-1 text-xs", text.muted)}>{row.ingredient.unit}</span>
           ) : null}
@@ -125,7 +126,7 @@ export function WasteHistoryPanel({
           width: 96,
           render: (qty: number, row: WasteLog) => (
             <span className={cn("font-mono tabular-nums text-sm", text.subtle)}>
-              {Number(qty).toFixed(2)}
+              {formatQuantity(qty)}
               {row.ingredient?.unit ? (
                 <span className={cn("ml-1 text-xs", text.muted)}>{row.ingredient.unit}</span>
               ) : null}

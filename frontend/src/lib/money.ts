@@ -15,6 +15,23 @@ export function formatMoney(
   });
 }
 
+/**
+ * Format a non-currency quantity (stock, hours, variance) with grouped
+ * thousands and an optional unit suffix — the numeric counterpart to
+ * formatCurrency for values that should never carry a currency symbol.
+ */
+export function formatQuantity(
+  value: number | string | null | undefined,
+  options: { decimals?: number; unit?: string } = {},
+): string {
+  const { decimals = 2, unit } = options;
+  const formatted = toNumber(value).toLocaleString(undefined, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+  return unit ? `${formatted} ${unit}` : formatted;
+}
+
 export const DEFAULT_CURRENCY = "THB";
 
 export function formatCurrency(

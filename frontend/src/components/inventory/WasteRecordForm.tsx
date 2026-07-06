@@ -30,6 +30,7 @@ import {
   hubDangerActionClassName,
 } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
+import { formatQuantity } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import type { Ingredient, WasteLineItem } from "@/types/api";
 
@@ -158,7 +159,7 @@ export function WasteRecordForm({
                   <p className={cn("text-xs mt-1", text.muted)}>
                     On hand:{" "}
                     <span className={cn("tabular-nums", text.secondary)}>
-                      {stockOnHand.toFixed(2)} {selectedIngredient?.unit ?? ""}
+                      {formatQuantity(stockOnHand, { unit: selectedIngredient?.unit })}
                     </span>
                   </p>
                 ) : null}

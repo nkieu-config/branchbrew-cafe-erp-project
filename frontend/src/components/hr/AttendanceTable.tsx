@@ -22,6 +22,7 @@ import {
   hrMutedMetaClassName,
 } from "@/lib/theme/hub-hr";
 import { text } from "@/lib/theme/surface";
+import { formatQuantity } from "@/lib/money";
 import { cn } from "@/lib/utils";
 import type { Shift } from "@/types/api";
 
@@ -104,7 +105,7 @@ export function AttendanceTable({
           align: "right" as const,
           render: (val: number | null, record: AttendanceRecordRow) =>
             val != null && val > 0 ? (
-              <span className={cn("tabular-nums", text.primary)}>{val.toFixed(2)}</span>
+              <span className={cn("tabular-nums", text.primary)}>{formatQuantity(val)}</span>
             ) : isActiveRecord(record) ? (
               <span className={text.muted}>—</span>
             ) : (
@@ -147,7 +148,7 @@ export function AttendanceTable({
                     <p className={cn("font-medium", text.primary)}>{formatDate(record.clockIn)}</p>
                     {record.totalHours != null && record.totalHours > 0 ? (
                       <span className={cn("shrink-0 tabular-nums text-sm font-medium", text.primary)}>
-                        {record.totalHours.toFixed(2)}h
+                        {formatQuantity(record.totalHours)}h
                       </span>
                     ) : null}
                   </div>

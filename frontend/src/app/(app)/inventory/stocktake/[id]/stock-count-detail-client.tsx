@@ -24,7 +24,7 @@ import {
 } from "@/hooks/domains/useInventoryQueries";
 import { getErrorMessage } from "@/lib/errors";
 import { formatDateTime } from "@/lib/intl-date";
-import { formatMoney } from "@/lib/money";
+import { formatMoney, formatQuantity } from "@/lib/money";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { inventorySectionPanelClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
@@ -141,7 +141,7 @@ export default function StockCountDetailClient({ id }: { id: number }) {
           const value = isDraft ? row.currentStock : row.expectedQty;
           return (
             <span className={cn("font-mono tabular-nums text-sm", text.subtle)}>
-              {value == null ? "—" : Number(value).toFixed(2)}
+              {value == null ? "—" : formatQuantity(value)}
             </span>
           );
         },
@@ -173,7 +173,7 @@ export default function StockCountDetailClient({ id }: { id: number }) {
           />
         ) : (
           <span className={cn("font-mono tabular-nums text-sm", text.subtle)}>
-            {row.countedQty == null ? "—" : Number(row.countedQty).toFixed(2)}
+            {row.countedQty == null ? "—" : formatQuantity(row.countedQty)}
           </span>
         ),
     });
@@ -205,7 +205,7 @@ export default function StockCountDetailClient({ id }: { id: number }) {
                 )}
               >
                 {variance > 0 ? "+" : ""}
-                {variance.toFixed(2)}
+                {formatQuantity(variance)}
               </span>
             );
           },

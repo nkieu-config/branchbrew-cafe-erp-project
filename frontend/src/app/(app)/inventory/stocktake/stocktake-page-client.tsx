@@ -34,6 +34,7 @@ import {
 } from "@/hooks/domains/useInventoryQueries";
 import { getErrorMessage } from "@/lib/errors";
 import { formatDateTime } from "@/lib/intl-date";
+import { formatQuantity } from "@/lib/money";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import {
   formFieldInsetClassName,
@@ -192,7 +193,7 @@ export default function StocktakePageClient() {
               )}
             >
               {delta > 0 ? "+" : ""}
-              {Number(delta).toFixed(2)}
+              {formatQuantity(delta)}
               {row.ingredient?.unit ? (
                 <span className={cn("ml-1 text-xs", text.muted)}>
                   {row.ingredient.unit}
