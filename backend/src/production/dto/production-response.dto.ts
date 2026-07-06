@@ -7,7 +7,7 @@ export class ProductionOrderResponseDto {
   @ApiProperty({ example: 1 })
   id: number;
 
-  @ApiProperty({ example: 'PRD-1719859200000' })
+  @ApiProperty({ example: 'PRD-000042' })
   orderNumber: string;
 
   @ApiProperty({ example: 2 })

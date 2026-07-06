@@ -66,10 +66,7 @@ export class CustomersService {
     });
   }
 
-  async update(
-    id: number,
-    data: Partial<{ name: string; email: string; phone: string }>,
-  ) {
+  async update(id: number, data: Partial<{ name: string; phone: string }>) {
     return this.prisma.customer.update({ where: { id }, data });
   }
 

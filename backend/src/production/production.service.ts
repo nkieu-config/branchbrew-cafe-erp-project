@@ -5,11 +5,21 @@ import {
   assertBranchAccess,
   BranchScopedUser,
 } from '../auth/branch-scope.util';
-import { ProductionStatus } from '@prisma/client';
+import { ProductionOrder, ProductionStatus } from '@prisma/client';
 import { OutboxService } from '../outbox/outbox.service';
 import { OUTBOX_EVENT_TYPES } from '../outbox/outbox-event.types';
 import { InventoryHelper } from '../common/helpers/inventory.helper';
 import { toProductionCompletedSnapshot } from './domain/production-completed.snapshot';
+import {
+  allocateProductionOrderNumber,
+  isProductionOrderNumberConflict,
+  MAX_PRODUCTION_ORDER_NUMBER_RETRIES,
+} from './helpers/production-order-number.helper';
+
+const TERMINAL_PRODUCTION_STATUSES: ProductionStatus[] = [
+  'COMPLETED',
+  'CANCELLED',
+];
 
 @Injectable()
 export class ProductionService {
@@ -41,12 +51,15 @@ export class ProductionService {
   }
 
   // 3. Create a Production Order
-  async createProductionOrder(data: {
-    branchId: number;
-    targetIngredientId: number;
-    quantityToProduce: number;
-    plannedStartDate?: Date;
-  }) {
+  async createProductionOrder(
+    data: {
+      branchId: number;
+      targetIngredientId: number;
+      quantityToProduce: number;
+      plannedStartDate?: Date;
+    },
+    attempt = 1,
+  ): Promise<ProductionOrder> {
     // Ensure the branch is a central kitchen
     const branch = await this.prisma.branch.findUnique({
       where: { id: data.branchId },
@@ -55,16 +68,29 @@ export class ProductionService {
       throw new BadRequestException('Branch is not a central kitchen');
     }
 
-    return this.prisma.productionOrder.create({
-      data: {
-        orderNumber: `PRD-${Date.now()}`,
-        branchId: data.branchId,
-        targetIngredientId: data.targetIngredientId,
-        quantityToProduce: data.quantityToProduce,
-        plannedStartDate: data.plannedStartDate,
-        status: 'PLANNED',
-      },
-    });
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        const orderNumber = await allocateProductionOrderNumber(tx);
+        return tx.productionOrder.create({
+          data: {
+            orderNumber,
+            branchId: data.branchId,
+            targetIngredientId: data.targetIngredientId,
+            quantityToProduce: data.quantityToProduce,
+            plannedStartDate: data.plannedStartDate,
+            status: 'PLANNED',
+          },
+        });
+      });
+    } catch (err) {
+      if (
+        isProductionOrderNumberConflict(err) &&
+        attempt < MAX_PRODUCTION_ORDER_NUMBER_RETRIES
+      ) {
+        return this.createProductionOrder(data, attempt + 1);
+      }
+      throw err;
+    }
   }
 
   // Update Order Status (for Kanban dragging)
@@ -84,6 +110,12 @@ export class ProductionService {
     });
     if (!order) throw new BadRequestException('Order not found');
     assertBranchAccess(user, order.branchId);
+
+    if (TERMINAL_PRODUCTION_STATUSES.includes(order.status)) {
+      throw new BadRequestException(
+        `Cannot change status of a ${order.status.toLowerCase()} production order.`,
+      );
+    }
 
     return this.prisma.productionOrder.update({
       where: { id: orderId },
@@ -107,6 +139,10 @@ export class ProductionService {
       if (user) assertBranchAccess(user, order.branchId);
       if (order.status === 'COMPLETED')
         throw new BadRequestException('Order already completed');
+      if (order.status === 'CANCELLED')
+        throw new BadRequestException(
+          'Cancelled production orders cannot be completed.',
+        );
 
       // Find BOM for the target ingredient
       const boms = await tx.productionBOM.findMany({

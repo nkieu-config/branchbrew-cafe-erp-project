@@ -8,6 +8,8 @@ export type DailyPaymentTotals = {
   qr: Prisma.Decimal | null;
 };
 
+const COLLECTED_ORDER_STATUSES = ['COMPLETED', 'PENDING', 'PREPARING'] as const;
+
 @Injectable()
 export class FinanceRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -18,7 +20,11 @@ export class FinanceRepository {
     end: Date,
   ): Promise<DailyPaymentTotals> {
     const dateFilter = { gte: start, lte: end };
-    const baseWhere = { branchId, createdAt: dateFilter };
+    const baseWhere = {
+      branchId,
+      createdAt: dateFilter,
+      status: { in: [...COLLECTED_ORDER_STATUSES] },
+    };
 
     const [cashOrders, creditCardOrders, qrOrders] = await Promise.all([
       this.prisma.order.aggregate({

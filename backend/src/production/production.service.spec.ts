@@ -40,6 +40,24 @@ describe('ProductionService', () => {
     expect(prisma.productionOrder.findUnique).not.toHaveBeenCalled();
   });
 
+  it('rejects status changes on completed or cancelled orders', async () => {
+    prisma.productionOrder.findUnique.mockResolvedValue({
+      id: 1,
+      branchId: 2,
+      status: 'COMPLETED',
+    } as any);
+
+    await expect(
+      service.updateOrderStatus(1, 'IN_PROGRESS', {
+        userId: 1,
+        role: 'MANAGER',
+        branchId: 2,
+      }),
+    ).rejects.toThrow('Cannot change status of a completed production order.');
+
+    expect(prisma.productionOrder.update).not.toHaveBeenCalled();
+  });
+
   it('rejects production orders on branches that are not central kitchens', async () => {
     prisma.branch.findUnique.mockResolvedValue({
       id: 2,
@@ -53,6 +71,28 @@ describe('ProductionService', () => {
         quantityToProduce: 100,
       }),
     ).rejects.toThrow('Branch is not a central kitchen');
+  });
+
+  it('allocates sequential order numbers from the database sequence', async () => {
+    prisma.branch.findUnique.mockResolvedValue({
+      id: 3,
+      isCentralKitchen: true,
+    } as any);
+    prisma.$transaction.mockImplementation(async (cb: Function) => cb(prisma));
+    prisma.$queryRaw.mockResolvedValue([{ nextval: 42n }]);
+    prisma.productionOrder.create.mockResolvedValue({ id: 1 } as any);
+
+    await service.createProductionOrder({
+      branchId: 3,
+      targetIngredientId: 7,
+      quantityToProduce: 100,
+    });
+
+    expect(prisma.productionOrder.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ orderNumber: 'PRD-000042' }),
+      }),
+    );
   });
 
   describe('completeProductionOrder', () => {
@@ -80,6 +120,17 @@ describe('ProductionService', () => {
 
       await expect(service.completeProductionOrder(10)).rejects.toThrow(
         'Order already completed',
+      );
+    });
+
+    it('throws when the order is cancelled', async () => {
+      prisma.productionOrder.findUnique.mockResolvedValue({
+        ...plannedOrder,
+        status: 'CANCELLED',
+      } as any);
+
+      await expect(service.completeProductionOrder(10)).rejects.toThrow(
+        'Cancelled production orders cannot be completed.',
       );
     });
 
