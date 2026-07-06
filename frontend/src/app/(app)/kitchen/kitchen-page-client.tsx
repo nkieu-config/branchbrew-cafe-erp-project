@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { usePageChromeExtension } from "@/components/layout/PageChrome";
 import dynamic from "next/dynamic";
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import {
@@ -138,21 +139,27 @@ export default function CentralKitchenPageClient() {
   const inProgressOrders = orders.filter((o: ProductionOrderWithTarget) => o.status === "IN_PROGRESS");
   const completedOrders = orders.filter((o: ProductionOrderWithTarget) => o.status === "COMPLETED");
 
+  usePageChromeExtension(
+    useMemo(
+      () => ({
+        actions:
+          activeBranchId && isCentralKitchen ? (
+            <Button className={hubCtaClassName("kitchen")} onClick={() => setIsModalOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" aria-hidden />
+              New order
+            </Button>
+          ) : null,
+      }),
+      [activeBranchId, isCentralKitchen],
+    ),
+  );
+
   if (!activeBranchId) {
     return <BranchEmptyState title="Select a branch for production" />;
   }
 
   return (
     <div className="space-y-4 w-full">
-      {isCentralKitchen ? (
-        <div className="flex justify-end">
-          <Button className={hubCtaClassName("kitchen")} onClick={() => setIsModalOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" aria-hidden />
-            New order
-          </Button>
-        </div>
-      ) : null}
-
       {!isCentralKitchen ? (
         <CentralKitchenBranchNotice mode="blocking" />
       ) : (

@@ -56,7 +56,6 @@ export function SidebarNavItem({
       {showTree && (
         <ul
           className={cn(sidebarTreeIndentClassName, "space-y-0.5")}
-          role="group"
           aria-label={`${item.label} sections`}
         >
           {childTabs.map((tab) => {

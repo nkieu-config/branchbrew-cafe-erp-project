@@ -14,7 +14,7 @@ import type { LucideIcon } from "lucide-react";
 import { BranchScopeIndicator } from "@/components/shared/branch-scope-indicator";
 import { useAuth } from "@/context/AuthContext";
 import { getPageChromeTitleVisibility } from "@/lib/navigation/topbar-chrome";
-import { pageChromeStickyBarClassName, shellPageTitleClassName } from "@/lib/theme/shell";
+import { shellPageTitleClassName } from "@/lib/theme/shell";
 import { text } from "@/lib/theme/surface";
 import { typeHeadingClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
@@ -125,47 +125,40 @@ export function PageChrome({
     extension.hideTitle || !extension.title ? undefined : extension.title;
   const SectionIcon = extension.icon;
 
-  const hasStickyBar = Boolean(mergedScope || mergedActions);
+  const hasHeaderExtras = Boolean(mergedScope || mergedActions);
 
   return (
     <div className={cn("w-full space-y-section lg:space-y-page flex flex-col", className)}>
       <div className={cn("space-y-field", (hideOnDesktop || hideOnMobile) && "max-lg:space-y-field")}>
-        <h1
-          className={cn(
-            shellPageTitleClassName(),
-            "min-w-0",
-            hideOnDesktop && "lg:sr-only",
-            hideOnMobile && "max-lg:sr-only",
-          )}
-        >
+        <div className={cn("flex flex-wrap items-center gap-3", !hasHeaderExtras && "contents")}>
+          <h1
+            className={cn(
+              shellPageTitleClassName(),
+              "min-w-0",
+              hasHeaderExtras && "flex-1",
+              hideOnDesktop && "lg:sr-only",
+              hideOnMobile && "max-lg:sr-only",
+            )}
+          >
             <Icon className={cn("w-6 h-6 shrink-0", iconClassName)} aria-hidden />
             <span className="truncate">{title}</span>
-        </h1>
+          </h1>
+
+          {mergedScope && (
+            <BranchScopeIndicator
+              branchName={mergedScope.branchName}
+              allBranches={mergedScope.allBranches}
+            />
+          )}
+          {mergedActions && (
+            <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+              {mergedActions}
+            </div>
+          )}
+        </div>
 
         {mergedDescription && (
           <p className={cn("text-sm", text.muted)}>{mergedDescription}</p>
-        )}
-
-        {hasStickyBar && (
-          <div
-            className={cn(
-              pageChromeStickyBarClassName(),
-              mergedScope ? "justify-between" : "justify-end",
-            )}
-          >
-            {mergedScope && (
-              <BranchScopeIndicator
-                branchName={mergedScope.branchName}
-                allBranches={mergedScope.allBranches}
-                className="mr-auto"
-              />
-            )}
-            {mergedActions && (
-              <div className="flex flex-wrap items-center justify-end gap-2">
-                {mergedActions}
-              </div>
-            )}
-          </div>
         )}
 
         {sectionTitle && (

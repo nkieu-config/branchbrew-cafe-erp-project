@@ -23,7 +23,6 @@ import {
 import { getErrorMessage } from "@/lib/errors";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { organizationSectionPanelClassName } from "@/lib/theme/organization";
-import { cn } from "@/lib/utils";
 import type {
   Branch,
   CreateUserPayload,
@@ -139,7 +138,7 @@ export default function UsersPageClient({ embedded = false }: { embedded?: boole
   };
 
   const content = (
-    <div className={cn("space-y-4 w-full", embedded ? "max-w-6xl" : "max-w-6xl mx-auto")}>
+    <div className="space-y-4 w-full max-w-6xl mx-auto">
       <div className="flex justify-end">
         <Button
           className={hubCtaClassName("organization", "min-h-[44px]")}

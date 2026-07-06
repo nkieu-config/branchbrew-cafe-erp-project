@@ -200,7 +200,7 @@ export function formRemoveButtonClassName(className?: string) {
 
 export function formPanelClassName(className?: string) {
   return cn(
-    "hub-section-panel rounded-xl border w-full p-4 sm:p-5",
+    "hub-section-panel rounded-xl border w-full p-4 sm:p-6",
     "bg-[var(--hub-section-bg)] border-[var(--hub-section-border)]",
     className,
   );

@@ -320,6 +320,12 @@ describe("getPageChromeTitleVisibility", () => {
     const trail = resolveBreadcrumbTrail("/finance/overview");
     const visibility = getPageChromeTitleVisibility("/finance/overview", "MANAGER", trail);
     expect(visibility.hideOnDesktop).toBe(true);
-    expect(visibility.hideOnMobile).toBe(false);
+    expect(visibility.showMobileTopbarTitle).toBe(false);
+  });
+
+  it("hides mobile page title when the topbar shows the breadcrumb instead", () => {
+    const trail = resolveBreadcrumbTrail("/finance/overview");
+    const visibility = getPageChromeTitleVisibility("/finance/overview", "MANAGER", trail);
+    expect(visibility.hideOnMobile).toBe(true);
   });
 });

@@ -9,20 +9,18 @@ const trail = (labels: string[]): BreadcrumbItem[] =>
   }));
 
 describe("buildBreadcrumbDisplay", () => {
-  it("returns all items when within mobile limit", () => {
+  it("shows only the current page on mobile", () => {
     const items = trail(["Finance", "Overview"]);
     const segments = buildBreadcrumbDisplay(items, false);
-    expect(segments).toHaveLength(2);
-    expect(segments.every((segment) => segment.kind === "item")).toBe(true);
+    expect(segments).toHaveLength(1);
+    expect(segments[0]).toMatchObject({ kind: "item", item: items[1] });
   });
 
-  it("collapses middle segments on mobile for long trails", () => {
+  it("shows only the last segment on mobile for long trails", () => {
     const items = trail(["Finance", "Ledger", "Journal"]);
     const segments = buildBreadcrumbDisplay(items, false);
-    expect(segments).toHaveLength(3);
-    expect(segments[0]).toMatchObject({ kind: "item", item: items[0] });
-    expect(segments[1]).toMatchObject({ kind: "ellipsis", title: "Ledger" });
-    expect(segments[2]).toMatchObject({ kind: "item", item: items[2] });
+    expect(segments).toHaveLength(1);
+    expect(segments[0]).toMatchObject({ kind: "item", item: items[2] });
   });
 
   it("shows three segments on desktop before collapsing", () => {

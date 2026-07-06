@@ -2,13 +2,15 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { NotificationBell } from "@/components/layout/NotificationBell";
 import { ClockInOutWidget } from "@/components/hr/ClockInOutWidget";
 import { BranchPicker } from "@/components/shared/branch-picker";
 import { BreadcrumbTrail } from "@/components/layout/BreadcrumbTrail";
-import { LogOut, Menu, User } from "lucide-react";
+import { formatStatusLabel } from "@/components/shared/status-badge";
+import { LogOut, Menu, Settings, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useMobileNav } from "@/context/MobileNavContext";
 import { useScrollCompact } from "@/context/ScrollCompactContext";
@@ -24,6 +26,7 @@ import {
 } from "@/lib/navigation/mobile-nav";
 import {
   destructiveMenuItemClassName,
+  menuItemClassName,
   profileMenuHeaderDividerClassName,
   profileMenuPanelClassName,
   topbarAccountActionsClassName,
@@ -109,7 +112,7 @@ function ProfileMenu() {
 
   if (!user) return null;
 
-  const roleLabel = user.role.replace("_", " ");
+  const roleLabel = formatStatusLabel(user.role);
 
   const menu =
     open && menuPosition
@@ -123,8 +126,22 @@ function ProfileMenu() {
           >
             <div className={profileMenuHeaderDividerClassName()}>
               <p className={cn(typeUiLabelClassName("text-sm truncate"), text.primary)}>{user.name}</p>
-              <p className={cn("text-xs capitalize", text.muted)}>{roleLabel}</p>
+              {user.email && (
+                <p className={cn("text-xs truncate", text.muted)}>{user.email}</p>
+              )}
+              <p className={cn("mt-0.5 text-xs", text.subtle)}>{roleLabel}</p>
             </div>
+            {user.role === "SUPER_ADMIN" && (
+              <Link
+                href="/settings"
+                role="menuitem"
+                className={menuItemClassName()}
+                onClick={() => setOpen(false)}
+              >
+                <Settings className="w-4 h-4" aria-hidden />
+                Settings
+              </Link>
+            )}
             <button
               type="button"
               role="menuitem"
@@ -219,6 +236,8 @@ export function AppHeader({ className }: AppHeaderProps) {
   const { showMobileTopbarTitle } = getPageChromeTitleVisibility(pathname, role, trail);
   const showMobileBreadcrumb = shouldShowMobileBreadcrumb(pathname, role);
   const showDesktopBreadcrumb = shouldShowDesktopBreadcrumb(pathname, role, trail) && !compact;
+  const isKdsRoute = pathname === "/kds" || pathname.startsWith("/kds/");
+  const showKdsDesktopLabel = isKdsRoute && !showDesktopBreadcrumb && !compact;
   const mobileTopbarTitle = resolveTopbarPageTitle(pathname);
   const showBranchPicker = isSuperAdmin && branches.length > 0;
 
@@ -256,6 +275,13 @@ export function AppHeader({ className }: AppHeaderProps) {
 
             {showDesktopBreadcrumb && (
               <BreadcrumbTrail items={trail} className={topbarDesktopBreadcrumbClassName()} />
+            )}
+
+            {showKdsDesktopLabel && (
+              <BreadcrumbTrail
+                items={[{ label: "Kitchen Display", href: null }]}
+                className={topbarDesktopBreadcrumbClassName()}
+              />
             )}
           </div>
 

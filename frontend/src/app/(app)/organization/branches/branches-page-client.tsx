@@ -95,7 +95,7 @@ export default function BranchesPageClient({ embedded = false }: { embedded?: bo
   };
 
   const content = (
-    <div className={cn("space-y-4 w-full", embedded ? "max-w-5xl" : "max-w-5xl mx-auto")}>
+    <div className="space-y-4 w-full max-w-5xl mx-auto">
       <div className="flex justify-end">
         <Button
           className={hubCtaClassName("organization", "min-h-[44px]")}

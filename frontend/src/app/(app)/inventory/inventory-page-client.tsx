@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect, useDeferredValue } from "react";
+import { usePageChromeExtension } from "@/components/layout/PageChrome";
 import { useSearchParams } from "next/navigation";
 import { useBranchInventory } from "@/hooks/domains/useInventoryQueries";
 import { useAuth } from "@/context/AuthContext";
@@ -84,20 +85,27 @@ export default function InventoryPageClient() {
 
   const hasActiveFilters = search.trim().length > 0 || stockFilter !== "ALL";
 
+  usePageChromeExtension(
+    useMemo(
+      () => ({
+        actions:
+          activeBranchId && showGrnAction ? (
+            <ButtonLink href="/inventory/stock-in" className={hubCtaClassName("inventory")}>
+              <ArrowDownToLine className="w-4 h-4 mr-2" aria-hidden />
+              Receive stock
+            </ButtonLink>
+          ) : null,
+      }),
+      [activeBranchId, showGrnAction],
+    ),
+  );
+
   if (!activeBranchId) {
     return <BranchEmptyState description="Select a branch in the top bar to view stock balances." />;
   }
 
   return (
     <div className="space-y-5">
-      {showGrnAction && (
-        <div className="flex justify-end">
-          <ButtonLink href="/inventory/stock-in" className={hubCtaClassName("inventory")}>
-            <ArrowDownToLine className="w-4 h-4 mr-2" aria-hidden />
-            Receive stock
-          </ButtonLink>
-        </div>
-      )}
 
       <HubListPage className={inventorySectionPanelClassName()}>
         <HubListPage.Error

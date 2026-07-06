@@ -639,6 +639,15 @@ export function profileAvatarInitialClassName(className?: string) {
   );
 }
 
+export function menuItemClassName(className?: string) {
+  return cn(
+    "flex w-full items-center gap-2 rounded-md px-2.5 py-2 min-h-[40px] text-sm font-medium",
+    "text-foreground hover:bg-[var(--muted)]",
+    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]/40",
+    className,
+  );
+}
+
 export function destructiveMenuItemClassName(className?: string) {
   return cn(
     "flex w-full items-center gap-2 rounded-md px-2.5 py-2 min-h-[40px] text-sm font-medium",

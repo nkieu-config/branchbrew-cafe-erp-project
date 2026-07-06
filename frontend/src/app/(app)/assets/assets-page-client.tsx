@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useDeferredValue } from "react";
+import { usePageChromeExtension } from "@/components/layout/PageChrome";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
@@ -119,6 +120,23 @@ export default function AssetsPageClient() {
     }
   };
 
+  usePageChromeExtension(
+    useMemo(
+      () => ({
+        actions: branchIdNum ? (
+          <Button
+            className={hubCtaClassName("assets", "min-h-[44px]")}
+            onClick={() => setRegisterOpen(true)}
+          >
+            <Plus className="w-4 h-4 mr-2" aria-hidden />
+            Register equipment
+          </Button>
+        ) : null,
+      }),
+      [branchIdNum],
+    ),
+  );
+
   if (!branchIdNum) {
     return (
       <BranchEmptyState description="Select a branch in the top bar to manage equipment." />
@@ -127,16 +145,6 @@ export default function AssetsPageClient() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button
-          className={hubCtaClassName("assets", "min-h-[44px]")}
-          onClick={() => setRegisterOpen(true)}
-        >
-          <Plus className="w-4 h-4 mr-2" aria-hidden />
-          Register equipment
-        </Button>
-      </div>
-
       <HubListPage className={assetsSectionPanelClassName()}>
         {!isLoading && !isError && summary.dueSoon > 0 && (
           <HubListPage.Banner>

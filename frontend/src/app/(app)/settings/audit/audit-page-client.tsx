@@ -94,7 +94,7 @@ export default function AuditPageClient() {
   };
 
   return (
-    <div className="space-y-4 max-w-6xl w-full">
+    <div className="space-y-4 max-w-6xl w-full mx-auto">
       <HubListPage className={settingsSectionPanelClassName()}>
         {!loading && !isError && entryCount === 0 && (
           <HubListPage.Banner>

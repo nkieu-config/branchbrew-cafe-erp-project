@@ -3,8 +3,9 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useActiveClockIn, useClockIn, useClockOut } from "@/hooks/domains/useHrQueries";
-import { Clock, RefreshCw } from "lucide-react";
+import { Clock, RefreshCw, Timer } from "lucide-react";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { getErrorMessage } from "@/lib/errors";
 import { surfaceInsetSkeletonClassName } from "@/lib/theme/color-helpers";
 import {
@@ -21,13 +22,10 @@ type ClockInOutWidgetProps = {
   variant?: "toolbar" | "standalone";
 };
 
-function formatCompactElapsed(elapsed: string) {
-  return elapsed.startsWith("00:") ? elapsed.slice(3) : elapsed;
-}
-
 export function ClockInOutWidget({ variant = "toolbar" }: ClockInOutWidgetProps) {
   const { user, activeBranchId } = useAuth();
   const [elapsed, setElapsed] = useState("");
+  const [confirmClockOutOpen, setConfirmClockOutOpen] = useState(false);
   const isToolbar = variant === "toolbar";
 
   const {
@@ -90,6 +88,7 @@ export function ClockInOutWidget({ variant = "toolbar" }: ClockInOutWidgetProps)
       toast.success("Clocked out successfully!");
     } catch (err: unknown) {
       toast.error(getErrorMessage(err, "Failed to clock out"));
+      throw err;
     }
   };
 
@@ -125,20 +124,34 @@ export function ClockInOutWidget({ variant = "toolbar" }: ClockInOutWidgetProps)
   const needsBranch = user.role === "SUPER_ADMIN" && !activeBranchId;
 
   if (activeRecord) {
-    const compactElapsed = formatCompactElapsed(elapsed);
     return wrap(
-      <button
-        type="button"
-        className={topbarClockActiveClassName()}
-        onClick={() => void handleClockOut()}
-        disabled={clockOutMutation.isPending}
-        aria-label={elapsed ? `Clock out — active shift ${elapsed}` : "Clock out"}
-        title="Tap to clock out"
-      >
-        <span className="sm:hidden">{compactElapsed || "00:00"}</span>
-        <span className="hidden sm:inline">{elapsed || "00:00:00"}</span>
-      </button>,
-      "min-w-[5rem] sm:min-w-[5.75rem]",
+      <>
+        <button
+          type="button"
+          className={topbarClockActiveClassName("gap-1.5")}
+          onClick={() => setConfirmClockOutOpen(true)}
+          disabled={clockOutMutation.isPending}
+          aria-label={elapsed ? `On shift ${elapsed} — clock out` : "Clock out"}
+        >
+          <Timer className="w-3.5 h-3.5 shrink-0" aria-hidden />
+          <span className="hidden sm:inline font-sans font-medium">On shift</span>
+          <span>{elapsed || "00:00:00"}</span>
+        </button>
+        <ConfirmDialog
+          open={confirmClockOutOpen}
+          onOpenChange={setConfirmClockOutOpen}
+          title="Clock out?"
+          description={
+            elapsed
+              ? `You have been on shift for ${elapsed}. This ends your current shift.`
+              : "This ends your current shift."
+          }
+          confirmLabel="Clock out"
+          loading={clockOutMutation.isPending}
+          onConfirm={handleClockOut}
+        />
+      </>,
+      "min-w-[6rem] sm:min-w-[9rem]",
     );
   }
 
@@ -160,14 +173,16 @@ export function ClockInOutWidget({ variant = "toolbar" }: ClockInOutWidgetProps)
   return wrap(
     <button
       type="button"
-      className={topbarPrimaryActionClassName()}
+      className={topbarPrimaryActionClassName(
+        "max-sm:gap-1.5 max-sm:px-2.5 max-sm:w-auto max-sm:min-w-0",
+      )}
       onClick={() => void handleClockIn()}
       disabled={clockInMutation.isPending}
       aria-label="Clock in"
     >
       <Clock className="w-4 h-4 shrink-0" aria-hidden />
-      <span className="hidden sm:inline whitespace-nowrap">Clock in</span>
+      <span className="whitespace-nowrap">Clock in</span>
     </button>,
-    "w-10 sm:w-auto",
+    "w-auto",
   );
 }

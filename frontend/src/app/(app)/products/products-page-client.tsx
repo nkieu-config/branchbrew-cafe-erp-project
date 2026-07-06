@@ -8,6 +8,7 @@ import { useProductsSummaryQueries } from "@/hooks/domains/useProductsSummaryQue
 import { Button } from "@/components/ui/button";
 import { ProductFormModal } from "@/components/products/ProductFormModal";
 import { MenuProductListTable } from "@/components/products/MenuProductListTable";
+import { usePageChromeExtension } from "@/components/layout/PageChrome";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterSelect } from "@/components/shared/list-filters";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
@@ -81,15 +82,22 @@ export default function ProductsPageClient() {
     }
   };
 
+  usePageChromeExtension(
+    useMemo(
+      () => ({
+        actions: (
+          <Button onClick={handleAddNew} className={hubCtaClassName("products")}>
+            <Plus className="w-4 h-4 mr-2" aria-hidden />
+            Add item
+          </Button>
+        ),
+      }),
+      [handleAddNew],
+    ),
+  );
+
   return (
     <>
-      <div className="mb-4 flex justify-end">
-        <Button onClick={handleAddNew} className={hubCtaClassName("products")}>
-          <Plus className="w-4 h-4 mr-2" aria-hidden />
-          Add item
-        </Button>
-      </div>
-
       <HubListPage className={productsSectionPanelClassName()}>
         <HubListPage.Error
           message={isError ? getErrorMessage(error, "Failed to load menu items") : undefined}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
-import { Calendar, Popover } from "antd";
+import { Calendar, Popover, Radio, Select } from "antd";
 import { CalendarDays } from "lucide-react";
 import { AntdProvider } from "@/providers/AntdProvider";
 import { differenceInDays } from "date-fns";
@@ -40,6 +40,21 @@ type ExpiryHeatmapPanelProps = {
 function batchIngredientLabel(batch: BatchWithSupplier) {
   return batch.ingredient?.name ?? `#${batch.ingredientId}`;
 }
+
+const MONTH_LABELS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 const LEGEND_ITEMS = [
   { urgency: "expired" as const, label: "Expired" },
@@ -128,6 +143,47 @@ export function ExpiryHeatmapPanel({ batches }: ExpiryHeatmapPanelProps) {
           key={themeKey}
           fullscreen={false}
           mode={calendarMode}
+          headerRender={({ value, type, onChange, onTypeChange }) => {
+            const year = value.year();
+            const yearOptions = Array.from({ length: 5 }, (_, i) => {
+              const y = year - 2 + i;
+              return { value: y, label: String(y) };
+            });
+            const monthOptions = MONTH_LABELS.map((label, index) => ({
+              value: index,
+              label,
+            }));
+            return (
+              <div className="flex items-center justify-end gap-2 pb-2">
+                <Select
+                  size="small"
+                  aria-label="Calendar year"
+                  value={year}
+                  options={yearOptions}
+                  onChange={(y) => onChange(value.clone().year(y))}
+                  popupMatchSelectWidth={false}
+                />
+                {type === "month" && (
+                  <Select
+                    size="small"
+                    aria-label="Calendar month"
+                    value={value.month()}
+                    options={monthOptions}
+                    onChange={(m) => onChange(value.clone().month(m))}
+                    popupMatchSelectWidth={false}
+                  />
+                )}
+                <Radio.Group
+                  size="small"
+                  value={type}
+                  onChange={(e) => onTypeChange(e.target.value as "month" | "year")}
+                >
+                  <Radio.Button value="month">Month</Radio.Button>
+                  <Radio.Button value="year">Year</Radio.Button>
+                </Radio.Group>
+              </div>
+            );
+          }}
           onPanelChange={(_, mode) => {
             setCalendarMode(mode === "year" ? "month" : mode);
           }}

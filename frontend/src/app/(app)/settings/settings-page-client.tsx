@@ -79,7 +79,7 @@ export default function SettingsPageClient() {
   };
 
   return (
-    <div className="space-y-4 max-w-2xl w-full">
+    <div className="space-y-4 max-w-2xl w-full mx-auto">
       <div className="flex justify-end">
         <Button
           className={hubCtaClassName("settings", "min-h-[44px]")}

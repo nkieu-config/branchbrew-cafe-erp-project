@@ -6,7 +6,7 @@ export type BreadcrumbDisplaySegment =
 
 /**
  * Collapse middle breadcrumb segments when the trail is long.
- * Mobile: collapse when more than 2 segments. Desktop: when more than 3.
+ * Mobile: show only the current page. Desktop: collapse when more than 3.
  */
 export function buildBreadcrumbDisplay(
   items: BreadcrumbItem[],
@@ -14,7 +14,12 @@ export function buildBreadcrumbDisplay(
 ): BreadcrumbDisplaySegment[] {
   if (items.length === 0) return [];
 
-  const maxVisible = isDesktop ? 3 : 2;
+  if (!isDesktop) {
+    const last = items[items.length - 1];
+    return [{ kind: "item", item: last, index: items.length - 1 }];
+  }
+
+  const maxVisible = 3;
   if (items.length <= maxVisible) {
     return items.map((item, index) => ({ kind: "item", item, index }));
   }
