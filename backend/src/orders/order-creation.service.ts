@@ -1,17 +1,21 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Customer, Prisma } from '@prisma/client';
-import { InventoryHelper } from './helpers/inventory.helper';
+import { InventoryHelper } from '../common/helpers/inventory.helper';
 import { OutboxService } from '../outbox/outbox.service';
 import { OUTBOX_EVENT_TYPES } from '../outbox/outbox-event.types';
 import { SettingsService } from '../settings/settings.service';
-import { toNum, roundMoney } from '../common/decimal.util';
+import { dec, toNum, roundMoney } from '../common/decimal.util';
 import { inclusiveTaxAmount } from '../common/vat.util';
-import { pointsToDiscountAmount } from '../customers/loyalty.constants';
+import {
+  pointsEarnedForSpend,
+  pointsToDiscountAmount,
+  POINTS_PER_CURRENCY_UNIT,
+} from '../customers/loyalty.constants';
 import {
   productRequiresKitchen,
   resolveInitialOrderStatus,
-} from './order-status.util';
+} from './helpers/order-status.util';
 import {
   buildItemIngredientRequirements,
   mergeRequirementMaps,
@@ -24,9 +28,9 @@ import {
 } from './orders.types';
 import { ApiErrorCode } from '../common/errors/api-error-code.enum';
 import { appBadRequest, appNotFound } from '../common/errors/app.exception';
-import { toOrderSnapshot } from './domain/order-snapshot';
+import { toOrderSnapshot } from './domain/order.snapshot';
 
-const MAX_QUEUE_NUMBER_RETRIES = 2;
+const MAX_QUEUE_NUMBER_RETRIES = 5;
 
 @Injectable()
 export class OrderCreationService {
@@ -46,8 +50,8 @@ export class OrderCreationService {
   ): Promise<CreatedOrder> {
     try {
       return await this.prisma.$transaction(async (tx) => {
-        let totalAmount = 0;
-        let totalCogs = 0;
+        let totalAmount = dec(0);
+        let totalCogs = dec(0);
 
         const ingredientRequirements = new Map<number, number>();
         const productsForStatus: { category: string }[] = [];
@@ -88,7 +92,7 @@ export class OrderCreationService {
             );
           }
 
-          let unitPrice = toNum(product.price);
+          let unitPrice = dec(product.price);
           const modifiers: {
             optionId: number;
             optionName: string;
@@ -113,19 +117,18 @@ export class OrderCreationService {
             }
             selectedOptions = options;
             for (const opt of options) {
-              const delta = toNum(opt.priceDelta);
-              unitPrice += delta;
+              unitPrice = unitPrice.plus(dec(opt.priceDelta));
               const label = `${opt.group.name}: ${opt.name}`;
               modifierLabels.push(label);
               modifiers.push({
                 optionId: opt.id,
                 optionName: label,
-                priceDelta: delta,
+                priceDelta: toNum(opt.priceDelta),
               });
             }
           }
 
-          totalAmount += unitPrice * item.quantity;
+          totalAmount = totalAmount.plus(unitPrice.times(item.quantity));
 
           const recipeRows = product.recipeItems.map((recipe) => ({
             ingredientId: recipe.ingredientId,
@@ -141,7 +144,7 @@ export class OrderCreationService {
           const costByIngredient = new Map(
             product.recipeItems.map((recipe) => [
               recipe.ingredientId,
-              toNum(recipe.ingredient.costPerUnit),
+              dec(recipe.ingredient.costPerUnit),
             ]),
           );
           const missingCostIds = [...itemRequirements.keys()].filter(
@@ -152,11 +155,13 @@ export class OrderCreationService {
               where: { id: { in: missingCostIds } },
             });
             for (const ing of extraIngredients) {
-              costByIngredient.set(ing.id, toNum(ing.costPerUnit));
+              costByIngredient.set(ing.id, dec(ing.costPerUnit));
             }
           }
           for (const [ingredientId, qty] of itemRequirements.entries()) {
-            totalCogs += (costByIngredient.get(ingredientId) ?? 0) * qty;
+            totalCogs = totalCogs.plus(
+              (costByIngredient.get(ingredientId) ?? dec(0)).times(qty),
+            );
           }
 
           const notesText =
@@ -179,8 +184,8 @@ export class OrderCreationService {
           ingredientRequirements,
         );
 
-        let discountAmount = 0;
-        const pointsRedeemed = data.pointsToRedeem || 0;
+        let discountAmount = dec(0);
+        const pointsRequested = data.pointsToRedeem || 0;
         let customerId: number | null = null;
         let promotionId: number | null = null;
 
@@ -197,20 +202,13 @@ export class OrderCreationService {
           }
           customerId = customer.id;
 
-          if (pointsRedeemed > 0) {
-            if (customer.points < pointsRedeemed) {
-              throw appBadRequest(
-                ApiErrorCode.INSUFFICIENT_LOYALTY_POINTS,
-                'Not enough points to redeem',
-              );
-            }
-            discountAmount += pointsToDiscountAmount(pointsRedeemed);
-            await tx.customer.update({
-              where: { id: customer.id },
-              data: { points: { decrement: pointsRedeemed } },
-            });
+          if (pointsRequested > 0 && customer.points < pointsRequested) {
+            throw appBadRequest(
+              ApiErrorCode.INSUFFICIENT_LOYALTY_POINTS,
+              'Not enough points to redeem',
+            );
           }
-        } else if (pointsRedeemed > 0) {
+        } else if (pointsRequested > 0) {
           throw appBadRequest(
             ApiErrorCode.CUSTOMER_PHONE_REQUIRED,
             'Must provide customer phone to redeem points',
@@ -241,7 +239,10 @@ export class OrderCreationService {
               'Promotion expired',
             );
           }
-          if (promo.minPurchase && totalAmount < toNum(promo.minPurchase)) {
+          if (
+            promo.minPurchase &&
+            totalAmount.lessThan(dec(promo.minPurchase))
+          ) {
             throw appBadRequest(
               ApiErrorCode.PROMOTION_MIN_PURCHASE,
               `Minimum purchase of ${toNum(promo.minPurchase)} required`,
@@ -249,24 +250,44 @@ export class OrderCreationService {
           }
 
           promotionId = promo.id;
-          let promoDiscount = 0;
-          if (promo.discountType === 'PERCENTAGE') {
-            promoDiscount = totalAmount * (toNum(promo.discountValue) / 100);
-          } else {
-            promoDiscount = toNum(promo.discountValue);
-          }
+          const promoDiscount =
+            promo.discountType === 'PERCENTAGE'
+              ? totalAmount.times(dec(promo.discountValue)).dividedBy(100)
+              : dec(promo.discountValue);
 
-          discountAmount += promoDiscount;
+          discountAmount = discountAmount.plus(promoDiscount);
         }
 
-        discountAmount = Math.min(
-          roundMoney(discountAmount),
-          roundMoney(totalAmount),
-        );
-        const netAmount = roundMoney(totalAmount - discountAmount);
+        let pointsRedeemed = 0;
+        if (customer && pointsRequested > 0) {
+          const coverable = Prisma.Decimal.max(
+            totalAmount.minus(discountAmount),
+            dec(0),
+          );
+          const pointsUsable = coverable
+            .times(POINTS_PER_CURRENCY_UNIT)
+            .floor()
+            .toNumber();
+          pointsRedeemed = Math.min(pointsRequested, pointsUsable);
+          if (pointsRedeemed > 0) {
+            discountAmount = discountAmount.plus(
+              pointsToDiscountAmount(pointsRedeemed),
+            );
+            await tx.customer.update({
+              where: { id: customer.id },
+              data: { points: { decrement: pointsRedeemed } },
+            });
+          }
+        }
+
+        const discountFinal = Prisma.Decimal.min(
+          discountAmount.toDecimalPlaces(2),
+          totalAmount.toDecimalPlaces(2),
+        ).toNumber();
+        const netAmount = roundMoney(totalAmount.minus(discountFinal));
         const vatRate = await this.settingsService.getVatRatePercent();
         const taxAmount = inclusiveTaxAmount(netAmount, vatRate);
-        const pointsEarned = customer ? Math.floor(netAmount / 100) : 0;
+        const pointsEarned = customer ? pointsEarnedForSpend(netAmount) : 0;
 
         if (customer && pointsEarned > 0) {
           await tx.customer.update({
@@ -289,7 +310,7 @@ export class OrderCreationService {
             queueNumber,
             queueDate,
             totalAmount: roundMoney(totalAmount),
-            discountAmount,
+            discountAmount: discountFinal,
             netAmount,
             taxAmount,
             totalCogs: roundMoney(totalCogs),

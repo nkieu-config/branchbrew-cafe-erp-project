@@ -6,7 +6,7 @@ import {
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { DiscountType } from '@prisma/client';
-import { toNum } from '../common/decimal.util';
+import { dec, toNum } from '../common/decimal.util';
 import { UpdatePromotionDto } from './dto/promotion.dto';
 
 @Injectable()
@@ -137,14 +137,17 @@ export class PromotionsService {
       );
     }
 
-    let discountAmount = 0;
+    let discount = dec(0);
     if (promo.discountType === 'PERCENTAGE') {
-      discountAmount = subtotal * (toNum(promo.discountValue) / 100);
+      discount = dec(subtotal).times(dec(promo.discountValue)).dividedBy(100);
     } else if (promo.discountType === 'FIXED_AMOUNT') {
-      discountAmount = toNum(promo.discountValue);
+      discount = dec(promo.discountValue);
     }
 
-    discountAmount = Math.min(discountAmount, subtotal);
+    const discountAmount = Prisma.Decimal.min(
+      discount.toDecimalPlaces(2),
+      dec(subtotal).toDecimalPlaces(2),
+    ).toNumber();
 
     return {
       id: promo.id,

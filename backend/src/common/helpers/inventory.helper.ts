@@ -108,7 +108,7 @@ export class InventoryHelper {
 
       const activeBatch = await tx.inventoryBatch.findFirst({
         where: { branchId, ingredientId, status: 'ACTIVE' },
-        orderBy: { createdAt: 'desc' },
+        orderBy: [{ expiryDate: 'asc' }, { createdAt: 'asc' }],
       });
 
       if (activeBatch) {
@@ -116,16 +116,30 @@ export class InventoryHelper {
           where: { id: activeBatch.id },
           data: { quantity: { increment: qty } },
         });
-      } else {
-        await tx.inventoryBatch.create({
-          data: {
-            branchId,
-            ingredientId,
-            quantity: qty,
-            status: 'ACTIVE',
-          },
-        });
+        continue;
       }
+
+      const depletedBatch = await tx.inventoryBatch.findFirst({
+        where: { branchId, ingredientId, status: 'DEPLETED' },
+        orderBy: { updatedAt: 'desc' },
+      });
+
+      if (depletedBatch) {
+        await tx.inventoryBatch.update({
+          where: { id: depletedBatch.id },
+          data: { quantity: { increment: qty }, status: 'ACTIVE' },
+        });
+        continue;
+      }
+
+      await tx.inventoryBatch.create({
+        data: {
+          branchId,
+          ingredientId,
+          quantity: qty,
+          status: 'ACTIVE',
+        },
+      });
     }
   }
 }

@@ -54,6 +54,14 @@ describeIfDatabase('Central kitchen production flow (e2e)', () => {
         minStock: 500,
       },
     });
+    await prisma.inventoryBatch.create({
+      data: {
+        branchId: kitchenBranchId,
+        ingredientId: raw.id,
+        quantity: 5000,
+        status: 'ACTIVE',
+      },
+    });
 
     await prisma.user.create({
       data: {
@@ -88,6 +96,18 @@ describeIfDatabase('Central kitchen production flow (e2e)', () => {
           },
           {
             rawIngredient: {
+              name: { in: ['E2E Production Beans', 'E2E Cold Brew Base'] },
+            },
+          },
+        ],
+      },
+    });
+    await prisma.inventoryBatch.deleteMany({
+      where: {
+        OR: [
+          { branch: { name: 'E2E Central Kitchen' } },
+          {
+            ingredient: {
               name: { in: ['E2E Production Beans', 'E2E Cold Brew Base'] },
             },
           },
@@ -160,6 +180,21 @@ describeIfDatabase('Central kitchen production flow (e2e)', () => {
 
     expect(rawInv?.stock).toBe(4950);
     expect(finishedInv?.stock).toBe(100);
+
+    const rawBatches = await prisma.inventoryBatch.findMany({
+      where: { branchId: kitchenBranchId, ingredientId: rawIngredientId },
+    });
+    expect(rawBatches.reduce((sum, b) => sum + b.quantity, 0)).toBe(4950);
+
+    const finishedBatches = await prisma.inventoryBatch.findMany({
+      where: {
+        branchId: kitchenBranchId,
+        ingredientId: finishedIngredientId,
+        status: 'ACTIVE',
+      },
+    });
+    expect(finishedBatches).toHaveLength(1);
+    expect(finishedBatches[0].quantity).toBe(100);
 
     const order = await prisma.productionOrder.findUnique({
       where: { id: orderId },

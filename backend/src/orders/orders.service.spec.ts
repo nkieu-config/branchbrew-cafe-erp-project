@@ -253,6 +253,44 @@ describe('OrdersService', () => {
       });
     });
 
+    it('clamps redeemed points to what the order can absorb', async () => {
+      prisma.product.findUnique.mockResolvedValue({
+        id: 1,
+        price: 100,
+        category: 'Bakery',
+        recipeItems: [],
+      } as any);
+
+      prisma.customer.findUnique.mockResolvedValue({
+        id: 1,
+        phone: '1234567890',
+        points: 5000,
+      } as any);
+
+      prisma.customer.update.mockResolvedValue({} as any);
+      prisma.order.create.mockResolvedValue({ id: 1 } as any);
+
+      await service.createOrder({
+        ...mockOrderData,
+        customerPhone: '1234567890',
+        pointsToRedeem: 3000,
+      });
+
+      expect(prisma.customer.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { points: { decrement: 2000 } },
+      });
+      expect(prisma.order.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            discountAmount: 200,
+            netAmount: 0,
+            pointsRedeemed: 2000,
+          }),
+        }),
+      );
+    });
+
     it('throws when beverage product has no recipe', async () => {
       prisma.product.findUnique.mockResolvedValue({
         id: 1,
@@ -301,6 +339,48 @@ describe('OrdersService', () => {
       );
 
       expect(prisma.order.findUnique).not.toHaveBeenCalled();
+    });
+
+    it('refuses to resurrect a voided/refunded order', async () => {
+      prisma.order.findUnique.mockResolvedValue({
+        id: 5,
+        branchId: TEST_BRANCH_ID,
+        status: 'REFUNDED',
+      } as any);
+
+      await expect(service.updateOrderStatus(5, 'PENDING')).rejects.toThrow(
+        'Voided or refunded orders cannot change status.',
+      );
+      expect(prisma.order.update).not.toHaveBeenCalled();
+    });
+
+    it('rejects backward transitions', async () => {
+      prisma.order.findUnique.mockResolvedValue({
+        id: 5,
+        branchId: TEST_BRANCH_ID,
+        status: 'COMPLETED',
+      } as any);
+
+      await expect(service.updateOrderStatus(5, 'PREPARING')).rejects.toThrow(
+        'Cannot move order from COMPLETED to PREPARING.',
+      );
+      expect(prisma.order.update).not.toHaveBeenCalled();
+    });
+
+    it('allows the forward KDS transition', async () => {
+      prisma.order.findUnique.mockResolvedValue({
+        id: 5,
+        branchId: TEST_BRANCH_ID,
+        status: 'PENDING',
+      } as any);
+      prisma.order.update.mockResolvedValue({
+        id: 5,
+        status: 'PREPARING',
+      } as any);
+
+      await expect(
+        service.updateOrderStatus(5, 'PREPARING'),
+      ).resolves.toMatchObject({ status: 'PREPARING' });
     });
   });
 
@@ -364,7 +444,7 @@ describe('OrdersService', () => {
         status: 'ACTIVE',
       } as any);
       prisma.inventoryBatch.update.mockResolvedValue({} as any);
-      prisma.customer.update.mockResolvedValue({} as any);
+      prisma.customer.updateMany.mockResolvedValue({ count: 1 });
       prisma.order.update.mockResolvedValue({
         ...voidableOrder,
         status: 'CANCELLED',
@@ -376,11 +456,31 @@ describe('OrdersService', () => {
         where: { id: 1 },
         data: { stock: { increment: 20 } },
       });
-      expect(prisma.customer.update).toHaveBeenCalledWith({
-        where: { id: 1 },
-        data: { points: { increment: -5 } },
+      expect(prisma.customer.updateMany).toHaveBeenCalledWith({
+        where: { id: 1, points: { gte: 5 } },
+        data: { points: { decrement: 5 } },
       });
       expect(result.status).toBe('CANCELLED');
+    });
+
+    it('floors the customer balance at zero when clawed-back points were already spent', async () => {
+      prisma.order.findUnique.mockResolvedValue({
+        ...voidableOrder,
+        items: [],
+      } as any);
+      prisma.customer.updateMany.mockResolvedValue({ count: 0 });
+      prisma.customer.update.mockResolvedValue({} as any);
+      prisma.order.update.mockResolvedValue({
+        ...voidableOrder,
+        status: 'CANCELLED',
+      } as any);
+
+      await service.voidOrder(5);
+
+      expect(prisma.customer.update).toHaveBeenCalledWith({
+        where: { id: 1 },
+        data: { points: 0 },
+      });
     });
   });
 
@@ -435,6 +535,7 @@ describe('OrdersService', () => {
         status: 'ACTIVE',
       } as any);
       prisma.inventoryBatch.update.mockResolvedValue({} as any);
+      prisma.customer.updateMany.mockResolvedValue({ count: 1 });
       prisma.order.update.mockResolvedValue({
         ...refundableOrder,
         status: 'REFUNDED',

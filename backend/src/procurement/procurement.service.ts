@@ -19,7 +19,7 @@ import {
 } from '../auth/branch-scope.util';
 import { OutboxService } from '../outbox/outbox.service';
 import { OUTBOX_EVENT_TYPES } from '../outbox/outbox-event.types';
-import { toNum, roundMoney } from '../common/decimal.util';
+import { dec, roundMoney } from '../common/decimal.util';
 import {
   allocatePoNumber,
   isPoNumberConflict,
@@ -296,8 +296,9 @@ export class ProcurementService {
 
       const totalAmount = roundMoney(
         po.items.reduce(
-          (sum, item) => sum + item.quantityRequested * toNum(item.unitPrice),
-          0,
+          (sum, item) =>
+            sum.plus(dec(item.unitPrice).times(item.quantityRequested)),
+          dec(0),
         ),
       );
 
@@ -326,7 +327,7 @@ export class ProcurementService {
       include: { ingredient: true },
     });
 
-    if (!inventory || inventory.stock >= inventory.minStock) return;
+    if (!inventory || inventory.stock > inventory.minStock) return;
 
     const supplierId = inventory.ingredient.primarySupplierId;
     if (!supplierId) {

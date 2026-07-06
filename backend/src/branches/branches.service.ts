@@ -4,7 +4,7 @@ import {
   assertBranchAccess,
   BranchScopedUser,
 } from '../auth/branch-scope.util';
-import { provisionBranchInventoryForBranch } from '../inventory/branch-inventory-provision.helper';
+import { provisionBranchInventoryForBranch } from '../common/helpers/branch-inventory-provision.helper';
 import { WasteDisposalHelper } from '../inventory/helpers/waste-disposal.helper';
 
 @Injectable()
@@ -167,6 +167,7 @@ export class BranchesService {
 
       // Deduct from Source InventoryBatch
       let remainingToDeduct = transfer.quantity;
+      const consumedExpiries: Date[] = [];
       const activeBatches = await tx.inventoryBatch.findMany({
         where: {
           branchId: transfer.fromBranchId,
@@ -178,6 +179,7 @@ export class BranchesService {
 
       for (const batch of activeBatches) {
         if (remainingToDeduct <= 0) break;
+        if (batch.expiryDate) consumedExpiries.push(batch.expiryDate);
         if (batch.quantity <= remainingToDeduct) {
           remainingToDeduct -= batch.quantity;
           const updatedBatch = await tx.inventoryBatch.updateMany({
@@ -231,6 +233,9 @@ export class BranchesService {
           ingredientId: transfer.ingredientId,
           quantity: transfer.quantity,
           status: 'ACTIVE',
+          expiryDate: consumedExpiries.length
+            ? consumedExpiries.reduce((a, b) => (a < b ? a : b))
+            : null,
         },
       });
 

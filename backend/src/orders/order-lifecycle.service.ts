@@ -8,7 +8,11 @@ import {
   assertBranchAccess,
   BranchScopedUser,
 } from '../auth/branch-scope.util';
-import { isSameCalendarDay, isTerminalOrderStatus } from './order-void.util';
+import {
+  isSameCalendarDay,
+  isTerminalOrderStatus,
+} from './helpers/order-void.util';
+import { canTransitionOrderStatus } from './helpers/order-status.util';
 import { kdsOrderInclude } from './kds-order.include';
 import {
   applyOrderReversalEffects,
@@ -28,7 +32,7 @@ import {
   AppException,
 } from '../common/errors/app.exception';
 import { AUDIT_ACTIONS, AUDIT_TARGETS } from '../audit/audit.service';
-import { toOrderSnapshot } from './domain/order-snapshot';
+import { toOrderSnapshot } from './domain/order.snapshot';
 
 const OPERATIONAL_ORDER_STATUSES: readonly OrderStatus[] = [
   'PENDING',
@@ -101,6 +105,22 @@ export class OrderLifecycleService {
       throw appNotFound(ApiErrorCode.ORDER_NOT_FOUND, 'Order not found');
     }
     if (user) assertBranchAccess(user, existing.branchId);
+
+    if (isTerminalOrderStatus(existing.status)) {
+      throw appBadRequest(
+        ApiErrorCode.ORDER_ALREADY_REVERSED,
+        'Voided or refunded orders cannot change status.',
+      );
+    }
+    if (existing.status === status) {
+      return existing;
+    }
+    if (!canTransitionOrderStatus(existing.status, status)) {
+      throw appBadRequest(
+        ApiErrorCode.ORDER_STATUS_INVALID,
+        `Cannot move order from ${existing.status} to ${status}.`,
+      );
+    }
 
     return this.prisma.$transaction(async (tx) => {
       const order = await tx.order.update({

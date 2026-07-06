@@ -158,5 +158,38 @@ describe('InventoryHelper', () => {
         data: { quantity: { increment: 10 } },
       });
     });
+
+    it('revives the most recently depleted batch when no batch is active', async () => {
+      restoreRequirements.set(100, 10);
+
+      txMock.branchInventory.findUnique.mockResolvedValue({
+        id: 1,
+        branchId: 1,
+        ingredientId: 100,
+        stock: 0,
+        minStock: 5,
+        ingredient: { name: 'Milk' },
+      } as any);
+
+      txMock.inventoryBatch.findFirst
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({
+          id: 30,
+          quantity: 0,
+          status: 'DEPLETED',
+        } as any);
+
+      await InventoryHelper.restoreInventory(
+        txMock,
+        branchId,
+        restoreRequirements,
+      );
+
+      expect(txMock.inventoryBatch.update).toHaveBeenCalledWith({
+        where: { id: 30 },
+        data: { quantity: { increment: 10 }, status: 'ACTIVE' },
+      });
+      expect(txMock.inventoryBatch.create).not.toHaveBeenCalled();
+    });
   });
 });

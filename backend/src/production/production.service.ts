@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { toNum, roundMoney } from '../common/decimal.util';
+import { dec, roundMoney } from '../common/decimal.util';
 import {
   assertBranchAccess,
   BranchScopedUser,
@@ -8,6 +8,7 @@ import {
 import { ProductionStatus } from '@prisma/client';
 import { OutboxService } from '../outbox/outbox.service';
 import { OUTBOX_EVENT_TYPES } from '../outbox/outbox-event.types';
+import { InventoryHelper } from '../common/helpers/inventory.helper';
 import { toProductionCompletedSnapshot } from './domain/production-completed.snapshot';
 
 @Injectable()
@@ -117,42 +118,30 @@ export class ProductionService {
         throw new BadRequestException('No BOM found for this ingredient');
       }
 
-      let totalRawCost = 0;
+      let rawCost = dec(0);
+      const rawRequirements = new Map<number, number>();
 
-      // Deduct Raw Materials
       for (const bom of boms) {
         const requiredQuantity = bom.quantityNeeded * order.quantityToProduce;
-
-        const inventory = await tx.branchInventory.findUnique({
-          where: {
-            branchId_ingredientId: {
-              branchId: order.branchId,
-              ingredientId: bom.rawIngredientId,
-            },
-          },
-        });
-
-        if (!inventory || inventory.stock < requiredQuantity) {
-          throw new BadRequestException(
-            `Insufficient stock for raw material: ${bom.rawIngredient.name}. Needed: ${requiredQuantity}, Available: ${inventory?.stock || 0}`,
-          );
-        }
-
-        // Deduct atomically so concurrent production cannot overwrite stock.
-        const updatedInventory = await tx.branchInventory.updateMany({
-          where: { id: inventory.id, stock: { gte: requiredQuantity } },
-          data: { stock: { decrement: requiredQuantity } },
-        });
-        if (updatedInventory.count === 0) {
-          throw new BadRequestException(
-            `Insufficient stock for raw material: ${bom.rawIngredient.name}. Please retry.`,
-          );
-        }
-
-        totalRawCost += requiredQuantity * toNum(bom.rawIngredient.costPerUnit);
+        rawRequirements.set(
+          bom.rawIngredientId,
+          (rawRequirements.get(bom.rawIngredientId) ?? 0) + requiredQuantity,
+        );
+        rawCost = rawCost.plus(
+          dec(bom.rawIngredient.costPerUnit).times(requiredQuantity),
+        );
       }
 
-      totalRawCost = roundMoney(totalRawCost);
+      await InventoryHelper.deductInventoryFIFO(
+        tx,
+        order.branchId,
+        rawRequirements,
+      );
+
+      const totalRawCost = roundMoney(rawCost);
+      const finishedGoodsValue = roundMoney(
+        dec(order.targetIngredient.costPerUnit).times(order.quantityToProduce),
+      );
 
       // Add Finished Good to Inventory
       const targetInventory = await tx.branchInventory.findUnique({
@@ -180,6 +169,15 @@ export class ProductionService {
         });
       }
 
+      await tx.inventoryBatch.create({
+        data: {
+          branchId: order.branchId,
+          ingredientId: order.targetIngredientId,
+          quantity: order.quantityToProduce,
+          status: 'ACTIVE',
+        },
+      });
+
       // Mark Order as COMPLETED
       const updatedOrder = await tx.productionOrder.update({
         where: { id: orderId },
@@ -201,6 +199,7 @@ export class ProductionService {
               targetIngredientName: order.targetIngredient.name,
               branchId: order.branchId,
               totalRawCost,
+              finishedGoodsValue,
             }),
           },
         );

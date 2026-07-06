@@ -18,4 +18,8 @@ export class ProductionCompletedEvent {
   get totalRawCost(): number {
     return this.payload.totalRawCost;
   }
+
+  get finishedGoodsValue(): number {
+    return this.payload.finishedGoodsValue ?? this.payload.totalRawCost;
+  }
 }

@@ -1,6 +1,6 @@
 import { OrderStatus } from '@prisma/client';
 import { Prisma } from '@prisma/client';
-import { InventoryHelper } from './inventory.helper';
+import { InventoryHelper } from '../../common/helpers/inventory.helper';
 import { buildIngredientRequirementsFromOrderItems } from './recipe-requirements.helper';
 
 export const ORDER_REVERSAL_INCLUDE = {
@@ -43,11 +43,23 @@ export async function applyOrderReversalEffects(
 
   if (order.customerId) {
     const pointsDelta = order.pointsRedeemed - order.pointsEarned;
-    if (pointsDelta !== 0) {
+    if (pointsDelta > 0) {
       await tx.customer.update({
         where: { id: order.customerId },
         data: { points: { increment: pointsDelta } },
       });
+    } else if (pointsDelta < 0) {
+      const clawback = -pointsDelta;
+      const guarded = await tx.customer.updateMany({
+        where: { id: order.customerId, points: { gte: clawback } },
+        data: { points: { decrement: clawback } },
+      });
+      if (guarded.count === 0) {
+        await tx.customer.update({
+          where: { id: order.customerId },
+          data: { points: 0 },
+        });
+      }
     }
   }
 }
