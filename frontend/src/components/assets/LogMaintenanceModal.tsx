@@ -2,9 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 import { FormDialog } from "@/components/shared/form-modal";
 import { Button } from "@/components/ui/button";
+import {
+  FormField,
+  FormFieldControl,
+  FormFieldError,
+  FormFieldLabel,
+} from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -17,6 +22,7 @@ import {
 import { equipmentStatusLabel } from "@/lib/filters/equipment-filters";
 import type { Equipment, EquipmentStatus } from "@/types/api";
 import { assetsDialogContentClassName } from "@/lib/theme/assets";
+import { formFieldInvalidClassName } from "@/lib/theme/color-helpers";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { formFieldInsetClassName, formLineDateFieldClassName, formSelectContentClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
@@ -55,6 +61,16 @@ export function LogMaintenanceModal({
   const [cost, setCost] = useState("");
   const [nextMaintenanceDate, setNextMaintenanceDate] = useState("");
   const [newStatus, setNewStatus] = useState<EquipmentStatus | "">("");
+  const [fieldErrors, setFieldErrors] = useState<{ description?: string; cost?: string }>({});
+
+  const clearFieldError = (field: "description" | "cost") => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!open || !equipment) return;
@@ -66,20 +82,20 @@ export function LogMaintenanceModal({
         : "",
     );
     setNewStatus("");
+    setFieldErrors({});
   }, [open, equipment]);
 
   const handleSubmit = async () => {
     if (!equipment) return;
 
     const trimmedDescription = description.trim();
-    if (!trimmedDescription) {
-      toast.error("Description is required");
-      return;
-    }
-
     const parsedCost = Number(cost);
-    if (!Number.isFinite(parsedCost) || parsedCost < 0) {
-      toast.error("Enter a valid cost");
+
+    const errors: { description?: string; cost?: string } = {};
+    if (!trimmedDescription) errors.description = "Description is required";
+    if (!Number.isFinite(parsedCost) || parsedCost < 0) errors.cost = "Enter a valid cost";
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       return;
     }
 
@@ -110,36 +126,50 @@ export function LogMaintenanceModal({
           Log maintenance{equipment ? ` · ${equipment.name}` : ""}
         </FormDialog.Title>
         <FormDialog.Body className="space-y-4 pt-1">
-          <div className="space-y-2">
-            <Label htmlFor="maintenance-description" className={text.secondary}>
-              Description
-            </Label>
-            <Input
-              id="maintenance-description"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              placeholder="What was done?"
-              className={formFieldInsetClassName()}
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="maintenance-cost" className={text.secondary}>
-                Cost
-              </Label>
+          <FormField
+            id="maintenance-description"
+            error={fieldErrors.description}
+            className="space-y-2"
+          >
+            <FormFieldLabel className={text.secondary}>Description</FormFieldLabel>
+            <FormFieldControl>
               <Input
-                id="maintenance-cost"
-                type="number"
-                min={0}
-                step="0.01"
-                value={cost}
-                onChange={(event) => setCost(event.target.value)}
-                className={formFieldInsetClassName()}
+                value={description}
+                onChange={(event) => {
+                  setDescription(event.target.value);
+                  clearFieldError("description");
+                }}
+                placeholder="What was done?"
+                className={formFieldInsetClassName(
+                  formFieldInvalidClassName(!!fieldErrors.description),
+                )}
                 required
               />
-            </div>
+            </FormFieldControl>
+            <FormFieldError />
+          </FormField>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField id="maintenance-cost" error={fieldErrors.cost} className="space-y-2">
+              <FormFieldLabel className={text.secondary}>Cost</FormFieldLabel>
+              <FormFieldControl>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={cost}
+                  onChange={(event) => {
+                    setCost(event.target.value);
+                    clearFieldError("cost");
+                  }}
+                  className={formFieldInsetClassName(
+                    formFieldInvalidClassName(!!fieldErrors.cost),
+                  )}
+                  required
+                />
+              </FormFieldControl>
+              <FormFieldError />
+            </FormField>
             <div className="space-y-2">
               <Label htmlFor="maintenance-next-date" className={text.secondary}>
                 Next due

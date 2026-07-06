@@ -1,6 +1,7 @@
 "use client";
 
-import { FinanceTableSkeleton } from "@/components/finance/FinanceTableSkeleton";
+import type { ColumnsType } from "antd/es/table";
+import { DataTable } from "@/components/shared/data-table";
 import {
   ListMobileCard,
   PaginatedMobileList,
@@ -8,16 +9,7 @@ import {
 } from "@/components/shared/responsive-data-table";
 import { formatDateTime } from "@/lib/intl-date";
 import { formatCurrency } from "@/lib/money";
-import {
-  horizontalScrollHintClassName,
-  nativeTableBodyClassName,
-  nativeTableCellMutedClassName,
-  nativeTableCellPrimaryClassName,
-  nativeTableClassName,
-  nativeTableEmptyCellClassName,
-  nativeTableHeadClassName,
-  nativeTableRowClassName,
-} from "@/lib/theme/data-table";
+import { tableCellMutedClassName } from "@/lib/theme/feedback";
 import { financeExpenseAmountClassName, financeSectionLabelClassName } from "@/lib/theme/finance";
 import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
@@ -35,11 +27,52 @@ function expenseEmptyMessage(search: string) {
     : "No petty cash expenses recorded.";
 }
 
+const expenseColumns: ColumnsType<Expense> = [
+  {
+    title: "Date",
+    key: "date",
+    render: (_: unknown, expense: Expense) => (
+      <span className={cn("tabular-nums", tableCellMutedClassName())}>
+        {formatDateTime(expense.createdAt)}
+      </span>
+    ),
+  },
+  {
+    title: "Category",
+    key: "category",
+    render: (_: unknown, expense: Expense) => (
+      <span className={cn("font-medium", text.primary)}>{expense.category}</span>
+    ),
+  },
+  {
+    title: "Description",
+    key: "description",
+    render: (_: unknown, expense: Expense) => (
+      <span className={tableCellMutedClassName()}>{expense.description?.trim() || "—"}</span>
+    ),
+  },
+  {
+    title: "Amount",
+    key: "amount",
+    align: "right",
+    render: (_: unknown, expense: Expense) => (
+      <span className={financeExpenseAmountClassName()}>-{formatCurrency(expense.amount)}</span>
+    ),
+  },
+  {
+    title: "By",
+    key: "recordedBy",
+    render: (_: unknown, expense: Expense) => (
+      <span className={tableCellMutedClassName()}>{expense.recordedBy?.name ?? "—"}</span>
+    ),
+  },
+];
+
 export function ExpensesTable({ expenses, loading, expenseSearch }: ExpensesTableProps) {
   const emptyMessage = expenseEmptyMessage(expenseSearch);
 
   return (
-    <div className="flex min-w-0 flex-col">
+    <div className="flex min-w-0 flex-col" data-testid="finance-expenses">
       <h2 className={financeSectionLabelClassName()}>Expenses</h2>
 
       <ResponsiveDataTableLayout
@@ -78,49 +111,14 @@ export function ExpensesTable({ expenses, loading, expenseSearch }: ExpensesTabl
           )
         }
         desktop={
-          loading ? (
-            <FinanceTableSkeleton />
-          ) : (
-            <div className={horizontalScrollHintClassName()}>
-              <table className={nativeTableClassName()}>
-                <thead className={nativeTableHeadClassName()}>
-                  <tr>
-                    <th className="rounded-l-lg px-3 py-2.5">Date</th>
-                    <th className="px-3 py-2.5">Category</th>
-                    <th className="px-3 py-2.5">Description</th>
-                    <th className="px-3 py-2.5 text-right">Amount</th>
-                    <th className="rounded-r-lg px-3 py-2.5">By</th>
-                  </tr>
-                </thead>
-                <tbody className={nativeTableBodyClassName()}>
-                  {expenses.map((expense) => (
-                    <tr key={expense.id} className={nativeTableRowClassName()}>
-                      <td className={nativeTableCellMutedClassName()}>
-                        {formatDateTime(expense.createdAt)}
-                      </td>
-                      <td className={nativeTableCellPrimaryClassName()}>{expense.category}</td>
-                      <td className={nativeTableCellMutedClassName()}>
-                        {expense.description?.trim() || "—"}
-                      </td>
-                      <td className={cn("px-3 py-2.5 text-right", financeExpenseAmountClassName())}>
-                        -{formatCurrency(expense.amount)}
-                      </td>
-                      <td className={nativeTableCellMutedClassName()}>
-                        {expense.recordedBy?.name ?? "—"}
-                      </td>
-                    </tr>
-                  ))}
-                  {expenses.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className={nativeTableEmptyCellClassName()}>
-                        {emptyMessage}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )
+          <DataTable<Expense>
+            columns={expenseColumns}
+            dataSource={expenses}
+            rowKey="id"
+            loading={loading}
+            pagination={false}
+            emptyDescription={emptyMessage}
+          />
         }
       />
     </div>

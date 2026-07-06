@@ -4,6 +4,14 @@ import type { StatusTone } from "@/lib/theme/status";
 
 export type { StatusTone as StatusBadgeTone };
 
+export function formatStatusLabel(status: string | null | undefined): string {
+  if (!status) return "";
+  return status
+    .split(/[_\s]+/)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
 export function StatusBadge({
   tone = "neutral",
   children,
@@ -68,6 +76,7 @@ export function orderStatusTone(status: string): StatusTone {
     case "COMPLETED":
       return "success";
     case "PENDING":
+      return "warning";
     case "PREPARING":
       return "info";
     case "CANCELLED":
@@ -111,6 +120,10 @@ export function poStatusTone(status: string): StatusTone {
   }
 }
 
+export function poPaymentStatusTone(paymentStatus: string): StatusTone {
+  return paymentStatus === "PAID" ? "success" : "warning";
+}
+
 export function transferStatusTone(status: string): StatusTone {
   switch (status) {
     case "COMPLETED":
@@ -128,6 +141,21 @@ export function transferStatusTone(status: string): StatusTone {
 
 export function journalStatusTone(status: string): StatusTone {
   return status === "POSTED" ? "success" : "neutral";
+}
+
+export function stockCountStatusTone(status: string): StatusTone {
+  switch (status) {
+    case "APPROVED":
+      return "success";
+    case "SUBMITTED":
+      return "warning";
+    case "DRAFT":
+      return "neutral";
+    case "CANCELLED":
+      return "danger";
+    default:
+      return "neutral";
+  }
 }
 
 export function settlementStatusTone(status: string): StatusTone {

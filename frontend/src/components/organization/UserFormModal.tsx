@@ -2,9 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 import { FormDialog } from "@/components/shared/form-modal";
 import { Button } from "@/components/ui/button";
+import {
+  FormField,
+  FormFieldControl,
+  FormFieldError,
+  FormFieldLabel,
+} from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -15,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Branch, EmploymentType, Role, User } from "@/types/api";
+import { formFieldInvalidClassName } from "@/lib/theme/color-helpers";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { organizationDialogWideClassName } from "@/lib/theme/organization";
 import { formFieldInsetClassName, formSelectContentClassName } from "@/lib/theme/stock";
@@ -57,6 +63,21 @@ export function UserFormModal({
   const [employmentType, setEmploymentType] = useState<EmploymentType>("PART_TIME");
   const [hourlyRate, setHourlyRate] = useState("50");
   const [baseSalary, setBaseSalary] = useState("0");
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string;
+    email?: string;
+    password?: string;
+    compensation?: string;
+  }>({});
+
+  const clearFieldError = (field: "name" | "email" | "password" | "compensation") => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -72,29 +93,38 @@ export function UserFormModal({
     setBaseSalary(
       initialValues?.baseSalary != null && initialValues.baseSalary > 0 ? String(initialValues.baseSalary) : "0",
     );
+    setFieldErrors({});
   }, [open, initialValues]);
 
   const handleSubmit = async () => {
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
-    if (!trimmedName || !trimmedEmail || (!initialValues && !password.trim())) {
-      toast.error("Name, email, and password are required for new users");
-      return;
-    }
-    if (!initialValues && password.trim().length < 6) {
-      toast.error("Password must be at least 6 characters");
-      return;
-    }
-
     const parsedHourlyRate = Number(hourlyRate);
     const parsedBaseSalary = Number(baseSalary);
+
+    const errors: {
+      name?: string;
+      email?: string;
+      password?: string;
+      compensation?: string;
+    } = {};
+    if (!trimmedName) errors.name = "Name is required";
+    if (!trimmedEmail) errors.email = "Email is required";
+    if (!initialValues) {
+      if (!password.trim()) errors.password = "Password is required";
+      else if (password.trim().length < 6)
+        errors.password = "Password must be at least 6 characters";
+    }
     if (
       !Number.isFinite(parsedHourlyRate) ||
       parsedHourlyRate < 0 ||
       !Number.isFinite(parsedBaseSalary) ||
       parsedBaseSalary < 0
     ) {
-      toast.error("Enter valid compensation amounts");
+      errors.compensation = "Enter a valid amount";
+    }
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       return;
     }
 
@@ -115,51 +145,66 @@ export function UserFormModal({
       <FormDialog.Title>{initialValues ? "Edit user" : "Add user"}</FormDialog.Title>
       <FormDialog.Body className="space-y-4 pt-1">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="user-full-name" className={text.secondary}>
-                Name
-              </Label>
-              <Input
-                id="user-full-name"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="e.g. Somchai Jai-dee"
-                className={formFieldInsetClassName()}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="user-email" className={text.secondary}>
-                Email
-              </Label>
-              <Input
-                id="user-email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                placeholder="somchai@branchbrew.dev"
-                className={formFieldInsetClassName()}
-                required
-              />
-            </div>
+            <FormField id="user-full-name" error={fieldErrors.name} className="space-y-2">
+              <FormFieldLabel className={text.secondary}>Name</FormFieldLabel>
+              <FormFieldControl>
+                <Input
+                  value={name}
+                  onChange={(event) => {
+                    setName(event.target.value);
+                    clearFieldError("name");
+                  }}
+                  placeholder="e.g. Somchai Jai-dee"
+                  className={formFieldInsetClassName(formFieldInvalidClassName(!!fieldErrors.name))}
+                  required
+                />
+              </FormFieldControl>
+              <FormFieldError />
+            </FormField>
+            <FormField id="user-email" error={fieldErrors.email} className="space-y-2">
+              <FormFieldLabel className={text.secondary}>Email</FormFieldLabel>
+              <FormFieldControl>
+                <Input
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(event) => {
+                    setEmail(event.target.value);
+                    clearFieldError("email");
+                  }}
+                  placeholder="somchai@branchbrew.dev"
+                  className={formFieldInsetClassName(
+                    formFieldInvalidClassName(!!fieldErrors.email),
+                  )}
+                  required
+                />
+              </FormFieldControl>
+              <FormFieldError />
+            </FormField>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="user-password" className={text.secondary}>
+          <FormField id="user-password" error={fieldErrors.password} className="space-y-2">
+            <FormFieldLabel className={text.secondary}>
               Password{" "}
               {initialValues && <span className={text.muted}>(leave blank to keep)</span>}
-            </Label>
-            <Input
-              id="user-password"
-              type="password"
-              autoComplete="new-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              placeholder={initialValues ? "••••••••" : "Minimum 6 characters"}
-              className={formFieldInsetClassName()}
-            />
-          </div>
+            </FormFieldLabel>
+            <FormFieldControl>
+              <Input
+                type="password"
+                autoComplete="new-password"
+                value={password}
+                onChange={(event) => {
+                  setPassword(event.target.value);
+                  clearFieldError("password");
+                }}
+                placeholder={initialValues ? "••••••••" : "Minimum 6 characters"}
+                className={formFieldInsetClassName(
+                  formFieldInvalidClassName(!!fieldErrors.password),
+                )}
+              />
+            </FormFieldControl>
+            <FormFieldError />
+          </FormField>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-[var(--table-row-border)] pt-4">
             <div className="space-y-2">
@@ -222,26 +267,35 @@ export function UserFormModal({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="user-compensation" className={text.secondary}>
+            <FormField
+              id="user-compensation"
+              error={fieldErrors.compensation}
+              className="space-y-2"
+            >
+              <FormFieldLabel className={text.secondary}>
                 {employmentType === "PART_TIME" ? "Hourly rate" : "Monthly salary"}
-              </Label>
-              <Input
-                id="user-compensation"
-                type="number"
-                min={0}
-                step="0.01"
-                value={employmentType === "PART_TIME" ? hourlyRate : baseSalary}
-                onChange={(event) => {
-                  if (employmentType === "PART_TIME") {
-                    setHourlyRate(event.target.value);
-                  } else {
-                    setBaseSalary(event.target.value);
-                  }
-                }}
-                className={formFieldInsetClassName()}
-              />
-            </div>
+              </FormFieldLabel>
+              <FormFieldControl>
+                <Input
+                  type="number"
+                  min={0}
+                  step="0.01"
+                  value={employmentType === "PART_TIME" ? hourlyRate : baseSalary}
+                  onChange={(event) => {
+                    if (employmentType === "PART_TIME") {
+                      setHourlyRate(event.target.value);
+                    } else {
+                      setBaseSalary(event.target.value);
+                    }
+                    clearFieldError("compensation");
+                  }}
+                  className={formFieldInsetClassName(
+                    formFieldInvalidClassName(!!fieldErrors.compensation),
+                  )}
+                />
+              </FormFieldControl>
+              <FormFieldError />
+            </FormField>
           </div>
       </FormDialog.Body>
 

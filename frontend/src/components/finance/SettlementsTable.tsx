@@ -1,7 +1,8 @@
 "use client";
 
+import type { ColumnsType } from "antd/es/table";
 import { CheckCircle2 } from "lucide-react";
-import { FinanceTableSkeleton } from "@/components/finance/FinanceTableSkeleton";
+import { DataTable } from "@/components/shared/data-table";
 import {
   ListMobileCard,
   PaginatedMobileList,
@@ -10,18 +11,9 @@ import {
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { StatusBadge, settlementStatusTone } from "@/components/shared/status-badge";
 import { formatDate } from "@/lib/intl-date";
-import { formatCurrency } from "@/lib/money";
+import { formatCurrency, toNumber } from "@/lib/money";
 import { settlementStatusLabel, type SettlementStatusFilter } from "@/lib/filters/finance-overview-filters";
-import {
-  horizontalScrollHintClassName,
-  nativeTableBodyClassName,
-  nativeTableCellMutedClassName,
-  nativeTableCellPrimaryClassName,
-  nativeTableClassName,
-  nativeTableEmptyCellClassName,
-  nativeTableHeadClassName,
-  nativeTableRowClassName,
-} from "@/lib/theme/data-table";
+import { tableCellMutedClassName } from "@/lib/theme/feedback";
 import { financeSectionLabelClassName, settlementDifferenceClassName } from "@/lib/theme/finance";
 import { tableActionAccentClassName } from "@/lib/theme/hub-primitives";
 import { text } from "@/lib/theme/surface";
@@ -41,6 +33,12 @@ function settlementEmptyMessage(filter: SettlementStatusFilter) {
     : "No shift settlements recorded yet.";
 }
 
+function formatSettlementDifference(difference: Settlement["difference"]): string {
+  const diff = toNumber(difference);
+  if (diff === 0) return formatCurrency(0);
+  return `${diff > 0 ? "+" : "-"}${formatCurrency(Math.abs(diff))}`;
+}
+
 export function SettlementsTable({
   settlements,
   loading,
@@ -48,6 +46,77 @@ export function SettlementsTable({
   onApprove,
 }: SettlementsTableProps) {
   const emptyMessage = settlementEmptyMessage(settlementFilter);
+
+  const columns: ColumnsType<Settlement> = [
+    {
+      title: "Date",
+      key: "date",
+      render: (_: unknown, settlement: Settlement) => (
+        <span className={cn("tabular-nums", tableCellMutedClassName())}>
+          {formatDate(settlement.date)}
+        </span>
+      ),
+    },
+    {
+      title: "Branch",
+      key: "branch",
+      render: (_: unknown, settlement: Settlement) => (
+        <span className={cn("font-medium", text.primary)}>
+          {settlement.branch?.name ?? "Main"}
+        </span>
+      ),
+    },
+    {
+      title: "Expected",
+      key: "expected",
+      align: "right",
+      render: (_: unknown, settlement: Settlement) => (
+        <span className="tabular-nums">{formatCurrency(settlement.expectedCash)}</span>
+      ),
+    },
+    {
+      title: "Actual",
+      key: "actual",
+      align: "right",
+      render: (_: unknown, settlement: Settlement) => (
+        <span className="tabular-nums">{formatCurrency(settlement.actualCash)}</span>
+      ),
+    },
+    {
+      title: "Diff",
+      key: "difference",
+      align: "right",
+      render: (_: unknown, settlement: Settlement) => (
+        <span className={settlementDifferenceClassName(toNumber(settlement.difference))}>
+          {formatSettlementDifference(settlement.difference)}
+        </span>
+      ),
+    },
+    {
+      title: "Status",
+      key: "status",
+      render: (_: unknown, settlement: Settlement) => (
+        <StatusBadge tone={settlementStatusTone(settlement.status)}>
+          {settlementStatusLabel(settlement.status)}
+        </StatusBadge>
+      ),
+    },
+    {
+      title: "",
+      key: "actions",
+      align: "right",
+      render: (_: unknown, settlement: Settlement) =>
+        settlement.status === "PENDING" ? (
+          <TableActionButton
+            icon={CheckCircle2}
+            label={`Approve settlement for ${settlement.branch?.name ?? "branch"} on ${formatDate(settlement.date)}`}
+            iconOnly
+            onClick={() => onApprove(settlement)}
+            className={tableActionAccentClassName("emerald")}
+          />
+        ) : null,
+    },
+  ];
 
   return (
     <div className="flex min-w-0 flex-col" data-testid="finance-settlements">
@@ -87,10 +156,8 @@ export function SettlementsTable({
                     </div>
                     <div>
                       <dt className={text.muted}>Diff</dt>
-                      <dd className={settlementDifferenceClassName(settlement.difference)}>
-                        {settlement.difference === 0
-                          ? formatCurrency(0)
-                          : `${settlement.difference > 0 ? "+" : "-"}${formatCurrency(Math.abs(settlement.difference))}`}
+                      <dd className={settlementDifferenceClassName(toNumber(settlement.difference))}>
+                        {formatSettlementDifference(settlement.difference)}
                       </dd>
                     </div>
                   </dl>
@@ -109,76 +176,14 @@ export function SettlementsTable({
           )
         }
         desktop={
-          loading ? (
-            <FinanceTableSkeleton />
-          ) : (
-            <div className={horizontalScrollHintClassName()}>
-              <table className={nativeTableClassName()}>
-                <thead className={nativeTableHeadClassName()}>
-                  <tr>
-                    <th className="rounded-l-lg px-3 py-2.5">Date</th>
-                    <th className="px-3 py-2.5">Branch</th>
-                    <th className="px-3 py-2.5 text-right">Expected</th>
-                    <th className="px-3 py-2.5 text-right">Actual</th>
-                    <th className="px-3 py-2.5 text-right">Diff</th>
-                    <th className="px-3 py-2.5">Status</th>
-                    <th className="w-12 rounded-r-lg px-3 py-2.5 text-right" />
-                  </tr>
-                </thead>
-                <tbody className={nativeTableBodyClassName()}>
-                  {settlements.map((settlement) => (
-                    <tr key={settlement.id} className={nativeTableRowClassName()}>
-                      <td className={nativeTableCellMutedClassName()}>
-                        {formatDate(settlement.date)}
-                      </td>
-                      <td className={nativeTableCellPrimaryClassName()}>
-                        {settlement.branch?.name ?? "Main"}
-                      </td>
-                      <td className="px-3 py-2.5 text-right tabular-nums">
-                        {formatCurrency(settlement.expectedCash)}
-                      </td>
-                      <td className="px-3 py-2.5 text-right tabular-nums">
-                        {formatCurrency(settlement.actualCash)}
-                      </td>
-                      <td
-                        className={cn(
-                          "px-3 py-2.5 text-right",
-                          settlementDifferenceClassName(settlement.difference),
-                        )}
-                      >
-                        {settlement.difference === 0
-                          ? formatCurrency(0)
-                          : `${settlement.difference > 0 ? "+" : "-"}${formatCurrency(Math.abs(settlement.difference))}`}
-                      </td>
-                      <td className="px-3 py-2.5">
-                        <StatusBadge tone={settlementStatusTone(settlement.status)}>
-                          {settlementStatusLabel(settlement.status)}
-                        </StatusBadge>
-                      </td>
-                      <td className="px-3 py-2.5 text-right">
-                        {settlement.status === "PENDING" && (
-                          <TableActionButton
-                            icon={CheckCircle2}
-                            label={`Approve settlement for ${settlement.branch?.name ?? "branch"} on ${formatDate(settlement.date)}`}
-                            iconOnly
-                            onClick={() => onApprove(settlement)}
-                            className={tableActionAccentClassName("emerald")}
-                          />
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                  {settlements.length === 0 && (
-                    <tr>
-                      <td colSpan={7} className={nativeTableEmptyCellClassName()}>
-                        {emptyMessage}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )
+          <DataTable<Settlement>
+            columns={columns}
+            dataSource={settlements}
+            rowKey="id"
+            loading={loading}
+            pagination={false}
+            emptyDescription={emptyMessage}
+          />
         }
       />
     </div>

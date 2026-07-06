@@ -42,6 +42,7 @@ export function ListFilterSelect<T extends string>({
   return (
     <Select
       value={value}
+      items={options.map((option) => ({ value: option.value, label: option.label }))}
       onValueChange={(next) => {
         if (next != null) onValueChange(next as T);
       }}

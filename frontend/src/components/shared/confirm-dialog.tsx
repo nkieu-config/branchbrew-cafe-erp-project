@@ -34,7 +34,9 @@ export function ConfirmDialog({
   onConfirm,
 }: ConfirmDialogProps) {
   const handleConfirm = () => {
-    void Promise.resolve(onConfirm()).then(() => onOpenChange(false));
+    void Promise.resolve(onConfirm())
+      .then(() => onOpenChange(false))
+      .catch(() => {});
   };
 
   return (

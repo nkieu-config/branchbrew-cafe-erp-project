@@ -3,6 +3,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { FormDialog } from "@/components/shared/form-modal";
 import { Button } from "@/components/ui/button";
+import {
+  FormField,
+  FormFieldControl,
+  FormFieldError,
+  FormFieldLabel,
+} from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -21,7 +27,7 @@ import { useSuppliers } from "@/hooks/domains/useProcurementQueries";
 import { toast } from "sonner";
 import type { Ingredient, Supplier } from "@/types/api";
 import { getErrorMessage } from "@/lib/errors";
-import { tableRowDividerClassName } from "@/lib/theme/color-helpers";
+import { formFieldInvalidClassName, tableRowDividerClassName } from "@/lib/theme/color-helpers";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { productsDialogContentClassName } from "@/lib/theme/hub-products";
 import { formFieldInsetClassName, formSelectContentClassName } from "@/lib/theme/stock";
@@ -42,6 +48,16 @@ export function IngredientFormModal({
   const [costPerUnit, setCostPerUnit] = useState<number | "">("");
   const [primarySupplierId, setPrimarySupplierId] = useState<string>("");
   const [isActive, setIsActive] = useState(true);
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string; unit?: string }>({});
+
+  const clearFieldError = (field: "name" | "unit") => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   const { data: suppliers = [] } = useSuppliers();
   const createMutation = useCreateIngredient();
@@ -54,6 +70,7 @@ export function IngredientFormModal({
     setCostPerUnit("");
     setPrimarySupplierId("");
     setIsActive(true);
+    setFieldErrors({});
   }, []);
 
   useEffect(() => {
@@ -77,8 +94,11 @@ export function IngredientFormModal({
   };
 
   const handleSubmit = async () => {
-    if (!name.trim() || !unit.trim()) {
-      toast.error("Name and unit are required");
+    const errors: { name?: string; unit?: string } = {};
+    if (!name.trim()) errors.name = "Name is required";
+    if (!unit.trim()) errors.unit = "Unit is required";
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       return;
     }
 
@@ -117,31 +137,37 @@ export function IngredientFormModal({
         <FormDialog.Title>{ingredient ? "Edit ingredient" : "New ingredient"}</FormDialog.Title>
 
         <FormDialog.Body className="space-y-4 py-2">
-          <div className="space-y-2">
-            <Label htmlFor="ingredient-name" className={text.secondary}>
-              Name
-            </Label>
-            <Input
-              id="ingredient-name"
-              placeholder="e.g. Arabica Beans"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className={formFieldInsetClassName()}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="ingredient-unit" className={text.secondary}>
-                Unit of Measurement
-              </Label>
+          <FormField id="ingredient-name" error={fieldErrors.name} className="space-y-2">
+            <FormFieldLabel className={text.secondary}>Name</FormFieldLabel>
+            <FormFieldControl>
               <Input
-                id="ingredient-unit"
-                placeholder="e.g. g, ml, pcs"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-                className={formFieldInsetClassName()}
+                placeholder="e.g. Arabica Beans"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  clearFieldError("name");
+                }}
+                className={formFieldInsetClassName(formFieldInvalidClassName(!!fieldErrors.name))}
               />
-            </div>
+            </FormFieldControl>
+            <FormFieldError />
+          </FormField>
+          <div className="grid grid-cols-2 gap-4">
+            <FormField id="ingredient-unit" error={fieldErrors.unit} className="space-y-2">
+              <FormFieldLabel className={text.secondary}>Unit of Measurement</FormFieldLabel>
+              <FormFieldControl>
+                <Input
+                  placeholder="e.g. g, ml, pcs"
+                  value={unit}
+                  onChange={(e) => {
+                    setUnit(e.target.value);
+                    clearFieldError("unit");
+                  }}
+                  className={formFieldInsetClassName(formFieldInvalidClassName(!!fieldErrors.unit))}
+                />
+              </FormFieldControl>
+              <FormFieldError />
+            </FormField>
             <div className="space-y-2">
               <Label htmlFor="ingredient-cost" className={text.secondary}>
                 Estimated Cost per Unit
@@ -166,6 +192,13 @@ export function IngredientFormModal({
             </Label>
             <Select
               value={primarySupplierId || "none"}
+              items={[
+                { value: "none", label: "None" },
+                ...(suppliers as Supplier[]).map((supplier) => ({
+                  value: String(supplier.id),
+                  label: supplier.name,
+                })),
+              ]}
               onValueChange={(value) => {
                 if (value == null) return;
                 setPrimarySupplierId(value === "none" ? "" : value);

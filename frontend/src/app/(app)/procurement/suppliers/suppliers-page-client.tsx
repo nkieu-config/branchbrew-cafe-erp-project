@@ -76,10 +76,6 @@ export default function SuppliersPageClient() {
   }, []);
 
   const handleSave = async (values: SupplierFormValues) => {
-    if (!values.name.trim()) {
-      toast.error("Name is required");
-      return;
-    }
     const payload = {
       name: values.name.trim(),
       contactEmail: values.contactEmail.trim() || undefined,

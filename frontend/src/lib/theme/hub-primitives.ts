@@ -6,24 +6,10 @@ import type { StatusTone } from "./status";
 import { statusToneClassName } from "./status";
 import { hubCardIconClass } from "./hub-accent";
 
-export function hubCtaClassName(hubId: HubId, className?: string) {
-  const hubVar: Record<HubId, { bg: string; fg: string }> = {
-    inventory: { bg: "--hub-inventory", fg: "--hub-inventory-fg" },
-    procurement: { bg: "--hub-procurement", fg: "--hub-procurement-fg" },
-    hr: { bg: "--hub-hr", fg: "--hub-hr-fg" },
-    products: { bg: "--hub-products", fg: "--hub-products-fg" },
-    kitchen: { bg: "--hub-kitchen", fg: "--hub-kitchen-fg" },
-    crm: { bg: "--hub-crm", fg: "--hub-crm-fg" },
-    finance: { bg: "--hub-finance", fg: "--hub-finance-fg" },
-    assets: { bg: "--hub-assets", fg: "--hub-assets-fg" },
-    pos: { bg: "--hub-pos", fg: "--hub-pos-fg" },
-    settings: { bg: "--hub-settings", fg: "--hub-settings-fg" },
-    organization: { bg: "--hub-organization", fg: "--hub-organization-fg" },
-  };
-  const { bg, fg } = hubVar[hubId];
+export function hubCtaClassName(_hubId: HubId, className?: string) {
   return cn(
     "font-bold hover:opacity-90 shadow-sm",
-    `bg-[var(${bg})] text-[var(${fg})]`,
+    "bg-[var(--brand-solid)] text-[var(--on-brand-solid-fg)]",
     className,
   );
 }

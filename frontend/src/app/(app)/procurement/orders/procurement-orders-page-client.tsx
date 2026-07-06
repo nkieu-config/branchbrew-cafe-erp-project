@@ -18,7 +18,12 @@ import { useIngredients } from "@/hooks/domains/useProductQueries";
 import { useAuth } from "@/context/AuthContext";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { TableActionButton } from "@/components/shared/table-action-button";
-import { StatusBadge, poStatusTone } from "@/components/shared/status-badge";
+import {
+  StatusBadge,
+  formatStatusLabel,
+  poPaymentStatusTone,
+  poStatusTone,
+} from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import {
   Plus,
@@ -109,7 +114,7 @@ export default function ProcurementOrdersPageClient() {
   const [payPo, setPayPo] = useState<PurchaseOrder | null>(null);
   const [expiryByIngredient, setExpiryByIngredient] = useState<Record<number, string>>({});
   const [confirmAction, setConfirmAction] = useState<
-    { type: "approve" | "reject"; po: PurchaseOrder } | null
+    { type: "approve" | "reject" | "submit"; po: PurchaseOrder } | null
   >(null);
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search.trim().toLowerCase());
@@ -222,13 +227,26 @@ export default function ProcurementOrdersPageClient() {
       return;
     }
     try {
-      await createMutation.mutateAsync({
+      const created = (await createMutation.mutateAsync({
         branchId: activeBranchId,
         supplierId: payload.supplierId,
         items: payload.items,
-      });
-      toast.success("Purchase Order created successfully");
+      })) as PurchaseOrder | undefined;
       setIsModalOpen(false);
+      if (created?.poNumber) {
+        setStatusFilter("ALL");
+        setHighlightFilter("ALL");
+        setSupplierFilter(null);
+        setSearch(created.poNumber);
+        toast.success(`Purchase Order ${created.poNumber} created`, {
+          action: {
+            label: "Show all",
+            onClick: () => setSearch(""),
+          },
+        });
+      } else {
+        toast.success("Purchase Order created successfully");
+      }
     } catch (err: unknown) {
       toast.error(getErrorMessage(err, "Failed to create PO"));
     }
@@ -250,6 +268,7 @@ export default function ProcurementOrdersPageClient() {
     try {
       await submitMutation.mutateAsync(poId);
       toast.success("Purchase order submitted for approval");
+      setConfirmAction(null);
     } catch (error: unknown) {
       toast.error(getErrorMessage(error, "Failed to submit PO"));
     } finally {
@@ -267,7 +286,7 @@ export default function ProcurementOrdersPageClient() {
             iconOnly
             onClick={() => {
               if (submittingPoId === po.id) return;
-              void handleSubmit(po.id);
+              setConfirmAction({ type: "submit", po });
             }}
             className={cn(
               tableActionAccentClassName("indigo"),
@@ -362,12 +381,12 @@ export default function ProcurementOrdersPageClient() {
           key: "status",
           render: (_: unknown, record: PurchaseOrder) => (
             <div className="flex flex-wrap items-center gap-1">
-              <StatusBadge tone={poStatusTone(record.status)}>{record.status}</StatusBadge>
+              <StatusBadge tone={poStatusTone(record.status)}>
+                {formatStatusLabel(record.status)}
+              </StatusBadge>
               {record.status === "RECEIVED" ? (
-                <StatusBadge
-                  tone={record.paymentStatus === "PAID" ? "success" : "warning"}
-                >
-                  {record.paymentStatus}
+                <StatusBadge tone={poPaymentStatusTone(record.paymentStatus)}>
+                  {formatStatusLabel(record.paymentStatus)}
                 </StatusBadge>
               ) : null}
             </div>
@@ -389,6 +408,14 @@ export default function ProcurementOrdersPageClient() {
     : suppliers.length === 0
       ? "No suppliers yet — add vendors before creating purchase orders."
       : "No purchase orders yet.";
+
+  const poEmptyAction =
+    !hasActiveFilters && suppliers.length > 0 ? (
+      <Button className={hubCtaClassName("procurement")} onClick={() => setIsModalOpen(true)}>
+        <Plus className="w-4 h-4 mr-2" aria-hidden />
+        Create your first PO
+      </Button>
+    ) : null;
 
   const listPagination = useHubListPagination(
     { pageSize: 15 },
@@ -526,7 +553,9 @@ export default function ProcurementOrdersPageClient() {
                           {po.supplier?.name ?? "—"}
                         </p>
                       </div>
-                      <StatusBadge tone={poStatusTone(po.status)}>{po.status}</StatusBadge>
+                      <StatusBadge tone={poStatusTone(po.status)}>
+                        {formatStatusLabel(po.status)}
+                      </StatusBadge>
                     </div>
                     <p className={cn("mb-2 tabular-nums text-sm font-medium", text.primary)}>
                       {formatCurrency(computePurchaseOrderTotal(po))}
@@ -551,6 +580,7 @@ export default function ProcurementOrdersPageClient() {
               rowKey="id"
               loading={loading}
               emptyDescription={poEmptyDescription}
+              emptyAction={poEmptyAction}
               expandable={{ expandedRowRender }}
             />
           }
@@ -587,19 +617,37 @@ export default function ProcurementOrdersPageClient() {
       <ConfirmDialog
         open={confirmAction !== null}
         onOpenChange={(open) => !open && setConfirmAction(null)}
-        title={confirmAction?.type === "approve" ? "Approve PO?" : "Reject PO?"}
+        title={
+          confirmAction?.type === "approve"
+            ? "Approve PO?"
+            : confirmAction?.type === "submit"
+              ? `Submit ${confirmAction.po.poNumber} for approval?`
+              : "Reject PO?"
+        }
         description={
           confirmAction?.type === "reject"
             ? "Returns to draft for editing."
-            : "Allows receiving into inventory."
+            : confirmAction?.type === "submit"
+              ? "The order will be locked for editing until a manager approves or rejects it."
+              : "Allows receiving into inventory."
         }
-        confirmLabel={confirmAction?.type === "approve" ? "Approve" : "Reject"}
+        confirmLabel={
+          confirmAction?.type === "approve"
+            ? "Approve"
+            : confirmAction?.type === "submit"
+              ? "Submit"
+              : "Reject"
+        }
         destructive={confirmAction?.type === "reject"}
-        loading={approveMutation.isPending || rejectMutation.isPending}
+        loading={
+          approveMutation.isPending || rejectMutation.isPending || submitMutation.isPending
+        }
         onConfirm={async () => {
           if (!confirmAction) return;
           if (confirmAction.type === "approve") {
             await handleApprove(confirmAction.po.id);
+          } else if (confirmAction.type === "submit") {
+            await handleSubmit(confirmAction.po.id);
           } else {
             await handleReject(confirmAction.po.id);
           }

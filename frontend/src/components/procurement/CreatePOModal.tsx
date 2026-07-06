@@ -4,6 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+  FormField,
+  FormFieldError,
+  FormFieldLabel,
+  FormFieldSelectTrigger,
+} from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -71,6 +77,16 @@ export function CreatePOModal({
   isSubmitting = false,
 }: CreatePOModalProps) {
   const [supplierId, setSupplierId] = useState<string>("");
+  const [fieldErrors, setFieldErrors] = useState<{ supplier?: string }>({});
+
+  const clearFieldError = (field: "supplier") => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   const {
     items: lines,
@@ -88,6 +104,7 @@ export function CreatePOModal({
   useEffect(() => {
     if (!open) return;
     setSupplierId("");
+    setFieldErrors({});
     resetRows();
   }, [open, resetRows]);
 
@@ -109,7 +126,7 @@ export function CreatePOModal({
 
   const handleSubmit = async () => {
     if (!supplierId) {
-      toast.error("Supplier is required");
+      setFieldErrors({ supplier: "Select a supplier" });
       return;
     }
 
@@ -150,10 +167,8 @@ export function CreatePOModal({
         <FormDialog.Title>New PO</FormDialog.Title>
 
         <FormDialog.Body className="space-y-4 pt-1">
-          <div className="space-y-2">
-            <Label htmlFor="po-supplier" className={text.secondary}>
-              Supplier
-            </Label>
+          <FormField id="po-supplier" error={fieldErrors.supplier} className="space-y-2">
+            <FormFieldLabel className={text.secondary}>Supplier</FormFieldLabel>
             {suppliers.length === 0 ? (
               <p className={cn("text-sm", text.muted)}>
                 No suppliers yet —{" "}
@@ -163,10 +178,17 @@ export function CreatePOModal({
                 first.
               </p>
             ) : (
-              <Select value={supplierId} onValueChange={(value) => value != null && setSupplierId(value)}>
-                <SelectTrigger id="po-supplier" className={formFieldInsetClassName("w-full")}>
+              <Select
+                value={supplierId}
+                onValueChange={(value) => {
+                  if (value == null) return;
+                  setSupplierId(value);
+                  clearFieldError("supplier");
+                }}
+              >
+                <FormFieldSelectTrigger className={formFieldInsetClassName("w-full")}>
                   <SelectValue placeholder="Select supplier" />
-                </SelectTrigger>
+                </FormFieldSelectTrigger>
                 <SelectContent className={formSelectContentClassName()}>
                   {suppliers.map((supplier) => (
                     <SelectItem key={supplier.id} value={String(supplier.id)}>
@@ -176,7 +198,8 @@ export function CreatePOModal({
                 </SelectContent>
               </Select>
             )}
-          </div>
+            <FormFieldError />
+          </FormField>
 
           <div className={formSectionClassName()}>
             {ingredients.length === 0 ? (

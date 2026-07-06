@@ -27,7 +27,7 @@ import {
 } from "@/components/shared/responsive-data-table";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { TableActionButton } from "@/components/shared/table-action-button";
-import { StatusBadge, transferStatusTone } from "@/components/shared/status-badge";
+import { StatusBadge, formatStatusLabel, transferStatusTone } from "@/components/shared/status-badge";
 import { BranchEmptyState } from "@/components/shared/branch-empty-state";
 import { HubListPage } from "@/components/shared/hub-list-page";
 import { ListFilterRow, ListFilterSelect } from "@/components/shared/list-filters";
@@ -410,7 +410,7 @@ export function StockTransfersPanel({
 
           return (
             <div className="flex flex-col items-start gap-0.5">
-              <StatusBadge tone={transferStatusTone(status)}>{status}</StatusBadge>
+              <StatusBadge tone={transferStatusTone(status)}>{formatStatusLabel(status)}</StatusBadge>
               {directionHint ? (
                 <span className={cn("text-xs", text.muted)}>{directionHint}</span>
               ) : null}
@@ -493,7 +493,7 @@ export function StockTransfersPanel({
                     </span>
                   </div>
                   <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <StatusBadge tone={transferStatusTone(record.status)}>{record.status}</StatusBadge>
+                    <StatusBadge tone={transferStatusTone(record.status)}>{formatStatusLabel(record.status)}</StatusBadge>
                     {directionHint ? (
                       <span className={cn("text-xs", text.muted)}>{directionHint}</span>
                     ) : null}

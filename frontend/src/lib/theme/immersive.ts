@@ -305,6 +305,7 @@ export function posCheckoutMutedPanelClassName(className?: string) {
 export function posPrimaryActionClassName(className?: string) {
   return cn(
     "font-bold bg-[var(--brand-solid)] text-[var(--on-brand-solid-fg)] hover:opacity-90 shadow-lg",
+    "disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 disabled:shadow-none",
     className,
   );
 }
@@ -312,6 +313,7 @@ export function posPrimaryActionClassName(className?: string) {
 export function posPayActionClassName(className?: string) {
   return cn(
     "font-bold bg-[var(--brand-solid)] text-[var(--on-brand-solid-fg)] hover:opacity-90 shadow-lg transition-colors",
+    "disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 disabled:shadow-none",
     className,
   );
 }

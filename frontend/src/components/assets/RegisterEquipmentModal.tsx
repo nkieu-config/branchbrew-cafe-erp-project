@@ -2,9 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 import { FormDialog } from "@/components/shared/form-modal";
 import { Button } from "@/components/ui/button";
+import {
+  FormField,
+  FormFieldControl,
+  FormFieldError,
+  FormFieldLabel,
+} from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -17,6 +22,7 @@ import {
 import { EQUIPMENT_TYPE_OPTIONS } from "@/lib/filters/equipment-filters";
 import type { EquipmentType } from "@/types/api";
 import { assetsDialogContentClassName } from "@/lib/theme/assets";
+import { formFieldInvalidClassName } from "@/lib/theme/color-helpers";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { formFieldInsetClassName, formLineDateFieldClassName, formSelectContentClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
@@ -47,6 +53,16 @@ export function RegisterEquipmentModal({
   const [type, setType] = useState<EquipmentType>("ESPRESSO_MACHINE");
   const [serialNumber, setSerialNumber] = useState("");
   const [nextMaintenanceDate, setNextMaintenanceDate] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string }>({});
+
+  const clearFieldError = (field: "name") => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -54,12 +70,13 @@ export function RegisterEquipmentModal({
     setType("ESPRESSO_MACHINE");
     setSerialNumber("");
     setNextMaintenanceDate("");
+    setFieldErrors({});
   }, [open]);
 
   const handleSubmit = async () => {
     const trimmedName = name.trim();
     if (!trimmedName) {
-      toast.error("Equipment name is required");
+      setFieldErrors({ name: "Equipment name is required" });
       return;
     }
 
@@ -84,19 +101,22 @@ export function RegisterEquipmentModal({
     >
         <FormDialog.Title>Register equipment</FormDialog.Title>
         <FormDialog.Body className="space-y-4 pt-1">
-          <div className="space-y-2">
-            <Label htmlFor="equipment-name" className={text.secondary}>
-              Name
-            </Label>
-            <Input
-              id="equipment-name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              placeholder="e.g. La Marzocco Linea PB"
-              className={formFieldInsetClassName()}
-              required
-            />
-          </div>
+          <FormField id="equipment-name" error={fieldErrors.name} className="space-y-2">
+            <FormFieldLabel className={text.secondary}>Name</FormFieldLabel>
+            <FormFieldControl>
+              <Input
+                value={name}
+                onChange={(event) => {
+                  setName(event.target.value);
+                  clearFieldError("name");
+                }}
+                placeholder="e.g. La Marzocco Linea PB"
+                className={formFieldInsetClassName(formFieldInvalidClassName(!!fieldErrors.name))}
+                required
+              />
+            </FormFieldControl>
+            <FormFieldError />
+          </FormField>
 
           <div className="space-y-2">
             <Label htmlFor="equipment-type" className={text.secondary}>

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Table, Skeleton } from "antd";
 import type { TableProps } from "antd";
 import { useTheme } from "next-themes";
@@ -13,6 +13,8 @@ interface DataTableProps<RecordType extends object = object> extends TableProps<
   containerClassName?: string;
   hideBorders?: boolean;
   emptyDescription?: string;
+  /** Optional call-to-action rendered under the empty-state text (e.g. a create button). */
+  emptyAction?: React.ReactNode;
   /** When true, shows recoverable error banner above the table shell. */
   isError?: boolean;
   errorMessage?: string;
@@ -20,11 +22,18 @@ interface DataTableProps<RecordType extends object = object> extends TableProps<
   retryLoading?: boolean;
 }
 
-function TableEmptyState({ description }: { description: string }) {
+function TableEmptyState({
+  description,
+  action,
+}: {
+  description: string;
+  action?: React.ReactNode;
+}) {
   return (
     <div className="py-12 text-center">
       <Inbox className={dataTableEmptyIconClassName()} />
       <p className={dataTableEmptyTextClassName()}>{description}</p>
+      {action && <div className="mt-4 flex justify-center">{action}</div>}
     </div>
   );
 }
@@ -33,6 +42,7 @@ export function DataTable<RecordType extends object = object>({
   containerClassName = "",
   hideBorders = false,
   emptyDescription = "No records found.",
+  emptyAction,
   isError = false,
   errorMessage = "Failed to load data.",
   onRetry,
@@ -42,6 +52,20 @@ export function DataTable<RecordType extends object = object>({
 }: DataTableProps<RecordType>) {
   const { resolvedTheme } = useTheme();
   const tableThemeKey = resolvedTheme ?? "light";
+  const shellRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const scrollAreas = shellRef.current?.querySelectorAll<HTMLElement>(
+      ".ant-table-content, .ant-table-body",
+    );
+    scrollAreas?.forEach((el) => {
+      if (el.getAttribute("tabindex") == null) {
+        el.tabIndex = 0;
+        el.setAttribute("role", "group");
+        el.setAttribute("aria-label", "Scrollable table");
+      }
+    });
+  });
 
   if (props.loading && (!props.dataSource || (Array.isArray(props.dataSource) && props.dataSource.length === 0))) {
     return (
@@ -63,7 +87,7 @@ export function DataTable<RecordType extends object = object>({
           loading={retryLoading}
         />
       )}
-      <div className={dataTableContainerClassName({ hideBorders }, containerClassName)}>
+      <div ref={shellRef} className={dataTableContainerClassName({ hideBorders }, containerClassName)}>
         <Table
           key={tableThemeKey}
           pagination={{
@@ -73,7 +97,7 @@ export function DataTable<RecordType extends object = object>({
           }}
           scroll={{ x: "max-content", ...props.scroll }}
           locale={{
-            emptyText: <TableEmptyState description={emptyDescription} />,
+            emptyText: <TableEmptyState description={emptyDescription} action={emptyAction} />,
             ...locale,
           }}
           {...props}

@@ -1,21 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 import { FormDialog } from "@/components/shared/form-modal";
 import { Button } from "@/components/ui/button";
+import {
+  FormField,
+  FormFieldControl,
+  FormFieldError,
+  FormFieldLabel,
+  FormFieldSelectTrigger,
+} from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
-  SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import type { Ingredient } from "@/types/api";
+import { formFieldInvalidClassName } from "@/lib/theme/color-helpers";
 import { infoBannerClassName, infoBannerTextClassName } from "@/lib/theme/hub-banners";
 import { hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
 import { kitchenDialogContentClassName } from "@/lib/theme/hub-kitchen";
@@ -47,22 +52,39 @@ export function CreateProductionOrderModal({
   const [targetId, setTargetId] = useState<string>("");
   const [quantity, setQuantity] = useState("1");
   const [plannedDate, setPlannedDate] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{
+    target?: string;
+    quantity?: string;
+    plannedDate?: string;
+  }>({});
+
+  const clearFieldError = (field: "target" | "quantity" | "plannedDate") => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (!open) return;
+    setFieldErrors({});
+  }, [open]);
 
   const targetIngredientId = targetId ? Number(targetId) : 0;
   const missingBom = targetIngredientId > 0 && !bomTargetIds.has(targetIngredientId);
 
   const handleSubmit = async () => {
-    if (!targetIngredientId) {
-      toast.error("Target product is required");
-      return;
-    }
     const quantityToProduce = Number(quantity);
-    if (!Number.isFinite(quantityToProduce) || quantityToProduce <= 0) {
-      toast.error("Quantity must be greater than zero");
-      return;
-    }
-    if (!plannedDate) {
-      toast.error("Planned date is required");
+
+    const errors: { target?: string; quantity?: string; plannedDate?: string } = {};
+    if (!targetIngredientId) errors.target = "Select a target product";
+    if (!Number.isFinite(quantityToProduce) || quantityToProduce <= 0)
+      errors.quantity = "Quantity must be greater than zero";
+    if (!plannedDate) errors.plannedDate = "Planned date is required";
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       return;
     }
 
@@ -84,10 +106,8 @@ export function CreateProductionOrderModal({
         <FormDialog.Title>New order</FormDialog.Title>
 
         <FormDialog.Body className="space-y-4 pt-1">
-          <div className="space-y-2">
-            <Label htmlFor="po-target" className={text.secondary}>
-              Target product
-            </Label>
+          <FormField id="po-target" error={fieldErrors.target} className="space-y-2">
+            <FormFieldLabel className={text.secondary}>Target product</FormFieldLabel>
             {ingredients.length === 0 ? (
               <p className={cn("text-sm", text.muted)}>
                 No ingredients yet —{" "}
@@ -96,10 +116,17 @@ export function CreateProductionOrderModal({
                 </Link>
               </p>
             ) : (
-              <Select value={targetId} onValueChange={(value) => value != null && setTargetId(value)}>
-                <SelectTrigger id="po-target" className={formFieldInsetClassName("w-full")}>
+              <Select
+                value={targetId}
+                onValueChange={(value) => {
+                  if (value == null) return;
+                  setTargetId(value);
+                  clearFieldError("target");
+                }}
+              >
+                <FormFieldSelectTrigger className={formFieldInsetClassName("w-full")}>
                   <SelectValue placeholder="Select product" />
-                </SelectTrigger>
+                </FormFieldSelectTrigger>
                 <SelectContent className={formSelectContentClassName()}>
                   {ingredients.map((ingredient) => (
                     <SelectItem key={ingredient.id} value={String(ingredient.id)}>
@@ -109,7 +136,8 @@ export function CreateProductionOrderModal({
                 </SelectContent>
               </Select>
             )}
-          </div>
+            <FormFieldError />
+          </FormField>
 
           {missingBom && (
             <div className={infoBannerClassName("py-3")}>
@@ -124,32 +152,42 @@ export function CreateProductionOrderModal({
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="po-quantity" className={text.secondary}>
-                Quantity
-              </Label>
-              <Input
-                id="po-quantity"
-                type="number"
-                min={1}
-                step={1}
-                value={quantity}
-                onChange={(event) => setQuantity(event.target.value)}
-                className={formFieldInsetClassName()}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="po-date" className={text.secondary}>
-                Planned date
-              </Label>
-              <Input
-                id="po-date"
-                type="date"
-                value={plannedDate}
-                onChange={(event) => setPlannedDate(event.target.value)}
-                className={formLineDateFieldClassName()}
-              />
-            </div>
+            <FormField id="po-quantity" error={fieldErrors.quantity} className="space-y-2">
+              <FormFieldLabel className={text.secondary}>Quantity</FormFieldLabel>
+              <FormFieldControl>
+                <Input
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={quantity}
+                  onChange={(event) => {
+                    setQuantity(event.target.value);
+                    clearFieldError("quantity");
+                  }}
+                  className={formFieldInsetClassName(
+                    formFieldInvalidClassName(!!fieldErrors.quantity),
+                  )}
+                />
+              </FormFieldControl>
+              <FormFieldError />
+            </FormField>
+            <FormField id="po-date" error={fieldErrors.plannedDate} className="space-y-2">
+              <FormFieldLabel className={text.secondary}>Planned date</FormFieldLabel>
+              <FormFieldControl>
+                <Input
+                  type="date"
+                  value={plannedDate}
+                  onChange={(event) => {
+                    setPlannedDate(event.target.value);
+                    clearFieldError("plannedDate");
+                  }}
+                  className={formLineDateFieldClassName(
+                    formFieldInvalidClassName(!!fieldErrors.plannedDate),
+                  )}
+                />
+              </FormFieldControl>
+              <FormFieldError />
+            </FormField>
           </div>
         </FormDialog.Body>
 

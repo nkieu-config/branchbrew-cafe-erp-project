@@ -4,6 +4,12 @@ import { useEffect, useState } from "react";
 import { Loader2, MinusCircle, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+  FormField,
+  FormFieldError,
+  FormFieldLabel,
+  FormFieldSelectTrigger,
+} from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -52,7 +58,17 @@ function isLineDirty(line: RawLineDraft) {
 
 export function BOMFormModal({ isOpen, onClose, ingredients }: BOMFormModalProps) {
   const [targetId, setTargetId] = useState<string>("");
+  const [fieldErrors, setFieldErrors] = useState<{ target?: string }>({});
   const createMutation = useCreateProductionBOM();
+
+  const clearFieldError = (field: "target") => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   const {
     items: lines,
@@ -70,13 +86,14 @@ export function BOMFormModal({ isOpen, onClose, ingredients }: BOMFormModalProps
   useEffect(() => {
     if (!isOpen) return;
     setTargetId("");
+    setFieldErrors({});
     resetRows();
   }, [isOpen, resetRows]);
 
   const handleCreate = async () => {
     const targetIngredientId = targetId ? Number(targetId) : 0;
     if (!targetIngredientId) {
-      toast.error("Target product is required");
+      setFieldErrors({ target: "Select a target product" });
       return;
     }
 
@@ -129,14 +146,19 @@ export function BOMFormModal({ isOpen, onClose, ingredients }: BOMFormModalProps
         <FormDialog.Title>New BOM</FormDialog.Title>
 
         <FormDialog.Body className="space-y-4 pt-1">
-          <div className="space-y-2">
-            <Label htmlFor="bom-target" className={text.secondary}>
-              Target product
-            </Label>
-            <Select value={targetId} onValueChange={(value) => value != null && setTargetId(value)}>
-              <SelectTrigger id="bom-target" className={formFieldInsetClassName("w-full")}>
+          <FormField id="bom-target" error={fieldErrors.target} className="space-y-2">
+            <FormFieldLabel className={text.secondary}>Target product</FormFieldLabel>
+            <Select
+              value={targetId}
+              onValueChange={(value) => {
+                if (value == null) return;
+                setTargetId(value);
+                clearFieldError("target");
+              }}
+            >
+              <FormFieldSelectTrigger className={formFieldInsetClassName("w-full")}>
                 <SelectValue placeholder="Select product" />
-              </SelectTrigger>
+              </FormFieldSelectTrigger>
               <SelectContent className={formSelectContentClassName()}>
                 {ingredients.map((ingredient) => (
                   <SelectItem key={ingredient.id} value={String(ingredient.id)}>
@@ -145,7 +167,8 @@ export function BOMFormModal({ isOpen, onClose, ingredients }: BOMFormModalProps
                 ))}
               </SelectContent>
             </Select>
-          </div>
+            <FormFieldError />
+          </FormField>
 
           <div className={formSectionClassName()}>
             {ingredients.length === 0 ? (

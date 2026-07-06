@@ -169,6 +169,12 @@ export default function IngredientsPageClient() {
           hasActiveFilters={hasActiveFilters}
           onEdit={handleEdit}
           onDelete={setDeleteTarget}
+          emptyAction={
+            <Button onClick={handleAddNew} className={hubCtaClassName("products")}>
+              <Plus className="w-4 h-4 mr-2" aria-hidden />
+              Add your first ingredient
+            </Button>
+          }
         />
       </HubListPage>
 

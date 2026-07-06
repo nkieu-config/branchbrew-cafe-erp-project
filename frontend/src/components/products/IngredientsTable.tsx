@@ -26,6 +26,7 @@ type IngredientsTableProps = {
   hasActiveFilters: boolean;
   onEdit: (ingredient: Ingredient) => void;
   onDelete: (ingredient: Ingredient) => void;
+  emptyAction?: React.ReactNode;
 };
 
 type IngredientActionsProps = {
@@ -92,6 +93,7 @@ export function IngredientsTable({
   hasActiveFilters,
   onEdit,
   onDelete,
+  emptyAction,
 }: IngredientsTableProps) {
   const emptyDescription = hasActiveFilters
     ? "No ingredients match your filters."
@@ -206,6 +208,7 @@ export function IngredientsTable({
           pagination={listPagination.tablePagination}
           loading={isLoading}
           emptyDescription={emptyDescription}
+          emptyAction={hasActiveFilters ? null : emptyAction}
           columns={columns}
           dataSource={ingredients}
           rowKey="id"

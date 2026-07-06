@@ -2,13 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 import { FormDialog } from "@/components/shared/form-modal";
 import { Button } from "@/components/ui/button";
+import {
+  FormField,
+  FormFieldControl,
+  FormFieldError,
+  FormFieldLabel,
+} from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { Branch } from "@/types/api";
+import { formFieldInvalidClassName } from "@/lib/theme/color-helpers";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { organizationDialogContentClassName } from "@/lib/theme/organization";
 import { formFieldInsetClassName } from "@/lib/theme/stock";
@@ -39,19 +45,30 @@ export function BranchFormModal({
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [isCentralKitchen, setIsCentralKitchen] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<{ name?: string }>({});
   const editing = initialValues != null;
+
+  const clearFieldError = (field: "name") => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (!open) return;
     setName(initialValues?.name ?? "");
     setLocation(initialValues?.location ?? "");
     setIsCentralKitchen(initialValues?.isCentralKitchen ?? false);
+    setFieldErrors({});
   }, [open, initialValues]);
 
   const handleSubmit = async () => {
     const trimmedName = name.trim();
     if (!trimmedName) {
-      toast.error("Branch name is required");
+      setFieldErrors({ name: "Branch name is required" });
       return;
     }
 
@@ -66,19 +83,22 @@ export function BranchFormModal({
     <FormDialog open={open} onOpenChange={onOpenChange} className={organizationDialogContentClassName()}>
       <FormDialog.Title>{editing ? "Edit branch" : "Add branch"}</FormDialog.Title>
       <FormDialog.Body className="space-y-4 pt-1">
-        <div className="space-y-2">
-          <Label htmlFor="branch-name" className={text.secondary}>
-            Name
-          </Label>
-          <Input
-            id="branch-name"
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="e.g. BranchBrew Downtown"
-            className={formFieldInsetClassName()}
-            required
-          />
-        </div>
+        <FormField id="branch-name" error={fieldErrors.name} className="space-y-2">
+          <FormFieldLabel className={text.secondary}>Name</FormFieldLabel>
+          <FormFieldControl>
+            <Input
+              value={name}
+              onChange={(event) => {
+                setName(event.target.value);
+                clearFieldError("name");
+              }}
+              placeholder="e.g. BranchBrew Downtown"
+              className={formFieldInsetClassName(formFieldInvalidClassName(!!fieldErrors.name))}
+              required
+            />
+          </FormFieldControl>
+          <FormFieldError />
+        </FormField>
 
         <div className="space-y-2">
           <Label htmlFor="branch-location" className={text.secondary}>

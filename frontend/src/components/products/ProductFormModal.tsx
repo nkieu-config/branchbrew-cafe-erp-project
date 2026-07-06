@@ -2,6 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import {
+  FormField,
+  FormFieldControl,
+  FormFieldError,
+  FormFieldLabel,
+} from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -64,6 +70,20 @@ export function ProductFormModal({
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState<number | "">("");
   const [isActive, setIsActive] = useState(true);
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string;
+    category?: string;
+    price?: string;
+  }>({});
+
+  const clearFieldError = (field: "name" | "category" | "price") => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
 
   const {
     items: recipeItems,
@@ -91,6 +111,7 @@ export function ProductFormModal({
     setCategory("");
     setPrice("");
     setIsActive(true);
+    setFieldErrors({});
     resetRecipeRows();
   }, [resetRecipeRows]);
 
@@ -113,8 +134,12 @@ export function ProductFormModal({
   };
 
   const handleSubmit = async () => {
-    if (!name.trim() || !category.trim() || price === "") {
-      toast.error("Name, category, and price are required");
+    const errors: { name?: string; category?: string; price?: string } = {};
+    if (!name.trim()) errors.name = "Name is required";
+    if (!category.trim()) errors.category = "Category is required";
+    if (price === "") errors.price = "Price is required";
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       return;
     }
 
@@ -164,48 +189,63 @@ export function ProductFormModal({
 
         <FormDialog.Body className="space-y-6 py-2">
           <div className={formSectionClassName("mb-0 space-y-4")}>
-            <div className="space-y-2">
-              <Label htmlFor="product-name" className={text.secondary}>
-                Name
-              </Label>
-              <Input
-                id="product-name"
-                placeholder="e.g. Iced Latte"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className={formFieldInsetClassName()}
-              />
-            </div>
+            <FormField id="product-name" error={fieldErrors.name} className="space-y-2">
+              <FormFieldLabel className={text.secondary}>Name</FormFieldLabel>
+              <FormFieldControl>
+                <Input
+                  placeholder="e.g. Iced Latte"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    clearFieldError("name");
+                  }}
+                  className={formFieldInsetClassName(formFieldInvalidClassName(!!fieldErrors.name))}
+                />
+              </FormFieldControl>
+              <FormFieldError />
+            </FormField>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="product-category" className={text.secondary}>
-                  Category
-                </Label>
-                <Input
-                  id="product-category"
-                  placeholder="e.g. Coffee"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className={formFieldInsetClassName()}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="product-price" className={text.secondary}>
-                  Price
-                </Label>
-                <Input
-                  id="product-price"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="e.g. 85"
-                  value={price}
-                  onChange={(e) =>
-                    setPrice(e.target.value === "" ? "" : Number(e.target.value))
-                  }
-                  className={formFieldInsetClassName()}
-                />
-              </div>
+              <FormField
+                id="product-category"
+                error={fieldErrors.category}
+                className="space-y-2"
+              >
+                <FormFieldLabel className={text.secondary}>Category</FormFieldLabel>
+                <FormFieldControl>
+                  <Input
+                    placeholder="e.g. Coffee"
+                    value={category}
+                    onChange={(e) => {
+                      setCategory(e.target.value);
+                      clearFieldError("category");
+                    }}
+                    className={formFieldInsetClassName(
+                      formFieldInvalidClassName(!!fieldErrors.category),
+                    )}
+                  />
+                </FormFieldControl>
+                <FormFieldError />
+              </FormField>
+              <FormField id="product-price" error={fieldErrors.price} className="space-y-2">
+                <FormFieldLabel className={text.secondary}>Price</FormFieldLabel>
+                <FormFieldControl>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="e.g. 85"
+                    value={price}
+                    onChange={(e) => {
+                      setPrice(e.target.value === "" ? "" : Number(e.target.value));
+                      clearFieldError("price");
+                    }}
+                    className={formFieldInsetClassName(
+                      formFieldInvalidClassName(!!fieldErrors.price),
+                    )}
+                  />
+                </FormFieldControl>
+                <FormFieldError />
+              </FormField>
             </div>
             <div className={cn("flex items-center justify-between gap-3 pt-2 border-t", tableRowDividerClassName())}>
               <Label htmlFor="isActiveProduct" className={cn("cursor-pointer", text.secondary)}>

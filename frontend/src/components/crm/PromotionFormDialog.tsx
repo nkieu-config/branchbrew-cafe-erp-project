@@ -14,6 +14,12 @@ import {
 } from "@/lib/promotion-status";
 import type { Promotion } from "@/types/api";
 import { Button } from "@/components/ui/button";
+import {
+  FormField,
+  FormFieldControl,
+  FormFieldError,
+  FormFieldLabel,
+} from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FormDialog } from "@/components/shared/form-modal";
@@ -62,6 +68,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotion }: Promotion
   const [startDate, setStartDate] = useState(emptyForm.startDate);
   const [endDate, setEndDate] = useState(emptyForm.endDate);
   const [codeError, setCodeError] = useState<string | null>(null);
+  const [discountValueError, setDiscountValueError] = useState<string | null>(null);
 
   const createMutation = useCreatePromotion();
   const updateMutation = useUpdatePromotion();
@@ -86,6 +93,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotion }: Promotion
       setEndDate(emptyForm.endDate);
     }
     setCodeError(null);
+    setDiscountValueError(null);
   }, [open, promotion]);
 
   const closeDialog = useCallback(() => {
@@ -95,11 +103,11 @@ export function PromotionFormDialog({ open, onOpenChange, promotion }: Promotion
   const validateDiscountValue = (): boolean => {
     const value = Number(discountValue);
     if (Number.isNaN(value) || value < 0) {
-      toast.error("Enter a valid discount value");
+      setDiscountValueError("Enter a valid discount value");
       return false;
     }
     if (discountType === "PERCENTAGE" && value > 100) {
-      toast.error("Percentage discount cannot exceed 100%");
+      setDiscountValueError("Percentage discount cannot exceed 100%");
       return false;
     }
     return true;
@@ -217,6 +225,7 @@ export function PromotionFormDialog({ open, onOpenChange, promotion }: Promotion
                 onValueChange={(value) => {
                   if (value === "PERCENTAGE" || value === "FIXED_AMOUNT") {
                     setDiscountType(value);
+                    setDiscountValueError(null);
                   }
                 }}
               >
@@ -229,23 +238,32 @@ export function PromotionFormDialog({ open, onOpenChange, promotion }: Promotion
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="promo-discount-value" className={text.secondary}>
-                Value
-              </Label>
-              <Input
-                id="promo-discount-value"
-                type="number"
-                min="0"
-                max={discountType === "PERCENTAGE" ? "100" : undefined}
-                step={discountType === "PERCENTAGE" ? "1" : "0.01"}
-                value={discountValue}
-                onChange={(e) => setDiscountValue(e.target.value)}
-                required
-                placeholder={discountType === "PERCENTAGE" ? "e.g. 20" : "e.g. 50"}
-                className={formFieldInsetClassName()}
-              />
-            </div>
+            <FormField
+              id="promo-discount-value"
+              error={discountValueError ?? undefined}
+              className="space-y-2"
+            >
+              <FormFieldLabel className={text.secondary}>Value</FormFieldLabel>
+              <FormFieldControl>
+                <Input
+                  type="number"
+                  min="0"
+                  max={discountType === "PERCENTAGE" ? "100" : undefined}
+                  step={discountType === "PERCENTAGE" ? "1" : "0.01"}
+                  value={discountValue}
+                  onChange={(e) => {
+                    setDiscountValue(e.target.value);
+                    setDiscountValueError(null);
+                  }}
+                  required
+                  placeholder={discountType === "PERCENTAGE" ? "e.g. 20" : "e.g. 50"}
+                  className={formFieldInsetClassName(
+                    formFieldInvalidClassName(discountValueError != null),
+                  )}
+                />
+              </FormFieldControl>
+              <FormFieldError />
+            </FormField>
           </div>
           <div className="space-y-2">
             <Label htmlFor="promo-min-purchase" className={text.secondary}>

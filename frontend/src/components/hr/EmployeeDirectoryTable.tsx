@@ -11,7 +11,7 @@ import {
   PaginatedMobileList,
   ResponsiveDataTableLayout,
 } from "@/components/shared/responsive-data-table";
-import { StatusBadge, employeeRoleTone } from "@/components/shared/status-badge";
+import { StatusBadge, employeeRoleTone, formatStatusLabel } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { employeeHasMissingRate } from "@/lib/filters/employee-filters";
 import { buildHrPayrollUrl } from "@/lib/hr-hub-url";
@@ -75,7 +75,7 @@ export function EmployeeDirectoryTable({
           dataIndex: "role",
           key: "role",
           render: (roleText: string) => (
-            <StatusBadge tone={employeeRoleTone(roleText)}>{roleText}</StatusBadge>
+            <StatusBadge tone={employeeRoleTone(roleText)}>{formatStatusLabel(roleText)}</StatusBadge>
           ),
         },
         {
@@ -194,7 +194,7 @@ export function EmployeeDirectoryTable({
                       </p>
                       <p className={cn("truncate text-xs", tableCellMutedClassName())}>{record.email}</p>
                       <div className="mt-2 flex flex-wrap items-center gap-2">
-                        <StatusBadge tone={employeeRoleTone(record.role)}>{record.role}</StatusBadge>
+                        <StatusBadge tone={employeeRoleTone(record.role)}>{formatStatusLabel(record.role)}</StatusBadge>
                         {record.employmentType ? (
                           <span className={hrMutedMetaClassName()}>
                             {record.employmentType.replace("_", " ")}

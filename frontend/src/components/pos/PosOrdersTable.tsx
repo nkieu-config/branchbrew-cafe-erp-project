@@ -9,7 +9,7 @@ import {
   PaginatedMobileList,
   ResponsiveDataTableLayout,
 } from "@/components/shared/responsive-data-table";
-import { StatusBadge, orderStatusTone } from "@/components/shared/status-badge";
+import { StatusBadge, formatStatusLabel, orderStatusTone } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { formatCurrency } from "@/lib/money";
 import { formatQueueNumber } from "@/lib/queue";
@@ -147,7 +147,7 @@ export function PosOrdersTable({
           dataIndex: "status",
           key: "status",
           render: (status: OrderStatus) => (
-            <StatusBadge tone={orderStatusTone(status)}>{status}</StatusBadge>
+            <StatusBadge tone={orderStatusTone(status)}>{formatStatusLabel(status)}</StatusBadge>
           ),
         },
         {
@@ -254,7 +254,7 @@ export function PosOrdersTable({
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1.5">
-                    <StatusBadge tone={orderStatusTone(row.status)}>{row.status}</StatusBadge>
+                    <StatusBadge tone={orderStatusTone(row.status)}>{formatStatusLabel(row.status)}</StatusBadge>
                     <span className={typeHeadingClassName("font-mono text-base tabular-nums")}>
                       {formatCurrency(row.netAmount)}
                     </span>
