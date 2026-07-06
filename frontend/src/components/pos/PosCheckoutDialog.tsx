@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Banknote, CreditCard, Loader2, QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,9 +21,12 @@ import {
   posPriceClassName,
   posPrimaryActionClassName,
 } from "@/lib/theme/immersive";
-import { formatCurrency } from "@/lib/money";
+import { statusTextClassName } from "@/lib/theme/color-helpers";
+import { formatCurrency, toNumber } from "@/lib/money";
 import { typeMetricClassName } from "@/lib/theme/typography";
 import { cn } from "@/lib/utils";
+
+const QUICK_CASH_NOTES = [100, 500, 1000];
 
 const PAYMENT_METHODS = [
   { id: "CASH" as const, label: "Cash", icon: Banknote },
@@ -63,6 +67,17 @@ export function PosCheckoutDialog({
   isProcessing: boolean;
   onConfirm: () => void;
 }) {
+  const [cashReceived, setCashReceived] = useState("");
+
+  useEffect(() => {
+    if (open) setCashReceived("");
+  }, [open]);
+
+  const isCash = paymentMethod === "CASH";
+  const receivedAmount = toNumber(cashReceived);
+  const changeDue = receivedAmount - netTotal;
+  const cashInsufficient = isCash && receivedAmount < netTotal;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={posDialogContentClassName("sm:max-w-[440px] rounded-2xl")}>
@@ -105,6 +120,61 @@ export function PosCheckoutDialog({
               })}
             </div>
           </div>
+
+          {isCash && (
+            <div className={posCheckoutMutedPanelClassName("rounded-xl")}>
+              <div className="space-y-1.5">
+                <Label htmlFor="cash-received">Cash received</Label>
+                <Input
+                  id="cash-received"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  inputMode="decimal"
+                  placeholder={formatCurrency(netTotal)}
+                  value={cashReceived}
+                  onChange={(e) => setCashReceived(e.target.value)}
+                  className="rounded-lg text-lg font-semibold tabular-nums"
+                />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCashReceived(String(netTotal))}
+                >
+                  Exact
+                </Button>
+                {QUICK_CASH_NOTES.filter((note) => note >= netTotal).map((note) => (
+                  <Button
+                    key={note}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCashReceived(String(note))}
+                  >
+                    ฿{note}
+                  </Button>
+                ))}
+              </div>
+              <p className="flex items-baseline justify-between gap-3 text-sm">
+                <span className="text-muted-foreground">
+                  {cashInsufficient && receivedAmount > 0 ? "Still short" : "Change due"}
+                </span>
+                <span
+                  className={cn(
+                    "font-semibold tabular-nums",
+                    cashInsufficient && receivedAmount > 0
+                      ? statusTextClassName("danger")
+                      : statusTextClassName("success"),
+                  )}
+                >
+                  {receivedAmount > 0 ? formatCurrency(Math.abs(changeDue)) : formatCurrency(0)}
+                </span>
+              </p>
+            </div>
+          )}
 
           <div className="flex items-center gap-2 border-t pt-4">
             <input
@@ -165,7 +235,7 @@ export function PosCheckoutDialog({
           <Button
             onClick={onConfirm}
             className={posPrimaryActionClassName("w-full min-h-[48px] rounded-xl")}
-            disabled={isProcessing}
+            disabled={isProcessing || cashInsufficient}
           >
             {isProcessing ? (
               <>
