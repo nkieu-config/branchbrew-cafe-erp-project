@@ -76,12 +76,14 @@ export function PosProductCatalog({
             aria-hidden
           />
           <Input
+            id="pos-product-search"
             type="search"
             value={productSearch}
             onChange={(e) => onProductSearchChange(e.target.value)}
-            placeholder="Search menu…"
+            placeholder="Search menu…  ( / )"
             className={cn(listToolbarFieldClassName(), listToolbarSearchClassName(), "pl-9 shadow-none")}
             aria-label="Search menu items"
+            aria-keyshortcuts="/"
           />
         </div>
         {categories.length > 0 ? (

@@ -20,6 +20,11 @@ export function setStoredBranchId(id: number | null): void {
   localStorage.setItem(ACTIVE_BRANCH_KEY, String(id));
 }
 
+export function clearStoredBranchId(): void {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(ACTIVE_BRANCH_KEY);
+}
+
 /** Prefer saved branch, then the primary demo branch, then first available. */
 export function resolveDefaultBranchId(
   branches: { id: number; name: string }[],

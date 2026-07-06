@@ -23,7 +23,7 @@ const EMPTY_FORM: Record<string, string> = {
   taxId: "",
   vatRate: "7",
   currency: "THB",
-  receiptFooter: "ขอบคุณที่ใช้บริการ BranchBrew",
+  receiptFooter: "Thank you for visiting BranchBrew",
 };
 
 function settingsToForm(settings: Record<string, string | undefined>): Record<string, string> {
@@ -32,7 +32,7 @@ function settingsToForm(settings: Record<string, string | undefined>): Record<st
     taxId: settings.taxId || "",
     vatRate: settings.vatRate || "7",
     currency: settings.currency || "THB",
-    receiptFooter: settings.receiptFooter || "ขอบคุณที่ใช้บริการ BranchBrew",
+    receiptFooter: settings.receiptFooter || "Thank you for visiting BranchBrew",
   };
 }
 
@@ -187,7 +187,7 @@ export default function SettingsPageClient() {
                   id="settings-receipt-footer"
                   value={formData.receiptFooter}
                   onChange={(event) => handleChange("receiptFooter", event.target.value)}
-                  placeholder="e.g. ขอบคุณที่ใช้บริการ BranchBrew"
+                  placeholder="e.g. Thank you for visiting BranchBrew"
                   className={formFieldInsetClassName()}
                 />
               </div>

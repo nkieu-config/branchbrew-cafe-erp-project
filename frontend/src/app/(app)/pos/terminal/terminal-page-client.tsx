@@ -127,6 +127,35 @@ export default function PosTerminalPageClient() {
   const getCustomerMutation = useCustomerByPhone();
   const validatePromoMutation = useValidatePromotion();
 
+  useEffect(() => {
+    const anyDialogOpen =
+      showCheckout || showModifiers || showNumpad || showSuccess;
+
+    const handleHotkeys = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      const isTyping =
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target?.isContentEditable;
+
+      if (anyDialogOpen) return;
+
+      if (event.key === "/" && !isTyping) {
+        event.preventDefault();
+        document.getElementById("pos-product-search")?.focus();
+        return;
+      }
+
+      if (event.key === "Enter" && !isTyping && cart.length > 0) {
+        event.preventDefault();
+        setShowCheckout(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleHotkeys);
+    return () => window.removeEventListener("keydown", handleHotkeys);
+  }, [showCheckout, showModifiers, showNumpad, showSuccess, cart.length]);
+
   const addToCart = (
     product: Product,
     notes?: string,

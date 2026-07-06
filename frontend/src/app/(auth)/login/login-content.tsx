@@ -76,6 +76,7 @@ export default function LoginContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
   const [loadingDemoId, setLoadingDemoId] = useState<string | null>(null);
   const [selectedDemoId, setSelectedDemoId] = useState<string | null>(null);
   const [showCredentials, setShowCredentials] = useState(false);
@@ -91,11 +92,14 @@ export default function LoginContent() {
 
   const loginWithCredentials = async (loginEmail: string, loginPassword: string) => {
     setLoading(true);
+    setLoginError(null);
     try {
       const response = await loginApi({ email: loginEmail, password: loginPassword });
       login(response.user);
     } catch (err: unknown) {
-      toast.error(getErrorMessage(err, "Failed to login"));
+      const message = getErrorMessage(err, "Failed to login");
+      setLoginError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
       setLoadingDemoId(null);
@@ -199,6 +203,14 @@ export default function LoginContent() {
                 required
                 className={authInputClassName()}
               />
+            </div>
+
+            <div role="alert" aria-live="polite">
+              {loginError ? (
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  {loginError}
+                </p>
+              ) : null}
             </div>
 
             <button

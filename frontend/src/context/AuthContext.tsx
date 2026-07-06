@@ -1,11 +1,19 @@
 "use client";
 
 import { AUTH_ENDPOINTS } from "@/lib/endpoints/auth";
-import { createContext, use, useState, useEffect, useCallback } from "react";
+import {
+  createContext,
+  use,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { fetchAPI } from "@/lib/api/client";
-import { setStoredBranchId } from "@/lib/branch-storage";
+import { clearStoredBranchId, setStoredBranchId } from "@/lib/branch-storage";
 import type { SessionUser } from "@/types/auth";
 
 type AuthContextType = {
@@ -35,6 +43,7 @@ export function AuthProvider({
   const [activeBranchId, setActiveBranchIdState] = useState<number | null>(initialUser?.branchId ?? null);
   const [isInitialized, setIsInitialized] = useState(hydratedFromServer);
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const setActiveBranchId = useCallback(
     (id: number | null) => {
@@ -71,14 +80,17 @@ export function AuthProvider({
     };
   }, [hydratedFromServer]);
 
-  const login = (newUser: SessionUser) => {
-    setUser(newUser);
-    setActiveBranchIdState(newUser.branchId ?? null);
-    setIsInitialized(true);
-    const landing = newUser.role === "STAFF" ? "/pos/terminal" : "/";
-    router.push(landing);
-    toast.success("Logged in successfully");
-  };
+  const login = useCallback(
+    (newUser: SessionUser) => {
+      setUser(newUser);
+      setActiveBranchIdState(newUser.branchId ?? null);
+      setIsInitialized(true);
+      const landing = newUser.role === "STAFF" ? "/pos/terminal" : "/";
+      router.push(landing);
+      toast.success("Logged in successfully");
+    },
+    [router],
+  );
 
   const logout = useCallback(async () => {
     try {
@@ -88,25 +100,26 @@ export function AuthProvider({
     }
     setUser(null);
     setActiveBranchIdState(null);
+    queryClient.clear();
+    clearStoredBranchId();
     router.push("/login");
     toast.success("Logged out successfully");
-  }, [router]);
+  }, [router, queryClient]);
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        isAuthenticated: user != null,
-        login,
-        logout,
-        activeBranchId,
-        setActiveBranchId,
-        isInitialized,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({
+      user,
+      isAuthenticated: user != null,
+      login,
+      logout,
+      activeBranchId,
+      setActiveBranchId,
+      isInitialized,
+    }),
+    [user, login, logout, activeBranchId, setActiveBranchId, isInitialized],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => {
