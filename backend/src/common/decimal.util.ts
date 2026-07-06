@@ -1,36 +1,54 @@
+import { Prisma } from '@prisma/client';
+
 type DecimalLike = { toNumber(): number };
+
+export type MoneyInput =
+  | number
+  | string
+  | Prisma.Decimal
+  | DecimalLike
+  | null
+  | undefined;
 
 export const MONEY_SCALE = 2;
 export const UNIT_COST_SCALE = 4;
-const MONEY_EPSILON = 0.01;
 
-export function toNum(
-  value: number | string | DecimalLike | null | undefined,
-): number {
-  if (value == null) return 0;
-  if (typeof value === 'number') return value;
-  if (typeof value === 'string') return parseFloat(value);
-  if (
-    typeof value === 'object' &&
-    value !== null &&
-    'toNumber' in value &&
-    typeof value.toNumber === 'function'
-  ) {
-    return value.toNumber();
+export function dec(value: MoneyInput): Prisma.Decimal {
+  if (value == null) return new Prisma.Decimal(0);
+  if (value instanceof Prisma.Decimal) return value;
+  if (typeof value === 'number' || typeof value === 'string') {
+    return new Prisma.Decimal(value);
   }
-  return Number(value);
+  if (typeof value.toNumber === 'function') {
+    return new Prisma.Decimal(value.toNumber());
+  }
+  return new Prisma.Decimal(0);
 }
 
-export function roundMoney(value: number): number {
-  const factor = 10 ** MONEY_SCALE;
-  return Math.round(value * factor) / factor;
+export function toNum(value: MoneyInput): number {
+  return dec(value).toNumber();
 }
 
-export function roundUnitCost(value: number): number {
-  const factor = 10 ** UNIT_COST_SCALE;
-  return Math.round(value * factor) / factor;
+export function roundMoney(value: MoneyInput): number {
+  return dec(value).toDecimalPlaces(MONEY_SCALE).toNumber();
 }
 
-export function isBalancedMoney(debits: number, credits: number): boolean {
-  return Math.abs(debits - credits) <= MONEY_EPSILON;
+export function roundUnitCost(value: MoneyInput): number {
+  return dec(value).toDecimalPlaces(UNIT_COST_SCALE).toNumber();
+}
+
+export function sumMoney(values: MoneyInput[]): Prisma.Decimal {
+  return values.reduce<Prisma.Decimal>(
+    (sum, value) => sum.plus(dec(value).toDecimalPlaces(MONEY_SCALE)),
+    new Prisma.Decimal(0),
+  );
+}
+
+export function isBalancedMoney(
+  debits: MoneyInput,
+  credits: MoneyInput,
+): boolean {
+  return dec(debits)
+    .toDecimalPlaces(MONEY_SCALE)
+    .equals(dec(credits).toDecimalPlaces(MONEY_SCALE));
 }

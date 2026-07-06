@@ -1,4 +1,10 @@
-import { isBalancedMoney, roundMoney, roundUnitCost } from './decimal.util';
+import {
+  dec,
+  isBalancedMoney,
+  roundMoney,
+  roundUnitCost,
+  sumMoney,
+} from './decimal.util';
 
 describe('decimal.util', () => {
   it('rounds money to 2 decimal places', () => {
@@ -10,8 +16,18 @@ describe('decimal.util', () => {
     expect(roundUnitCost(0.12345)).toBe(0.1235);
   });
 
-  it('checks journal balance within money epsilon', () => {
-    expect(isBalancedMoney(100, 100.009)).toBe(true);
-    expect(isBalancedMoney(100, 100.02)).toBe(false);
+  it('requires journal balance to be exact — no cent tolerance', () => {
+    expect(isBalancedMoney(100, 100)).toBe(true);
+    expect(isBalancedMoney(100, 100.009)).toBe(false);
+    expect(isBalancedMoney(100, 100.01)).toBe(false);
+  });
+
+  it('sums in decimal space without float drift', () => {
+    expect(sumMoney([0.1, 0.2]).equals(dec(0.3))).toBe(true);
+    expect(isBalancedMoney(sumMoney([0.1, 0.2]), 0.3)).toBe(true);
+  });
+
+  it('does decimal arithmetic free of float artifacts', () => {
+    expect(dec('19.99').times(3).toNumber()).toBe(59.97);
   });
 });

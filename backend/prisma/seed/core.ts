@@ -345,7 +345,7 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
       { key: 'tax_id', value: '0105560000000' },
       { key: 'vat_rate', value: '7' },
       { key: 'currency', value: 'THB' },
-      { key: 'receipt_footer', value: 'ขอบคุณที่ใช้บริการ BranchBrew' },
+      { key: 'receipt_footer', value: 'Thank you for visiting BranchBrew' },
     ],
   });
 
@@ -360,6 +360,7 @@ export async function seedCore(prisma: PrismaClient): Promise<SeedContext> {
     { code: '4010', name: 'Sales Revenue', type: 'REVENUE' as const },
     { code: '5010', name: 'Cost of Goods Sold (COGS)', type: 'EXPENSE' as const },
     { code: '5020', name: 'Payroll Expense', type: 'EXPENSE' as const },
+    { code: '5030', name: 'Production Cost Variance', type: 'EXPENSE' as const },
   ];
   for (const acct of defaultAccounts) {
     await prisma.account.create({ data: acct });

@@ -17,6 +17,7 @@ model User {
   branch             Branch?            @relation(fields: [branchId], references: [id])
   hourlyRate         Decimal            @default(0) @db.Decimal(19, 4)
   baseSalary         Decimal            @default(0) @db.Decimal(19, 4)
+  tokenVersion       Int                @default(0)
   orders             Order[]
   transfersRequested StockTransfer[]    @relation("TransferRequestedBy")
   transfersApproved  StockTransfer[]    @relation("TransferApprovedBy")
@@ -287,6 +288,8 @@ model Order {
   @@unique([branchId, queueDate, queueNumber])
   @@index([userId])
   @@index([createdAt])
+  @@index([customerId])
+  @@index([promotionId])
 }
 
 model OrderItem {
@@ -640,7 +643,7 @@ model JournalEntry {
   branchId    Int?
   branch      Branch?            @relation(fields: [branchId], references: [id])
   date        DateTime           @default(now()) @db.Date
-  reference   String? // e.g. "PO-1234", "ORD-999"
+  reference   String?            @unique // e.g. "PO-1234", "ORD-999"
   description String // e.g. "Sales Revenue for order 999"
   status      JournalStatus      @default(POSTED)
   lines       JournalEntryLine[]
@@ -648,7 +651,7 @@ model JournalEntry {
   updatedAt   DateTime           @updatedAt
 
   @@index([date])
-  @@index([reference])
+  @@index([branchId])
 }
 
 enum JournalStatus {

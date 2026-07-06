@@ -1,4 +1,4 @@
-import { roundMoney } from './decimal.util';
+import { dec, roundMoney } from './decimal.util';
 
 /** VAT/tax embedded in an inclusive net total (e.g. 7% VAT in 107 → 7). */
 export function inclusiveTaxAmount(
@@ -6,7 +6,11 @@ export function inclusiveTaxAmount(
   ratePercent: number,
 ): number {
   if (ratePercent <= 0 || netInclusive <= 0) return 0;
-  return roundMoney((netInclusive * ratePercent) / (100 + ratePercent));
+  return roundMoney(
+    dec(netInclusive)
+      .times(ratePercent)
+      .dividedBy(100 + ratePercent),
+  );
 }
 
 export function parseVatRatePercent(raw: string | null | undefined): number {

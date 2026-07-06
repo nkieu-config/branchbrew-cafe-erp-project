@@ -253,14 +253,23 @@ export async function seedDashboardDemo(ctx: SeedContext): Promise<void> {
     [{ productName: 'Honey Oat Latte', quantity: 4, unitPrice: 92 }],
   ];
 
-  for (let daysAgo = 6; daysAgo >= 2; daysAgo--) {
+  for (let daysAgo = 35; daysAgo >= 2; daysAgo--) {
     trendOrders.push({
       branchKey: daysAgo % 2 === 0 ? 'main' : 'second',
       userKey: daysAgo % 2 === 0 ? 'staff' : 'asokStaff',
       createdAt: dateAtDayOffset(-daysAgo, 17, 30),
       paymentMethod: daysAgo % 3 === 0 ? 'CREDIT_CARD' : 'CASH',
-      lines: trendPattern[6 - daysAgo] ?? trendPattern[0],
+      lines: trendPattern[daysAgo % trendPattern.length],
     });
+    if (daysAgo % 7 === 0 || daysAgo % 7 === 1) {
+      trendOrders.push({
+        branchKey: 'main',
+        userKey: 'staff',
+        createdAt: dateAtDayOffset(-daysAgo, 11, 15),
+        paymentMethod: 'QR_PROMPTPAY',
+        lines: trendPattern[(daysAgo + 3) % trendPattern.length],
+      });
+    }
   }
 
   for (const spec of [...todayOrders, ...yesterdayOrders, ...trendOrders]) {

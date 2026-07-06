@@ -7,12 +7,18 @@ import { OrderVoidedEvent } from '../orders/events/order-voided.event';
 import { OrderRefundedEvent } from '../orders/events/order-refunded.event';
 import { PurchaseOrderReceivedEvent } from '../procurement/events/purchase-order-received.event';
 import { ProductionCompletedEvent } from '../production/events/production-completed.event';
-import { toNum, roundMoney, isBalancedMoney } from '../common/decimal.util';
+import {
+  dec,
+  toNum,
+  roundMoney,
+  isBalancedMoney,
+  sumMoney,
+} from '../common/decimal.util';
 import {
   paymentAccountLabel,
   resolvePaymentAccountCode,
 } from './payment-accounts.util';
-import { OrderSnapshot } from '../orders/domain/order-snapshot';
+import { OrderSnapshot } from '../orders/domain/order.snapshot';
 
 @Injectable()
 export class AccountingService {
@@ -166,8 +172,17 @@ export class AccountingService {
 
   @OnEvent('production.completed', { async: true })
   async handleProductionCompleted(event: ProductionCompletedEvent) {
-    const totalRawCost = roundMoney(event.totalRawCost);
-    if (totalRawCost <= 0) return;
+    const rawCost = dec(event.totalRawCost).toDecimalPlaces(2);
+    const finishedValue = dec(event.finishedGoodsValue).toDecimalPlaces(2);
+    if (rawCost.lte(0) && finishedValue.lte(0)) return;
+
+    const variance = finishedValue.minus(rawCost);
+    if (variance.isZero()) {
+      this.logger.log(
+        `Production ${event.orderNumber} converted at cost — no net GL effect, skipping journal entry.`,
+      );
+      return;
+    }
 
     await this.createJournalEntry({
       branchId: event.branchId,
@@ -176,16 +191,29 @@ export class AccountingService {
       lines: [
         {
           accountCode: '1030',
-          debit: totalRawCost,
+          debit: finishedValue.toNumber(),
           credit: 0,
-          description: 'Finished Goods Inventory Increase',
+          description: 'Finished goods into inventory (standard cost)',
         },
         {
           accountCode: '1030',
           debit: 0,
-          credit: totalRawCost,
-          description: 'Raw Materials Inventory Decrease',
+          credit: rawCost.toNumber(),
+          description: 'Raw materials consumed (actual cost)',
         },
+        variance.isNegative()
+          ? {
+              accountCode: '5030',
+              debit: variance.abs().toNumber(),
+              credit: 0,
+              description: 'Production cost variance (unfavorable)',
+            }
+          : {
+              accountCode: '5030',
+              debit: 0,
+              credit: variance.toNumber(),
+              description: 'Production cost variance (favorable)',
+            },
       ],
     });
   }
@@ -224,18 +252,12 @@ export class AccountingService {
     }[];
   }) {
     // 1. Verify debits equal credits
-    const totalDebits = data.lines.reduce(
-      (sum, line) => sum + roundMoney(line.debit),
-      0,
-    );
-    const totalCredits = data.lines.reduce(
-      (sum, line) => sum + roundMoney(line.credit),
-      0,
-    );
+    const totalDebits = sumMoney(data.lines.map((line) => line.debit));
+    const totalCredits = sumMoney(data.lines.map((line) => line.credit));
 
     if (!isBalancedMoney(totalDebits, totalCredits)) {
       throw new BadRequestException(
-        `Journal entry unbalanced. Debits: ${totalDebits}, Credits: ${totalCredits}`,
+        `Journal entry unbalanced. Debits: ${totalDebits.toString()}, Credits: ${totalCredits.toString()}`,
       );
     }
 
@@ -252,26 +274,51 @@ export class AccountingService {
     const accountMap = new Map(accounts.map((a) => [a.code, a.id]));
 
     // 3. Create the journal entry
-    return this.prisma.journalEntry.create({
-      data: {
-        branchId: data.branchId,
-        date: data.date || new Date(),
-        reference: data.reference,
-        description: data.description,
-        status: 'POSTED',
-        lines: {
-          create: data.lines.map((line) => ({
-            accountId: accountMap.get(line.accountCode)!,
-            debit: roundMoney(line.debit),
-            credit: roundMoney(line.credit),
-            description: line.description,
-          })),
+    try {
+      return await this.prisma.journalEntry.create({
+        data: {
+          branchId: data.branchId,
+          date: data.date || new Date(),
+          reference: data.reference,
+          description: data.description,
+          status: 'POSTED',
+          lines: {
+            create: data.lines.map((line) => ({
+              accountId: accountMap.get(line.accountCode)!,
+              debit: roundMoney(line.debit),
+              credit: roundMoney(line.credit),
+              description: line.description,
+            })),
+          },
         },
-      },
-      include: {
-        lines: true,
-      },
-    });
+        include: {
+          lines: true,
+        },
+      });
+    } catch (err) {
+      if (data.reference && this.isDuplicateReference(err)) {
+        this.logger.warn(
+          `Journal entry ${data.reference} already posted — skipping duplicate delivery.`,
+        );
+        const existing = await this.prisma.journalEntry.findUnique({
+          where: { reference: data.reference },
+          include: { lines: true },
+        });
+        if (existing) return existing;
+      }
+      throw err;
+    }
+  }
+
+  private isDuplicateReference(err: unknown): boolean {
+    if (
+      !(err instanceof Prisma.PrismaClientKnownRequestError) ||
+      err.code !== 'P2002'
+    ) {
+      return false;
+    }
+    const target = err.meta?.target;
+    return Array.isArray(target) && target.includes('reference');
   }
 
   // Helper method to seed initial accounts if they don't exist
@@ -291,6 +338,11 @@ export class AccountingService {
         type: 'EXPENSE' as const,
       },
       { code: '5020', name: 'Payroll Expense', type: 'EXPENSE' as const },
+      {
+        code: '5030',
+        name: 'Production Cost Variance',
+        type: 'EXPENSE' as const,
+      },
     ];
 
     for (const acc of defaultAccounts) {
