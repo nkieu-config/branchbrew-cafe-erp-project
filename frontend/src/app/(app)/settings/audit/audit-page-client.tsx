@@ -15,7 +15,7 @@ import {
   auditTargetTypeLabel,
   filterAuditLogs,
   uniqueAuditTargetTypes,
-} from "@/lib/audit-filters";
+} from "@/lib/filters/audit-filters";
 import { getErrorMessage } from "@/lib/errors";
 import { infoBannerClassName, infoBannerTextClassName } from "@/lib/theme/hub-banners";
 import { hubLoadingSpinnerClassName } from "@/lib/theme/hub-primitives";

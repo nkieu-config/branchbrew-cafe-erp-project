@@ -17,7 +17,7 @@ import {
   branchTypeLabel,
   filterBranches,
   summarizeBranches,
-} from "@/lib/branch-filters";
+} from "@/lib/filters/branch-filters";
 import { getErrorMessage } from "@/lib/errors";
 import type { Branch } from "@/types/api";
 import { infoBannerClassName, infoBannerTextClassName } from "@/lib/theme/hub-banners";

@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { equipmentStatusLabel } from "@/lib/equipment-filters";
+import { equipmentStatusLabel } from "@/lib/filters/equipment-filters";
 import type { Equipment, EquipmentStatus } from "@/types/api";
 import { assetsDialogContentClassName } from "@/lib/theme/assets";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";

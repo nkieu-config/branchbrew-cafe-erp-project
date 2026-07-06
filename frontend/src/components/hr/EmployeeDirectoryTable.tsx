@@ -13,7 +13,7 @@ import {
 } from "@/components/shared/responsive-data-table";
 import { StatusBadge, employeeRoleTone } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
-import { employeeHasMissingRate } from "@/lib/employee-filters";
+import { employeeHasMissingRate } from "@/lib/filters/employee-filters";
 import { buildHrPayrollUrl } from "@/lib/hr-hub-url";
 import { formatCurrency } from "@/lib/money";
 import { useHubListPagination } from "@/hooks/useHubListPagination";

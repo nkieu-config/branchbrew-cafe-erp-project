@@ -7,7 +7,7 @@ import {
 import {
   productHasRecipe,
   productIsActive,
-} from "@/lib/menu-product-filters";
+} from "@/lib/filters/menu-product-filters";
 
 export type FoodCostStatusFilter =
   | "ALL"

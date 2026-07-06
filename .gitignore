@@ -11,6 +11,4 @@ infra/.env.compose
 application.log
 playwright-report/
 test-results/
-
-# Ignored Reference Files
-erp_reference.md
+logs/

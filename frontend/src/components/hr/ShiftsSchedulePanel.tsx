@@ -7,7 +7,7 @@ import { ganttPanelClassName } from "@/lib/theme/hub-hr";
 import { hubCtaClassName, hubLoadingSpinnerClassName } from "@/lib/theme/hub-primitives";
 import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
-import type { ShiftUserRow } from "@/lib/shift-filters";
+import type { ShiftUserRow } from "@/lib/filters/shift-filters";
 
 type ShiftsSchedulePanelProps = {
   isLoading: boolean;

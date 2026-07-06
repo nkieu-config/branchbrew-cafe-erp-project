@@ -1,8 +1,9 @@
 {
-  "name": "@erp/types",
+  "name": "@branchbrew/types",
   "version": "0.0.0",
   "private": true,
   "description": "Shared TypeScript types generated from Prisma schema",
+  "license": "MIT",
   "exports": {
     ".": "./src/index.ts"
   }

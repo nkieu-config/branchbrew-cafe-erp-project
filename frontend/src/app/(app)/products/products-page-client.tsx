@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState, useDeferredValue } from "react";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useDeleteProduct } from "@/hooks/domains/useProductQueries";
-import { useProductsSummary } from "@/hooks/domains/useProductsSummary";
+import { useProductsSummaryQueries } from "@/hooks/domains/useProductsSummaryQueries";
 import { Button } from "@/components/ui/button";
 import { ProductFormModal } from "@/components/products/ProductFormModal";
 import { MenuProductListTable } from "@/components/products/MenuProductListTable";
@@ -17,7 +17,7 @@ import {
   filterMenuProducts,
   hasMenuProductFilters,
   type MenuStatusFilter,
-} from "@/lib/menu-product-filters";
+} from "@/lib/filters/menu-product-filters";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { productsSectionPanelClassName } from "@/lib/theme/hub-products";
 import type { Product } from "@/types/api";
@@ -31,7 +31,7 @@ export default function ProductsPageClient() {
     error,
     refetch,
     isFetching,
-  } = useProductsSummary();
+  } = useProductsSummaryQueries();
   const deleteMutation = useDeleteProduct();
 
   const [isModalOpen, setIsModalOpen] = useState(false);

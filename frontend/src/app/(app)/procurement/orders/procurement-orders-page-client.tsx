@@ -56,7 +56,7 @@ import {
   summarizePurchaseOrders,
   type POHighlightFilter,
   type POStatusFilter,
-} from "@/lib/purchase-order-filters";
+} from "@/lib/filters/purchase-order-filters";
 import type { PurchaseOrder, Supplier } from "@/types/api";
 import { useHubListPagination } from "@/hooks/useHubListPagination";
 import { infoBannerClassName, infoBannerTextClassName } from "@/lib/theme/hub-banners";

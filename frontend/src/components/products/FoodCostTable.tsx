@@ -20,8 +20,8 @@ import {
   foodCostStatusTone,
   productFoodCostBucket,
   productHasMissingIngredientCost,
-} from "@/lib/food-cost-filters";
-import { productHasRecipe } from "@/lib/menu-product-filters";
+} from "@/lib/filters/food-cost-filters";
+import { productHasRecipe } from "@/lib/filters/menu-product-filters";
 import { useHubListPagination } from "@/hooks/useHubListPagination";
 import { inlineLinkClassName } from "@/lib/theme/hub-primitives";
 import {

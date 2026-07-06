@@ -5,7 +5,7 @@ import { ListFilterSelect } from "@/components/shared/list-filters";
 import { BatchInventoryTable } from "@/components/inventory/BatchInventoryTable";
 import { getErrorMessage } from "@/lib/errors";
 import { formatHubListCountWithFetching } from "@/lib/format-hub-list-count";
-import type { ExpiryFilter, InventoryWithIngredient, BatchWithSupplier } from "@/lib/batch-filters";
+import type { ExpiryFilter, InventoryWithIngredient, BatchWithSupplier } from "@/lib/filters/batch-filters";
 import { inventorySectionPanelClassName } from "@/lib/theme/stock";
 import { cn } from "@/lib/utils";
 

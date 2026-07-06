@@ -19,7 +19,7 @@ import {
   summarizeShifts,
   type ShiftStatusFilter,
   type ShiftWithUser,
-} from "@/lib/shift-filters";
+} from "@/lib/filters/shift-filters";
 import { formatDate } from "@/lib/intl-date";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { hrSectionPanelClassName } from "@/lib/theme/hub-hr";

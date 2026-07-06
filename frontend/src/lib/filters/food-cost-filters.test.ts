@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { IngredientSummary, Product, RecipeItem } from "@/types/api";
-import { calcProductFoodCost, foodCostStatus } from "./food-cost";
+import { calcProductFoodCost, foodCostStatus } from "../food-cost";
 import {
   matchesFoodCostStatusFilter,
   productFoodCostBucket,

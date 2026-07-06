@@ -7,8 +7,8 @@ import {
   auditActionLabel,
   auditTargetTypeLabel,
   formatAuditDetails,
-} from "@/lib/audit-filters";
-import { roleLabel } from "@/lib/employee-filters";
+} from "@/lib/filters/audit-filters";
+import { roleLabel } from "@/lib/filters/employee-filters";
 import { formatDateTime } from "@/lib/intl-date";
 import { settingsMutedMetaClassName, settingsSheetContentClassName } from "@/lib/theme/settings-hub-chrome";
 import { text } from "@/lib/theme/surface";

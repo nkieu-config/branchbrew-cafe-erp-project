@@ -1,4 +1,4 @@
-import type { POHighlightFilter, POStatusFilter } from "@/lib/purchase-order-filters";
+import type { POHighlightFilter, POStatusFilter } from "@/lib/filters/purchase-order-filters";
 
 const PO_STATUS_PARAMS: POStatusFilter[] = [
   "DRAFT",

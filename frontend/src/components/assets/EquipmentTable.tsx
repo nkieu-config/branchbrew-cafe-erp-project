@@ -16,7 +16,7 @@ import {
   equipmentTypeLabel,
   isMaintenanceDueSoon,
   isMaintenanceOverdue,
-} from "@/lib/equipment-filters";
+} from "@/lib/filters/equipment-filters";
 import { formatDate } from "@/lib/intl-date";
 import { useHubListPagination } from "@/hooks/useHubListPagination";
 import {

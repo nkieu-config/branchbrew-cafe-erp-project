@@ -28,7 +28,7 @@ import {
   hasPayrollRunForMonth,
   payrollRunTotalNet,
   summarizePayrollRuns,
-} from "@/lib/payroll-filters";
+} from "@/lib/filters/payroll-filters";
 import { infoBannerClassName, infoBannerTextClassName } from "@/lib/theme/hub-banners";
 import { hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
 import { hrSectionPanelClassName } from "@/lib/theme/hub-hr";

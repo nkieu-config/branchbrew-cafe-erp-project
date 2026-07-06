@@ -18,7 +18,7 @@ import {
   accountTypesForLegend,
   filterAccountTree,
   summarizeAccounts,
-} from "@/lib/account-filters";
+} from "@/lib/filters/account-filters";
 import { getErrorMessage } from "@/lib/errors";
 import { financeSectionPanelClassName } from "@/lib/theme/finance";
 import { infoBannerClassName, infoBannerTextClassName } from "@/lib/theme/hub-banners";

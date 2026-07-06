@@ -6,7 +6,7 @@ import type {
   CreateTransferDTO,
   EquipmentDTO,
   LogMaintenanceDTO,
-} from '../types/schemas';
+} from '../../types/schemas';
 import type {
   CreateIngredientPayload,
   CreateProductPayload,
@@ -14,9 +14,9 @@ import type {
   CreatePurchaseOrderPayload,
   CreateProductionOrderPayload,
   CreateProductionBOMPayload
-} from '../types/api';
-import { API_ENDPOINTS } from './endpoints';
-import { API_URL, fetchAPI } from './api/client';
+} from '../../types/api';
+import { API_ENDPOINTS } from '../endpoints';
+import { API_URL, fetchAPI, fetchAPIBlob } from './client';
 
 export { fetchAPI, API_URL };
 
@@ -165,9 +165,7 @@ export async function exportSales(branchId?: number, startDate?: Date, endDate?:
     startDate?.toISOString(),
     endDate?.toISOString(),
   );
-  const res = await fetch(`${API_URL}${endpoint}`, { credentials: 'include' });
-  if (!res.ok) throw new Error('Failed to export sales');
-  const blob = await res.blob();
+  const blob = await fetchAPIBlob(endpoint);
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

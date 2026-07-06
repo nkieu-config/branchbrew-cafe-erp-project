@@ -17,7 +17,7 @@ import {
   type EmployeeRoleFilter,
   type EmploymentTypeFilter,
   filterEmployees,
-} from "@/lib/employee-filters";
+} from "@/lib/filters/employee-filters";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { hrSectionPanelClassName } from "@/lib/theme/hub-hr";
 import type { User } from "@/types/api";

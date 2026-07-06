@@ -8,7 +8,7 @@ import {
   MobileBottomNavLink,
   MobileBottomNavMenuButton,
   MobileBottomNavShell,
-} from "@/components/layout/mobile-bottom-nav-primitives";
+} from "@/components/layout/MobileBottomNavPrimitives";
 import type { Role } from "@/types/api";
 
 export function MobileBottomNav() {

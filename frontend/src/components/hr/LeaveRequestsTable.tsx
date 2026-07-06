@@ -15,7 +15,7 @@ import {
   leaveDurationDays,
   leaveStatusLabel,
   leaveTypeLabel,
-} from "@/lib/leave-filters";
+} from "@/lib/filters/leave-filters";
 import { formatDateRange } from "@/lib/intl-date";
 import { useHubListPagination } from "@/hooks/useHubListPagination";
 import { tableCellMutedClassName } from "@/lib/theme/feedback";

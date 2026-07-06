@@ -1,4 +1,4 @@
-import { OrderSnapshot } from '../domain/order-snapshot';
+import { OrderSnapshot } from '../domain/order.snapshot';
 
 export class OrderCreatedEvent {
   constructor(

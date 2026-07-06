@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { EQUIPMENT_TYPE_OPTIONS } from "@/lib/equipment-filters";
+import { EQUIPMENT_TYPE_OPTIONS } from "@/lib/filters/equipment-filters";
 import type { EquipmentType } from "@/types/api";
 import { assetsDialogContentClassName } from "@/lib/theme/assets";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";

@@ -1,6 +1,6 @@
 import { Module, Global } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { EventsGateway } from './events.gateway';
+import { RealtimeGateway } from './realtime.gateway';
 
 @Global()
 @Module({
@@ -10,7 +10,7 @@ import { EventsGateway } from './events.gateway';
       signOptions: { expiresIn: '1d' },
     }),
   ],
-  providers: [EventsGateway],
-  exports: [EventsGateway],
+  providers: [RealtimeGateway],
+  exports: [RealtimeGateway],
 })
-export class EventsModule {}
+export class RealtimeModule {}

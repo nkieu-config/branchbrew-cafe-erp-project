@@ -1,5 +1,5 @@
-import type { FoodCostStatusFilter } from "@/lib/food-cost-filters";
-import type { IngredientCostFilter } from "@/lib/ingredient-filters";
+import type { FoodCostStatusFilter } from "@/lib/filters/food-cost-filters";
+import type { IngredientCostFilter } from "@/lib/filters/ingredient-filters";
 
 const FOOD_COST_STATUS_PARAMS: FoodCostStatusFilter[] = [
   "good",

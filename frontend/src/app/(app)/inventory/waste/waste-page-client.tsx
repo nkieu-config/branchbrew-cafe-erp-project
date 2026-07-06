@@ -20,7 +20,7 @@ import {
   extractWasteHistoryIngredients,
   filterWasteLogs,
   hasWasteHistoryFilters,
-} from "@/lib/waste-filters";
+} from "@/lib/filters/waste-filters";
 import type { Ingredient } from "@/types/api";
 
 function emptyLine(): WasteLineRow {

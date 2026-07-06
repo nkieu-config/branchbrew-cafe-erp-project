@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { Calendar, Popover } from "antd";
 import { CalendarDays } from "lucide-react";
-import { AntdScope } from "@/components/providers/AntdScope";
+import { AntdProvider } from "@/providers/AntdProvider";
 import { differenceInDays } from "date-fns";
 import { formatIsoDate } from "@/lib/intl-date";
 import { isTrackableBatch } from "@/lib/inventory-alerts";
@@ -117,7 +117,7 @@ export function ExpiryHeatmapPanel({ batches }: ExpiryHeatmapPanelProps) {
   };
 
   return (
-    <AntdScope>
+    <AntdProvider>
     <div className={expiryHeatmapPanelClassName()}>
       <div className={expiryHeatmapHeaderClassName()}>
         <CalendarDays className={expiryHeatmapHeaderIconClassName()} aria-hidden />
@@ -147,6 +147,6 @@ export function ExpiryHeatmapPanel({ batches }: ExpiryHeatmapPanelProps) {
         </div>
       </div>
     </div>
-    </AntdScope>
+    </AntdProvider>
   );
 }

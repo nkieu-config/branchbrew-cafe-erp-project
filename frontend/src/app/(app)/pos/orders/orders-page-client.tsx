@@ -18,7 +18,7 @@ import {
   filterPosOrders,
   filterRecentOrders,
   hasPosOrderFilters,
-} from "@/lib/pos-order-filters";
+} from "@/lib/filters/pos-order-filters";
 import { posSectionPanelClassName } from "@/lib/theme/immersive";
 import type { Branch, Order, OrderStatus } from "@/types/api";
 

@@ -23,7 +23,7 @@ import {
   type EquipmentTypeFilter,
   filterEquipment,
   summarizeEquipment,
-} from "@/lib/equipment-filters";
+} from "@/lib/filters/equipment-filters";
 import { getErrorMessage } from "@/lib/errors";
 import type { Equipment, EquipmentStatus, EquipmentType } from "@/types/api";
 import { assetsSectionPanelClassName } from "@/lib/theme/assets";

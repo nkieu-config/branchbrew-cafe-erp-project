@@ -5,8 +5,12 @@ test.describe("finance business flow", () => {
   test("manager demo login opens finance overview via sidebar", async ({ page }) => {
     await page.goto("/login");
     await expect(locators.loginDemoPanel(page)).toBeVisible();
-    await locators.demoManager(page).click();
-    await page.waitForURL((url) => !url.pathname.includes("/login"), { timeout: 30_000 });
+    await expect(async () => {
+      await locators.demoManager(page).click();
+      await page.waitForURL((url) => !url.pathname.includes("/login"), {
+        timeout: 5_000,
+      });
+    }).toPass({ timeout: 30_000 });
 
     await locators.navFinance(page).click();
     await expect(page).toHaveURL(/\/finance\/overview/);

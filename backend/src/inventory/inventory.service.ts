@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InventoryBatch, BranchInventory, WasteLog } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { InventoryHelper } from '../orders/helpers/inventory.helper';
+import { InventoryHelper } from '../common/helpers/inventory.helper';
 import { WasteDisposalHelper } from './helpers/waste-disposal.helper';
 
 @Injectable()

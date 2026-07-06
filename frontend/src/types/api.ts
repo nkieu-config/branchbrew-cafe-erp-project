@@ -20,7 +20,7 @@ import type {
   ShiftStatus,
   Tier,
   TransferStatus,
-} from '@erp/types';
+} from '@branchbrew/types';
 
 import type { Account } from './accounting';
 import type { Product } from './products';

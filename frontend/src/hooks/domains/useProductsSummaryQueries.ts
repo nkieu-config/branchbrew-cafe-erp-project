@@ -1,9 +1,9 @@
 import { useMemo } from "react";
 import { useProducts } from "@/hooks/domains/useProductQueries";
-import { summarizeFoodCost } from "@/lib/food-cost-filters";
-import { productIsActive } from "@/lib/menu-product-filters";
+import { summarizeFoodCost } from "@/lib/filters/food-cost-filters";
+import { productIsActive } from "@/lib/filters/menu-product-filters";
 
-export function useProductsSummary() {
+export function useProductsSummaryQueries() {
   const query = useProducts();
   const products = query.data ?? [];
 

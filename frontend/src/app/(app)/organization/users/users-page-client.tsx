@@ -19,7 +19,7 @@ import {
   type EmployeeRoleFilter,
   type OrgUserBranchFilter,
   filterEmployees,
-} from "@/lib/employee-filters";
+} from "@/lib/filters/employee-filters";
 import { getErrorMessage } from "@/lib/errors";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { organizationSectionPanelClassName } from "@/lib/theme/organization";

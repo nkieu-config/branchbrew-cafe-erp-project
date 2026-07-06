@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { NavCountsController } from './nav-counts.controller';
-import { NavCountsService } from './nav-counts.service';
+import { NavigationController } from './navigation.controller';
+import { NavigationService } from './navigation.service';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [NavCountsController],
-  providers: [NavCountsService],
-  exports: [NavCountsService],
+  controllers: [NavigationController],
+  providers: [NavigationService],
+  exports: [NavigationService],
 })
 export class NavigationModule {}

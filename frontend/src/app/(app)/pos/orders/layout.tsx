@@ -1,7 +1,7 @@
 "use client";
 
 import { RoleGuard } from "@/components/auth/RoleGuard";
-import { AntdScope } from "@/components/providers/AntdScope";
+import { AntdProvider } from "@/providers/AntdProvider";
 import { AccessDeniedState } from "@/components/shared/access-denied-state";
 
 export default function PosOrdersLayout({ children }: { children: React.ReactNode }) {
@@ -12,7 +12,7 @@ export default function PosOrdersLayout({ children }: { children: React.ReactNod
         <AccessDeniedState description="Manager or Super Admin access is required to view order history." />
       }
     >
-      <AntdScope>{children}</AntdScope>
+      <AntdProvider>{children}</AntdProvider>
     </RoleGuard>
   );
 }

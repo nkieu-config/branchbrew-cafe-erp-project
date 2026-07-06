@@ -48,7 +48,7 @@ import {
   modifierGroupIsEmpty,
   type ModifierCategoryFilter,
   type ModifierHighlightFilter,
-} from "@/lib/modifier-filters";
+} from "@/lib/filters/modifier-filters";
 import { hubListDataTableProps } from "@/lib/theme/data-table";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { modifierGroupPanelClassName } from "@/lib/theme/hub-products";

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BomGroupRow, ProductionBOM } from "@/types/api";
-import { groupProductionBoms } from "./bom";
+import { groupProductionBoms } from "../bom";
 import {
   getBomTargetIds,
   matchesBomSearch,

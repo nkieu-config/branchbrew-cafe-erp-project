@@ -26,7 +26,7 @@ import {
   type LeaveTypeFilter,
   filterLeaveRequests,
   summarizeLeaveRequests,
-} from "@/lib/leave-filters";
+} from "@/lib/filters/leave-filters";
 import { buildHrLeaveUrl, parseHrLeaveSearchParams } from "@/lib/hr-hub-url";
 import { infoBannerClassName, infoBannerTextClassName } from "@/lib/theme/hub-banners";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";

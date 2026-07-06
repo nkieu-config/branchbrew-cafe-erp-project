@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { AntdScope } from "@/components/providers/AntdScope";
+import { AntdProvider } from "@/providers/AntdProvider";
 import { PageChrome, PageChromeProvider } from "@/components/layout/PageChrome";
 import {
   getHubConfig,
@@ -46,7 +46,7 @@ export function HubShell({
   );
 
   if (shouldWrapAntd) {
-    return <AntdScope>{content}</AntdScope>;
+    return <AntdProvider>{content}</AntdProvider>;
   }
 
   return content;

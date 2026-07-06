@@ -26,7 +26,7 @@ import {
   hasSupplierFilters,
   summarizeSuppliers,
   type SupplierContactFilter,
-} from "@/lib/supplier-filters";
+} from "@/lib/filters/supplier-filters";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { procurementSectionPanelClassName } from "@/lib/theme/hub-procurement";
 import type { Supplier } from "@/types/api";

@@ -17,7 +17,7 @@ import { tableCellMutedClassName } from "@/lib/theme/feedback";
 import { inventorySectionPanelClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
-import type { WasteHistoryIngredient } from "@/lib/waste-filters";
+import type { WasteHistoryIngredient } from "@/lib/filters/waste-filters";
 import type { WasteLog } from "@/types/api";
 
 type WasteHistoryPanelProps = {

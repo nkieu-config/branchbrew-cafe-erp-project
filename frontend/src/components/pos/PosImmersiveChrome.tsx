@@ -7,7 +7,7 @@ import {
   MobileBottomNavLink,
   MobileBottomNavMenuButton,
   MobileBottomNavShell,
-} from "@/components/layout/mobile-bottom-nav-primitives";
+} from "@/components/layout/MobileBottomNavPrimitives";
 import { useAuth } from "@/context/AuthContext";
 import { useMobileNav } from "@/context/MobileNavContext";
 import { getVisibleHubTabs, isTabActive, shouldShowHubSubNav } from "@/lib/navigation";

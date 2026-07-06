@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState, useDeferredValue } from "react";
 import { useSearchParams } from "next/navigation";
 import { useOrders } from "@/hooks/domains/useReportsQueries";
-import { useProductsSummary } from "@/hooks/domains/useProductsSummary";
+import { useProductsSummaryQueries } from "@/hooks/domains/useProductsSummaryQueries";
 import { FoodCostMarginPanel } from "@/components/products/FoodCostMarginPanel";
 import { FoodCostTable } from "@/components/products/FoodCostTable";
 import { ProductFormModal } from "@/components/products/ProductFormModal";
@@ -13,13 +13,13 @@ import { getErrorMessage } from "@/lib/errors";
 import { formatHubListCountWithFetching } from "@/lib/format-hub-list-count";
 import {
   extractProductCategories,
-} from "@/lib/menu-product-filters";
+} from "@/lib/filters/menu-product-filters";
 import {
   filterFoodCostProducts,
   hasFoodCostFilters,
   type FoodCostActiveFilter,
   type FoodCostStatusFilter,
-} from "@/lib/food-cost-filters";
+} from "@/lib/filters/food-cost-filters";
 import { parseProductsCostingSearchParams } from "@/lib/products-hub-url";
 import { productsSectionPanelClassName } from "@/lib/theme/hub-products";
 import type { Product } from "@/types/api";
@@ -34,7 +34,7 @@ export default function CostingPageClient() {
     error,
     refetch,
     isFetching,
-  } = useProductsSummary();
+  } = useProductsSummaryQueries();
   const { data: orders = [], isLoading: ordersLoading } = useOrders();
 
   const [search, setSearch] = useState("");

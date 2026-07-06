@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { getErrorMessage } from "@/lib/errors";
 import { groupProductionBoms } from "@/lib/bom";
 import { buildProductsIngredientsUrl } from "@/lib/products-hub-url";
-import { matchesBomSearch, summarizeProductionBoms } from "@/lib/bom-filters";
+import { matchesBomSearch, summarizeProductionBoms } from "@/lib/filters/bom-filters";
 import type { BomGroupRow, ProductionBOM } from "@/types/api";
 import { hubCtaClassName, inlineLinkClassName } from "@/lib/theme/hub-primitives";
 import { kitchenSectionPanelClassName } from "@/lib/theme/hub-kitchen";

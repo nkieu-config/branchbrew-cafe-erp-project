@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { provisionBranchInventoryForIngredient } from '../inventory/branch-inventory-provision.helper';
+import { provisionBranchInventoryForIngredient } from '../common/helpers/branch-inventory-provision.helper';
 
 @Injectable()
 export class IngredientsService {

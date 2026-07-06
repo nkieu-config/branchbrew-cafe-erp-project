@@ -1,4 +1,4 @@
-export { buildIngredientRequirementsFromOrderItems } from './helpers/recipe-requirements.helper';
+export { buildIngredientRequirementsFromOrderItems } from './recipe-requirements.helper';
 
 export function isSameCalendarDay(a: Date, b: Date): boolean {
   return (

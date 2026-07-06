@@ -22,7 +22,7 @@ import {
   type AttendanceRecordRow,
   type AttendanceStatusFilter,
   filterAttendance,
-} from "@/lib/attendance-filters";
+} from "@/lib/filters/attendance-filters";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { hrSectionPanelClassName } from "@/lib/theme/hub-hr";
 import { cn } from "@/lib/utils";

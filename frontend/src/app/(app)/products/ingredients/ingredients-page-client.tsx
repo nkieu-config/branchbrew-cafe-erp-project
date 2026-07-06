@@ -21,7 +21,7 @@ import {
   summarizeIngredients,
   type IngredientCostFilter,
   type IngredientStatusFilter,
-} from "@/lib/ingredient-filters";
+} from "@/lib/filters/ingredient-filters";
 import { parseProductsIngredientsSearchParams } from "@/lib/products-hub-url";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import { productsSectionPanelClassName } from "@/lib/theme/hub-products";

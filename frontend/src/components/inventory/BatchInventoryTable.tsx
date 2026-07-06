@@ -31,7 +31,7 @@ import {
   type BatchWithSupplier,
   type IngredientBatchIndexEntry,
   type InventoryWithIngredient,
-} from "@/lib/batch-filters";
+} from "@/lib/filters/batch-filters";
 import { cn } from "@/lib/utils";
 
 type BatchInventoryTableProps = {

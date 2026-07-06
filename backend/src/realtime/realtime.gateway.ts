@@ -22,11 +22,13 @@ import { getCorsOrigins } from '../config/runtime-config';
   },
 })
 @Injectable()
-export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class RealtimeGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server: Server;
 
-  private logger: Logger = new Logger('EventsGateway');
+  private logger: Logger = new Logger('RealtimeGateway');
 
   constructor(private readonly jwtService: JwtService) {}
 

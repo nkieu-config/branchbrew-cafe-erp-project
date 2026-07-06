@@ -1,7 +1,8 @@
 import { Controller, Get, Query, Request, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import type { RequestWithUser } from '../auth/interfaces/request-with-user.interface';
-import { NavCountsService } from './nav-counts.service';
+import { NavigationService } from './navigation.service';
+import { NavCountsResponseDto } from './dto/nav-counts-response.dto';
 import { parseOptionalPositiveInt } from '../common/query-params.util';
 import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators';
@@ -10,17 +11,20 @@ import { ApiCommonErrorResponses } from '../common/http/swagger-error.decorators
 @UseGuards(JwtAuthGuard)
 @ApiTags('navigation')
 @ApiCommonErrorResponses()
-export class NavCountsController {
-  constructor(private readonly navCountsService: NavCountsService) {}
+export class NavigationController {
+  constructor(private readonly navigationService: NavigationService) {}
 
   @Get()
   @ApiOperation({ summary: 'Get navigation badge counts' })
-  @ApiOkResponse({ description: 'Navigation counts retrieved' })
+  @ApiOkResponse({
+    type: NavCountsResponseDto,
+    description: 'Navigation counts retrieved',
+  })
   getNavCounts(
     @Request() req: RequestWithUser,
     @Query('branchId') branchIdQuery?: string,
   ) {
     const branchId = parseOptionalPositiveInt(branchIdQuery, 'branchId');
-    return this.navCountsService.getNavCounts(req.user, branchId);
+    return this.navigationService.getNavCounts(req.user, branchId);
   }
 }

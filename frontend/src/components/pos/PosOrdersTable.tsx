@@ -13,7 +13,7 @@ import { StatusBadge, orderStatusTone } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { formatCurrency } from "@/lib/money";
 import { formatQueueNumber } from "@/lib/queue";
-import { isOrderToday, isTerminalOrderStatus } from "@/lib/pos-order-filters";
+import { isOrderToday, isTerminalOrderStatus } from "@/lib/filters/pos-order-filters";
 import { formatDateTime } from "@/lib/intl-date";
 import { tableRowDividerClassName } from "@/lib/theme/color-helpers";
 import { useHubListPagination } from "@/hooks/useHubListPagination";

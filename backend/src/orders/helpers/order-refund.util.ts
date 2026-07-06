@@ -1,5 +1,5 @@
 import { OrderStatus } from '@prisma/client';
-import { isSameCalendarDay, isTerminalOrderStatus } from '../order-void.util';
+import { isSameCalendarDay, isTerminalOrderStatus } from './order-void.util';
 
 export type OrderRefundErrorKind =
   | 'ORDER_ALREADY_REVERSED'

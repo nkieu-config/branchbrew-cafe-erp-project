@@ -570,7 +570,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Clear auth cookie */
+        /** Revoke tokens and clear auth cookie */
         post: operations["AuthController_logout"];
         delete?: never;
         options?: never;
@@ -1518,7 +1518,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get navigation badge counts */
-        get: operations["NavCountsController_getNavCounts"];
+        get: operations["NavigationController_getNavCounts"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2707,6 +2707,24 @@ export interface components {
         };
         CreateModifierOptionForGroupDto: Record<string, never>;
         UpdateModifierOptionDto: Record<string, never>;
+        NavCountsResponseDto: {
+            /** @example 1 */
+            branchId: Record<string, never> | null;
+            /** @example 4 */
+            lowStock: number;
+            /** @example 2 */
+            expiringBatches: number;
+            /** @example 3 */
+            pendingTransfers: number;
+            /** @example 6 */
+            kdsOrders: number;
+            /** @example 1 */
+            pendingPurchaseOrders: number;
+            /** @example 1 */
+            pendingSettlements: number;
+            /** @example 0 */
+            pendingLeave: number;
+        };
     };
     responses: never;
     parameters: never;
@@ -10323,7 +10341,7 @@ export interface operations {
             };
         };
     };
-    NavCountsController_getNavCounts: {
+    NavigationController_getNavCounts: {
         parameters: {
             query: {
                 branchId: string;
@@ -10339,7 +10357,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": components["schemas"]["NavCountsResponseDto"];
+                };
             };
             /** @description Bad request */
             400: {

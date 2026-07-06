@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProductsModule } from './products/products.module';
 import { IngredientsModule } from './ingredients/ingredients.module';
@@ -17,7 +16,7 @@ import { PromotionsModule } from './promotions/promotions.module';
 import { HrModule } from './hr/hr.module';
 import { FinanceModule } from './finance/finance.module';
 import { InventoryModule } from './inventory/inventory.module';
-import { EventsModule } from './events/events.module';
+import { RealtimeModule } from './realtime/realtime.module';
 import { EquipmentModule } from './equipment/equipment.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ReportsModule } from './reports/reports.module';
@@ -51,7 +50,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     HrModule,
     FinanceModule,
     InventoryModule,
-    EventsModule,
+    RealtimeModule,
     EquipmentModule,
     ScheduleModule.forRoot(),
     ReportsModule,
@@ -65,7 +64,6 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
   ],
   controllers: [AppController],
   providers: [
-    AppService,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

@@ -12,7 +12,7 @@ import {
   type AttendanceRecordRow,
   isActiveRecord,
   isAttendanceLate,
-} from "@/lib/attendance-filters";
+} from "@/lib/filters/attendance-filters";
 import { formatDate, formatTime } from "@/lib/intl-date";
 import { useHubListPagination } from "@/hooks/useHubListPagination";
 import {

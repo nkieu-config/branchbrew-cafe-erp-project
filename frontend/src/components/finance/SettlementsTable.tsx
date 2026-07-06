@@ -11,7 +11,7 @@ import { TableActionButton } from "@/components/shared/table-action-button";
 import { StatusBadge, settlementStatusTone } from "@/components/shared/status-badge";
 import { formatDate } from "@/lib/intl-date";
 import { formatCurrency } from "@/lib/money";
-import { settlementStatusLabel, type SettlementStatusFilter } from "@/lib/finance-overview-filters";
+import { settlementStatusLabel, type SettlementStatusFilter } from "@/lib/filters/finance-overview-filters";
 import {
   horizontalScrollHintClassName,
   nativeTableBodyClassName,

@@ -25,7 +25,7 @@ import {
   filterExpenses,
   filterSettlements,
   summarizeFinanceOverview,
-} from "@/lib/finance-overview-filters";
+} from "@/lib/filters/finance-overview-filters";
 import {
   buildFinanceOverviewUrl,
   parseFinanceOverviewSearchParams,

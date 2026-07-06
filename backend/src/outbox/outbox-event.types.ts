@@ -3,7 +3,7 @@ import {
   ORDER_LIFECYCLE_STATUSES,
   OrderLifecycleStatus,
   OrderSnapshot,
-} from '../orders/domain/order-snapshot';
+} from '../orders/domain/order.snapshot';
 import { PurchaseOrderReceivedSnapshot } from '../procurement/domain/purchase-order-received.snapshot';
 import { ProductionCompletedSnapshot } from '../production/domain/production-completed.snapshot';
 

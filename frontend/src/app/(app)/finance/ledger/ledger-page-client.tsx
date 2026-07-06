@@ -18,7 +18,7 @@ import {
   type LedgerChartPoint,
   filterJournalEntries,
   summarizeJournalEntries,
-} from "@/lib/ledger-filters";
+} from "@/lib/filters/ledger-filters";
 import { financeSectionLabelClassName, financeSectionPanelClassName } from "@/lib/theme/finance";
 import { infoBannerClassName, infoBannerTextClassName } from "@/lib/theme/hub-banners";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
@@ -164,6 +164,7 @@ export default function LedgerPageClient() {
           filteredCount={filteredEntries.length}
           totalCount={entrySummary.total}
           itemLabel="entry"
+          itemLabelPlural="entries"
         />
 
         <div>

@@ -2,7 +2,7 @@
 
 import { Table } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { AntdScope } from "@/components/providers/AntdScope";
+import { AntdProvider } from "@/providers/AntdProvider";
 import { ListMobileCard } from "@/components/shared/responsive-data-table";
 import type { JournalEntry, JournalLine } from "@/types/api";
 import { formatCurrency } from "@/lib/money";
@@ -96,7 +96,7 @@ export function JournalLinesPanel({ entry }: JournalLinesPanelProps) {
   }
 
   return (
-    <AntdScope>
+    <AntdProvider>
     <div className={expandedRowPanelClassName()}>
       <div className="min-w-0 space-y-2 md:hidden">
         {lines.map((line) => (
@@ -158,6 +158,6 @@ export function JournalLinesPanel({ entry }: JournalLinesPanelProps) {
         </div>
       </div>
     </div>
-    </AntdScope>
+    </AntdProvider>
   );
 }

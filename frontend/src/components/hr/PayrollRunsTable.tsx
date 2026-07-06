@@ -19,7 +19,7 @@ import {
   payrollRunPayslipCount,
   payrollRunTotalNet,
   payrollStatusLabel,
-} from "@/lib/payroll-filters";
+} from "@/lib/filters/payroll-filters";
 import { formatCurrency } from "@/lib/money";
 import { useHubListPagination } from "@/hooks/useHubListPagination";
 import { tableActionAccentClassName } from "@/lib/theme/hub-primitives";

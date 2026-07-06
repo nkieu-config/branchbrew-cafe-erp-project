@@ -11,7 +11,7 @@ import {
 import { StatusBadge, journalStatusTone } from "@/components/shared/status-badge";
 import { JournalLinesPanel } from "@/components/finance/JournalLinesPanel";
 import { formatDate } from "@/lib/intl-date";
-import { journalStatusLabel } from "@/lib/ledger-filters";
+import { journalStatusLabel } from "@/lib/filters/ledger-filters";
 import { useHubListPagination } from "@/hooks/useHubListPagination";
 import { financeMutedMetaClassName } from "@/lib/theme/finance";
 import { text } from "@/lib/theme/surface";

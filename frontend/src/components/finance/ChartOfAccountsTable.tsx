@@ -8,7 +8,7 @@ import {
   PaginatedMobileList,
   ResponsiveDataTableLayout,
 } from "@/components/shared/responsive-data-table";
-import { accountTypeLabel } from "@/lib/account-filters";
+import { accountTypeLabel } from "@/lib/filters/account-filters";
 import { hubListDataTableProps } from "@/lib/theme/data-table";
 import { financeMutedMetaClassName } from "@/lib/theme/finance";
 import { text } from "@/lib/theme/surface";

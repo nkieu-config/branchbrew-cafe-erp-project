@@ -18,7 +18,7 @@ import { dashboardChartEmptyClass } from "@/lib/theme/dashboard";
 import { themeDefaults } from "@/lib/theme/defaults";
 import { text } from "@/lib/theme/surface";
 import { useChartTheme } from "@/hooks/useChartTheme";
-import type { LedgerChartPoint } from "@/lib/ledger-filters";
+import type { LedgerChartPoint } from "@/lib/filters/ledger-filters";
 import { cn } from "@/lib/utils";
 
 type LedgerTrendChartProps = {

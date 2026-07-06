@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePathname } from "next/navigation";
-import { ThemeToggle } from "@/components/providers/ThemeToggle";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { ClockInOutWidget } from "@/components/hr/ClockInOutWidget";
 import { BranchPicker } from "@/components/shared/branch-picker";
 import { BreadcrumbTrail } from "@/components/layout/BreadcrumbTrail";

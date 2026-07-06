@@ -18,7 +18,7 @@ import {
   type BatchWithSupplier,
   type ExpiryFilter,
   type InventoryWithIngredient,
-} from "@/lib/batch-filters";
+} from "@/lib/filters/batch-filters";
 import { isTrackableBatch } from "@/lib/inventory-alerts";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import type { Role } from "@/types/api";

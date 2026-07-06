@@ -9,7 +9,7 @@ import {
   shiftStatusLabel,
   type ShiftUserRow,
   type ShiftWithUser,
-} from "@/lib/shift-filters";
+} from "@/lib/filters/shift-filters";
 import { horizontalScrollHintClassName } from "@/lib/theme/data-table";
 import {
   ganttGridLineClassName,

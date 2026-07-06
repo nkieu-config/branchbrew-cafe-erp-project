@@ -3622,7 +3622,7 @@
             }
           }
         },
-        "summary": "Clear auth cookie",
+        "summary": "Revoke tokens and clear auth cookie",
         "tags": [
           "auth"
         ]
@@ -9216,7 +9216,7 @@
     },
     "/nav-counts": {
       "get": {
-        "operationId": "NavCountsController_getNavCounts",
+        "operationId": "NavigationController_getNavCounts",
         "parameters": [
           {
             "name": "branchId",
@@ -9229,7 +9229,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Navigation counts retrieved"
+            "description": "Navigation counts retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NavCountsResponseDto"
+                }
+              }
+            }
           },
           "400": {
             "description": "Bad request",
@@ -12560,6 +12567,54 @@
       "UpdateModifierOptionDto": {
         "type": "object",
         "properties": {}
+      },
+      "NavCountsResponseDto": {
+        "type": "object",
+        "properties": {
+          "branchId": {
+            "type": "object",
+            "example": 1,
+            "nullable": true
+          },
+          "lowStock": {
+            "type": "number",
+            "example": 4
+          },
+          "expiringBatches": {
+            "type": "number",
+            "example": 2
+          },
+          "pendingTransfers": {
+            "type": "number",
+            "example": 3
+          },
+          "kdsOrders": {
+            "type": "number",
+            "example": 6
+          },
+          "pendingPurchaseOrders": {
+            "type": "number",
+            "example": 1
+          },
+          "pendingSettlements": {
+            "type": "number",
+            "example": 1
+          },
+          "pendingLeave": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "branchId",
+          "lowStock",
+          "expiringBatches",
+          "pendingTransfers",
+          "kdsOrders",
+          "pendingPurchaseOrders",
+          "pendingSettlements",
+          "pendingLeave"
+        ]
       }
     }
   }

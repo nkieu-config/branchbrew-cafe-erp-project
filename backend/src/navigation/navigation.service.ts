@@ -16,7 +16,7 @@ export type NavCountsResponse = {
 };
 
 @Injectable()
-export class NavCountsService {
+export class NavigationService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getNavCounts(

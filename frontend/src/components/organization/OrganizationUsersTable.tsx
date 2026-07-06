@@ -10,7 +10,7 @@ import {
   ResponsiveDataTableLayout,
 } from "@/components/shared/responsive-data-table";
 import { TableActionButton } from "@/components/shared/table-action-button";
-import { roleLabel } from "@/lib/employee-filters";
+import { roleLabel } from "@/lib/filters/employee-filters";
 import { useHubListPagination } from "@/hooks/useHubListPagination";
 import { organizationMutedMetaClassName } from "@/lib/theme/organization";
 import { text } from "@/lib/theme/surface";

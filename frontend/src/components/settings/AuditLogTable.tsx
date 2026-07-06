@@ -21,7 +21,7 @@ import {
   auditActionLabel,
   auditTargetTypeLabel,
   formatAuditDetails,
-} from "@/lib/audit-filters";
+} from "@/lib/filters/audit-filters";
 import { formatDateTime } from "@/lib/intl-date";
 import {
   dataTableContainerClassName,
