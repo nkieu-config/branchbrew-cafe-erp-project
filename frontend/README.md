@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BranchBrew ERP — Frontend
 
-## Getting Started
+Next.js App Router UI for the BranchBrew coffee-shop ERP: POS terminal, kitchen display (KDS), dashboard, inventory, procurement, HR, finance, and CRM.
 
-First, run the development server:
+Part of the [BranchBrew monorepo](../). See [`docs/demo.md`](../docs/demo.md) for a guided walkthrough with demo logins, and [`docs/design-system.md`](../docs/design-system.md) for the design-token architecture and UI conventions.
+
+## Stack
+
+- **Next.js 16** (App Router) + **React 19** on **Node 22**
+- **TanStack Query 5** for server state
+- **Ant Design 6** + **Tailwind CSS 4**
+- **socket.io-client** for real-time KDS
+- Typed API client generated from the backend's OpenAPI schema
+- **Vitest** unit tests, **Playwright** e2e
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install                 # from the monorepo root
+cp .env.example .env.local   # set NEXT_PUBLIC_API_URL (defaults to http://localhost:3000)
+npm run dev                  # http://localhost:3001
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The backend must be running (see [`../backend/README.md`](../backend/README.md)).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## API types
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The client types in `src/types/generated/api.d.ts` are generated from the backend contract — do not edit by hand:
 
-## Learn More
+```bash
+npm run generate:api         # reads ../backend/openapi.json
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Tests
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run test         # unit tests (Vitest)
+npm run test:cov     # coverage
+npm run test:e2e     # end-to-end (Playwright)
+```

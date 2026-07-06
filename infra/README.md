@@ -1,4 +1,6 @@
-# Docker
+# Infrastructure & Deployment
+
+Compose files, environment templates, and deployment reference for BranchBrew ERP — local Docker stack, production modes (managed or bundled Postgres), and optional TLS for self-hosted VPS.
 
 ## Quick start (local)
 
@@ -60,8 +62,46 @@ Production vars include `DATABASE_URL` (pooler), `DIRECT_URL` (migrations), `COR
 
 | File | Use |
 |------|-----|
-| `docker-compose.yml` | Local dev — exposes Postgres on `5432`, backend dev image (Swagger on) |
-| `docker-compose.prod.yml` | Production-like — resource limits, no Postgres port expose, production backend image |
+| `docker-compose.yml` | Local stack — backend dev image (Swagger on), bundled Postgres |
+| `docker-compose.prod.yml` | Production-like — resource limits, production images, managed Postgres by default |
+| `docker-compose.caddy.yml` | Optional TLS overlay (Caddy + Let's Encrypt) for self-hosted VPS deploys |
+| `docker-compose.ci-smoke.yml` | CI smoke stack from pre-built `erp-*:ci` images |
+
+### Postgres access
+
+The database sits on an internal-only Docker network — it has **no host port** (published
+ports do not work on internal networks, and the demo stack never needs one). To reach psql:
+
+```bash
+docker compose -f infra/docker-compose.yml --env-file infra/.env.compose exec db \
+  psql -U erp_user erp_db
+```
+
+### Production database modes
+
+`docker-compose.prod.yml` defaults to a **managed Postgres** (Supabase — set `DATABASE_URL`/`DIRECT_URL`);
+only migrate/backend/frontend start. For a self-hosted all-in-one stack, opt in to the bundled Postgres:
+
+```bash
+docker compose -f infra/docker-compose.prod.yml --profile local-db \
+  --env-file infra/.env.compose up --build
+```
+
+(with `DATABASE_URL=postgresql://user:password@db:5432/erp_db?schema=public`)
+
+### TLS on a VPS (optional)
+
+PaaS platforms (Vercel/Railway/Fly) terminate TLS themselves. For a bare VPS, stack the Caddy overlay:
+
+```bash
+DEMO_DOMAIN=demo.example.com API_DOMAIN=api.example.com \
+BACKEND_PORT=127.0.0.1:3000 FRONTEND_PORT=127.0.0.1:3001 \
+docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.caddy.yml \
+  --env-file infra/.env.compose up -d --build
+```
+
+`BACKEND_PORT`/`FRONTEND_PORT` bound to loopback keep the app ports off the public internet;
+Caddy provisions Let's Encrypt certificates for both domains automatically.
 
 ## Notes
 

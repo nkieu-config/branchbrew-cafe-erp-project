@@ -1,6 +1,6 @@
 # BranchBrew ERP — Demo Guide
 
-Portfolio demo script for reviewers and interview walkthroughs.
+Portfolio demo script for reviewers and interview walkthroughs. New here? Start at the [project README](../README.md).
 
 > **Warning:** `npm run db:seed` wipes the target database before inserting demo data. Use only on a local database or an intentional demo/staging instance.
 
@@ -43,13 +43,16 @@ For reviewers with very little time:
 | **Password (all accounts)** | `password123` |
 | **Primary demo login** | `manager@branchbrew.dev` — Downtown Manager |
 | **Super Admin** | `admin@branchbrew.dev` — all branches |
-| **POS cashier** | `staff.downtown@branchbrew.dev` — Downtown Staff |
+| **POS cashier** | `staff.downtown@branchbrew.dev` — Downtown Cashier |
 | **Riverside Manager** | `manager.riverside@branchbrew.dev` |
 | **Riverside Barista** | `staff.riverside@branchbrew.dev` |
 | **CRM member phone** | `0811111111` — Demo Member, 120 pts, SILVER |
 | **Promo codes** | `WELCOME10` (10% off, min 100) · `SAVE20` (20 baht off, min 150) |
 | **PO to receive (live)** | `PO-DEMO-001` — APPROVED @ Downtown |
-| **Hero ledger chain** | `PO-DEMO-003` (received beans) → `ORD-*` sale (2× Iced Latte) |
+| **PO to pay (live)** | `PO-DEMO-005` — RECEIVED · UNPAID, ~40 days old (AP aging 31–60 bucket) |
+| **Hero ledger chain** | `PO-DEMO-003` (received beans) → `ORD-*` sale (2× Iced Latte) → `PAY-PO-DEMO-003` (supplier paid) |
+| **Stock count to finish (live)** | Draft "Weekly spot check" @ Downtown — Inventory → Stocktake |
+| **Notifications** | Bell in the top bar — unread PO approval + expiring batches @ Downtown |
 | **Currency** | THB (฿) — Settings → Default currency |
 | **KDS** | Open tickets at Downtown (5+) and Riverside (1) after seed |
 
@@ -86,12 +89,13 @@ Use the **Demo accounts** buttons on the login page for Manager, Admin, Staff, a
 
 **Login:** `manager@branchbrew.dev` or `admin@branchbrew.dev`
 
-1. **Procurement** (`/procurement/orders`) — Find **PO-DEMO-001** (APPROVED). Receive goods.
+1. **Procurement** (`/procurement/orders`) — Find **PO-DEMO-001** (APPROVED). Receive goods. Note the **PAID / UNPAID** badges on received POs.
 2. **Inventory** (`/inventory`) — Stock levels; note low cups @ Riverside.
 3. **Batches** (`/inventory/batches`) — Expiring in 3 days; expired oat milk @ Downtown.
-4. **Transfers** (`/inventory/transfers`) — Pending and shipped transfers.
+4. **Stocktake** (`/inventory/stocktake`) — Open the approved **month-end blind count** (variances valued in baht, posted to the ledger as `STOCKCOUNT-*`), then finish the draft **"Weekly spot check"**: enter a counted quantity, submit, and approve.
+5. **Transfers** (`/inventory/transfers`) — Pending and shipped transfers.
 
-**Story to tell:** PO → receive → batch/expiry → inter-branch transfer.
+**Story to tell:** PO → receive → batch/expiry → physical count → variance posts shrinkage to the GL → inter-branch transfer.
 
 ---
 
@@ -99,12 +103,25 @@ Use the **Demo accounts** buttons on the login page for Manager, Admin, Staff, a
 
 **Login:** `manager@branchbrew.dev`
 
-1. **HR / Attendance** (`/hr/attendance`) — Manager currently clocked in.
-2. **Payroll** (`/hr/payroll`) — Approved run (last month) + draft @ Riverside.
-3. **Finance overview** (`/finance/overview`) — Pending shift settlement @ Downtown.
-4. **Ledger** (`/finance/ledger`) — Search **`PO-DEMO-003`** (espresso bean receive), then an entry whose reference starts with **`ORD-`** (hero POS sale: 2× Iced Latte by Downtown cashier). These use the same reference format as production accounting events.
+1. **Notifications** — Click the **bell** in the top bar: unread PO-approval and expiring-batch alerts; click one to jump to the page (it marks itself read).
+2. **HR / Attendance** (`/hr/attendance`) — Manager currently clocked in.
+3. **Payroll** (`/hr/payroll`) — Approved run (last month) + draft @ Riverside. Approving a run posts gross pay, withholdings, and net cash to the ledger (`PAYROLL-*`).
+4. **Finance overview** (`/finance/overview`) — **Accounts payable card**: ฿400 outstanding in the 31–60 day bucket (that's `PO-DEMO-005`) — pay it from Procurement and watch the card empty. **Output VAT (ภ.พ.30) card**: monthly sales ex-VAT vs output VAT. Below: pending shift settlement @ Downtown.
+5. **Ledger** (`/finance/ledger`) — Search **`PO-DEMO-003`** (espresso bean receive), the matching **`ORD-`** hero sale (revenue split into ex-VAT sales + output VAT), and **`PAY-PO-DEMO-003`** (the payment that settled AP).
 
-**Story to tell:** Attendance → payroll → shift settlement → general ledger. Hero chain: PO receive posts inventory/AP → POS sale posts revenue/COGS with matching `ORD-{orderId}` reference.
+**Story to tell:** Attendance → payroll → settlement → general ledger. Hero chain is now purchase-to-pay complete: PO receive posts inventory/AP → POS sale posts revenue + output VAT + COGS → supplier payment settles AP — and the AP account balance reconciles to the unpaid-PO list on the aging card.
+
+---
+
+### Flow D — Produce (≈3 min)
+
+**Login:** `admin@branchbrew.dev`, pick **BranchBrew Central Kitchen** in the branch picker
+
+1. **Central Kitchen** (`/kitchen`) — Kanban board: planned / in-progress / completed cold-brew production orders.
+2. **Production BOM** (`/kitchen/boms`) — Cold brew base recipe (espresso beans per ml).
+3. Completing a production order consumes raw batches FIFO, creates a finished-goods batch, and posts any standard-cost variance to account 5030.
+
+**Story to tell:** Central kitchen produces intermediates → finished batches transfer out to branches.
 
 ---
 
@@ -121,8 +138,11 @@ Use the **Demo accounts** buttons on the login page for Manager, Admin, Staff, a
 
 - **Dashboard** — Today/yesterday sales, 7-day trend, top products, inventory alerts.
 - **KDS queue** — Active tickets with varied wait times (not an empty board).
+- **Stocktake** — One approved blind count with valued variances (and its `STOCKCOUNT-*` ledger entry), one draft count ready to finish live, plus a damage adjustment (`ADJ-*`).
+- **Accounts payable** — One paid PO (`PAY-PO-DEMO-003`) and one 40-day-old unpaid PO so the AP aging card has real buckets; the 2010 balance reconciles to the unpaid list.
+- **Notifications** — Three unread alerts (low stock, PO approval, expiring batches) and two already handled — the bell badge is live.
 - **Edge states** — REJECTED settlement, REFUNDED order, inactive promo `SUMMER24`.
-- **Audit log** — Settings → Audit (`/settings/audit`).
+- **Audit log** — Settings → Audit (`/settings/audit`) — now including stock-count approvals and supplier payments.
 
 To reset demo data, re-run `npm run db:seed` (see warning at top).
 
@@ -133,5 +153,7 @@ To reset demo data, re-run `npm run db:seed` (see warning at top).
 1. **Order pipeline** — POS create → inventory from recipe → outbox → accounting → WebSocket to KDS.
 2. **Multi-branch RBAC** — `SUPER_ADMIN` vs branch-scoped Manager/Staff.
 3. **Transactional outbox** — Reliable side effects after DB commit.
+4. **Stocktake closes the loop** — physical counts snapshot expected stock at submit, approved variances adjust batches FIFO and post shrinkage to a dedicated GL account.
+5. **The ledger reconciles** — AP balance = unpaid POs on the aging card; sales split into ex-VAT revenue + output VAT liability; payroll posts gross/withholdings/net — so the operational P&L and the accounting P&L agree.
 
-Keep supporting modules (assets, equipment registry) as breadth; go deep on the three flows above.
+Keep supporting modules (assets, equipment registry) as breadth; go deep on the flows above.
