@@ -51,6 +51,15 @@ describe("payroll-filters", () => {
 
   it("calculates run totals and filters", () => {
     expect(payrollRunTotalNet(runs[0])).toBe(27000);
+
+    const runWithDecimalStrings = {
+      ...runs[0],
+      payslips: [
+        { id: 1, payrollRunId: 1, userId: 10, netPay: "14830" },
+        { id: 2, payrollRunId: 1, userId: 11, netPay: "27250" },
+      ],
+    } as PayrollRun & { payslips: Payslip[] };
+    expect(payrollRunTotalNet(runWithDecimalStrings)).toBe(42080);
     expect(filterPayslipsForEmployee(payslips, 10)).toHaveLength(1);
 
     const draftOnly = filterPayrollRuns(runs, {

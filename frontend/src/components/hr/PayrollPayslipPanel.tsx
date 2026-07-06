@@ -32,10 +32,10 @@ function PayslipTotals({ payslips }: { payslips: readonly Payslip[] }) {
   let totalNet = 0;
 
   payslips.forEach((row) => {
-    totalGross += row.grossPay ?? 0;
-    totalSso += row.socialSecurity ?? 0;
-    totalTax += row.taxDeduction ?? 0;
-    totalNet += row.netPay ?? 0;
+    totalGross += Number(row.grossPay ?? 0);
+    totalSso += Number(row.socialSecurity ?? 0);
+    totalTax += Number(row.taxDeduction ?? 0);
+    totalNet += Number(row.netPay ?? 0);
   });
 
   return (
@@ -229,10 +229,10 @@ export function PayrollPayslipPanel({
             let totalNet = 0;
 
             pageData.forEach((row) => {
-              totalGross += row.grossPay ?? 0;
-              totalSso += row.socialSecurity ?? 0;
-              totalTax += row.taxDeduction ?? 0;
-              totalNet += row.netPay ?? 0;
+              totalGross += Number(row.grossPay ?? 0);
+              totalSso += Number(row.socialSecurity ?? 0);
+              totalTax += Number(row.taxDeduction ?? 0);
+              totalNet += Number(row.netPay ?? 0);
             });
 
             return (

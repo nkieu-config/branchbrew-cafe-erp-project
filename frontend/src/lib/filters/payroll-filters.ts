@@ -31,11 +31,17 @@ export function payrollRunPayslipCount(run: PayrollRunWithPayslips): number {
 }
 
 export function payrollRunTotalNet(run: PayrollRunWithPayslips): number {
-  return (run.payslips ?? []).reduce((sum, payslip) => sum + (payslip.netPay ?? 0), 0);
+  return (run.payslips ?? []).reduce(
+    (sum, payslip) => sum + Number(payslip.netPay ?? 0),
+    0,
+  );
 }
 
 export function payrollRunTotalGross(run: PayrollRunWithPayslips): number {
-  return (run.payslips ?? []).reduce((sum, payslip) => sum + (payslip.grossPay ?? 0), 0);
+  return (run.payslips ?? []).reduce(
+    (sum, payslip) => sum + Number(payslip.grossPay ?? 0),
+    0,
+  );
 }
 
 export function filterPayslipsForEmployee(
