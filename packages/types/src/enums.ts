@@ -9,6 +9,12 @@ export type BatchStatus = 'ACTIVE' | 'DEPLETED' | 'EXPIRED';
 
 export type TransferStatus = 'PENDING' | 'SHIPPED' | 'COMPLETED' | 'CANCELLED';
 
+export type StockCountStatus = 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'CANCELLED';
+
+export type StockAdjustmentReason = 'COUNT_VARIANCE' | 'DAMAGE' | 'CORRECTION';
+
+export type NotificationType = 'LOW_STOCK' | 'BATCH_EXPIRING' | 'MAINTENANCE_DUE' | 'LEAVE_DECIDED' | 'PO_PENDING_APPROVAL' | 'STOCK_COUNT_PENDING';
+
 export type Tier = 'REGULAR' | 'SILVER' | 'GOLD' | 'PLATINUM';
 
 export type PaymentMethod = 'CASH' | 'CREDIT_CARD' | 'QR_PROMPTPAY';
@@ -18,6 +24,10 @@ export type DiscountType = 'PERCENTAGE' | 'FIXED_AMOUNT';
 export type OrderStatus = 'PENDING' | 'PREPARING' | 'COMPLETED' | 'CANCELLED' | 'REFUNDED';
 
 export type POStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'RECEIVED';
+
+export type POPaymentStatus = 'UNPAID' | 'PAID';
+
+export type SupplierPaymentMethod = 'CASH' | 'BANK_TRANSFER';
 
 export type ShiftStatus = 'SCHEDULED' | 'COMPLETED' | 'ABSENT' | 'CANCELLED';
 
