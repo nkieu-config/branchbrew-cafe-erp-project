@@ -7,7 +7,10 @@ export function getWaitTimeMinutes(createdAt: string, now = Date.now()): number 
 
 export function formatKdsWaitLabel(waitMinutes: number): string {
   if (waitMinutes < 1) return "<1 min";
-  return `${waitMinutes} min`;
+  if (waitMinutes < 60) return `${waitMinutes} min`;
+  const hours = Math.floor(waitMinutes / 60);
+  const minutes = waitMinutes % 60;
+  return minutes === 0 ? `${hours}h` : `${hours}h ${minutes}m`;
 }
 
 export function ticketUrgency(waitMinutes: number): KdsTicketUrgency {

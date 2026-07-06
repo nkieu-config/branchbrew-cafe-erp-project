@@ -34,6 +34,17 @@ import {
 } from "@/lib/filters/batch-filters";
 import { cn } from "@/lib/utils";
 
+function batchStatusRank(
+  record: InventoryWithIngredient,
+  index: Map<number, IngredientBatchIndexEntry>,
+): number {
+  const entry = getIngredientBatchIndexEntry(index, record.ingredient.id);
+  if (entry.expiredCount > 0) return 0;
+  if (entry.expiringCount > 0) return 1;
+  const order = { out: 2, low: 3, ok: 4 };
+  return order[stockLevel(record.stock, record.minStock)];
+}
+
 type BatchInventoryTableProps = {
   inventories: InventoryWithIngredient[];
   batches: BatchWithSupplier[];
@@ -126,6 +137,20 @@ function BatchInventoryMobileCard({
 }: BatchInventoryMobileCardProps) {
   const level = stockLevel(record.stock, record.minStock);
   const batchCount = batchEntry.batches.length;
+  const statusBadge =
+    batchEntry.expiredCount > 0 ? (
+      <StatusBadge tone="danger" className="shrink-0">
+        Expired
+      </StatusBadge>
+    ) : batchEntry.expiringCount > 0 ? (
+      <StatusBadge tone="warning" className="shrink-0">
+        Expiring
+      </StatusBadge>
+    ) : (
+      <StatusBadge tone={stockLevelStatusTone(level)} className="shrink-0">
+        {stockLevelLabel(level)}
+      </StatusBadge>
+    );
 
   return (
     <ListMobileCard>
@@ -143,9 +168,7 @@ function BatchInventoryMobileCard({
             </span>
           </p>
         </div>
-        <StatusBadge tone={stockLevelStatusTone(level)} className="shrink-0">
-          {stockLevelLabel(level)}
-        </StatusBadge>
+        {statusBadge}
       </div>
       <BatchMobileRows record={record} batchEntry={batchEntry} onReportWaste={onReportWaste} />
     </ListMobileCard>
@@ -225,13 +248,19 @@ export function BatchInventoryTable({
         {
           title: "Status",
           key: "status",
-          sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) => {
-            const order = { out: 0, low: 1, ok: 2 };
-            return (
-              order[stockLevel(a.stock, a.minStock)] - order[stockLevel(b.stock, b.minStock)]
-            );
-          },
+          sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) =>
+            batchStatusRank(a, batchIndex) - batchStatusRank(b, batchIndex),
           render: (_: unknown, record: InventoryWithIngredient) => {
+            const { expiringCount, expiredCount } = getIngredientBatchIndexEntry(
+              batchIndex,
+              record.ingredient.id,
+            );
+            if (expiredCount > 0) {
+              return <StatusBadge tone="danger">Expired</StatusBadge>;
+            }
+            if (expiringCount > 0) {
+              return <StatusBadge tone="warning">Expiring</StatusBadge>;
+            }
             const level = stockLevel(record.stock, record.minStock);
             return (
               <StatusBadge tone={stockLevelStatusTone(level)}>{stockLevelLabel(level)}</StatusBadge>

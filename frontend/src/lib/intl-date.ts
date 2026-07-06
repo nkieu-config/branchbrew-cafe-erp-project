@@ -67,6 +67,18 @@ export function formatDateRange(start: DateInput, end: DateInput): string {
   return `${formatDate(start)} – ${formatDate(end)}`;
 }
 
+/** "2026-07" or any date input → "Jul 2026". */
+export function formatMonthYear(input: DateInput): string {
+  const date = toDate(
+    typeof input === "string" && /^\d{4}-\d{2}$/.test(input) ? `${input}-01T00:00:00` : input,
+  );
+  if (!date) return "—";
+  return new Intl.DateTimeFormat(DEFAULT_LOCALE, {
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
+
 /** ISO calendar date for filters/API keys (yyyy-MM-dd). */
 export function formatIsoDate(input: DateInput): string {
   const date = toDate(input);

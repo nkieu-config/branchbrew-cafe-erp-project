@@ -11,7 +11,8 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
-import { formatCurrency } from "@/lib/money";
+import { formatMonthYear } from "@/lib/intl-date";
+import { formatCurrency, formatCurrencyCompact } from "@/lib/money";
 import { surfaceInsetSkeletonClassName } from "@/lib/theme/color-helpers";
 import { readCssVar } from "@/lib/theme/css-var";
 import { dashboardChartEmptyClass } from "@/lib/theme/dashboard";
@@ -25,6 +26,15 @@ type LedgerTrendChartProps = {
   data: LedgerChartPoint[];
   loading?: boolean;
 };
+
+function trimLeadingEmptyMonths(points: LedgerChartPoint[]): LedgerChartPoint[] {
+  const firstActive = points.findIndex(
+    (point) => (point.revenue ?? 0) !== 0 || (point.expense ?? 0) !== 0,
+  );
+  if (firstActive <= 0) return points;
+  const start = Math.min(firstActive, points.length - 2);
+  return points.slice(Math.max(0, start));
+}
 
 export function LedgerTrendChart({ data, loading = false }: LedgerTrendChartProps) {
   const chartTheme = useChartTheme();
@@ -45,7 +55,9 @@ export function LedgerTrendChart({ data, loading = false }: LedgerTrendChartProp
     return <div className={surfaceInsetSkeletonClassName("h-[280px] w-full rounded-xl")} />;
   }
 
-  if (data.length === 0) {
+  const chartData = trimLeadingEmptyMonths(data);
+
+  if (chartData.length === 0) {
     return (
       <div className={dashboardChartEmptyClass("h-[280px]")}>
         <p className={cn("text-sm", text.muted)}>No trend data yet</p>
@@ -56,19 +68,21 @@ export function LedgerTrendChart({ data, loading = false }: LedgerTrendChartProp
   return (
     <div className="h-[280px] w-full min-h-[280px] min-w-0">
       <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={280}>
-        <LineChart data={data} margin={{ top: 5, right: 16, bottom: 5, left: 0 }}>
+        <LineChart data={chartData} margin={{ top: 5, right: 16, bottom: 5, left: 8 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={chartTheme.grid} />
           <XAxis
             dataKey="month"
             tick={{ fill: chartTheme.axis, fontSize: 12 }}
             axisLine={false}
             tickLine={false}
+            tickFormatter={(val) => formatMonthYear(String(val))}
           />
           <YAxis
             tick={{ fill: chartTheme.axis, fontSize: 12 }}
             axisLine={false}
             tickLine={false}
-            tickFormatter={(val) => formatCurrency(Number(val))}
+            width={64}
+            tickFormatter={(val) => formatCurrencyCompact(Number(val))}
           />
           <Tooltip
             contentStyle={{
@@ -79,6 +93,7 @@ export function LedgerTrendChart({ data, loading = false }: LedgerTrendChartProp
               color: chartTheme.tooltipFg,
               fontSize: "13px",
             }}
+            labelFormatter={(label) => formatMonthYear(String(label))}
             formatter={(value, name) => [
               formatCurrency(Number(value ?? 0)),
               String(name ?? ""),

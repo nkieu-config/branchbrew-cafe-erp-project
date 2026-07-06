@@ -136,4 +136,26 @@ describe("buildExpiryAlerts", () => {
 
     expect(alerts[0]?.ingredientName).toBe("Butter");
   });
+
+  it("marks past-expiry batches as EXPIRED even when their status is stale ACTIVE", () => {
+    const past = new Date();
+    past.setDate(past.getDate() - 2);
+
+    const alerts = buildExpiryAlerts(
+      [
+        {
+          id: 3,
+          branchId: 1,
+          ingredientId: 3,
+          quantity: 250,
+          status: "ACTIVE",
+          expiryDate: past.toISOString(),
+          ingredient: { id: 3, name: "Oat Milk", unit: "ml" },
+        },
+      ],
+      "Main",
+    );
+
+    expect(alerts[0]?.status).toBe("EXPIRED");
+  });
 });

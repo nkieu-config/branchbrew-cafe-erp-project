@@ -11,6 +11,12 @@ describe("kds-display", () => {
     expect(formatKdsWaitLabel(0)).toBe("<1 min");
   });
 
+  it("formats waits under an hour in minutes and longer waits in hours", () => {
+    expect(formatKdsWaitLabel(59)).toBe("59 min");
+    expect(formatKdsWaitLabel(60)).toBe("1h");
+    expect(formatKdsWaitLabel(264)).toBe("4h 24m");
+  });
+
   it("computes wait minutes from a fixed clock", () => {
     const createdAt = new Date("2026-06-29T12:00:00Z").toISOString();
     const now = new Date("2026-06-29T12:07:30Z").getTime();

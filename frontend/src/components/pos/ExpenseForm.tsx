@@ -59,6 +59,7 @@ export function ExpenseForm({ branchIdNum }: { branchIdNum: number | undefined }
             id="expense-amount"
             type="number"
             step="0.01"
+            min="0.01"
             className={posNativeInputClassName("py-2.5 tabular-nums text-lg font-semibold")}
             value={expenseForm.amount}
             onChange={(e) => setExpenseForm({ ...expenseForm, amount: e.target.value })}

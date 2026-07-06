@@ -187,13 +187,17 @@ export class ReportsService {
         minStock: inv.minStock,
       }));
 
+    const now = new Date();
     const expiryAlerts = expiringBatches.map((batch) => ({
       id: batch.id,
       ingredientName: batch.ingredient.name,
       branchName: batch.branch.name,
       quantity: batch.quantity,
       expiryDate: batch.expiryDate!.toISOString(),
-      status: batch.status,
+      status:
+        batch.status === 'EXPIRED' || batch.expiryDate! < now
+          ? 'EXPIRED'
+          : batch.status,
     }));
 
     return {

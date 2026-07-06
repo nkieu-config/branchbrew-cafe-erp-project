@@ -89,7 +89,7 @@ export function Receipt({
               </td>
               <td className="text-center align-top py-0.5">{item.quantity}</td>
               <td className="text-right align-top py-0.5">
-                {(item.product.price * item.quantity).toFixed(2)}
+                {formatMoney(item.product.price * item.quantity)}
               </td>
             </tr>
           ))}
@@ -99,12 +99,12 @@ export function Receipt({
       <div className={receiptTotalsClassName()}>
         <div className={receiptRowClassName()}>
           <span>Subtotal</span>
-          <span>{order.subtotal?.toFixed(2)}</span>
+          <span>{formatMoney(order.subtotal)}</span>
         </div>
         {order.discount != null && order.discount > 0 && (
           <div className={receiptRowClassName()}>
             <span>Discount</span>
-            <span>-{formatCurrency(order.discount || 0)}</span>
+            <span>-{formatMoney(order.discount || 0)}</span>
           </div>
         )}
         <div className={receiptVatRowClassName()}>

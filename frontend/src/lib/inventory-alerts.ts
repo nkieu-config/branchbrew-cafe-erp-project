@@ -118,6 +118,6 @@ export function buildExpiryAlerts(
       branchName: batch.branch?.name ?? branchName,
       quantity: batch.quantity,
       expiryDate: batch.expiryDate!,
-      status: batch.status,
+      status: isExpiredBatch(batch) ? "EXPIRED" : batch.status,
     }));
 }

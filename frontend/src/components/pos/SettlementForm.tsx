@@ -122,7 +122,14 @@ export function SettlementForm({
           </div>
           <div className={posSettlementExpectedHeroClassName()}>
             <span className={cn("font-medium", text.primary)}>Expected cash in drawer</span>
-            <span className={cn(typeHeadingClassName("text-lg"), posSettlementHighlightClassName())}>
+            <span
+              className={cn(
+                typeHeadingClassName("text-lg"),
+                Number(expected?.expectedCash ?? 0) < 0
+                  ? statusTextClassName("danger")
+                  : posSettlementHighlightClassName(),
+              )}
+            >
               {formatCurrency(expected?.expectedCash)}
             </span>
           </div>
@@ -151,6 +158,7 @@ export function SettlementForm({
             id="actual-cash"
             type="number"
             step="0.01"
+            min="0"
             className={posNativeInputClassName("py-3 text-lg font-semibold")}
             value={actualCash}
             onChange={(e) => setActualCash(e.target.value)}
@@ -168,6 +176,7 @@ export function SettlementForm({
               id="actual-card"
               type="number"
               step="0.01"
+              min="0"
               className={posNativeInputClassName("py-2.5")}
               value={actualCreditCard}
               onChange={(e) => setActualCreditCard(e.target.value)}
@@ -183,6 +192,7 @@ export function SettlementForm({
               id="actual-qr"
               type="number"
               step="0.01"
+              min="0"
               className={posNativeInputClassName("py-2.5")}
               value={actualQR}
               onChange={(e) => setActualQR(e.target.value)}

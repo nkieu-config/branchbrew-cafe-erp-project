@@ -29,3 +29,15 @@ export function formatCurrency(
   }).format(toNumber(value));
 }
 
+export function formatCurrencyCompact(
+  value: number | string | null | undefined,
+  currency: string = DEFAULT_CURRENCY,
+): string {
+  return new Intl.NumberFormat("th-TH", {
+    style: "currency",
+    currency,
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(toNumber(value));
+}
+
