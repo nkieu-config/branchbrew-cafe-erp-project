@@ -10389,6 +10389,7 @@ export interface operations {
         parameters: {
             query: {
                 branchId: string;
+                days: string;
             };
             header?: never;
             path?: never;

@@ -66,7 +66,11 @@ export class ReportsRepository {
     });
   }
 
-  findOrderItemsForProducts(today: Date, productIds: number[], branchId?: number) {
+  findOrderItemsForProducts(
+    today: Date,
+    productIds: number[],
+    branchId?: number,
+  ) {
     return this.prisma.orderItem.findMany({
       where: {
         productId: { in: productIds },

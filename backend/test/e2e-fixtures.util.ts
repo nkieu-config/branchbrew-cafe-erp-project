@@ -1,4 +1,5 @@
 import * as bcrypt from 'bcrypt';
+import { DEFAULT_CHART_OF_ACCOUNTS } from '../src/accounting/chart-of-accounts';
 import { PrismaService } from '../src/prisma/prisma.service';
 
 export const E2E_PASSWORD = 'password123';
@@ -36,13 +37,7 @@ export async function seedPosFixture(prisma: PrismaService) {
     create: { key: 'vat_rate', value: '7' },
   });
 
-  const chartAccounts = [
-    { code: '1010', name: 'Cash', type: 'ASSET' as const },
-    { code: '1030', name: 'Inventory', type: 'ASSET' as const },
-    { code: '4010', name: 'Sales Revenue', type: 'REVENUE' as const },
-    { code: '5010', name: 'COGS', type: 'EXPENSE' as const },
-  ];
-  for (const acct of chartAccounts) {
+  for (const acct of DEFAULT_CHART_OF_ACCOUNTS) {
     await prisma.account.upsert({
       where: { code: acct.code },
       update: {},

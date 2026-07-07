@@ -18,6 +18,7 @@ import {
   isBalancedMoney,
   sumMoney,
 } from '../common/decimal.util';
+import { DEFAULT_CHART_OF_ACCOUNTS } from './chart-of-accounts';
 import {
   paymentAccountLabel,
   resolvePaymentAccountCode,
@@ -488,37 +489,7 @@ export class AccountingService {
 
   // Helper method to seed initial accounts if they don't exist
   async seedAccounts() {
-    const defaultAccounts = [
-      { code: '1010', name: 'Cash', type: 'ASSET' as const },
-      { code: '1020', name: 'Accounts Receivable', type: 'ASSET' as const },
-      { code: '1030', name: 'Inventory', type: 'ASSET' as const },
-      { code: '1040', name: 'Card Clearing', type: 'ASSET' as const },
-      { code: '1050', name: 'QR Payment Clearing', type: 'ASSET' as const },
-      { code: '2010', name: 'Accounts Payable', type: 'LIABILITY' as const },
-      { code: '2020', name: 'Output VAT Payable', type: 'LIABILITY' as const },
-      {
-        code: '2030',
-        name: 'Payroll Liabilities',
-        type: 'LIABILITY' as const,
-      },
-      { code: '3010', name: 'Owner Equity', type: 'EQUITY' as const },
-      { code: '4010', name: 'Sales Revenue', type: 'REVENUE' as const },
-      {
-        code: '5010',
-        name: 'Cost of Goods Sold (COGS)',
-        type: 'EXPENSE' as const,
-      },
-      { code: '5020', name: 'Payroll Expense', type: 'EXPENSE' as const },
-      {
-        code: '5030',
-        name: 'Production Cost Variance',
-        type: 'EXPENSE' as const,
-      },
-      { code: '5040', name: 'Inventory Shrinkage', type: 'EXPENSE' as const },
-      { code: '5050', name: 'Operating Expenses', type: 'EXPENSE' as const },
-    ];
-
-    for (const acc of defaultAccounts) {
+    for (const acc of DEFAULT_CHART_OF_ACCOUNTS) {
       await this.prisma.account.upsert({
         where: { code: acc.code },
         update: {},

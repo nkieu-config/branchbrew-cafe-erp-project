@@ -8833,6 +8833,14 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "days",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {

@@ -25,6 +25,10 @@ test.describe("POS checkout flow", () => {
     await cart.getByRole("button", { name: "Confirm & Pay" }).click();
 
     const payButton = page.getByRole("button", { name: /^Pay / });
+    await expect(payButton).toBeDisabled();
+
+    await page.getByRole("button", { name: "Exact", exact: true }).click();
+    await expect(page.getByText("Change due")).toBeVisible();
     await expect(payButton).toBeEnabled();
     await payButton.click();
 

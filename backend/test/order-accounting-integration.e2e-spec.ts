@@ -118,6 +118,7 @@ describeIfDatabase('Order accounting & inventory integration (e2e)', () => {
 
     const orderId = orderRes.body.id as number;
     const netAmount = Number(orderRes.body.netAmount);
+    const taxAmount = Number(orderRes.body.taxAmount);
     const totalCogs = Number(orderRes.body.totalCogs);
 
     await flushOutbox(app);
@@ -125,11 +126,14 @@ describeIfDatabase('Order accounting & inventory integration (e2e)', () => {
     const entry = await expectBalancedJournal(prisma, `ORD-${orderId}`);
     const cash = lineByAccount(entry.lines, '1010');
     const revenue = lineByAccount(entry.lines, '4010');
+    const outputVat = lineByAccount(entry.lines, '2020');
     const cogs = lineByAccount(entry.lines, '5010');
     const inventory = lineByAccount(entry.lines, '1030');
 
+    expect(taxAmount).toBeGreaterThan(0);
     expect(lineAmount(cash.debit)).toBeCloseTo(netAmount, 2);
-    expect(lineAmount(revenue.credit)).toBeCloseTo(netAmount, 2);
+    expect(lineAmount(revenue.credit)).toBeCloseTo(netAmount - taxAmount, 2);
+    expect(lineAmount(outputVat.credit)).toBeCloseTo(taxAmount, 2);
     expect(lineAmount(cogs.debit)).toBeCloseTo(totalCogs, 2);
     expect(lineAmount(inventory.credit)).toBeCloseTo(totalCogs, 2);
 
@@ -155,6 +159,7 @@ describeIfDatabase('Order accounting & inventory integration (e2e)', () => {
 
     const orderId = orderRes.body.id as number;
     const netAmount = Number(orderRes.body.netAmount);
+    const taxAmount = Number(orderRes.body.taxAmount);
     const totalCogs = Number(orderRes.body.totalCogs);
 
     await flushOutbox(app);
@@ -173,11 +178,13 @@ describeIfDatabase('Order accounting & inventory integration (e2e)', () => {
     const entry = await expectBalancedJournal(prisma, `VOID-ORD-${orderId}`);
     const cash = lineByAccount(entry.lines, '1010');
     const revenue = lineByAccount(entry.lines, '4010');
+    const outputVat = lineByAccount(entry.lines, '2020');
     const cogs = lineByAccount(entry.lines, '5010');
     const inventory = lineByAccount(entry.lines, '1030');
 
     expect(lineAmount(cash.credit)).toBeCloseTo(netAmount, 2);
-    expect(lineAmount(revenue.debit)).toBeCloseTo(netAmount, 2);
+    expect(lineAmount(revenue.debit)).toBeCloseTo(netAmount - taxAmount, 2);
+    expect(lineAmount(outputVat.debit)).toBeCloseTo(taxAmount, 2);
     expect(lineAmount(cogs.credit)).toBeCloseTo(totalCogs, 2);
     expect(lineAmount(inventory.debit)).toBeCloseTo(totalCogs, 2);
 
@@ -246,11 +253,14 @@ describeIfDatabase('Order accounting & inventory integration (e2e)', () => {
     );
     const cash = lineByAccount(entry.lines, '1010');
     const revenue = lineByAccount(entry.lines, '4010');
+    const outputVat = lineByAccount(entry.lines, '2020');
     const cogs = lineByAccount(entry.lines, '5010');
     const inventory = lineByAccount(entry.lines, '1030');
 
+    const refundTax = roundMoney((100 * 0.07) / 1.07);
     expect(lineAmount(cash.credit)).toBeCloseTo(100, 2);
-    expect(lineAmount(revenue.debit)).toBeCloseTo(100, 2);
+    expect(lineAmount(revenue.debit)).toBeCloseTo(100 - refundTax, 2);
+    expect(lineAmount(outputVat.debit)).toBeCloseTo(refundTax, 2);
     expect(lineAmount(cogs.credit)).toBeCloseTo(20, 2);
     expect(lineAmount(inventory.debit)).toBeCloseTo(20, 2);
 
