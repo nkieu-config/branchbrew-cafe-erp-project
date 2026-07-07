@@ -1,4 +1,21 @@
 import type { KdsTicketUrgency } from "@/lib/theme/immersive";
+import type { Order } from "@/types/api";
+
+export type KdsItemTally = { name: string; qty: number };
+
+/** All-day per-item totals across the active queue, busiest first. */
+export function summarizeKdsItems(orders: Order[]): KdsItemTally[] {
+  const byName = new Map<string, number>();
+  for (const order of orders) {
+    for (const item of order.items ?? []) {
+      const name = item.product?.name ?? "Item";
+      byName.set(name, (byName.get(name) ?? 0) + item.quantity);
+    }
+  }
+  return Array.from(byName, ([name, qty]) => ({ name, qty })).sort(
+    (a, b) => b.qty - a.qty || a.name.localeCompare(b.name),
+  );
+}
 
 export function getWaitTimeMinutes(createdAt: string, now = Date.now()): number {
   const diff = now - new Date(createdAt).getTime();

@@ -125,7 +125,7 @@ export function PosProductCatalog({
               {filteredProducts.length} of {totalProducts} items
             </p>
           ) : null}
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-3">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
             {filteredProducts.map((product: Product) => (
               <button
                 key={product.id}

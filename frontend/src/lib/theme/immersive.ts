@@ -200,7 +200,7 @@ export function posCatalogMetaClassName(className?: string) {
 
 export function posProductTileClassName(className?: string) {
   return cn(
-    "group relative flex min-h-[132px] w-full flex-col rounded-2xl border p-4 text-left",
+    "group relative flex min-h-[108px] w-full flex-col rounded-2xl border p-3 text-left",
     "bg-[var(--pos-product-tile-bg)] border-[var(--pos-panel-border)]",
     "transition-[transform,box-shadow,background-color,border-color] duration-200",
     "hover:border-[var(--pos-accent-hover-border)] hover:bg-[var(--pos-product-tile-hover)] hover:shadow-md",
@@ -226,7 +226,7 @@ export function posProductTileNameClassName(className?: string) {
 }
 
 export function posProductTileFooterClassName(className?: string) {
-  return cn("mt-auto flex items-end justify-between gap-2 pt-3", className);
+  return cn("mt-auto flex items-end justify-between gap-2 pt-2", className);
 }
 
 export function posProductTileAddHintClassName(className?: string) {
@@ -773,6 +773,7 @@ export function kdsTicketClassName(urgency: KdsTicketUrgency, className?: string
     "w-full rounded-xl border border-l-4 overflow-hidden flex flex-col shrink-0 shadow-sm",
     "bg-[var(--kds-ticket-bg)] border-[var(--kds-ticket-divider)]",
     kdsTicketUrgencyAccent[urgency],
+    urgency === "late" && "ring-1 ring-[var(--kds-late-border)]/40",
     className,
   );
 }
@@ -868,6 +869,7 @@ export function kdsTimerClassName(urgency: KdsTicketUrgency, className?: string)
   return cn(
     "flex items-center gap-1.5 text-sm font-medium tabular-nums shrink-0",
     kdsTimerTone[urgency],
+    urgency === "late" && "font-semibold motion-safe:animate-pulse",
     className,
   );
 }
