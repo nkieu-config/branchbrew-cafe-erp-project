@@ -312,6 +312,7 @@ export default function ModifiersPageClient() {
       {
         title: "Price +",
         key: "price",
+        align: "right" as const,
         render: (_: unknown, record: ModifierOption) => (
           <span className={cn("tabular-nums font-medium", text.primary)}>
             {formatCurrency(toNumber(record.priceDelta))}

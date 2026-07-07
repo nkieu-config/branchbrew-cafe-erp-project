@@ -129,6 +129,7 @@ export function IngredientsTable({
           title: "Cost",
           dataIndex: "costPerUnit",
           key: "costPerUnit",
+          align: "right" as const,
           render: (costPerUnit?: number) => {
             const missing = costPerUnit == null || costPerUnit <= 0;
             return (

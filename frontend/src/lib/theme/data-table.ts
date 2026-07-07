@@ -105,6 +105,20 @@ export function dataTableRowHoverClassName(className?: string) {
   return cn("hover:bg-[var(--table-row-hover)]", className);
 }
 
+/**
+ * Shared column widths so equivalent columns line up across every module.
+ * antd tables use auto layout, so these are minimum hints — keep numeric
+ * columns right-aligned and dates `whitespace-nowrap` alongside them.
+ */
+export const COL_WIDTH = {
+  actionsIcon: 56,
+  actions: 80,
+  status: 110,
+  date: 120,
+  dateTime: 150,
+  money: 120,
+} as const;
+
 /** Default page-size options for hub list DataTables (Tier A). */
 export const HUB_LIST_PAGE_SIZE_OPTIONS = ["10", "15", "25", "50"] as const;
 

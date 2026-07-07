@@ -23,6 +23,7 @@ import {
 } from "@/lib/filters/food-cost-filters";
 import { productHasRecipe } from "@/lib/filters/menu-product-filters";
 import { useHubListPagination } from "@/hooks/useHubListPagination";
+import { COL_WIDTH } from "@/lib/theme/data-table";
 import { inlineLinkClassName } from "@/lib/theme/hub-primitives";
 import {
   foodCostStatusClassName,
@@ -136,7 +137,7 @@ export function FoodCostTable({
           title: "Status",
           key: "status",
           responsive: ["lg"],
-          width: 120,
+          width: COL_WIDTH.status,
           render: (_: unknown, record: Product) => {
             const bucket = productFoodCostBucket(record);
             return (
@@ -149,7 +150,7 @@ export function FoodCostTable({
         {
           title: "",
           key: "actions",
-          width: 48,
+          width: COL_WIDTH.actionsIcon,
           align: "right" as const,
           render: (_: unknown, record: Product) => (
             <TableActionButton

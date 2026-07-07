@@ -14,6 +14,7 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { useHubListPagination } from "@/hooks/useHubListPagination";
 import { tableCellMutedClassName } from "@/lib/theme/feedback";
+import { COL_WIDTH } from "@/lib/theme/data-table";
 import {
   stockLevel,
   stockLevelLabel,
@@ -142,6 +143,7 @@ export function InventoryOverviewTable({
         {
           title: "Stock",
           key: "stock",
+          align: "right" as const,
           sorter: (a: InventoryRow, b: InventoryRow) => a.stock - b.stock,
           render: (_: unknown, record: InventoryRow) => (
             <span className={cn("tabular-nums font-medium", text.primary)}>
@@ -153,6 +155,7 @@ export function InventoryOverviewTable({
           title: "Min",
           key: "minStock",
           responsive: ["md"],
+          align: "right" as const,
           sorter: (a: InventoryRow, b: InventoryRow) => a.minStock - b.minStock,
           render: (_: unknown, record: InventoryRow) => (
             <span className={cn("tabular-nums", tableCellMutedClassName())}>
@@ -171,6 +174,7 @@ export function InventoryOverviewTable({
         {
           title: "Status",
           key: "status",
+          width: COL_WIDTH.status,
           sorter: (a: InventoryRow, b: InventoryRow) => {
             const order = { out: 0, low: 1, ok: 2 };
             return order[stockLevel(a.stock, a.minStock)] - order[stockLevel(b.stock, b.minStock)];
@@ -187,7 +191,7 @@ export function InventoryOverviewTable({
         {
           title: "",
           key: "actions",
-          width: 120,
+          width: COL_WIDTH.actions,
           responsive: ["md"],
           render: (_: unknown, record: InventoryRow) => {
             const level = stockLevel(record.stock, record.minStock);

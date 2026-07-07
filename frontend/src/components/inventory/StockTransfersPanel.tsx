@@ -34,6 +34,7 @@ import { ListFilterRow, ListFilterSelect } from "@/components/shared/list-filter
 import { Button } from "@/components/ui/button";
 import { getErrorMessage } from "@/lib/errors";
 import { formatHubListCountWithFetching } from "@/lib/format-hub-list-count";
+import { COL_WIDTH } from "@/lib/theme/data-table";
 import { compactPanelLinkClassName } from "@/lib/theme/stock";
 import { text } from "@/lib/theme/surface";
 import { typeUiLabelClassName } from "@/lib/theme/typography";
@@ -334,7 +335,7 @@ export function StockTransfersPanel({
         title: "Date",
         dataIndex: "createdAt",
         key: "createdAt",
-        width: variant === "compact" ? 120 : 140,
+        width: variant === "compact" ? COL_WIDTH.date : COL_WIDTH.dateTime,
         responsive: ["md"],
         render: (date: string) => (
           <span className={`whitespace-nowrap tabular-nums text-sm ${text.subtle}`}>
@@ -404,7 +405,7 @@ export function StockTransfersPanel({
         title: "Status",
         dataIndex: "status",
         key: "status",
-        width: variant === "page" ? 132 : 100,
+        width: COL_WIDTH.status,
         render: (status: string, record: StockTransfer) => {
           const directionHint = renderTransferDirectionHint(record, status);
 
@@ -422,7 +423,7 @@ export function StockTransfersPanel({
         title: "Actions",
         key: "actions",
         align: "right" as const,
-        width: 120,
+        width: COL_WIDTH.actions,
         render: (_: unknown, record: StockTransfer) => renderTransferActions(record),
       },
       ] as ColumnsType<StockTransfer>,

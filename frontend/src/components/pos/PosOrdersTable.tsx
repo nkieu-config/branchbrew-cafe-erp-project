@@ -140,7 +140,9 @@ export function PosOrdersTable({
           dataIndex: "createdAt",
           key: "date",
           responsive: ["lg"],
-          render: (v: string) => formatDateTime(v),
+          render: (v: string) => (
+            <span className="whitespace-nowrap tabular-nums">{formatDateTime(v)}</span>
+          ),
         },
         {
           title: "Status",

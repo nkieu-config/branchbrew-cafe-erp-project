@@ -13,6 +13,7 @@ import { JournalLinesPanel } from "@/components/finance/JournalLinesPanel";
 import { formatDate } from "@/lib/intl-date";
 import { journalStatusLabel } from "@/lib/filters/ledger-filters";
 import { useHubListPagination } from "@/hooks/useHubListPagination";
+import { COL_WIDTH } from "@/lib/theme/data-table";
 import { financeMutedMetaClassName } from "@/lib/theme/finance";
 import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
@@ -49,7 +50,7 @@ export function JournalEntriesTable({
           title: "Date",
           dataIndex: "date",
           key: "date",
-          width: 110,
+          width: COL_WIDTH.date,
           render: (date: string) => (
             <span className={cn("tabular-nums", text.primary)}>{formatDate(date)}</span>
           ),
@@ -76,7 +77,7 @@ export function JournalEntriesTable({
           title: "Status",
           dataIndex: "status",
           key: "status",
-          width: 100,
+          width: COL_WIDTH.status,
           render: (status: string) => (
             <StatusBadge tone={journalStatusTone(status)}>{journalStatusLabel(status)}</StatusBadge>
           ),

@@ -89,7 +89,10 @@ function AuditDesktopTable({
                   {formatDateTime(log.createdAt)}
                 </TableCell>
                 <TableCell>
-                  <span className={cn("block max-w-[200px] truncate", text.primary)}>
+                  <span
+                    title={log.user?.name || log.user?.email || undefined}
+                    className={cn("block max-w-75 truncate", text.primary)}
+                  >
                     {log.user?.name || log.user?.email}
                   </span>
                 </TableCell>
@@ -97,7 +100,7 @@ function AuditDesktopTable({
                   <span className={text.secondary}>{auditActionLabel(log.action)}</span>
                 </TableCell>
                 <TableCell>
-                  <span className={cn("block max-w-[220px] truncate", text.secondary)}>
+                  <span className={cn("block max-w-90 truncate", text.secondary)}>
                     {auditTargetTypeLabel(log.targetType)}
                     {log.targetId != null && (
                       <span className={text.muted}> #{log.targetId}</span>

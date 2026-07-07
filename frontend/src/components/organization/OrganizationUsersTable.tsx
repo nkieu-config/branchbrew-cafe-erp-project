@@ -107,11 +107,17 @@ export function OrganizationUsersTable({
           title: "Branch",
           key: "branch",
           responsive: ["md"],
-          render: (_: unknown, record: User) => (
-            <span className={cn("block max-w-[200px] truncate", text.secondary)}>
-              {branchLabel(record, branchNameById)}
-            </span>
-          ),
+          render: (_: unknown, record: User) => {
+            const label = branchLabel(record, branchNameById);
+            return (
+              <span
+                title={typeof label === "string" ? label : undefined}
+                className={cn("block max-w-70 truncate", text.secondary)}
+              >
+                {label}
+              </span>
+            );
+          },
         },
         {
           title: "",

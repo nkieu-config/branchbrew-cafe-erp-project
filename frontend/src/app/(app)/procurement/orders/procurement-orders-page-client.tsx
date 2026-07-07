@@ -68,6 +68,7 @@ import {
 import type { PurchaseOrder, Supplier } from "@/types/api";
 import { useHubListPagination } from "@/hooks/useHubListPagination";
 import { infoBannerClassName, infoBannerTextClassName } from "@/lib/theme/hub-banners";
+import { COL_WIDTH } from "@/lib/theme/data-table";
 import { hubCtaClassName, inlineLinkClassName, tableActionAccentClassName } from "@/lib/theme/hub-primitives";
 import {
   procurementMutedMetaClassName,
@@ -369,6 +370,7 @@ export default function ProcurementOrdersPageClient() {
           title: "Total",
           key: "total",
           align: "right" as const,
+          width: COL_WIDTH.money,
           responsive: ["md"],
           render: (_: unknown, record: PurchaseOrder) => (
             <span className={cn("tabular-nums", text.primary)}>
@@ -396,7 +398,7 @@ export default function ProcurementOrdersPageClient() {
           title: "",
           key: "action",
           align: "right" as const,
-          width: 140,
+          width: COL_WIDTH.actions,
           render: (_: unknown, po: PurchaseOrder) => renderPoActions(po),
         },
       ] as ColumnsType<PurchaseOrder>,

@@ -118,6 +118,7 @@ export function CustomerListTable({
           title: "Points",
           dataIndex: "points",
           key: "points",
+          align: "right" as const,
           render: (points: number) => (
             <span className={crmPointsClassName()}>
               {points.toLocaleString()}

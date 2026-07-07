@@ -32,7 +32,7 @@ const expenseColumns: ColumnsType<Expense> = [
     title: "Date",
     key: "date",
     render: (_: unknown, expense: Expense) => (
-      <span className={cn("tabular-nums", tableCellMutedClassName())}>
+      <span className={cn("tabular-nums whitespace-nowrap", tableCellMutedClassName())}>
         {formatDateTime(expense.createdAt)}
       </span>
     ),

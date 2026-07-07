@@ -228,7 +228,7 @@ export default function OverviewPageClient() {
             : `${summary.settlements} settlements · ${summary.expenses} expenses`}
         </HubListPage.Count>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           <SettlementsTable
             settlements={visibleSettlements}
             loading={loadingSettlements}

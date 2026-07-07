@@ -145,6 +145,7 @@ export function MenuProductListTable({
           title: "Price",
           dataIndex: "price",
           key: "price",
+          align: "right" as const,
           render: (price: number) => (
             <span className={cn("tabular-nums font-medium", text.primary)}>
               {formatCurrency(price)}

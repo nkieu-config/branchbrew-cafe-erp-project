@@ -33,6 +33,7 @@ const poItemColumns: ColumnsType<PurchaseOrderItem> = [
     dataIndex: "quantityRequested",
     key: "qty",
     width: 96,
+    align: "right" as const,
     render: (val: number, item: PurchaseOrderItem) => (
       <span className={cn("tabular-nums", text.secondary)}>
         {val} {item.ingredient?.unit ?? ""}

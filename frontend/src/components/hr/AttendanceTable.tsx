@@ -21,6 +21,7 @@ import {
   attendanceOnTimeClassName,
   hrMutedMetaClassName,
 } from "@/lib/theme/hub-hr";
+import { COL_WIDTH } from "@/lib/theme/data-table";
 import { text } from "@/lib/theme/surface";
 import { formatQuantity } from "@/lib/money";
 import { cn } from "@/lib/utils";
@@ -55,6 +56,7 @@ export function AttendanceTable({
           title: "Date",
           dataIndex: "clockIn",
           key: "date",
+          width: COL_WIDTH.date,
           render: (val: string) => (
             <span className={cn("font-medium", text.primary)}>{formatDate(val)}</span>
           ),
@@ -63,6 +65,7 @@ export function AttendanceTable({
           title: "In",
           dataIndex: "clockIn",
           key: "in",
+          width: 130,
           render: (val: string) => {
             const { isLate } = isAttendanceLate(val, shifts);
             return (
@@ -79,6 +82,7 @@ export function AttendanceTable({
           title: "Out",
           dataIndex: "clockOut",
           key: "out",
+          width: 130,
           render: (val: string | null) =>
             val ? (
               <span className={cn("tabular-nums", text.secondary)}>{formatTime(val)}</span>
@@ -91,6 +95,7 @@ export function AttendanceTable({
           dataIndex: ["branch", "name"],
           key: "branch",
           responsive: ["md"],
+          width: 200,
           render: (name: string) =>
             name ? (
               <span className={text.secondary}>{name}</span>
@@ -103,6 +108,7 @@ export function AttendanceTable({
           dataIndex: "totalHours",
           key: "hours",
           align: "right" as const,
+          width: 100,
           render: (val: number | null, record: AttendanceRecordRow) =>
             val != null && val > 0 ? (
               <span className={cn("tabular-nums", text.primary)}>{formatQuantity(val)}</span>
@@ -112,6 +118,7 @@ export function AttendanceTable({
               <span className={text.muted}>—</span>
             ),
         },
+        { title: "", key: "spacer", render: () => null },
       ] as ColumnsType<AttendanceRecordRow>,
     [shifts],
   );

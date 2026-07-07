@@ -43,6 +43,7 @@ export function ProductionBomTable({ groups, loading }: ProductionBomTableProps)
         title: "Qty",
         key: "quantity",
         width: 120,
+        align: "right" as const,
         responsive: ["sm"],
         render: (_: unknown, record) => {
           if ("isGroup" in record && record.isGroup) {

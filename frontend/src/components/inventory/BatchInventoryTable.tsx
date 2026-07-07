@@ -211,6 +211,7 @@ export function BatchInventoryTable({
         {
           title: "Stock",
           key: "stock",
+          align: "right" as const,
           sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) => a.stock - b.stock,
           render: (_: unknown, record: InventoryWithIngredient) => (
             <span className={cn("tabular-nums", text.primary)}>
@@ -222,6 +223,7 @@ export function BatchInventoryTable({
           title: "Min",
           key: "minStock",
           responsive: ["md"],
+          align: "right" as const,
           sorter: (a: InventoryWithIngredient, b: InventoryWithIngredient) => a.minStock - b.minStock,
           render: (_: unknown, record: InventoryWithIngredient) => (
             <span className={cn("tabular-nums", tableCellMutedClassName())}>
@@ -297,6 +299,7 @@ export function BatchInventoryTable({
         {
           title: "Qty",
           key: "quantity",
+          align: "right" as const,
           render: (_: unknown, b: BatchWithSupplier) => (
             <span className={cn("tabular-nums", text.primary)}>
               {formatQuantity(b.quantity, { unit: record.ingredient.unit })}

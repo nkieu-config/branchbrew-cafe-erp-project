@@ -35,6 +35,7 @@ import {
 import { getErrorMessage } from "@/lib/errors";
 import { formatDateTime } from "@/lib/intl-date";
 import { formatQuantity } from "@/lib/money";
+import { COL_WIDTH } from "@/lib/theme/data-table";
 import { hubCtaClassName } from "@/lib/theme/hub-primitives";
 import {
   formFieldInsetClassName,
@@ -107,7 +108,7 @@ export default function StocktakePageClient() {
           title: "Status",
           dataIndex: "status",
           key: "status",
-          width: 130,
+          width: COL_WIDTH.status,
           render: (status: StockCount["status"]) => (
             <StatusBadge tone={stockCountStatusTone(status)}>{formatStatusLabel(status)}</StatusBadge>
           ),

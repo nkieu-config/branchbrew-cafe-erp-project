@@ -24,6 +24,7 @@ import { StatusBadge } from "@/components/shared/status-badge";
 import { TableActionButton } from "@/components/shared/table-action-button";
 import { Switch } from "@/components/ui/switch";
 import { useHubListPagination } from "@/hooks/useHubListPagination";
+import { COL_WIDTH } from "@/lib/theme/data-table";
 import { text } from "@/lib/theme/surface";
 import { cn } from "@/lib/utils";
 
@@ -186,6 +187,7 @@ export function PromotionListTable({
           title: "Discount",
           key: "discount",
           width: 100,
+          align: "right" as const,
           render: (_: unknown, record: Promotion) => (
             <span className={cn("tabular-nums font-medium", text.primary)}>
               {record.discountType === "PERCENTAGE"
@@ -217,6 +219,7 @@ export function PromotionListTable({
           key: "minPurchase",
           responsive: ["lg"],
           width: 96,
+          align: "right" as const,
           render: (min: number | null) => (
             <span className={cn("tabular-nums text-sm", text.muted)}>
               {min != null ? formatCurrency(min) : "—"}
@@ -227,7 +230,7 @@ export function PromotionListTable({
           title: "Status",
           dataIndex: "isActive",
           key: "status",
-          width: 120,
+          width: COL_WIDTH.status,
           render: (_: boolean, record: Promotion) => (
             <PromotionStatusControl
               promotion={record}
