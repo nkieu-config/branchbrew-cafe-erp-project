@@ -57,18 +57,6 @@ jobs:
           node-version: 22.x
           cache: npm
 
-      - name: Restore node_modules cache
-        uses: actions/cache@v6
-        id: npm-cache
-        with:
-          path: |
-            node_modules
-            backend/node_modules
-            frontend/node_modules
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            npm-${{ runner.os }}-
-
       - name: Install Dependencies
         run: ./scripts/npm-ci-retry.sh
 
@@ -125,7 +113,6 @@ jobs:
           severity: CRITICAL,HIGH
           ignore-unfixed: true
           scanners: vuln
-          skip-dirs: usr/local/lib/node_modules/npm,opt/yarn-v1.22.22,usr/local/lib/node_modules/corepack
 
       - name: Scan frontend image with Trivy
         uses: aquasecurity/trivy-action@v0.36.0
@@ -136,7 +123,6 @@ jobs:
           severity: CRITICAL,HIGH
           ignore-unfixed: true
           scanners: vuln
-          skip-dirs: usr/local/lib/node_modules/npm,opt/yarn-v1.22.22,usr/local/lib/node_modules/corepack
           skip-setup-trivy: true
 
       - name: Compose smoke test
@@ -181,18 +167,6 @@ jobs:
         with:
           node-version: 22.x
           cache: npm
-
-      - name: Restore node_modules cache
-        uses: actions/cache@v6
-        id: npm-cache
-        with:
-          path: |
-            node_modules
-            backend/node_modules
-            frontend/node_modules
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            npm-${{ runner.os }}-
 
       - name: Install Dependencies
         run: ./scripts/npm-ci-retry.sh
@@ -247,18 +221,6 @@ jobs:
           node-version: 22.x
           cache: npm
 
-      - name: Restore node_modules cache
-        uses: actions/cache@v6
-        id: npm-cache
-        with:
-          path: |
-            node_modules
-            backend/node_modules
-            frontend/node_modules
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            npm-${{ runner.os }}-
-
       - name: Install Dependencies
         run: ./scripts/npm-ci-retry.sh
 
@@ -277,7 +239,9 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: frontend-build
-          path: frontend/.next
+          path: |
+            frontend/.next
+            !frontend/.next/cache
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 1
@@ -330,18 +294,6 @@ jobs:
         with:
           node-version: 22.x
           cache: npm
-
-      - name: Restore node_modules cache
-        uses: actions/cache@v6
-        id: npm-cache
-        with:
-          path: |
-            node_modules
-            backend/node_modules
-            frontend/node_modules
-          key: npm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            npm-${{ runner.os }}-
 
       - name: Install Dependencies
         run: ./scripts/npm-ci-retry.sh

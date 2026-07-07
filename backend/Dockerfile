@@ -16,7 +16,7 @@ COPY packages/types/package.json ./packages/types/
 RUN --mount=type=cache,id=erp-npm-backend,target=/root/.npm \
     npm ci --workspace=backend --include-workspace-root
 
-COPY . .
+COPY backend ./backend
 
 RUN npx prisma generate --schema=backend/prisma/schema.prisma
 RUN npm run build --workspace=backend
@@ -83,7 +83,9 @@ ENV HUSKY=0
 
 RUN apk add --no-cache dumb-init \
   && addgroup --system --gid 1001 nodejs \
-  && adduser --system --uid 1001 nestjs
+  && adduser --system --uid 1001 nestjs \
+  && rm -rf /usr/local/lib/node_modules /usr/local/bin/npm /usr/local/bin/npx \
+    /usr/local/bin/corepack /opt/yarn* /usr/local/bin/yarn /usr/local/bin/yarnpkg
 
 COPY --from=prod-deps --chown=nestjs:nodejs /app/package*.json ./
 COPY --from=prod-deps --chown=nestjs:nodejs /app/backend/package.json ./backend/
