@@ -9,6 +9,7 @@ export type ChartTheme = {
   tooltipFg: string;
   tooltipShadow: string;
   revenue: string;
+  orders: string;
   cursor: string;
 };
 
@@ -34,6 +35,7 @@ export function getChartTheme(): ChartTheme {
     tooltipFg: readCssVar("--chart-tooltip-fg", light.foreground),
     tooltipShadow: readCssVar("--chart-tooltip-shadow", "0 4px 6px rgb(0 0 0 / 0.1)"),
     revenue: readCssVar("--chart-revenue", light.chart1),
+    orders: readCssVar("--chart-2", light.chart2),
     cursor: readCssVar("--chart-cursor", light.muted),
   };
 }

@@ -35,7 +35,7 @@ export function OperationalTasksWidget() {
   const taskCount = tasks.reduce((sum, task) => sum + task.count, 0);
 
   return (
-    <Card className={dashboardWidgetCardClass("alerts", "h-[240px] overflow-hidden flex flex-col")}>
+    <Card className={dashboardWidgetCardClass("alerts", "h-[240px] xl:h-full overflow-hidden flex flex-col")}>
       <DashboardWidgetHeader
         variant="alerts"
         icon={ClipboardList}

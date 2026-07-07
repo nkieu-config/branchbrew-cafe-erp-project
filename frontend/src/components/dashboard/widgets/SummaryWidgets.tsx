@@ -1,11 +1,8 @@
 "use client";
 
-import { INVENTORY_ENDPOINTS } from "@/lib/endpoints/inventory";
-import { BRANCH_ENDPOINTS } from "@/lib/endpoints/branches";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useMemo, type ReactNode } from "react";
-import { useSuspenseQueries } from "@tanstack/react-query";
+import { type ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { DashboardWidgetHeader } from "@/components/dashboard/DashboardWidgetHeader";
 import {
@@ -17,16 +14,15 @@ import {
   AlertTriangle,
   CheckCircle2,
   Award,
+  Percent,
 } from "lucide-react";
-import { useTopProductsSuspense } from "@/hooks/domains/useReportsQueries";
-import { useDashboardSummary } from "@/components/dashboard/DashboardSummaryContext";
-import { fetchAPI } from "@/lib/api";
-import { inventoryKeys } from "@/lib/query-keys";
 import {
-  buildExpiryAlerts,
-  buildLowStockAlerts,
-  countExpiringBatches,
-  countLowStockRecords,
+  useProfitLossSuspense,
+  useTopProductsSuspense,
+} from "@/hooks/domains/useReportsQueries";
+import type { ReportsProfitLoss } from "@/types/api";
+import { useDashboardSummary } from "@/components/dashboard/DashboardSummaryContext";
+import {
   DASHBOARD_ALERT_PREVIEW_LIMIT,
   type DashboardExpiryAlert,
   type DashboardLowStockAlert,
@@ -55,6 +51,36 @@ function hasComparableGrowth(
     Number.isFinite(growth) &&
     typeof priorValue === "number" &&
     priorValue > 0
+  );
+}
+
+function computeGrowth(
+  today: number | null | undefined,
+  yesterday: number | null | undefined,
+): number | null {
+  if (typeof today !== "number" || typeof yesterday !== "number" || yesterday <= 0) {
+    return null;
+  }
+  return ((today - yesterday) / yesterday) * 100;
+}
+
+function AvgTicketTrend({ growth }: { growth: number | null }) {
+  if (growth == null) return null;
+  const up = growth >= 0;
+  return (
+    <span
+      className={cn(
+        "ml-1.5 inline-flex items-center text-xs tabular-nums",
+        up ? "text-(--status-success-fg)" : "text-(--status-danger-fg)",
+      )}
+    >
+      {up ? (
+        <TrendingUp className="w-3 h-3 mr-0.5" aria-hidden />
+      ) : (
+        <TrendingDown className="w-3 h-3 mr-0.5" aria-hidden />
+      )}
+      {Math.abs(growth).toFixed(1)}%
+    </span>
   );
 }
 
@@ -97,6 +123,45 @@ export function SalesWidget({ branchId }: { branchId: string }) {
           </div>
           <div className={dashboardWidgetIconSolidClass("compact")}>
             <DollarSign className="w-5 h-5" aria-hidden />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function MarginWidget({ branchId }: { branchId: string }) {
+  const parsed = branchId === "ALL" ? undefined : branchId;
+  const { data } = useProfitLossSuspense(parsed);
+  const pnl = data as ReportsProfitLoss | undefined;
+  const revenue = pnl?.revenue ?? 0;
+  const hasRevenue = revenue > 0;
+  const grossMarginPct = hasRevenue ? ((pnl?.grossProfit ?? 0) / revenue) * 100 : null;
+  const foodCostPct = hasRevenue ? ((pnl?.cogs ?? 0) / revenue) * 100 : null;
+
+  return (
+    <Card className={dashboardWidgetCardClass("products")} data-testid="dashboard-margin">
+      <CardContent className={dashboardKpiBodyClass()}>
+        <div className="flex justify-between items-start gap-3">
+          <div className="min-w-0">
+            <p className={dashboardWidgetLabelClass("products")}>Gross Margin</p>
+            <p className={cn("text-3xl mt-1 tabular-nums tracking-tight", text.primary)}>
+              {grossMarginPct != null ? `${grossMarginPct.toFixed(1)}%` : "—"}
+            </p>
+            <div className="mt-2 space-y-0.5">
+              <p className={cn("text-sm font-medium tabular-nums", text.secondary)}>
+                Food cost{" "}
+                <span className={cn("font-semibold", text.primary)}>
+                  {foodCostPct != null ? `${foodCostPct.toFixed(1)}%` : "—"}
+                </span>
+              </p>
+              <p className={cn("text-xs tabular-nums", text.muted)}>
+                Net {formatDashboardCurrency(pnl?.netProfit ?? 0)} · month to date
+              </p>
+            </div>
+          </div>
+          <div className={dashboardWidgetIconSolidClass("compact")}>
+            <Percent className="w-5 h-5" aria-hidden />
           </div>
         </div>
       </CardContent>
@@ -160,6 +225,9 @@ export function TopBranchWidget({
                 <span className={dashboardWidgetValueClass("branch")}>
                   {formatDashboardCurrency(summary?.avgTicketToday ?? 0)}
                 </span>
+                <AvgTicketTrend
+                  growth={computeGrowth(summary?.avgTicketToday, summary?.avgTicketYesterday)}
+                />
               </p>
             </div>
             <div className={dashboardWidgetIconSoftClass("branch", "compact")}>
@@ -334,21 +402,18 @@ function InventoryAlertsList({
   );
 }
 
-export function LowStockWidget({
-  branchId,
-  branchName,
-}: {
-  branchId: string;
-  branchName?: string;
-}) {
-  if (branchId === "ALL") {
-    return <LowStockAllBranchesWidget />;
-  }
+export function LowStockWidget({ branchId }: { branchId: string }) {
+  const summary = useDashboardSummary();
+  const lowStockAlerts = (summary.lowStockAlerts ?? []) as DashboardLowStockAlert[];
+  const expiryAlerts = (summary.expiryAlerts ?? []) as DashboardExpiryAlert[];
 
   return (
-    <LowStockSingleBranchWidget
-      branchId={Number(branchId)}
-      branchName={branchName ?? "Branch"}
+    <LowStockWidgetShell
+      lowStockAlerts={lowStockAlerts}
+      expiryAlerts={expiryAlerts}
+      lowTotal={summary.lowStockCount ?? lowStockAlerts.length}
+      expiryTotal={summary.expiryCount ?? expiryAlerts.length}
+      isAllBranches={branchId === "ALL"}
     />
   );
 }
@@ -369,7 +434,7 @@ function LowStockWidgetShell({
   const alertCount = lowTotal + expiryTotal;
 
   return (
-    <Card className={dashboardWidgetCardClass("alerts", "h-[240px] overflow-hidden flex flex-col")}>
+    <Card className={dashboardWidgetCardClass("alerts", "h-[240px] xl:h-full overflow-hidden flex flex-col")}>
       <DashboardWidgetHeader
         variant="alerts"
         icon={AlertTriangle}
@@ -401,74 +466,20 @@ function LowStockWidgetShell({
   );
 }
 
-function LowStockAllBranchesWidget() {
-  const summary = useDashboardSummary();
-  const lowStockAlerts = (summary.lowStockAlerts ?? []) as DashboardLowStockAlert[];
-  const expiryAlerts = (summary.expiryAlerts ?? []) as DashboardExpiryAlert[];
-
-  return (
-    <LowStockWidgetShell
-      lowStockAlerts={lowStockAlerts}
-      expiryAlerts={expiryAlerts}
-      lowTotal={lowStockAlerts.length}
-      expiryTotal={expiryAlerts.length}
-      isAllBranches
-    />
-  );
-}
-
-function LowStockSingleBranchWidget({
-  branchId,
-  branchName,
-}: {
-  branchId: number;
-  branchName: string;
-}) {
-  const [{ data: inventory = [] }, { data: branchDetails }] = useSuspenseQueries({
-    queries: [
-      {
-        queryKey: inventoryKeys.balance(branchId),
-        queryFn: () => fetchAPI(INVENTORY_ENDPOINTS.balance(branchId)),
-      },
-      {
-        queryKey: inventoryKeys.branch(branchId),
-        queryFn: () => fetchAPI(BRANCH_ENDPOINTS.detail(branchId)),
-      },
-    ],
-  });
-
-  const alerts = useMemo(() => {
-    const lowStockAlerts = buildLowStockAlerts(inventory, branchName);
-    const expiryAlerts = buildExpiryAlerts(branchDetails?.inventoryBatches, branchName);
-
-    return {
-      lowStockAlerts,
-      expiryAlerts,
-      lowTotal: countLowStockRecords(inventory),
-      expiryTotal: countExpiringBatches(branchDetails?.inventoryBatches),
-    };
-  }, [branchDetails?.inventoryBatches, branchName, inventory]);
-
-  return (
-    <LowStockWidgetShell
-      lowStockAlerts={alerts.lowStockAlerts}
-      expiryAlerts={alerts.expiryAlerts}
-      lowTotal={alerts.lowTotal}
-      expiryTotal={alerts.expiryTotal}
-      isAllBranches={false}
-    />
-  );
-}
-
 export function TopProductsWidget({ branchId }: { branchId: string }) {
   const { data: topProducts } = useTopProductsSuspense(branchId);
 
   return (
-    <Card className={dashboardWidgetCardClass("products", dashboardChartWidgetShellClass())}>
+    <Card
+      className={dashboardWidgetCardClass(
+        "products",
+        dashboardChartWidgetShellClass("sm:h-auto lg:h-auto sm:min-h-[380px]"),
+      )}
+    >
       <DashboardWidgetHeader
         variant="products"
         icon={Award}
-        title="Top 3 Best Sellers"
+        title="Top 5 Best Sellers"
         description="Highest volume items today"
       />
       <CardContent className={dashboardChartWidgetContentClass()}>

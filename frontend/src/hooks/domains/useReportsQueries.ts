@@ -45,11 +45,19 @@ export const useTopProductsSuspense = (branchId?: string) => {
   });
 };
 
-export const useSalesTrendsSuspense = (branchId?: string) => {
+export const useSalesTrendsSuspense = (branchId?: string, days = 7) => {
   const parsed = branchId && branchId !== 'ALL' ? Number(branchId) : undefined;
   return useSuspenseQuery({
-    queryKey: analyticsKeys.salesTrends(branchId),
-    queryFn: () => fetchAPI(REPORT_ENDPOINTS.salesTrends(parsed)),
+    queryKey: analyticsKeys.salesTrends(branchId, days),
+    queryFn: () => fetchAPI(REPORT_ENDPOINTS.salesTrends(parsed, days)),
+  });
+};
+
+export const useProfitLossSuspense = (branchId?: string) => {
+  const parsed = branchId && branchId !== 'ALL' ? Number(branchId) : undefined;
+  return useSuspenseQuery({
+    queryKey: analyticsKeys.profitLoss(branchId),
+    queryFn: () => fetchAPI(REPORT_ENDPOINTS.profitLoss(parsed)),
   });
 };
 

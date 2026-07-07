@@ -21,6 +21,9 @@ export class TopProductReportResponseDto {
 
   @ApiProperty({ example: 86 })
   totalQuantity: number;
+
+  @ApiProperty({ example: 5160 })
+  totalRevenue: number;
 }
 
 export class ReportsProfitLossResponseDto {
@@ -122,6 +125,12 @@ export class ExecutiveSummaryResponseDto {
   @ApiProperty({ type: ExecutiveSummaryLowStockAlertDto, isArray: true })
   lowStockAlerts: ExecutiveSummaryLowStockAlertDto[];
 
+  @ApiProperty({ example: 8 })
+  lowStockCount: number;
+
   @ApiProperty({ type: ExecutiveSummaryExpiryAlertDto, isArray: true })
   expiryAlerts: ExecutiveSummaryExpiryAlertDto[];
+
+  @ApiProperty({ example: 3 })
+  expiryCount: number;
 }

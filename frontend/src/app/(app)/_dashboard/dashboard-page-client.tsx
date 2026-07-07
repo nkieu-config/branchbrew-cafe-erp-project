@@ -14,6 +14,7 @@ import type { Branch } from "@/types/api";
 import {
   SalesWidget,
   TopBranchWidget,
+  MarginWidget,
   LowStockWidget,
   TopProductsWidget,
 } from "@/components/dashboard/widgets/SummaryWidgets";
@@ -174,16 +175,19 @@ function buildWidgetRegistry(
         </WidgetBoundary>
       ),
     },
+    margin: {
+      content: (
+        <WidgetBoundary onReset={reset}>
+          <Suspense fallback={<StatWidgetSkeleton />}>
+            <MarginWidget branchId={analyticsBranch} />
+          </Suspense>
+        </WidgetBoundary>
+      ),
+    },
     lowStock: {
       content: (
         <WidgetBoundary onReset={reset}>
-          {analyticsBranch === "ALL" ? (
-            <LowStockWidget branchId={analyticsBranch} branchName={branchName} />
-          ) : (
-            <Suspense fallback={<AlertsWidgetSkeleton />}>
-              <LowStockWidget branchId={analyticsBranch} branchName={branchName} />
-            </Suspense>
-          )}
+          <LowStockWidget branchId={analyticsBranch} />
         </WidgetBoundary>
       ),
     },

@@ -62,7 +62,21 @@ export class ReportsRepository {
         },
       },
       orderBy: { _sum: { quantity: 'desc' } },
-      take: 3,
+      take: 5,
+    });
+  }
+
+  findOrderItemsForProducts(today: Date, productIds: number[], branchId?: number) {
+    return this.prisma.orderItem.findMany({
+      where: {
+        productId: { in: productIds },
+        order: {
+          createdAt: { gte: today },
+          status: 'COMPLETED',
+          ...(branchId ? { branchId } : {}),
+        },
+      },
+      select: { productId: true, quantity: true, price: true },
     });
   }
 

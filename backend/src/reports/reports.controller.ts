@@ -33,12 +33,14 @@ export class ReportsController {
   getSalesTrends(
     @Request() req: RequestWithUser,
     @Query('branchId') branchIdQuery?: string,
+    @Query('days') daysQuery?: string,
   ) {
     const branchId = resolveOptionalBranchId(
       req.user,
       parseOptionalPositiveInt(branchIdQuery, 'branchId'),
     );
-    return this.reportsService.getSalesTrends(branchId);
+    const days = parseOptionalPositiveInt(daysQuery, 'days');
+    return this.reportsService.getSalesTrends(branchId, days);
   }
 
   @Get('top-products')

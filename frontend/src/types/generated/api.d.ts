@@ -2875,6 +2875,8 @@ export interface components {
             name: string;
             /** @example 86 */
             totalQuantity: number;
+            /** @example 5160 */
+            totalRevenue: number;
         };
         ReportsProfitLossResponseDto: {
             /** @example 185000 */
@@ -2946,7 +2948,11 @@ export interface components {
             avgTicketYesterday: number;
             topBranch: components["schemas"]["ExecutiveSummaryTopBranchDto"] | null;
             lowStockAlerts: components["schemas"]["ExecutiveSummaryLowStockAlertDto"][];
+            /** @example 8 */
+            lowStockCount: number;
             expiryAlerts: components["schemas"]["ExecutiveSummaryExpiryAlertDto"][];
+            /** @example 3 */
+            expiryCount: number;
         };
         ProductionOrderResponseDto: {
             /** @example 1 */

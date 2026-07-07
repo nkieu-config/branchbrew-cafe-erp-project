@@ -40,17 +40,18 @@ export class ReportsService {
     };
   }
 
-  async getSalesTrends(branchId?: number) {
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  async getSalesTrends(branchId?: number, days = 7) {
+    const windowDays = days === 30 ? 30 : 7;
+    const since = new Date();
+    since.setDate(since.getDate() - windowDays);
 
     const results = await this.reportsRepository.querySalesTrends(
-      sevenDaysAgo,
+      since,
       branchId,
     );
 
     const dailyMap = new Map<string, { total: number; orders: number }>();
-    for (let i = 6; i >= 0; i--) {
+    for (let i = windowDays - 1; i >= 0; i--) {
       const d = new Date();
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().split('T')[0];
@@ -82,13 +83,29 @@ export class ReportsService {
 
     if (items.length === 0) return [];
 
-    const products = await this.prisma.product.findMany({
-      where: { id: { in: items.map((item) => item.productId) } },
-      select: { id: true, name: true },
-    });
+    const productIds = items.map((item) => item.productId);
+    const [products, orderItems] = await Promise.all([
+      this.prisma.product.findMany({
+        where: { id: { in: productIds } },
+        select: { id: true, name: true },
+      }),
+      this.reportsRepository.findOrderItemsForProducts(
+        today,
+        productIds,
+        branchId,
+      ),
+    ]);
     const productById = new Map(
       products.map((product) => [product.id, product]),
     );
+    const revenueByProduct = new Map<number, number>();
+    for (const orderItem of orderItems) {
+      const lineRevenue = Number(orderItem.price) * orderItem.quantity;
+      revenueByProduct.set(
+        orderItem.productId,
+        (revenueByProduct.get(orderItem.productId) || 0) + lineRevenue,
+      );
+    }
 
     return items.flatMap((item) => {
       const product = productById.get(item.productId);
@@ -98,6 +115,7 @@ export class ReportsService {
           productId: item.productId,
           name: product.name,
           totalQuantity: item._sum.quantity || 0,
+          totalRevenue: revenueByProduct.get(item.productId) || 0,
         },
       ];
     });
@@ -175,8 +193,11 @@ export class ReportsService {
     const avgTicketYesterday =
       ordersYesterday > 0 ? salesYesterday / ordersYesterday : 0;
 
-    const alerts = inventories
-      .filter((inv) => inv.stock <= inv.minStock)
+    const lowStockInventories = inventories.filter(
+      (inv) => inv.stock <= inv.minStock,
+    );
+    const lowStockCount = lowStockInventories.length;
+    const alerts = lowStockInventories
       .sort((a, b) => a.stock - a.minStock - (b.stock - b.minStock))
       .slice(0, 5)
       .map((inv) => ({
@@ -187,8 +208,9 @@ export class ReportsService {
         minStock: inv.minStock,
       }));
 
+    const expiryCount = expiringBatches.length;
     const now = new Date();
-    const expiryAlerts = expiringBatches.map((batch) => ({
+    const expiryAlerts = expiringBatches.slice(0, 5).map((batch) => ({
       id: batch.id,
       ingredientName: batch.ingredient.name,
       branchName: batch.branch.name,
@@ -211,7 +233,9 @@ export class ReportsService {
       avgTicketYesterday,
       topBranch,
       lowStockAlerts: alerts,
+      lowStockCount,
       expiryAlerts,
+      expiryCount,
     };
   }
 }

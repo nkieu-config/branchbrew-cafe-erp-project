@@ -3,7 +3,8 @@
 import { useState, useEffect, useId, useMemo } from "react";
 import {
   Area,
-  AreaChart,
+  Line,
+  ComposedChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -25,13 +26,14 @@ import { cn } from "@/lib/utils";
 interface SalesChartProps {
   data?: SalesTrendPoint[];
   loading?: boolean;
+  days?: number;
 }
 
 function formatRevenueAxisCompact(value: number) {
   const abs = Math.abs(value);
-  if (abs >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
-  if (abs >= 1000) return `${Math.round(value / 1000)}k`;
-  return String(Math.round(value));
+  if (abs >= 1_000_000) return `฿${(value / 1_000_000).toFixed(1)}M`;
+  if (abs >= 1000) return `฿${Math.round(value / 1000)}k`;
+  return `฿${Math.round(value)}`;
 }
 
 function formatRevenueAxis(value: number) {
@@ -43,12 +45,13 @@ function formatRevenueAxis(value: number) {
 const CHART_HEIGHT_MOBILE = 240;
 const CHART_HEIGHT_DESKTOP = 300;
 
-export function SalesChart({ data = [], loading }: SalesChartProps) {
+export function SalesChart({ data = [], loading, days = 7 }: SalesChartProps) {
   const [isMounted, setIsMounted] = useState(false);
   const isMobile = useIsSmDown();
   const chartTheme = useChartTheme();
   const gradientId = useId().replace(/:/g, "");
   const chartHeight = isMobile ? CHART_HEIGHT_MOBILE : CHART_HEIGHT_DESKTOP;
+  const isMonthly = days >= 30;
 
   useEffect(() => {
     setIsMounted(true);
@@ -57,13 +60,22 @@ export function SalesChart({ data = [], loading }: SalesChartProps) {
   const chartData = useMemo(
     () =>
       data.map((row) => ({
-        date: format(parseISO(row.date), isMobile ? "EEEEE" : "EEE"),
+        date: format(parseISO(row.date), isMonthly ? "d" : isMobile ? "EEEEE" : "EEE"),
         fullDate: format(parseISO(row.date), "EEE, MMM d"),
         revenue: Number(row.total),
         orders: row.orders,
       })),
-    [data, isMobile],
+    [data, isMobile, isMonthly],
   );
+
+  const xInterval = isMonthly
+    ? isMobile
+      ? 5
+      : 2
+    : isMobile
+      ? 0
+      : "preserveStartEnd";
+  const showDots = !isMonthly && !isMobile;
 
   if (!isMounted || loading) {
     return (
@@ -82,12 +94,28 @@ export function SalesChart({ data = [], loading }: SalesChartProps) {
   }
 
   return (
-    <div
-      className="w-full min-w-0"
-      style={{ height: chartHeight, minHeight: chartHeight }}
-    >
+    <div className="w-full min-w-0">
+      <div className={cn("mb-1 flex items-center justify-end gap-4 text-xs", text.muted)}>
+        <span className="inline-flex items-center gap-1.5">
+          <span
+            className="inline-block h-2 w-3 rounded-sm"
+            style={{ backgroundColor: chartTheme.revenue }}
+            aria-hidden
+          />
+          Revenue
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <span
+            className="inline-block h-0 w-3 border-t-2 border-dashed"
+            style={{ borderColor: chartTheme.orders }}
+            aria-hidden
+          />
+          Orders
+        </span>
+      </div>
+      <div style={{ height: chartHeight, minHeight: chartHeight }}>
       <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={chartHeight}>
-        <AreaChart
+        <ComposedChart
           data={chartData}
           margin={{
             top: isMobile ? 8 : 12,
@@ -109,15 +137,25 @@ export function SalesChart({ data = [], loading }: SalesChartProps) {
             tickLine={false}
             tick={{ fill: chartTheme.axis, fontSize: isMobile ? 10 : 12 }}
             dy={8}
-            interval={isMobile ? 0 : "preserveStartEnd"}
+            interval={xInterval}
           />
           <YAxis
+            yAxisId="revenue"
             axisLine={false}
             tickLine={false}
-            width={isMobile ? 36 : 52}
+            width={isMobile ? 44 : 52}
             tick={{ fill: chartTheme.axis, fontSize: isMobile ? 10 : 12 }}
             tickFormatter={isMobile ? formatRevenueAxisCompact : formatRevenueAxis}
             dx={isMobile ? -2 : -6}
+          />
+          <YAxis
+            yAxisId="orders"
+            orientation="right"
+            axisLine={false}
+            tickLine={false}
+            width={isMobile ? 24 : 32}
+            allowDecimals={false}
+            tick={{ fill: chartTheme.axis, fontSize: isMobile ? 10 : 12 }}
           />
           <Tooltip
             contentStyle={{
@@ -139,17 +177,29 @@ export function SalesChart({ data = [], loading }: SalesChartProps) {
             }}
           />
           <Area
+            yAxisId="revenue"
             type="monotone"
             dataKey="revenue"
             stroke={chartTheme.revenue}
             strokeWidth={isMobile ? 2 : 2.5}
             fillOpacity={1}
             fill={`url(#${gradientId})`}
-            dot={isMobile ? false : { r: 3, fill: chartTheme.revenue, strokeWidth: 0 }}
+            dot={showDots ? { r: 3, fill: chartTheme.revenue, strokeWidth: 0 } : false}
             activeDot={isMobile ? { r: 4 } : { r: 5, strokeWidth: 2, stroke: chartTheme.tooltipBg }}
           />
-        </AreaChart>
+          <Line
+            yAxisId="orders"
+            type="monotone"
+            dataKey="orders"
+            stroke={chartTheme.orders}
+            strokeWidth={isMobile ? 1.5 : 2}
+            strokeDasharray="4 3"
+            dot={false}
+            activeDot={{ r: 4 }}
+          />
+        </ComposedChart>
       </ResponsiveContainer>
+      </div>
     </div>
   );
 }

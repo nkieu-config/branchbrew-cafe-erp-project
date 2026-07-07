@@ -13663,12 +13663,17 @@
           "totalQuantity": {
             "type": "number",
             "example": 86
+          },
+          "totalRevenue": {
+            "type": "number",
+            "example": 5160
           }
         },
         "required": [
           "productId",
           "name",
-          "totalQuantity"
+          "totalQuantity",
+          "totalRevenue"
         ]
       },
       "ReportsProfitLossResponseDto": {
@@ -13854,11 +13859,19 @@
               "$ref": "#/components/schemas/ExecutiveSummaryLowStockAlertDto"
             }
           },
+          "lowStockCount": {
+            "type": "number",
+            "example": 8
+          },
           "expiryAlerts": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/ExecutiveSummaryExpiryAlertDto"
             }
+          },
+          "expiryCount": {
+            "type": "number",
+            "example": 3
           }
         },
         "required": [
@@ -13872,7 +13885,9 @@
           "avgTicketYesterday",
           "topBranch",
           "lowStockAlerts",
-          "expiryAlerts"
+          "lowStockCount",
+          "expiryAlerts",
+          "expiryCount"
         ]
       },
       "ProductionOrderResponseDto": {

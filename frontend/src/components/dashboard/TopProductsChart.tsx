@@ -5,12 +5,13 @@ import { Award } from "lucide-react";
 import { getChartPalette } from "@/lib/theme/chart-styles";
 import { decorativeIconClassName } from "@/lib/theme/color-helpers";
 import { dashboardChartEmptyClass } from "@/lib/theme/dashboard";
+import { formatDashboardCurrency } from "@/lib/format-dashboard-currency";
 import { text } from "@/lib/theme/surface";
 import { typeUiLabelClassName } from "@/lib/theme/typography";
 
 import { cn } from "@/lib/utils";
 
-type TopProduct = { name: string; totalQuantity: number };
+type TopProduct = { name: string; totalQuantity: number; totalRevenue?: number };
 
 function TopProductsRankedList({
   data,
@@ -52,19 +53,16 @@ function TopProductsRankedList({
                   {item.name}
                 </span>
               </div>
-              <div className="flex shrink-0 items-baseline gap-2">
-                <span
-                  className={cn(
-                    "hidden text-xs font-medium tabular-nums sm:inline",
-                    text.muted,
-                  )}
-                >
-                  {pct}%
-                </span>
+              <div className="flex shrink-0 flex-col items-end gap-0.5">
                 <span className={cn("text-sm font-semibold tabular-nums sm:text-base", text.primary)}>
                   {item.totalQuantity}
                   <span className={cn("ml-1 text-xs font-medium sm:text-sm", text.muted)}>sold</span>
                 </span>
+                {item.totalRevenue != null ? (
+                  <span className={cn("text-xs font-medium tabular-nums", text.muted)}>
+                    {formatDashboardCurrency(item.totalRevenue)}
+                  </span>
+                ) : null}
               </div>
             </div>
             <div className="h-2.5 overflow-hidden rounded-full bg-[var(--surface-muted)] sm:h-3">

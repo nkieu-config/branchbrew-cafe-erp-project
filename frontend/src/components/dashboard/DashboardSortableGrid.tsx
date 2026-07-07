@@ -23,9 +23,11 @@ import { dashboardDragHandleBarClass, dashboardGridClass, dashboardSortableShell
 
 export const DASHBOARD_WIDGET_LABELS: Record<string, string> = {
   sales: "Today's Sales",
-  topBranch: "Branch Performance",
+  topBranch: "Orders / Top Branch",
+  margin: "Gross Margin",
   lowStock: "Inventory Alerts",
-  topProducts: "Top 3 Best Sellers",
+  operationalTasks: "Operational Tasks",
+  topProducts: "Top Best Sellers",
   salesChart: "Revenue Overview",
 };
 

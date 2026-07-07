@@ -7,8 +7,13 @@ export const REPORT_ENDPOINTS = {
     if (branchId && branchId !== 'ALL') return `/reports/top-products?branchId=${branchId}`;
     return '/reports/top-products';
   },
-  salesTrends: (branchId?: number) =>
-    `/reports/sales-trends${branchId ? `?branchId=${branchId}` : ''}`,
+  salesTrends: (branchId?: number, days?: number) => {
+    const params = new URLSearchParams();
+    if (branchId) params.set('branchId', String(branchId));
+    if (days) params.set('days', String(days));
+    const query = params.toString();
+    return `/reports/sales-trends${query ? `?${query}` : ''}`;
+  },
   profitLoss: (branchId?: number) =>
     `/reports/profit-loss${branchId ? `?branchId=${branchId}` : ''}`,
 } as const;
