@@ -84,6 +84,26 @@ describe('runtime-config', () => {
         'CORS_ORIGIN cannot include local origin',
       );
     });
+
+    it('rejects scheme-less CORS origins in production', () => {
+      process.env.NODE_ENV = 'production';
+      process.env.JWT_SECRET = 'x'.repeat(32);
+      process.env.DATABASE_URL =
+        'postgresql://user:pass@db.example.com:5432/erp';
+      process.env.CORS_ORIGIN = 'demo.example.com';
+
+      expect(() => assertRuntimeConfig()).toThrow('missing its scheme');
+    });
+
+    it('accepts a fully-qualified https CORS origin in production', () => {
+      process.env.NODE_ENV = 'production';
+      process.env.JWT_SECRET = 'x'.repeat(32);
+      process.env.DATABASE_URL =
+        'postgresql://user:pass@db.example.com:5432/erp';
+      process.env.CORS_ORIGIN = 'https://demo.example.com';
+
+      expect(() => assertRuntimeConfig()).not.toThrow();
+    });
   });
 
   describe('getCorsOrigins', () => {

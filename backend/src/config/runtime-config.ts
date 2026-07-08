@@ -68,6 +68,15 @@ export function assertRuntimeConfig(): void {
     throw new Error('CORS_ORIGIN cannot contain "*" in production.');
   }
 
+  const schemelessOrigin = corsOrigins.find(
+    (origin) => !/^https?:\/\//.test(origin),
+  );
+  if (schemelessOrigin) {
+    throw new Error(
+      `CORS_ORIGIN entry "${schemelessOrigin}" is missing its scheme — browsers send origins as "https://host", so it would never match. Prefix it with https://`,
+    );
+  }
+
   const localOrigin = corsOrigins.find((origin) =>
     LOCAL_ORIGIN_PATTERN.test(origin),
   );

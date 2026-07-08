@@ -22,6 +22,7 @@ import { getCorsOrigins } from '../config/runtime-config';
     origin: getCorsOrigins(),
     credentials: true,
   },
+  addTrailingSlash: false,
 })
 @Injectable()
 export class RealtimeGateway
