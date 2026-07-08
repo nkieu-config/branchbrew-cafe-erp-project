@@ -2,7 +2,7 @@
 
 NestJS API for a multi-branch coffee-shop ERP: point of sale, kitchen display, inventory and batch tracking, procurement, production/BOM, HR and payroll, CRM loyalty, and double-entry accounting.
 
-Part of the [BranchBrew monorepo](../). See [`docs/demo.md`](../docs/demo.md) for a guided demo and [`infra/README.md`](../infra/README.md) for Docker/deployment.
+Part of the [BranchBrew monorepo](../). See [`docs/architecture.md`](../docs/architecture.md) for the system deep dive, [`docs/demo.md`](../docs/demo.md) for a guided demo, and [`infra/README.md`](../infra/README.md) for Docker/deployment.
 
 ## Stack
 

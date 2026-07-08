@@ -103,6 +103,14 @@ docker compose -f infra/docker-compose.prod.yml -f infra/docker-compose.caddy.ym
 `BACKEND_PORT`/`FRONTEND_PORT` bound to loopback keep the app ports off the public internet;
 Caddy provisions Let's Encrypt certificates for both domains automatically.
 
+## Hosted demo (Vercel + Render)
+
+The live demo splits across two free tiers, both fed by the Supabase managed Postgres:
+
+- **Frontend → Vercel.** Root Directory `frontend`, `NEXT_PUBLIC_API_URL=/backend`, `INTERNAL_API_URL=<render-api-url>`. The Next.js config rewrites `/backend/*` to the API so all traffic is same-origin — the auth cookie stays first-party to the Vercel domain, which is what the server-side session gate reads (a cross-origin cookie would be invisible to it and loop the login page). Socket.io falls back to long-polling through the same rewrite because Vercel can't upgrade WebSockets.
+- **API → Render.** Provisioned from [`render.yaml`](../render.yaml) (backend Docker target). Secrets: `DATABASE_URL` (Supabase **pooler**, port 6543 — the direct 5432 host is IPv6-only and unreachable from Render), `DIRECT_URL`, `CORS_ORIGIN=<vercel-url>`, `JWT_SECRET` (auto-generated). Free instances sleep after ~15 min idle; the first request wakes them in ~30–60s.
+- **Demo data** is kept fresh by [`.github/workflows/refresh-demo.yml`](../../.github/workflows/refresh-demo.yml), which reseeds Supabase every few hours (repo secrets `DEMO_DATABASE_URL` / `DEMO_DIRECT_URL`) — this also keeps the Supabase project from pausing on inactivity.
+
 ## Notes
 
 - Migrations run automatically via the one-shot `migrate` service.

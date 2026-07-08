@@ -2,6 +2,8 @@
 
 Portfolio demo script for reviewers and interview walkthroughs. New here? Start at the [project README](../README.md).
 
+**Fastest path: the [live demo](https://branchbrew-cafe-erp.vercel.app)** — click a demo account on the login page and follow the walkthrough below. The API sleeps on its free tier, so the first request may take ~30s. To run it locally instead, use the quick start below.
+
 > **Warning:** `npm run db:seed` wipes the target database before inserting demo data. Use only on a local database or an intentional demo/staging instance.
 
 ## Quick start
@@ -76,9 +78,9 @@ Use the **Demo accounts** buttons on the login page for Manager, Admin, Staff, a
 
 **Login:** `manager@branchbrew.dev`
 
-1. **Dashboard** (`/`) — Today's sales vs yesterday, revenue chart, top products, inventory alerts.
-2. **POS** (`/pos/terminal`) — Pick **Iced Latte**, add modifiers. Optional: lookup member `0811111111`, apply `WELCOME10`.
-3. **KDS** (`/kds`) — Show pending/preparing tickets; complete one ticket.
+1. **Dashboard** (`/`) — Today's sales vs yesterday, gross margin & food-cost %, revenue chart (flip **7D/30D**, note the order-count overlay), top-5 sellers with revenue, inventory alerts. Widgets are draggable — the layout persists.
+2. **POS** (`/pos/terminal`) — Pick **Iced Latte**, add modifiers. Optional: lookup member `0811111111`, apply `WELCOME10`. At checkout enter cash received (quick buttons ฿100/฿500 or **Exact**) — **Pay stays disabled until the cash covers the total**, then shows change due.
+3. **KDS** (`/kds`) — Show pending/preparing tickets and the **All-day** per-item tally strip; complete one ticket.
 4. **Orders** (`/pos/orders`) — Refunded and promo orders from seed.
 
 **Story to tell:** Order → recipe stock deduction → accounting journal (event-driven) → real-time KDS.
@@ -136,8 +138,8 @@ Use the **Demo accounts** buttons on the login page for Manager, Admin, Staff, a
 
 ## What the demo includes
 
-- **Dashboard** — Today/yesterday sales, 7-day trend, top products, inventory alerts.
-- **KDS queue** — Active tickets with varied wait times (not an empty board).
+- **Dashboard** — Today/yesterday sales, gross margin, 7/30-day revenue trend, top-5 sellers with revenue, inventory alerts.
+- **KDS queue** — Active tickets with varied wait times and a populated all-day item tally (not an empty board).
 - **Stocktake** — One approved blind count with valued variances (and its `STOCKCOUNT-*` ledger entry), one draft count ready to finish live, plus a damage adjustment (`ADJ-*`).
 - **Accounts payable** — One paid PO (`PAY-PO-DEMO-003`) and one 40-day-old unpaid PO so the AP aging card has real buckets; the 2010 balance reconciles to the unpaid list.
 - **Notifications** — Three unread alerts (low stock, PO approval, expiring batches) and two already handled — the bell badge is live.
