@@ -111,6 +111,22 @@ Example hubs: `--hub-crm`, `--hub-hr`, `--hub-pos` (see `tokens.css`).
 - Toggle: `ThemeToggle` switches light ↔ dark; updates `theme-color` meta
 - antd tables: CSS-variable bridge updates on `html.dark` without remount
 
+## Responsive & mobile
+
+Mobile-first: layouts are built for a phone and progressively enhanced with Tailwind breakpoints (`sm` 640 / `md` 768 / `lg` 1024 / `xl` 1280). JS-driven breakpoints read from a single `useMediaQuery` hook — `useIsSmDown()` (≤ 639px) and `useIsLgUp()` (≥ 1024px) — so components branch on the same source of truth the CSS uses.
+
+Screens **reshape** rather than shrink:
+
+| Surface | Desktop | Small screen |
+|---------|---------|--------------|
+| **App shell** | Left sidebar | `MobileBottomNav` tab bar (`AppShell` renders it when not immersive) |
+| **POS cart** | Fixed sidebar | `PosMobileCart` — cart opens as a bottom sheet |
+| **KDS board** | Two columns side by side | `kdsMobileColumnTab` New / Cooking switch |
+| **Data tables** | Full column set | antd `responsive: ["md"\|"lg"]` hides secondary columns; rows read as stacked cards |
+| **Charts / immersive chrome** | Full detail | Compact ticks and spacing via `useIsSmDown()` |
+
+Rules: don't duplicate a screen into "desktop" and "mobile" components when a breakpoint prop will do; reserve dedicated mobile components (`Mobile*`) for genuinely different interaction models (bottom nav, bottom-sheet cart). Column-hiding via antd `responsive` is preferred over conditionally rendering table markup.
+
 ## Dialog / sheet motion
 
 Overlays use **native `@starting-style`** via Base UI `data-starting-style` / `data-ending-style` (not `tw-animate-css`). Respect `motion-reduce:` — animations disable for prefers-reduced-motion.

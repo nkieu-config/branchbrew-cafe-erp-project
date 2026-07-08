@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/nkieu-config/branchbrew-cafe-erp-project/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/nkieu-config/branchbrew-cafe-erp-project/actions/workflows/ci.yml)
 [![Last commit](https://img.shields.io/github/last-commit/nkieu-config/branchbrew-cafe-erp-project)](https://github.com/nkieu-config/branchbrew-cafe-erp-project/commits/main)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![License: view-only](https://img.shields.io/badge/license-view--only-informational.svg)](LICENSE)
 
 ![Next.js 16](https://img.shields.io/badge/Next.js_16-000000?logo=nextdotjs&logoColor=white)
 ![NestJS 11](https://img.shields.io/badge/NestJS_11-E0234E?logo=nestjs&logoColor=white)
@@ -109,6 +109,19 @@ Full deep-dive — module map, accounting event table, inventory model, auth des
 
 </details>
 
+## Responsive by design
+
+Every screen is built mobile-first — the app **reshapes** for a phone rather than shrinking. The sidebar becomes a bottom tab bar, the POS cart slides up as a bottom sheet, the KDS two-column board collapses into a swipeable New / Cooking switch, and data-dense tables fold each row into a card. It's driven by Tailwind breakpoints, a shared `useMediaQuery` hook, and Ant Design's responsive column hiding.
+
+<table>
+<tr>
+<td><img src="docs/images/mobile-dashboard.png" width="200" alt="Mobile dashboard — KPI cards stacked vertically with a bottom tab bar"></td>
+<td><img src="docs/images/mobile-pos.png" width="200" alt="Mobile POS — the cart opens as a bottom sheet with quantity steppers"></td>
+<td><img src="docs/images/mobile-kds.png" width="200" alt="Mobile kitchen display — a New / Cooking tab switch replaces the two-column board"></td>
+<td><img src="docs/images/mobile-orders.png" width="200" alt="Mobile orders — the desktop table folds each row into a card"></td>
+</tr>
+</table>
+
 ## Engineering decisions I'd defend in an interview
 
 - **Transactional outbox over direct side effects** — business writes commit together with their events in one transaction, so accounting, loyalty, and realtime updates can be delayed but never lost or desynced.
@@ -192,4 +205,4 @@ Built solo by [Natthachak (@nkieu-config)](https://github.com/nkieu-config) as a
 
 ## License
 
-[MIT](LICENSE)
+© 2026 Natthachak Jeungraksareechai — **all rights reserved**. This code is public so you can read it as a work sample; it is **not** licensed for reuse. Please don't copy it or submit it as your own. See [LICENSE](LICENSE).
