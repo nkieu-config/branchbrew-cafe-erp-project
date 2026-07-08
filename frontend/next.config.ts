@@ -7,9 +7,13 @@ const withBundleAnalyzer = bundleAnalyzer({
 
 const isDev = process.env.NODE_ENV === "development";
 
+const publicApiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
+const apiIsProxied = publicApiUrl.startsWith("/");
+
 const apiOrigin = (() => {
+  if (apiIsProxied) return "";
   try {
-    return new URL(process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000").origin;
+    return new URL(publicApiUrl).origin;
   } catch {
     return "http://localhost:3000";
   }
@@ -22,7 +26,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
-  `connect-src 'self' ${apiOrigin} ${apiWsOrigin}${isDev ? " ws://localhost:*" : ""}`,
+  `connect-src 'self'${apiOrigin ? ` ${apiOrigin} ${apiWsOrigin}` : ""}${isDev ? " ws://localhost:*" : ""}`,
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -50,6 +54,11 @@ const nextConfig: NextConfig = {
         headers: securityHeaders,
       },
     ];
+  },
+  async rewrites() {
+    const target = process.env.INTERNAL_API_URL;
+    if (!target) return [];
+    return [{ source: "/backend/:path*", destination: `${target}/:path*` }];
   },
   async redirects() {
     return [

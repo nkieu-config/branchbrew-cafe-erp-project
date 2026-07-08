@@ -109,3 +109,5 @@ CMD ["node", "backend/dist/src/main.js"]
 FROM production AS development
 
 ENV NODE_ENV=development
+
+FROM production AS final

@@ -11,7 +11,7 @@
   "scripts": {
     "generate:types": "node scripts/generate-enums.mjs",
     "openapi:export": "npm run openapi:export --workspace=backend",
-    "prepare": "husky",
+    "prepare": "husky || true",
     "dev:backend": "npm run start:dev --workspace=backend",
     "dev:frontend": "npm run dev --workspace=frontend",
     "docker:up": "docker compose -f infra/docker-compose.yml --env-file infra/.env.compose up --build",

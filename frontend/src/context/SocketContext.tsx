@@ -34,9 +34,12 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     }
 
     const backendUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    const proxied = backendUrl.startsWith('/');
 
-    const socketInstance = io(backendUrl, {
-      transports: ['websocket'],
+    const socketInstance = io(proxied ? undefined : backendUrl, {
+      path: proxied ? `${backendUrl}/socket.io` : undefined,
+      transports: proxied ? ['polling'] : ['websocket'],
+      addTrailingSlash: !proxied,
       autoConnect: true,
       withCredentials: true,
       auth: {

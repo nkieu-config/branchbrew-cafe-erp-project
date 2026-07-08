@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "license": "MIT",
   "private": true,
+  "engines": {
+    "node": "22.x",
+    "npm": ">=10"
+  },
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",
