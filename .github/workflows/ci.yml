@@ -298,6 +298,10 @@ jobs:
       - name: Install Dependencies
         run: ./scripts/npm-ci-retry.sh
 
+      - name: Generate Prisma Client
+        run: npx prisma generate
+        working-directory: ./backend
+
       - name: Cache Playwright browsers
         uses: actions/cache@v6
         id: playwright-cache
@@ -340,10 +344,6 @@ jobs:
             NEXT_PUBLIC_API_URL=http://localhost:3000 npm run build --workspace=frontend
           fi
           test -f frontend/.next/BUILD_ID
-
-      - name: Generate Prisma Client
-        run: npx prisma generate
-        working-directory: ./backend
 
       - name: Apply Migrations
         run: npm run migrate
