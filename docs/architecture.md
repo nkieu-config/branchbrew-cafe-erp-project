@@ -118,6 +118,20 @@ A backend change that breaks the frontend is a compile error and a red pipeline,
 
 CI additionally runs type-checks, lint, coverage thresholds, a Docker Compose smoke test of the full stack, Trivy image scans, and the generated-artifact drift checks above.
 
+## Deployment
+
+A commit reaches the live demo in minutes, with no manual step:
+
+| Trigger | What runs |
+|---|---|
+| `git push` | A husky pre-push hook runs the full local gate — type-check, lint, and all four suites |
+| Push to `main` | GitHub Actions CI runs; **in parallel**, Vercel rebuilds the frontend and Render rebuilds the API image (`autoDeploy: true` in [`render.yaml`](../render.yaml)) |
+| Every 3 hours | [`refresh-demo.yml`](../.github/workflows/refresh-demo.yml) reseeds the Supabase demo database so today's sales, orders, and kitchen tickets stay live |
+
+The frontend is a Vercel project rooted at `frontend/`; the API is a Docker service built from `backend/Dockerfile`. Both talk to the same managed Postgres. The wiring that makes a split-domain deploy work — the same-origin `/backend` rewrite that keeps the auth cookie first-party, the pooler-vs-direct connection, free-tier cold starts — is documented in [infra/README.md](../infra/README.md).
+
+**Trade-off — deploys are not gated on CI.** Vercel and Render start building the moment a commit lands on `main`, in parallel with the CI workflow rather than after it, so CI reports on a deploy that is already happening. The practical gate is the pre-push hook: the full suite must pass locally before anything reaches `main`. That is sufficient for a single maintainer but not for a team, because a hook is local and can be bypassed with `--no-verify`. Gating properly means disabling both platforms' auto-deploy and firing their deploy hooks from a CI job that `needs:` the test jobs — a deliberate next step rather than an oversight.
+
 ## Deliberate trade-offs
 
 Choices made knowingly for a portfolio-scale deployment, with the reasoning:

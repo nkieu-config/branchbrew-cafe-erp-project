@@ -1,7 +1,7 @@
 # BranchBrew ERP ☕
 
 [![CI](https://github.com/nkieu-config/branchbrew-cafe-erp-project/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/nkieu-config/branchbrew-cafe-erp-project/actions/workflows/ci.yml)
-[![Last commit](https://img.shields.io/github/last-commit/nkieu-config/branchbrew-cafe-erp-project)](https://github.com/nkieu-config/branchbrew-cafe-erp-project/commits/main)
+[![Live demo](https://img.shields.io/badge/demo-live-brightgreen?logo=vercel&logoColor=white)](https://branchbrew-cafe-erp.vercel.app)
 [![License: view-only](https://img.shields.io/badge/license-view--only-informational.svg)](LICENSE)
 
 ![Next.js 16](https://img.shields.io/badge/Next.js_16-000000?logo=nextdotjs&logoColor=white)
@@ -176,11 +176,21 @@ npm run test:e2e:backend
 npm run test:e2e:frontend
 ```
 
+## CI/CD
+
+A commit reaches the live demo in minutes, with no manual deploy step:
+
+- **Before every push** — a husky pre-push hook runs the full gate locally: type-check, lint, and all 405 tests.
+- **On push to `main`** — [CI](.github/workflows/ci.yml) runs the four suites, a Compose smoke test, Trivy scans, and drift checks; in parallel Vercel rebuilds the frontend and Render rebuilds the API image.
+- **Every 3 hours** — [a scheduled workflow](.github/workflows/refresh-demo.yml) reseeds the demo database, so the dashboard and kitchen display always show live data instead of a stale snapshot.
+
+Topology and the trade-offs — including why the deploys aren't gated on CI and what that costs: [docs/architecture.md](docs/architecture.md#deployment).
+
 ## Documentation
 
 | Doc                                            | What's inside                                                               |
 | ---------------------------------------------- | --------------------------------------------------------------------------- |
-| [docs/architecture.md](docs/architecture.md)   | Deep dive — outbox, accounting event map, inventory model, auth, trade-offs |
+| [docs/architecture.md](docs/architecture.md)   | Deep dive — outbox, accounting event map, inventory model, auth, deployment, trade-offs |
 | [docs/demo.md](docs/demo.md)                   | 15-minute guided demo, all demo accounts, interview talking points          |
 | [docs/design-system.md](docs/design-system.md) | Design tokens, form patterns, UI conventions                                |
 | [infra/README.md](infra/README.md)             | Docker stacks, env matrix, production modes, TLS on a VPS                   |
