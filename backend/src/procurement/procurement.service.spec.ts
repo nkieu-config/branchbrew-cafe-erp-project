@@ -185,6 +185,55 @@ describe('ProcurementService', () => {
     });
   });
 
+  describe('receivePO', () => {
+    const approvedPO = {
+      id: 6,
+      poNumber: 'PO-000006',
+      branchId: 2,
+      supplierId: 3,
+      status: 'APPROVED',
+      paymentStatus: 'UNPAID',
+      items: [{ id: 1, ingredientId: 4, quantityRequested: 10, unitPrice: 45 }],
+    };
+
+    beforeEach(() => {
+      prisma.$transaction.mockImplementation(async (cb: Function) =>
+        cb(prisma),
+      );
+    });
+
+    it('claims the APPROVED status before crediting any inventory', async () => {
+      prisma.purchaseOrder.findUnique.mockResolvedValue(approvedPO as any);
+      prisma.purchaseOrder.updateMany.mockResolvedValue({ count: 1 });
+      prisma.purchaseOrder.findUniqueOrThrow.mockResolvedValue({
+        ...approvedPO,
+        status: 'RECEIVED',
+      } as any);
+      prisma.inventoryBatch.create.mockResolvedValue({ id: 1 } as any);
+      prisma.branchInventory.upsert.mockResolvedValue({ id: 1 } as any);
+
+      const result = await service.receivePO(6);
+
+      expect(prisma.purchaseOrder.updateMany).toHaveBeenCalledWith({
+        where: { id: 6, status: 'APPROVED' },
+        data: { status: 'RECEIVED' },
+      });
+      expect(result.status).toBe('RECEIVED');
+    });
+
+    it('credits no inventory when a concurrent receive already claimed the PO', async () => {
+      prisma.purchaseOrder.findUnique.mockResolvedValue(approvedPO as any);
+      prisma.purchaseOrder.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(service.receivePO(6)).rejects.toThrow(
+        'Purchase order changed while receiving. Please retry.',
+      );
+
+      expect(prisma.inventoryBatch.create).not.toHaveBeenCalled();
+      expect(prisma.branchInventory.upsert).not.toHaveBeenCalled();
+    });
+  });
+
   describe('getApAging', () => {
     it('buckets unpaid received POs by age', async () => {
       const daysAgo = (n: number) =>

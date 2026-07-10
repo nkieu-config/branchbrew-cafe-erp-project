@@ -318,17 +318,12 @@ export class HrService {
       };
     });
 
-    const run = await this.prisma.payrollRun.create({
-      data: {
-        branchId,
-        month,
-        year,
-        payslips: {
-          create: payslipsData,
-        },
-      },
-      include: { payslips: true },
-    });
+    const run = await this.createPayrollRun(
+      branchId,
+      month,
+      year,
+      payslipsData,
+    );
 
     if (userId) {
       await this.auditService.logAction(
@@ -341,6 +336,35 @@ export class HrService {
     }
 
     return run;
+  }
+
+  private async createPayrollRun(
+    branchId: number,
+    month: number,
+    year: number,
+    payslipsData: Prisma.PayslipUncheckedCreateWithoutPayrollRunInput[],
+  ) {
+    try {
+      return await this.prisma.payrollRun.create({
+        data: {
+          branchId,
+          month,
+          year,
+          payslips: { create: payslipsData },
+        },
+        include: { payslips: true },
+      });
+    } catch (err) {
+      if (
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === 'P2002'
+      ) {
+        throw new BadRequestException(
+          'Payroll run already exists for this month.',
+        );
+      }
+      throw err;
+    }
   }
 
   async getPayrollRuns(branchId: number) {

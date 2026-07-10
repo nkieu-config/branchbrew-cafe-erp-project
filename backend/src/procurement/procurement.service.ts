@@ -259,6 +259,16 @@ export class ProcurementService {
       const po = await this.validatePOStatus(poId, ['APPROVED'], 'receive', tx);
       if (user) assertBranchAccess(user, po.branchId);
 
+      const claimed = await tx.purchaseOrder.updateMany({
+        where: { id: poId, status: 'APPROVED' },
+        data: { status: 'RECEIVED' },
+      });
+      if (claimed.count === 0) {
+        throw new BadRequestException(
+          'Purchase order changed while receiving. Please retry.',
+        );
+      }
+
       // 1. Update BranchInventory (Cached Total)
       // 2. Create InventoryBatch (FIFO Log)
       for (const item of po.items) {
@@ -297,10 +307,8 @@ export class ProcurementService {
         });
       }
 
-      // Mark PO as RECEIVED
-      const updatedPo = await tx.purchaseOrder.update({
+      const updatedPo = await tx.purchaseOrder.findUniqueOrThrow({
         where: { id: poId },
-        data: { status: 'RECEIVED' },
       });
 
       if (userId) {

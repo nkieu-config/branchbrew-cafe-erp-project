@@ -162,7 +162,12 @@ export class BranchesService {
       });
       if (!transfer) throw new BadRequestException('Transfer not found');
       if (user) assertBranchAccess(user, transfer.toBranchId);
-      if (transfer.status !== 'PENDING')
+
+      const claimed = await tx.stockTransfer.updateMany({
+        where: { id: transferId, status: 'PENDING' },
+        data: { status: 'COMPLETED', approvedById },
+      });
+      if (claimed.count === 0)
         throw new BadRequestException('Transfer already processed');
 
       // Deduct from Source InventoryBatch
@@ -267,10 +272,7 @@ export class BranchesService {
         },
       });
 
-      return tx.stockTransfer.update({
-        where: { id: transferId },
-        data: { status: 'COMPLETED', approvedById },
-      });
+      return tx.stockTransfer.findUniqueOrThrow({ where: { id: transferId } });
     });
   }
 

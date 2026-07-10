@@ -6,6 +6,7 @@ import {
   PrismaServiceMockProvider,
 } from '../prisma/prisma.service.mock';
 import { BadRequestException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
 import { OutboxService } from '../outbox/outbox.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -35,6 +36,23 @@ describe('HrService', () => {
   describe('generatePayrollRun', () => {
     it('throws when payroll run already exists', async () => {
       prisma.payrollRun.findFirst.mockResolvedValue({ id: 1 } as any);
+
+      await expect(service.generatePayrollRun(1, 6, 2026)).rejects.toThrow(
+        new BadRequestException('Payroll run already exists for this month.'),
+      );
+    });
+
+    it('rejects a concurrent duplicate run via the unique period constraint', async () => {
+      prisma.payrollRun.findFirst.mockResolvedValue(null);
+      prisma.attendanceRecord.findMany.mockResolvedValue([]);
+      prisma.user.findMany.mockResolvedValue([]);
+      prisma.payrollRun.create.mockRejectedValue(
+        new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
+          code: 'P2002',
+          clientVersion: 'test',
+          meta: { target: ['branchId', 'month', 'year'] },
+        }),
+      );
 
       await expect(service.generatePayrollRun(1, 6, 2026)).rejects.toThrow(
         new BadRequestException('Payroll run already exists for this month.'),

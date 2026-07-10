@@ -679,6 +679,7 @@ model PayrollRun {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
+  @@unique([branchId, month, year])
   @@index([branchId])
 }
 
