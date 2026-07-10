@@ -13,6 +13,14 @@ Part of the [BranchBrew monorepo](../). See [`docs/demo.md`](../docs/demo.md) fo
 - Typed API client generated from the backend's OpenAPI schema
 - **Vitest** unit tests, **Playwright** e2e
 
+## Conventions
+
+- Auth gating is server-side: `getSession` (`src/lib/auth/server.ts`) runs before a protected layout renders.
+- Cache keys and cross-resource invalidations live in `src/lib/query-keys/` — add new ones there, not inline.
+- Realtime updates patch the TanStack Query cache via `setQueryData` (`useKdsSocketSync`) rather than refetching.
+
+Why it is built this way: [`docs/architecture.md`](../docs/architecture.md#frontend-architecture) and [`docs/design-system.md`](../docs/design-system.md).
+
 ## Setup
 
 ```bash
@@ -25,11 +33,14 @@ The backend must be running (see [`../backend/README.md`](../backend/README.md))
 
 ## API types
 
-The client types in `src/types/generated/api.d.ts` are generated from the backend contract — do not edit by hand:
+The client types in `src/types/generated/api.d.ts` are generated from the backend contract:
 
 ```bash
 npm run generate:api         # reads ../backend/openapi.json
 ```
+
+> [!NOTE]
+> Never edit the generated types by hand — regenerate them instead. CI fails on any drift between `openapi.json` and the committed client types.
 
 ## Tests
 

@@ -138,4 +138,3 @@ Overlays use **native `@starting-style`** via Base UI `data-starting-style` / `d
 | Form validators | `lib/crm/register-customer-validation.test.ts`, `lib/hr/*-validation.test.ts` |
 | Navigation / nav counts | `lib/navigation/navigation.test.ts`, `lib/nav-counts.test.ts` |
 | a11y smoke | `e2e/a11y.spec.ts` (axe-core, critical/serious) |
-| CI quality gates | `npm run type-check`, `npm run lint`, `npm run test` |

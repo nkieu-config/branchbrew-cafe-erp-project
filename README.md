@@ -13,7 +13,7 @@
 
 **A full ERP for a multi-branch coffee-shop chain, built solo as my software-engineering capstone.** Point of sale, realtime kitchen display, batch inventory, procurement, central-kitchen production, HR & payroll, CRM loyalty — all wired into an event-driven double-entry ledger that always reconciles.
 
-**26 backend modules · 130 REST endpoints · 41-table schema · 42 app pages · 405 automated tests · ~77k lines of strict TypeScript**
+**23 backend modules · 130 REST endpoints · 41-table schema · 42 app pages · 426 automated tests · ~77k lines of strict TypeScript**
 
 ![BranchBrew dashboard](docs/images/dashboard.png)
 
@@ -21,26 +21,17 @@
 
 **🔗 Live demo: [branchbrew-cafe-erp.vercel.app](https://branchbrew-cafe-erp.vercel.app)** — click a demo account on the login page, no signup.
 
-|                   |                          |
-| ----------------- | ------------------------ |
-| **Manager login** | `manager@branchbrew.dev` |
-| **Password**      | `password123`            |
+| Field        | Value                    |
+| ------------ | ------------------------ |
+| **Email**    | `manager@branchbrew.dev` |
+| **Password** | `password123`            |
 
 Then sell an Iced Latte at **POS → Terminal**, watch it appear on the **Kitchen Display**, and find its balanced journal entry under **Finance → Ledger**. More demo accounts and a 15-minute guided tour: [docs/demo.md](docs/demo.md).
 
+> [!NOTE]
 > Hosted on free tiers (frontend on Vercel, API on Render), so the first request after the API idles can take ~30s to wake. Demo data resets on a schedule, so anything you change is temporary.
 
-<details>
-<summary>Or run the whole stack locally in two commands</summary>
-
-```bash
-cp infra/.env.compose.example infra/.env.compose
-npm run docker:up
-```
-
-Open http://localhost:3001/login and use the same demo login above — migrations and demo seed run automatically.
-
-</details>
+Prefer to run it yourself? The whole stack comes up in two commands — see [Quick start](#quick-start).
 
 ## Why I built this
 
@@ -127,8 +118,8 @@ Every screen is built mobile-first — the app **reshapes** for a phone rather t
 - **Transactional outbox over direct side effects** — business writes commit together with their events in one transaction, so accounting, loyalty, and realtime updates can be delayed but never lost or desynced.
 - **Money is never a float** — all financial math runs on `Prisma.Decimal` with explicit rounding; journal entries must balance to the cent before they persist.
 - **The API contract is a build artifact** — the backend exports `openapi.json`, the frontend generates its client types from it, shared enums generate from the Prisma schema, and CI fails on any drift. A breaking backend change is a red pipeline, not a runtime surprise.
-- **JWT with real revocation** — httpOnly cookie plus a per-user token version, so logout actually invalidates stolen tokens (proven 200 → 401 in tests).
-- **One authorization primitive** — every module resolves data through a shared branch-scope helper; staff can't reach another branch's data, and the guarantee doesn't depend on per-endpoint discipline.
+- **JWT with real revocation** — httpOnly cookie plus a per-user token version. Logout bumps it, and so does any admin change to a user's branch, role, or password, so a demoted or compromised account loses its live tokens immediately rather than at expiry.
+- **One authorization primitive** — branch-owned data resolves through a shared branch-scope helper rather than per-endpoint discipline, and an e2e test proves a cross-branch write is rejected with a 403. `Customer` is chain-level and has no branch, so loyalty lookups are the one unscoped surface — a gap I document rather than hide.
 - **Standard costing with an honest variance account** — production posts the gap between standard and actual cost to a dedicated GL account instead of pretending costs are always exact.
 
 Each of these is expanded with the reasoning and trade-offs in [docs/architecture.md](docs/architecture.md).
@@ -151,22 +142,27 @@ cp infra/.env.compose.example infra/.env.compose
 npm run docker:up
 ```
 
+Open http://localhost:3001/login and sign in with the demo account above.
+
 **Local Node** (Node 22, a running Postgres):
 
 ```bash
 npm install
 cp backend/.env.example backend/.env   # set DATABASE_URL, JWT_SECRET
 npm run migrate
-npm run db:seed                        # wipes the target database — demo data
+npm run db:seed                        # demo data
 npm run dev:backend                    # API on :3000
 npm run dev:frontend                   # UI on :3001
 ```
+
+> [!CAUTION]
+> `npm run db:seed` wipes the target database before loading demo data. Never point it at anything you care about.
 
 Production modes, TLS on a VPS, and the env matrix: [infra/README.md](infra/README.md).
 
 ## Testing & quality
 
-405 tests across four suites — backend unit (201, Jest), backend e2e against a real Postgres (15, supertest), frontend unit (174, Vitest), and frontend e2e (15, Playwright with axe accessibility smoke).
+426 tests across four suites — backend unit (219, Jest), backend e2e against a real Postgres (18, supertest), frontend unit (176, Vitest), and frontend e2e (13, Playwright with axe accessibility smoke).
 
 CI runs type-checks, lint, coverage thresholds, all four suites, a Docker Compose smoke test of the full stack, Trivy image scans, and drift checks for every generated artifact. The full strategy — what each suite proves and why: [docs/architecture.md](docs/architecture.md#testing-strategy).
 
@@ -180,7 +176,7 @@ npm run test:e2e:frontend
 
 A commit reaches the live demo in minutes, with no manual deploy step:
 
-- **Before every push** — a husky pre-push hook runs the full gate locally: type-check, lint, and all 405 tests.
+- **Before every push** — a husky pre-push hook runs the local gate: type-check, lint, and both unit suites (395 tests). The e2e suites need a database and a running stack, so they are CI's job.
 - **On push to `main`** — [CI](.github/workflows/ci.yml) runs the four suites, a Compose smoke test, Trivy scans, and drift checks; in parallel Vercel rebuilds the frontend and Render rebuilds the API image.
 - **Every 3 hours** — [a scheduled workflow](.github/workflows/refresh-demo.yml) reseeds the demo database, so the dashboard and kitchen display always show live data instead of a stale snapshot.
 
@@ -188,14 +184,14 @@ Topology and the trade-offs — including why the deploys aren't gated on CI and
 
 ## Documentation
 
-| Doc                                            | What's inside                                                               |
-| ---------------------------------------------- | --------------------------------------------------------------------------- |
+| Doc                                            | What's inside                                                                           |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------- |
 | [docs/architecture.md](docs/architecture.md)   | Deep dive — outbox, accounting event map, inventory model, auth, deployment, trade-offs |
-| [docs/demo.md](docs/demo.md)                   | 15-minute guided demo, all demo accounts, interview talking points          |
-| [docs/design-system.md](docs/design-system.md) | Design tokens, form patterns, UI conventions                                |
-| [infra/README.md](infra/README.md)             | Docker stacks, env matrix, production modes, TLS on a VPS                   |
-| [backend/README.md](backend/README.md)         | API setup, architecture highlights, test commands                           |
-| [frontend/README.md](frontend/README.md)       | UI setup, generated API types, test commands                                |
+| [docs/demo.md](docs/demo.md)                   | 15-minute guided demo, all demo accounts, interview talking points                      |
+| [docs/design-system.md](docs/design-system.md) | Design tokens, form patterns, UI conventions                                            |
+| [infra/README.md](infra/README.md)             | Docker stacks, env matrix, production modes, TLS on a VPS                               |
+| [backend/README.md](backend/README.md)         | API setup, architecture highlights, test commands                                       |
+| [frontend/README.md](frontend/README.md)       | UI setup, generated API types, test commands                                            |
 
 ## Honest limitations
 
@@ -204,6 +200,7 @@ Deliberate scope choices for a portfolio-scale deployment — each with its reas
 - No account lockout (demo credentials are public; login is IP-throttled instead)
 - Standard costing — no weighted-average recalculation on purchase receipts
 - Whole-order refunds only; output VAT only (no input VAT on purchases)
+- Customer records are chain-level and unscoped, so any staff account can look up any member's phone — the top PDPA item on the roadmap
 
 Next on the roadmap: pagination across all list endpoints, end-to-end `Decimal` stock quantities, outbox dead-letter queue with replay, and scheduled stock reconciliation.
 
@@ -213,6 +210,5 @@ Built solo by [Natthachak (@nkieu-config)](https://github.com/nkieu-config) as a
 
 📫 natthachak.config@gmail.com
 
-## License
-
-© 2026 Natthachak Jeungraksareechai — **all rights reserved**. This code is public so you can read it as a work sample; it is **not** licensed for reuse. Please don't copy it or submit it as your own. See [LICENSE](LICENSE).
+> [!IMPORTANT]
+> © 2026 Natthachak Jeungraksareechai — all rights reserved. This code is public so you can read it as a work sample; it is **not** licensed for reuse. Please don't copy it or submit it as your own. See [LICENSE](LICENSE).

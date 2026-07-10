@@ -17,7 +17,7 @@ flowchart LR
 ```
 
 ```
-backend/          NestJS 11 API — 26 feature modules, Prisma 7, transactional outbox
+backend/          NestJS 11 API — 23 feature modules, Prisma 7, transactional outbox
 frontend/         Next.js 16 App Router — POS, KDS, back office (42 pages)
 packages/types    Shared enums generated from the Prisma schema
 infra/            Docker Compose stacks + deployment reference
@@ -44,9 +44,9 @@ The core reliability decision in the system. The POS never writes journal entrie
 2. A dispatcher picks up committed events and fans them out to handlers: accounting, loyalty, notifications, and the realtime gateway.
 3. Each event payload is checked by a runtime validator before a handler runs, so a malformed event fails loudly instead of posting garbage.
 
-The consequence: side effects can be delayed, but they can never desync from committed state. If the process dies between commit and dispatch, the event is still in the table and gets processed on recovery. There is no scenario where an order exists but its journal entry silently never will.
+Delivery is **at-least-once** through both crash windows: an event that commits but never dispatches stays `PENDING`, and one whose worker dies mid-dispatch is reclaimed once its `claimedAt` stamp goes stale. Redelivery is harmless because the ledger dedupes on a unique natural `reference`. The consequence: side effects can be delayed, but they can never desync from committed state. There is no scenario where an order exists but its journal entry silently never will.
 
-Known hardening still on the roadmap: exponential backoff, a dead-letter queue with replay, and payload schema versioning.
+Known hardening still on the roadmap: an operator replay path for `FAILED` events (terminal today, visible only in logs), exponential backoff with jitter, and payload schema versioning.
 
 ## Event-driven double-entry accounting
 
@@ -66,7 +66,9 @@ Reporting built on top: P&L trend, AP aging, and a ภ.พ.30-style output VAT r
 
 ### Money is never a float
 
-All financial math runs on `Prisma.Decimal` with explicit rounding scales. Journal entries are validated to balance to the cent before they persist. Loyalty-point redemption is clamped to the discount it can actually absorb, and point clawback on refund floors at zero — no negative balances from arithmetic edge cases.
+All financial math runs on `Prisma.Decimal` with explicit rounding scales and a half-up tie-break. Journal entries are validated to balance to the cent before they persist. Loyalty-point redemption is clamped to the discount it can actually absorb, and point clawback on refund floors at zero — no negative balances from arithmetic edge cases.
+
+Stock *quantities* are the exception — see inventory, below.
 
 ### Standard costing
 
@@ -77,13 +79,14 @@ Ingredient costs are fixed per unit (`costPerUnit`) rather than recomputed as we
 - Stock lives in **batches** with expiry dates. Deduction is first-expired-first-out (FEFO), so the system uses up the milk that expires tomorrow before the carton delivered today.
 - The database enforces `CHECK (stock >= 0)` — negative stock is impossible even under concurrent writes.
 - **Blind stocktakes** snapshot expected stock at submit time; approved variances adjust batches FEFO and post shrinkage to the ledger. Physical reality corrects the books through the same audited pipeline as everything else.
-- Inter-branch transfers do not reserve stock at request time; acceptance re-validates availability atomically.
+- Inter-branch transfers do not reserve stock at request time; acceptance claims the `PENDING` transfer with a conditional update before it moves a single batch, so two simultaneous accepts cannot double-move stock.
+- **Quantities are `Float`, not `Decimal`** — the one place binary floating point survives. Repeated fractional deductions can drift `BranchInventory.stock` from `SUM(batches.quantity)`; the column migration and a reconciliation job are on the roadmap. Money is unaffected — costing reads `costPerUnit`, a `Decimal`.
 
 ## Authentication and authorization
 
 - **JWT in an httpOnly cookie** — no tokens in localStorage, no XSS token theft surface.
-- **Token-version revocation** — each user carries a token version; logout bumps it, so a stolen token is actually dead after logout (verified in tests: 200 → 401).
-- **Branch-scoped RBAC** — `SUPER_ADMIN` sees all branches; managers and staff resolve every query through a shared branch-scope helper used across all modules, so one primitive (not per-endpoint discipline) guarantees staff can't reach another branch's data.
+- **Token-version revocation** — each user carries a token version. Logout bumps it, and so does any administrative change to a user's branch, role, or password, so demoting, reassigning, or locking out a user kills their live tokens immediately rather than at expiry.
+- **Branch-scoped RBAC** — `SUPER_ADMIN` sees all branches; managers and staff resolve branch-owned queries through a shared branch-scope helper (`resolveBranchId` / `assertBranchAccess`) rather than per-endpoint discipline, and an e2e test proves a cross-branch write is rejected with a 403. `Customer` is chain-level and has no `branchId`, so loyalty lookups are unscoped — any staff account can search any customer's phone. That is a privacy gap rather than an intent; scoping it and logging reads of personal data are the top PDPA items on the roadmap.
 - Login is IP-throttled rather than account-locked, because the demo credentials are public and lockout would let strangers lock reviewers out.
 
 ## Typed contract across the stack
@@ -107,14 +110,14 @@ A backend change that breaks the frontend is a compile error and a red pipeline,
 
 ## Testing strategy
 
-405 tests, split by what each layer can actually prove:
+426 tests, split by what each layer can actually prove:
 
 | Suite | Tests | What it proves |
 |---|---|---|
-| Backend unit (Jest) | 201 | Money math, order lifecycle, accounting postings, report shape |
-| Backend e2e (supertest) | 15 | Auth, orders, production, and branch scoping against a real Postgres |
-| Frontend unit (Vitest) | 174 | Validators, filters, API client behavior |
-| Frontend e2e (Playwright) | 15 | Login, full POS checkout, KDS, axe accessibility smoke |
+| Backend unit (Jest) | 219 | Money math and rounding ties, order lifecycle, concurrent-claim guards, outbox reclaim, accounting postings |
+| Backend e2e (supertest) | 18 | Auth, orders, branch scoping, concurrent order voids, and outbox recovery from a dead worker — all against a real Postgres |
+| Frontend unit (Vitest) | 176 | Validators, filters, VAT parity with the backend, API client behavior |
+| Frontend e2e (Playwright) | 13 | Login, full POS checkout, KDS, axe accessibility smoke |
 
 CI additionally runs type-checks, lint, coverage thresholds, a Docker Compose smoke test of the full stack, Trivy image scans, and the generated-artifact drift checks above.
 
@@ -124,13 +127,16 @@ A commit reaches the live demo in minutes, with no manual step:
 
 | Trigger | What runs |
 |---|---|
-| `git push` | A husky pre-push hook runs the full local gate — type-check, lint, and all four suites |
+| `git push` | A husky pre-push hook runs the local gate — type-check, lint, and both unit suites. The e2e suites need a database and a running stack, so they are CI's job |
 | Push to `main` | GitHub Actions CI runs; **in parallel**, Vercel rebuilds the frontend and Render rebuilds the API image (`autoDeploy: true` in [`render.yaml`](../render.yaml)) |
+| Push to `main` touching `prisma/migrations/**` | [`migrate-demo.yml`](../.github/workflows/migrate-demo.yml) applies pending migrations to the Supabase demo database and fails if any remain pending |
 | Every 3 hours | [`refresh-demo.yml`](../.github/workflows/refresh-demo.yml) reseeds the Supabase demo database so today's sales, orders, and kitchen tickets stay live |
 
 The frontend is a Vercel project rooted at `frontend/`; the API is a Docker service built from `backend/Dockerfile`. Both talk to the same managed Postgres. The wiring that makes a split-domain deploy work — the same-origin `/backend` rewrite that keeps the auth cookie first-party, the pooler-vs-direct connection, free-tier cold starts — is documented in [infra/README.md](../infra/README.md).
 
-**Trade-off — deploys are not gated on CI.** Vercel and Render start building the moment a commit lands on `main`, in parallel with the CI workflow rather than after it, so CI reports on a deploy that is already happening. The practical gate is the pre-push hook: the full suite must pass locally before anything reaches `main`. That is sufficient for a single maintainer but not for a team, because a hook is local and can be bypassed with `--no-verify`. Gating properly means disabling both platforms' auto-deploy and firing their deploy hooks from a CI job that `needs:` the test jobs — a deliberate next step rather than an oversight.
+**Trade-off — deploys are not gated on CI.** Vercel and Render start building the moment a commit lands on `main`, in parallel with the CI workflow rather than after it, so CI reports on a deploy that is already happening. The practical gate is the pre-push hook: type-check, lint and the unit suites must pass locally before anything reaches `main`. That is sufficient for a single maintainer but not for a team, because a hook is local and can be bypassed with `--no-verify`. Gating properly means disabling both platforms' auto-deploy and firing their deploy hooks from a CI job that `needs:` the test jobs — a deliberate next step rather than an oversight.
+
+**Trade-off — the deploy does not run migrations.** Render starts the API image directly, and `migrate-demo.yml` applies migrations on push in parallel with that build rather than before it. So **migrations must stay backward-compatible with the deployed code** — additive columns and indexes, never a rename or a drop in the same release.
 
 ## Deliberate trade-offs
 
@@ -142,4 +148,4 @@ Choices made knowingly for a portfolio-scale deployment, with the reasoning:
 - **Output VAT only** — sales post VAT to a liability account; input VAT on purchases is out of scope for the demo.
 - **No promotion usage limits** — promo codes validate eligibility but not redemption counts.
 
-Roadmap beyond demo scale: pagination across all list endpoints (audit and auth already paginate), end-to-end `Decimal` stock quantities, outbox hardening (backoff, dead-letter queue, replay), and a scheduled reconciliation between branch stock and batch-level quantities.
+Roadmap beyond demo scale: pagination across all list endpoints (audit and auth already paginate), branch-scoping and read-auditing for customer records, end-to-end `Decimal` stock quantities with a scheduled reconciliation between branch stock and batch-level quantities, outbox hardening (backoff, an operator replay path), and metrics with an alert on failed outbox events.

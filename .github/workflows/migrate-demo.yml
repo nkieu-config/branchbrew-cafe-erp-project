@@ -1,0 +1,49 @@
+name: Migrate demo database
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/prisma/migrations/**"
+      - ".github/workflows/migrate-demo.yml"
+  workflow_dispatch: {}
+
+concurrency:
+  group: migrate-demo
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    name: Apply pending migrations to the hosted demo database
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.x
+          cache: npm
+
+      - name: Install dependencies
+        run: ./scripts/npm-ci-retry.sh
+
+      - name: Generate Prisma client
+        run: npx prisma generate --schema=backend/prisma/schema.prisma
+
+      - name: Apply migrations
+        run: npm run migrate
+        env:
+          DATABASE_URL: ${{ secrets.DEMO_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DEMO_DIRECT_URL }}
+
+      - name: Verify no migration remains pending
+        working-directory: backend
+        run: npx prisma migrate status
+        env:
+          DATABASE_URL: ${{ secrets.DEMO_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.DEMO_DIRECT_URL }}
