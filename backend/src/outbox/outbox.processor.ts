@@ -1,8 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { MAX_OUTBOX_ATTEMPTS, OUTBOX_BATCH_SIZE } from './outbox.constants';
+import {
+  MAX_OUTBOX_ATTEMPTS,
+  OUTBOX_BATCH_SIZE,
+  STALE_PROCESSING_MS,
+} from './outbox.constants';
 import { dispatchOutboxEvent } from './outbox-event.registry';
 
 @Injectable()
@@ -16,6 +21,8 @@ export class OutboxProcessor {
 
   @Cron('*/10 * * * * *')
   async handleCron() {
+    const staleBefore = new Date(Date.now() - STALE_PROCESSING_MS);
+
     const events = await this.prisma.outboxEvent.findMany({
       where: {
         OR: [
@@ -24,6 +31,10 @@ export class OutboxProcessor {
             status: 'FAILED',
             attempts: { lt: MAX_OUTBOX_ATTEMPTS },
           },
+          {
+            status: 'PROCESSING',
+            claimedAt: { lt: staleBefore },
+          },
         ],
       },
       orderBy: { createdAt: 'asc' },
@@ -31,19 +42,36 @@ export class OutboxProcessor {
     });
 
     for (const event of events) {
+      const isStaleClaim = event.status === 'PROCESSING';
+
+      if (isStaleClaim && event.attempts >= MAX_OUTBOX_ATTEMPTS) {
+        await this.abandonStaleClaim(event.id, event.attempts, staleBefore);
+        continue;
+      }
+
+      const claimWhere: Prisma.OutboxEventWhereInput = {
+        id: event.id,
+        status: event.status,
+        attempts: event.attempts,
+        ...(isStaleClaim ? { claimedAt: { lt: staleBefore } } : {}),
+      };
+
       const claimed = await this.prisma.outboxEvent.updateMany({
-        where: {
-          id: event.id,
-          status: event.status,
-          attempts: event.attempts,
-        },
+        where: claimWhere,
         data: {
           status: 'PROCESSING',
           attempts: { increment: 1 },
+          claimedAt: new Date(),
         },
       });
 
       if (claimed.count === 0) continue;
+
+      if (isStaleClaim) {
+        this.logger.warn(
+          `Outbox event ${event.id} (${event.eventType}) was reclaimed after a stale PROCESSING claim`,
+        );
+      }
 
       try {
         await dispatchOutboxEvent(
@@ -79,6 +107,31 @@ export class OutboxProcessor {
           },
         });
       }
+    }
+  }
+
+  private async abandonStaleClaim(
+    id: number,
+    attempts: number,
+    staleBefore: Date,
+  ) {
+    const abandoned = await this.prisma.outboxEvent.updateMany({
+      where: {
+        id,
+        status: 'PROCESSING',
+        attempts,
+        claimedAt: { lt: staleBefore },
+      },
+      data: {
+        status: 'FAILED',
+        lastError: `Abandoned after a stale PROCESSING claim at attempt ${attempts}/${MAX_OUTBOX_ATTEMPTS}`,
+      },
+    });
+
+    if (abandoned.count > 0) {
+      this.logger.error(
+        `Outbox event ${id} abandoned: stale PROCESSING claim exhausted its ${MAX_OUTBOX_ATTEMPTS} attempts`,
+      );
     }
   }
 }

@@ -122,6 +122,91 @@ describe('OutboxProcessor', () => {
     expect(eventEmitter.emitAsync).not.toHaveBeenCalled();
   });
 
+  it('selects events stranded in PROCESSING by a dead worker', async () => {
+    prisma.outboxEvent.findMany.mockResolvedValue([]);
+
+    await processor.handleCron();
+
+    const where = prisma.outboxEvent.findMany.mock.calls[0][0].where;
+    const staleClause = where.OR.find(
+      (clause: { status: string }) => clause.status === 'PROCESSING',
+    );
+    expect(staleClause).toBeDefined();
+    expect(staleClause.claimedAt.lt).toBeInstanceOf(Date);
+    expect(staleClause.claimedAt.lt.getTime()).toBeLessThan(Date.now());
+  });
+
+  it('reclaims and dispatches a stale PROCESSING event', async () => {
+    const claimedAt = new Date(Date.now() - 10 * 60 * 1000);
+    prisma.outboxEvent.findMany.mockResolvedValue([
+      {
+        id: 7,
+        eventType: 'order.status.updated',
+        status: 'PROCESSING',
+        attempts: 1,
+        claimedAt,
+        payload: { orderId: 9, status: 'COMPLETED', branchId: 1 },
+      },
+    ]);
+    prisma.outboxEvent.findUnique.mockResolvedValue({ attempts: 2 });
+
+    await processor.handleCron();
+
+    expect(prisma.outboxEvent.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          id: 7,
+          status: 'PROCESSING',
+          attempts: 1,
+          claimedAt: { lt: expect.any(Date) },
+        }),
+        data: expect.objectContaining({
+          status: 'PROCESSING',
+          attempts: { increment: 1 },
+          claimedAt: expect.any(Date),
+        }),
+      }),
+    );
+    expect(eventEmitter.emitAsync).toHaveBeenCalledWith(
+      'order.status.updated',
+      expect.any(Object),
+    );
+    expect(prisma.outboxEvent.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 7 },
+        data: expect.objectContaining({ status: 'COMPLETED' }),
+      }),
+    );
+  });
+
+  it('abandons a stale PROCESSING event that already exhausted its attempts', async () => {
+    prisma.outboxEvent.findMany.mockResolvedValue([
+      {
+        id: 8,
+        eventType: 'order.created',
+        status: 'PROCESSING',
+        attempts: MAX_OUTBOX_ATTEMPTS,
+        claimedAt: new Date(Date.now() - 10 * 60 * 1000),
+        payload: {
+          order: { id: 1 },
+          ingredientRequirements: [],
+          branchId: 1,
+          customerId: null,
+        },
+      },
+    ]);
+
+    await processor.handleCron();
+
+    expect(eventEmitter.emitAsync).not.toHaveBeenCalled();
+    expect(prisma.outboxEvent.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: 8, status: 'PROCESSING' }),
+        data: expect.objectContaining({ status: 'FAILED' }),
+      }),
+    );
+  });
+
   it('marks permanently failed after max attempts', async () => {
     prisma.outboxEvent.findMany.mockResolvedValue([
       {
