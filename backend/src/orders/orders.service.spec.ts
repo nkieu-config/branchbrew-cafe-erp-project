@@ -373,7 +373,8 @@ describe('OrdersService', () => {
         branchId: TEST_BRANCH_ID,
         status: 'PENDING',
       } as any);
-      prisma.order.update.mockResolvedValue({
+      prisma.order.updateMany.mockResolvedValue({ count: 1 });
+      prisma.order.findUniqueOrThrow.mockResolvedValue({
         id: 5,
         status: 'PREPARING',
       } as any);
@@ -381,6 +382,24 @@ describe('OrdersService', () => {
       await expect(
         service.updateOrderStatus(5, 'PREPARING'),
       ).resolves.toMatchObject({ status: 'PREPARING' });
+
+      expect(prisma.order.updateMany).toHaveBeenCalledWith({
+        where: { id: 5, status: 'PENDING' },
+        data: { status: 'PREPARING' },
+      });
+    });
+
+    it('rejects the transition when the order changed status concurrently', async () => {
+      prisma.order.findUnique.mockResolvedValue({
+        id: 5,
+        branchId: TEST_BRANCH_ID,
+        status: 'PENDING',
+      } as any);
+      prisma.order.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(service.updateOrderStatus(5, 'PREPARING')).rejects.toThrow(
+        'Order changed while updating its status. Please retry.',
+      );
     });
   });
 
@@ -445,13 +464,21 @@ describe('OrdersService', () => {
       } as any);
       prisma.inventoryBatch.update.mockResolvedValue({} as any);
       prisma.customer.updateMany.mockResolvedValue({ count: 1 });
-      prisma.order.update.mockResolvedValue({
+      prisma.order.updateMany.mockResolvedValue({ count: 1 });
+      prisma.order.findUniqueOrThrow.mockResolvedValue({
         ...voidableOrder,
         status: 'CANCELLED',
       } as any);
 
       const result = await service.voidOrder(5);
 
+      expect(prisma.order.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: 5,
+          status: { in: ['PENDING', 'PREPARING', 'COMPLETED'] },
+        },
+        data: { status: 'CANCELLED' },
+      });
       expect(prisma.branchInventory.update).toHaveBeenCalledWith({
         where: { id: 1 },
         data: { stock: { increment: 20 } },
@@ -463,6 +490,20 @@ describe('OrdersService', () => {
       expect(result.status).toBe('CANCELLED');
     });
 
+    it('does not restore stock or points when a concurrent void already claimed the order', async () => {
+      prisma.order.findUnique.mockResolvedValue(voidableOrder as any);
+      prisma.order.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(service.voidOrder(5)).rejects.toThrow(
+        'Order is already voided or refunded.',
+      );
+
+      expect(prisma.branchInventory.update).not.toHaveBeenCalled();
+      expect(prisma.inventoryBatch.update).not.toHaveBeenCalled();
+      expect(prisma.customer.updateMany).not.toHaveBeenCalled();
+      expect(prisma.customer.update).not.toHaveBeenCalled();
+    });
+
     it('floors the customer balance at zero when clawed-back points were already spent', async () => {
       prisma.order.findUnique.mockResolvedValue({
         ...voidableOrder,
@@ -470,7 +511,8 @@ describe('OrdersService', () => {
       } as any);
       prisma.customer.updateMany.mockResolvedValue({ count: 0 });
       prisma.customer.update.mockResolvedValue({} as any);
-      prisma.order.update.mockResolvedValue({
+      prisma.order.updateMany.mockResolvedValue({ count: 1 });
+      prisma.order.findUniqueOrThrow.mockResolvedValue({
         ...voidableOrder,
         status: 'CANCELLED',
       } as any);
@@ -536,7 +578,8 @@ describe('OrdersService', () => {
       } as any);
       prisma.inventoryBatch.update.mockResolvedValue({} as any);
       prisma.customer.updateMany.mockResolvedValue({ count: 1 });
-      prisma.order.update.mockResolvedValue({
+      prisma.order.updateMany.mockResolvedValue({ count: 1 });
+      prisma.order.findUniqueOrThrow.mockResolvedValue({
         ...refundableOrder,
         status: 'REFUNDED',
         refundReason: 'Wrong drink',
@@ -545,14 +588,28 @@ describe('OrdersService', () => {
       const result = await service.refundOrder(8, 'Wrong drink');
 
       expect(result.status).toBe('REFUNDED');
-      expect(prisma.order.update).toHaveBeenCalledWith(
+      expect(prisma.order.updateMany).toHaveBeenCalledWith(
         expect.objectContaining({
+          where: { id: 8, status: 'COMPLETED' },
           data: expect.objectContaining({
             status: 'REFUNDED',
             refundReason: 'Wrong drink',
           }),
         }),
       );
+    });
+
+    it('does not restore stock or points when a concurrent refund already claimed the order', async () => {
+      prisma.order.findUnique.mockResolvedValue(refundableOrder as any);
+      prisma.order.updateMany.mockResolvedValue({ count: 0 });
+
+      await expect(service.refundOrder(8, 'Wrong drink')).rejects.toThrow(
+        'Order is already voided or refunded.',
+      );
+
+      expect(prisma.branchInventory.update).not.toHaveBeenCalled();
+      expect(prisma.inventoryBatch.update).not.toHaveBeenCalled();
+      expect(prisma.customer.updateMany).not.toHaveBeenCalled();
     });
   });
 });

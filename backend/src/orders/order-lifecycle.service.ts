@@ -123,9 +123,19 @@ export class OrderLifecycleService {
     }
 
     return this.prisma.$transaction(async (tx) => {
-      const order = await tx.order.update({
-        where: { id: orderId },
+      const claimed = await tx.order.updateMany({
+        where: { id: orderId, status: existing.status },
         data: { status },
+      });
+      if (claimed.count === 0) {
+        throw appBadRequest(
+          ApiErrorCode.ORDER_STATUS_INVALID,
+          'Order changed while updating its status. Please retry.',
+        );
+      }
+
+      const order = await tx.order.findUniqueOrThrow({
+        where: { id: orderId },
       });
 
       await this.outboxService.enqueue(
@@ -160,11 +170,21 @@ export class OrderLifecycleService {
     }
 
     const order = await this.prisma.$transaction(async (tx) => {
+      const claimed = await tx.order.updateMany({
+        where: { id: orderId, status: { in: [...OPERATIONAL_ORDER_STATUSES] } },
+        data: { status: 'CANCELLED' },
+      });
+      if (claimed.count === 0) {
+        throw appBadRequest(
+          ApiErrorCode.ORDER_ALREADY_REVERSED,
+          'Order is already voided or refunded.',
+        );
+      }
+
       await applyOrderReversalEffects(tx, existing);
 
-      const updated = await tx.order.update({
+      const updated = await tx.order.findUniqueOrThrow({
         where: { id: orderId },
-        data: { status: 'CANCELLED' },
         include: {
           items: { include: { product: true } },
           customer: true,
@@ -217,15 +237,25 @@ export class OrderLifecycleService {
     const trimmedReason = reason?.trim();
 
     const order = await this.prisma.$transaction(async (tx) => {
-      await applyOrderReversalEffects(tx, existing);
-
-      const updated = await tx.order.update({
-        where: { id: orderId },
+      const claimed = await tx.order.updateMany({
+        where: { id: orderId, status: 'COMPLETED' },
         data: {
           status: 'REFUNDED',
           refundReason: trimmedReason || null,
           refundedAt: new Date(),
         },
+      });
+      if (claimed.count === 0) {
+        throw appBadRequest(
+          ApiErrorCode.ORDER_ALREADY_REVERSED,
+          'Order is already voided or refunded.',
+        );
+      }
+
+      await applyOrderReversalEffects(tx, existing);
+
+      const updated = await tx.order.findUniqueOrThrow({
+        where: { id: orderId },
         include: {
           items: { include: { product: true } },
           customer: true,
