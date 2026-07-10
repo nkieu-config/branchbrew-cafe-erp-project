@@ -166,4 +166,33 @@ describe('HrService', () => {
       );
     });
   });
+  describe('updateUser', () => {
+    it('revokes existing tokens when branch, role, or password changes', async () => {
+      prisma.user.update.mockResolvedValue({ id: 3 } as any);
+
+      await service.updateUser(3, { branchId: 9 });
+
+      expect(prisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 3 },
+          data: expect.objectContaining({
+            branchId: 9,
+            tokenVersion: { increment: 1 },
+          }),
+        }),
+      );
+    });
+
+    it('leaves tokens intact when only the display name changes', async () => {
+      prisma.user.update.mockResolvedValue({ id: 3 } as any);
+
+      await service.updateUser(3, { name: 'New Name' });
+
+      const data = prisma.user.update.mock.calls[0][0].data as Record<
+        string,
+        unknown
+      >;
+      expect(data.tokenVersion).toBeUndefined();
+    });
+  });
 });

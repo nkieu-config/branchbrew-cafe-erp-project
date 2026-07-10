@@ -103,4 +103,39 @@ describe('NotificationsService', () => {
       }),
     });
   });
+
+  describe('markRead', () => {
+    const otherBranchUser = {
+      userId: 8,
+      role: 'STAFF' as const,
+      branchId: 2,
+    };
+
+    it('never discloses a notification outside the caller branch scope', async () => {
+      prisma.notification.findFirst.mockResolvedValue(null);
+
+      await expect(service.markRead(99, otherBranchUser)).rejects.toThrow(
+        'Notification not found',
+      );
+
+      expect(prisma.notification.updateMany).not.toHaveBeenCalled();
+      expect(prisma.notification.findUnique).not.toHaveBeenCalled();
+    });
+
+    it('marks a visible notification read and returns it', async () => {
+      prisma.notification.findFirst
+        .mockResolvedValueOnce({ id: 5, readAt: null } as any)
+        .mockResolvedValueOnce({ id: 5, readAt: new Date() } as any);
+      prisma.notification.updateMany.mockResolvedValue({ count: 1 });
+
+      const result = await service.markRead(5, otherBranchUser);
+
+      expect(prisma.notification.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({ id: 5, readAt: null }),
+        }),
+      );
+      expect(result?.readAt).toBeInstanceOf(Date);
+    });
+  });
 });

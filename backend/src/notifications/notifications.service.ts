@@ -128,17 +128,21 @@ export class NotificationsService {
   }
 
   async markRead(id: number, user: BranchScopedUser) {
-    const updated = await this.prisma.notification.updateMany({
-      where: { id, ...this.visibilityWhere(user, null), readAt: null },
-      data: { readAt: new Date() },
+    const visible = await this.prisma.notification.findFirst({
+      where: { id, ...this.visibilityWhere(user, null) },
     });
-    if (updated.count === 0) {
-      const exists = await this.prisma.notification.findUnique({
-        where: { id },
+    if (!visible) throw new NotFoundException('Notification not found');
+
+    if (visible.readAt === null) {
+      await this.prisma.notification.updateMany({
+        where: { id, ...this.visibilityWhere(user, null), readAt: null },
+        data: { readAt: new Date() },
       });
-      if (!exists) throw new NotFoundException('Notification not found');
     }
-    return this.prisma.notification.findUnique({ where: { id } });
+
+    return this.prisma.notification.findFirst({
+      where: { id, ...this.visibilityWhere(user, null) },
+    });
   }
 
   async markAllRead(user: BranchScopedUser, branchId?: number | null) {

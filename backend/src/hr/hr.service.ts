@@ -482,9 +482,17 @@ export class HrService {
     if (updateData.password) {
       updateData.password = await bcrypt.hash(updateData.password, 10);
     }
+
+    const revokesExistingTokens =
+      updateData.password !== undefined ||
+      updateData.role !== undefined ||
+      updateData.branchId !== undefined;
+
     return this.prisma.user.update({
       where: { id },
-      data: updateData,
+      data: revokesExistingTokens
+        ? { ...updateData, tokenVersion: { increment: 1 } }
+        : updateData,
       select: { id: true, name: true, email: true, role: true, branchId: true },
     });
   }
