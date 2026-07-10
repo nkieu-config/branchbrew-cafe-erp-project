@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { toNum } from '../common/decimal.util';
+import { Prisma } from '@prisma/client';
+import { dec, roundMoney, toNum } from '../common/decimal.util';
 import { PrismaService } from '../prisma/prisma.service';
 import { ReportsRepository } from './reports.repository';
 
@@ -98,13 +99,11 @@ export class ReportsService {
     const productById = new Map(
       products.map((product) => [product.id, product]),
     );
-    const revenueByProduct = new Map<number, number>();
+    const revenueByProduct = new Map<number, Prisma.Decimal>();
     for (const orderItem of orderItems) {
-      const lineRevenue = Number(orderItem.price) * orderItem.quantity;
-      revenueByProduct.set(
-        orderItem.productId,
-        (revenueByProduct.get(orderItem.productId) || 0) + lineRevenue,
-      );
+      const lineRevenue = dec(orderItem.price).times(orderItem.quantity);
+      const running = revenueByProduct.get(orderItem.productId) ?? dec(0);
+      revenueByProduct.set(orderItem.productId, running.plus(lineRevenue));
     }
 
     return items.flatMap((item) => {
@@ -115,7 +114,7 @@ export class ReportsService {
           productId: item.productId,
           name: product.name,
           totalQuantity: item._sum.quantity || 0,
-          totalRevenue: revenueByProduct.get(item.productId) || 0,
+          totalRevenue: roundMoney(revenueByProduct.get(item.productId) ?? 0),
         },
       ];
     });

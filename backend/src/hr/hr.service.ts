@@ -12,16 +12,23 @@ import {
 } from '../auth/branch-scope.util';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { toNum, roundMoney } from '../common/decimal.util';
+import { dec, toNum, roundMoney, sumMoney } from '../common/decimal.util';
 import {
   AuditService,
   AUDIT_ACTIONS,
   AUDIT_TARGETS,
 } from '../audit/audit.service';
+
 import { OutboxService } from '../outbox/outbox.service';
 import { OUTBOX_EVENT_TYPES } from '../outbox/outbox-event.types';
 import { toPayrollApprovedSnapshot } from './domain/payroll-approved.snapshot';
 import { NotificationsService } from '../notifications/notifications.service';
+
+const OT_MULTIPLIER = '1.5';
+const MONTHLY_HOURS = '240';
+const SOCIAL_SECURITY_RATE = '0.05';
+const SOCIAL_SECURITY_CAP = '750';
+const TAX_RATE = '0.03';
 
 @Injectable()
 export class HrService {
@@ -266,25 +273,34 @@ export class HrService {
 
     const payslipsData = Array.from(userMap.values()).map((p) => {
       const isFullTime = p.employmentType === 'FULL_TIME';
-      const hourlyRate = toNum(p.hourlyRate);
-      const baseSalary = toNum(p.baseSalary);
+      const hourlyRate = dec(p.hourlyRate);
+      const baseSalary = dec(p.baseSalary);
       const basePay = roundMoney(
-        isFullTime ? baseSalary : p.standardHours * hourlyRate,
+        isFullTime ? baseSalary : hourlyRate.times(p.standardHours),
       );
 
-      const otRate =
-        hourlyRate > 0 ? hourlyRate * 1.5 : (baseSalary / 240) * 1.5;
-      const otPay = roundMoney(p.otHours * otRate);
+      const otRate = hourlyRate.gt(0)
+        ? hourlyRate.times(OT_MULTIPLIER)
+        : baseSalary.div(MONTHLY_HOURS).times(OT_MULTIPLIER);
+      const otPay = roundMoney(otRate.times(p.otHours));
 
       const bonuses = 0;
       const otherDeductions = 0;
 
-      const grossPay = roundMoney(basePay + otPay + bonuses);
+      const grossPay = roundMoney(dec(basePay).plus(otPay).plus(bonuses));
 
-      const socialSecurity = roundMoney(Math.min(basePay * 0.05, 750));
-      const taxDeduction = roundMoney(grossPay * 0.03);
+      const uncappedSocialSecurity = dec(basePay).times(SOCIAL_SECURITY_RATE);
+      const socialSecurity = roundMoney(
+        uncappedSocialSecurity.gt(SOCIAL_SECURITY_CAP)
+          ? dec(SOCIAL_SECURITY_CAP)
+          : uncappedSocialSecurity,
+      );
+      const taxDeduction = roundMoney(dec(grossPay).times(TAX_RATE));
       const netPay = roundMoney(
-        grossPay - socialSecurity - taxDeduction - otherDeductions,
+        dec(grossPay)
+          .minus(socialSecurity)
+          .minus(taxDeduction)
+          .minus(otherDeductions),
       );
 
       return {
@@ -362,12 +378,10 @@ export class HrService {
       }
 
       const totalGross = roundMoney(
-        run.payslips.reduce((sum, p) => sum + toNum(p.grossPay), 0),
+        sumMoney(run.payslips.map((p) => p.grossPay)),
       );
-      const totalNet = roundMoney(
-        run.payslips.reduce((sum, p) => sum + toNum(p.netPay), 0),
-      );
-      const totalDeductions = roundMoney(totalGross - totalNet);
+      const totalNet = roundMoney(sumMoney(run.payslips.map((p) => p.netPay)));
+      const totalDeductions = roundMoney(dec(totalGross).minus(totalNet));
 
       await tx.auditLog.create({
         data: {

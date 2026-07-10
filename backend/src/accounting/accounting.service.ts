@@ -568,31 +568,42 @@ export class AccountingService {
       ORDER BY 1 ASC
     `;
 
-    const monthlyData = new Map<string, { revenue: number; expense: number }>();
+    const monthlyData = new Map<
+      string,
+      { revenue: Prisma.Decimal; expense: Prisma.Decimal }
+    >();
 
     // Initialize map with last 6 months to ensure we have data points
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const mStr = d.toISOString().slice(0, 7);
-      monthlyData.set(mStr, { revenue: 0, expense: 0 });
+      monthlyData.set(mStr, { revenue: dec(0), expense: dec(0) });
     }
 
     for (const row of results) {
       if (!monthlyData.has(row.month)) {
-        monthlyData.set(row.month, { revenue: 0, expense: 0 });
+        monthlyData.set(row.month, { revenue: dec(0), expense: dec(0) });
       }
 
       const stats = monthlyData.get(row.month)!;
       if (row.type === 'REVENUE') {
-        stats.revenue += Number(row.total_credit) - Number(row.total_debit);
+        stats.revenue = stats.revenue.plus(
+          dec(row.total_credit).minus(dec(row.total_debit)),
+        );
       } else if (row.type === 'EXPENSE') {
-        stats.expense += Number(row.total_debit) - Number(row.total_credit);
+        stats.expense = stats.expense.plus(
+          dec(row.total_debit).minus(dec(row.total_credit)),
+        );
       }
     }
 
     return Array.from(monthlyData.entries())
-      .map(([month, data]) => ({ month, ...data }))
+      .map(([month, data]) => ({
+        month,
+        revenue: roundMoney(data.revenue),
+        expense: roundMoney(data.expense),
+      }))
       .sort((a, b) => a.month.localeCompare(b.month));
   }
 }

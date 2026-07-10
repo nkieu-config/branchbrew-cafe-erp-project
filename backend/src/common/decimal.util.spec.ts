@@ -12,6 +12,13 @@ describe('decimal.util', () => {
     expect(roundMoney(10.004)).toBe(10);
   });
 
+  it('breaks rounding ties half-up, not to even', () => {
+    expect(roundMoney(dec('0.125'))).toBe(0.13);
+    expect(roundMoney(dec('0.135'))).toBe(0.14);
+    expect(roundMoney(dec('2.675'))).toBe(2.68);
+    expect(roundUnitCost(dec('0.00005'))).toBe(0.0001);
+  });
+
   it('rounds unit cost to 4 decimal places', () => {
     expect(roundUnitCost(0.12345)).toBe(0.1235);
   });
