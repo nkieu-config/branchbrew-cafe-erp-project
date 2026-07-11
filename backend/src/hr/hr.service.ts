@@ -447,6 +447,16 @@ export class HrService {
     return this.prisma.user.update({
       where: { id: userId },
       data: { hourlyRate },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        hourlyRate: true,
+        branchId: true,
+        employmentType: true,
+        baseSalary: true,
+      },
     });
   }
 

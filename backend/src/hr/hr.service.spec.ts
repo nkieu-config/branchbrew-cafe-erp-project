@@ -195,4 +195,27 @@ describe('HrService', () => {
       expect(data.tokenVersion).toBeUndefined();
     });
   });
+
+  describe('updateHourlyRate', () => {
+    it('selects only HR response fields so the password hash never leaves the database', async () => {
+      prisma.user.update.mockResolvedValue({ id: 7, hourlyRate: 120 } as any);
+
+      await service.updateHourlyRate(7, 120);
+
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: 7 },
+        data: { hourlyRate: 120 },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          hourlyRate: true,
+          branchId: true,
+          employmentType: true,
+          baseSalary: true,
+        },
+      });
+    });
+  });
 });

@@ -23,7 +23,7 @@ export class PrismaService
       connectionTimeoutMillis: 10_000,
     });
     const adapter = new PrismaPg(pool);
-    super({ adapter });
+    super({ adapter, omit: { user: { password: true } } });
     this.pool = pool;
   }
 

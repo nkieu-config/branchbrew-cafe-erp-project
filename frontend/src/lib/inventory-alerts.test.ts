@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildExpiryAlerts,
   buildLowStockAlerts,
@@ -7,6 +7,22 @@ import {
   isExpiringBatch,
   isLowStockRecord,
 } from "./inventory-alerts";
+
+const NOW = new Date("2026-07-11T12:00:00.000Z");
+const IN_ONE_DAY = "2026-07-12T12:00:00.000Z";
+const IN_TWO_DAYS = "2026-07-13T12:00:00.000Z";
+const IN_FIVE_DAYS = "2026-07-16T12:00:00.000Z";
+const IN_THIRTY_DAYS = "2026-08-10T12:00:00.000Z";
+const TWO_DAYS_AGO = "2026-07-09T12:00:00.000Z";
+
+beforeEach(() => {
+  vi.useFakeTimers();
+  vi.setSystemTime(NOW);
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe("isLowStockRecord", () => {
   it("treats out and low levels as alerts", () => {
@@ -30,12 +46,9 @@ describe("countLowStockRecords", () => {
 
 describe("isExpiringBatch", () => {
   it("includes batches expiring within the warning window", () => {
-    const soon = new Date();
-    soon.setDate(soon.getDate() + 2);
-
     expect(
       isExpiringBatch({
-        expiryDate: soon.toISOString(),
+        expiryDate: IN_TWO_DAYS,
         quantity: 1,
         status: "ACTIVE",
       }),
@@ -43,12 +56,27 @@ describe("isExpiringBatch", () => {
   });
 
   it("ignores batches beyond the warning window", () => {
-    const later = new Date();
-    later.setDate(later.getDate() + 30);
+    expect(
+      isExpiringBatch({
+        expiryDate: IN_THIRTY_DAYS,
+        quantity: 1,
+        status: "ACTIVE",
+      }),
+    ).toBe(false);
+  });
+
+  it("closes the window at the end of the seventh local day", () => {
+    expect(
+      isExpiringBatch({
+        expiryDate: "2026-07-18T16:00:00.000Z",
+        quantity: 1,
+        status: "ACTIVE",
+      }),
+    ).toBe(true);
 
     expect(
       isExpiringBatch({
-        expiryDate: later.toISOString(),
+        expiryDate: "2026-07-18T20:00:00.000Z",
         quantity: 1,
         status: "ACTIVE",
       }),
@@ -58,9 +86,6 @@ describe("isExpiringBatch", () => {
 
 describe("countExpiringBatches", () => {
   it("counts only batches with quantity and valid status", () => {
-    const soon = new Date();
-    soon.setDate(soon.getDate() + 1);
-
     expect(
       countExpiringBatches([
         {
@@ -69,7 +94,7 @@ describe("countExpiringBatches", () => {
           ingredientId: 1,
           quantity: 2,
           status: "ACTIVE",
-          expiryDate: soon.toISOString(),
+          expiryDate: IN_ONE_DAY,
         },
         {
           id: 2,
@@ -77,7 +102,7 @@ describe("countExpiringBatches", () => {
           ingredientId: 2,
           quantity: 0,
           status: "ACTIVE",
-          expiryDate: soon.toISOString(),
+          expiryDate: IN_ONE_DAY,
         },
       ]),
     ).toBe(1);
@@ -104,11 +129,6 @@ describe("buildLowStockAlerts", () => {
 
 describe("buildExpiryAlerts", () => {
   it("returns soonest expiry batches first", () => {
-    const sooner = new Date();
-    sooner.setDate(sooner.getDate() + 1);
-    const later = new Date();
-    later.setDate(later.getDate() + 5);
-
     const alerts = buildExpiryAlerts(
       [
         {
@@ -117,7 +137,7 @@ describe("buildExpiryAlerts", () => {
           ingredientId: 1,
           quantity: 2,
           status: "ACTIVE",
-          expiryDate: later.toISOString(),
+          expiryDate: IN_FIVE_DAYS,
           ingredient: { id: 1, name: "Cream", unit: "L" },
         },
         {
@@ -126,7 +146,7 @@ describe("buildExpiryAlerts", () => {
           ingredientId: 2,
           quantity: 1,
           status: "ACTIVE",
-          expiryDate: sooner.toISOString(),
+          expiryDate: IN_ONE_DAY,
           ingredient: { id: 2, name: "Butter", unit: "kg" },
         },
       ],
@@ -138,9 +158,6 @@ describe("buildExpiryAlerts", () => {
   });
 
   it("marks past-expiry batches as EXPIRED even when their status is stale ACTIVE", () => {
-    const past = new Date();
-    past.setDate(past.getDate() - 2);
-
     const alerts = buildExpiryAlerts(
       [
         {
@@ -149,7 +166,7 @@ describe("buildExpiryAlerts", () => {
           ingredientId: 3,
           quantity: 250,
           status: "ACTIVE",
-          expiryDate: past.toISOString(),
+          expiryDate: TWO_DAYS_AGO,
           ingredient: { id: 3, name: "Oat Milk", unit: "ml" },
         },
       ],

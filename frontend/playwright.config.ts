@@ -20,6 +20,7 @@ export default defineConfig({
   },
   use: {
     baseURL,
+    timezoneId: "Asia/Bangkok",
     trace: isCI ? "retain-on-failure" : "on-first-retry",
     screenshot: isCI ? "only-on-failure" : "off",
     video: isCI ? "retain-on-failure" : "off",

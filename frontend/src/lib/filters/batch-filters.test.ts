@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Ingredient } from "@/types/api";
 import {
   batchesForIngredient,
@@ -12,7 +12,21 @@ import {
   type InventoryWithIngredient,
 } from "./batch-filters";
 
+const NOW = new Date("2026-07-11T12:00:00.000Z");
+const IN_TWO_DAYS = "2026-07-13T12:00:00.000Z";
+const ONE_DAY_AGO = "2026-07-10T12:00:00.000Z";
+const IN_THIRTY_DAYS = "2026-08-10T12:00:00.000Z";
+
 describe("batch-filters", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   const ingredient = { id: 10, name: "Milk", unit: "L", isActive: true } as Ingredient;
   const inventories = [
     { id: 1, branchId: 1, ingredientId: 10, stock: 5, minStock: 2, ingredient },
@@ -26,7 +40,7 @@ describe("batch-filters", () => {
       ingredientId: 10,
       quantity: 2,
       status: "ACTIVE",
-      expiryDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+      expiryDate: IN_TWO_DAYS,
     },
     {
       id: 101,
@@ -34,7 +48,7 @@ describe("batch-filters", () => {
       ingredientId: 10,
       quantity: 1,
       status: "EXPIRED",
-      expiryDate: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+      expiryDate: ONE_DAY_AGO,
     },
     {
       id: 200,
@@ -42,7 +56,7 @@ describe("batch-filters", () => {
       ingredientId: 20,
       quantity: 3,
       status: "ACTIVE",
-      expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+      expiryDate: IN_THIRTY_DAYS,
     },
   ] as BatchWithSupplier[];
 

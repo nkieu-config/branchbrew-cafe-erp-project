@@ -6,6 +6,9 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     include: ['src/**/*.test.{ts,tsx}'],
+    env: {
+      TZ: 'Asia/Bangkok',
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json-summary'],
