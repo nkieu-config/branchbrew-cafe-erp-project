@@ -15,11 +15,13 @@
 
 **23 backend modules · 130 REST endpoints · 41-table schema · 42 app pages · 426 automated tests · ~77k lines of strict TypeScript**
 
-![BranchBrew dashboard](docs/images/dashboard.png)
+![One sale end to end — POS checkout, the ticket appearing on the kitchen display, and its balanced journal entry in the general ledger](docs/images/demo.gif)
+
+<p align="center"><em>One latte, end to end: POS checkout → kitchen display → balanced journal entry (1.5× speed)</em></p>
 
 ## Try it in 60 seconds
 
-**🔗 Live demo: [branchbrew-cafe-erp.vercel.app](https://branchbrew-cafe-erp.vercel.app)** — click a demo account on the login page, no signup.
+**🔗 Live demo: [branchbrew-cafe-erp.vercel.app](https://branchbrew-cafe-erp.vercel.app)** — the login page has one-click **demo account buttons** (Manager, Admin, Staff), no signup and nothing to type. To sign in manually instead:
 
 | Field        | Value                    |
 | ------------ | ------------------------ |
@@ -188,6 +190,7 @@ Topology and the trade-offs — including why the deploys aren't gated on CI and
 | ---------------------------------------------- | --------------------------------------------------------------------------------------- |
 | [docs/architecture.md](docs/architecture.md)   | Deep dive — outbox, accounting event map, inventory model, auth, deployment, trade-offs |
 | [docs/demo.md](docs/demo.md)                   | 15-minute guided demo, all demo accounts, interview talking points                      |
+| [docs/data-model.md](docs/data-model.md)       | Core ERD, database-enforced invariants, domain map of all 41 tables                     |
 | [docs/design-system.md](docs/design-system.md) | Design tokens, form patterns, UI conventions                                            |
 | [infra/README.md](infra/README.md)             | Docker stacks, env matrix, production modes, TLS on a VPS                               |
 | [backend/README.md](backend/README.md)         | API setup, architecture highlights, test commands                                       |

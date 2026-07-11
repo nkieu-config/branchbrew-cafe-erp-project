@@ -36,6 +36,20 @@ The backend is organized as NestJS feature modules with zero `forwardRef` — th
 | Back office | `hr`, `finance`, `accounting`, `reports`, `equipment`, `settings`, `audit` |
 | Platform | `auth`, `branches`, `notifications`, `outbox`, `realtime`, `navigation`, `common`, `config`, `prisma` |
 
+The schema behind these modules — core ERD and the invariants the database itself enforces — is in [data-model.md](data-model.md).
+
+## Where to start reading the code
+
+The fastest path through ~77k lines, following one sale from POS to ledger:
+
+1. [`backend/src/orders/order-creation.service.ts`](../backend/src/orders/order-creation.service.ts) — the heart of the system in one file: a single transaction validates the order, deducts ingredient batches FEFO, and enqueues the outbox events that everything downstream runs on.
+2. [`backend/src/outbox/outbox.processor.ts`](../backend/src/outbox/outbox.processor.ts) — claims `PENDING` events, reclaims events stranded by a dead worker via their stale `claimedAt`, and dispatches through the validated registry in [`outbox-event.registry.ts`](../backend/src/outbox/outbox-event.registry.ts).
+3. [`backend/src/accounting/accounting.service.ts`](../backend/src/accounting/accounting.service.ts) — the `@OnEvent` handlers that turn domain events into balanced journal entries, deduping on the unique `reference` so at-least-once delivery never double-posts.
+4. [`backend/src/auth/branch-scope.util.ts`](../backend/src/auth/branch-scope.util.ts) — the one authorization primitive every branch-owned endpoint resolves through.
+5. The tests that prove the hard claims: [`order-void-concurrency.e2e-spec.ts`](../backend/test/order-void-concurrency.e2e-spec.ts) (racing voids against real Postgres), [`outbox-stale-claim.e2e-spec.ts`](../backend/test/outbox-stale-claim.e2e-spec.ts) (recovery from a worker that dies mid-dispatch), and the cross-branch 403 in [`finance.e2e-spec.ts`](../backend/test/finance.e2e-spec.ts).
+
+Money math lives in [`common/decimal.util.ts`](../backend/src/common/decimal.util.ts) and [`common/vat.util.ts`](../backend/src/common/vat.util.ts). On the frontend, start at `frontend/src/lib/query-keys/` (cache invalidation map) and `useKdsSocketSync` (realtime cache patching).
+
 ## Transactional outbox
 
 The core reliability decision in the system. The POS never writes journal entries, awards points, or pushes WebSocket frames directly. Instead:
