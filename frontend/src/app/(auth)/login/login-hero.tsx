@@ -26,9 +26,9 @@ export const LOGIN_HERO_BODY =
   "POS, inventory, kitchen production, and payroll — unified for every branch.";
 
 export const LOGIN_HERO_STATS = [
-  { value: "11", label: "Modules" },
-  { value: "4", label: "Demo roles" },
-  { value: "340+", label: "Tests" },
+  { value: "23", label: "Modules" },
+  { value: "130", label: "Endpoints" },
+  { value: "426", label: "Tests" },
 ] as const;
 
 type HeroModule = {
