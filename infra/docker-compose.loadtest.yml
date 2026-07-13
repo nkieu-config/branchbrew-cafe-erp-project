@@ -1,0 +1,15 @@
+services:
+  db:
+    networks:
+      - backend
+      - loadtest
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+
+  backend:
+    environment:
+      - THROTTLE_LIMIT=${THROTTLE_LIMIT:-100000}
+      - THROTTLE_TTL_MS=${THROTTLE_TTL_MS:-60000}
+
+networks:
+  loadtest:

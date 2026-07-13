@@ -34,8 +34,8 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
   imports: [
     ThrottlerModule.forRoot([
       {
-        ttl: 60000,
-        limit: 60,
+        ttl: Number(process.env.THROTTLE_TTL_MS ?? 60000),
+        limit: Number(process.env.THROTTLE_LIMIT ?? 60),
       },
     ]),
     EventEmitterModule.forRoot(),

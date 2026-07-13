@@ -12,3 +12,6 @@ application.log
 playwright-report/
 test-results/
 logs/
+
+# Load-test fixture generated from the seeded database
+loadtest/target.json
