@@ -1,3 +1,5 @@
 export const MAX_OUTBOX_ATTEMPTS = 5;
-export const OUTBOX_BATCH_SIZE = 10;
+export const OUTBOX_BATCH_SIZE = 50;
+export const MAX_DRAIN_ITERATIONS = 20;
+export const RETRY_BACKOFF_MS = 30 * 1000;
 export const STALE_PROCESSING_MS = 5 * 60 * 1000;

@@ -1,11 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import {
+  MAX_DRAIN_ITERATIONS,
   MAX_OUTBOX_ATTEMPTS,
   OUTBOX_BATCH_SIZE,
+  RETRY_BACKOFF_MS,
   STALE_PROCESSING_MS,
 } from './outbox.constants';
 import { dispatchOutboxEvent } from './outbox-event.registry';
@@ -13,23 +15,49 @@ import { dispatchOutboxEvent } from './outbox-event.registry';
 @Injectable()
 export class OutboxProcessor {
   private readonly logger = new Logger(OutboxProcessor.name);
+  private isDraining = false;
 
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  @Cron('*/10 * * * * *')
+  @Cron(CronExpression.EVERY_SECOND)
   async handleCron() {
-    const staleBefore = new Date(Date.now() - STALE_PROCESSING_MS);
+    if (this.isDraining) return;
+
+    this.isDraining = true;
+    try {
+      for (let iteration = 0; iteration < MAX_DRAIN_ITERATIONS; iteration++) {
+        const batch = await this.processBatch();
+        if (batch.size < OUTBOX_BATCH_SIZE || !batch.wasAllPending) return;
+      }
+    } finally {
+      this.isDraining = false;
+    }
+  }
+
+  private async processBatch(): Promise<{
+    size: number;
+    wasAllPending: boolean;
+  }> {
+    const now = Date.now();
+    const staleBefore = new Date(now - STALE_PROCESSING_MS);
+    const retryBefore = new Date(now - RETRY_BACKOFF_MS);
 
     const events = await this.prisma.outboxEvent.findMany({
       where: {
         OR: [
-          { status: 'PENDING' },
+          { status: 'PENDING', attempts: 0 },
+          {
+            status: 'PENDING',
+            attempts: { gt: 0 },
+            claimedAt: { lt: retryBefore },
+          },
           {
             status: 'FAILED',
             attempts: { lt: MAX_OUTBOX_ATTEMPTS },
+            OR: [{ claimedAt: null }, { claimedAt: { lt: retryBefore } }],
           },
           {
             status: 'PROCESSING',
@@ -40,6 +68,8 @@ export class OutboxProcessor {
       orderBy: { createdAt: 'asc' },
       take: OUTBOX_BATCH_SIZE,
     });
+
+    const wasAllPending = events.every((event) => event.status === 'PENDING');
 
     for (const event of events) {
       const isStaleClaim = event.status === 'PROCESSING';
@@ -108,6 +138,8 @@ export class OutboxProcessor {
         });
       }
     }
+
+    return { size: events.length, wasAllPending };
   }
 
   private async abandonStaleClaim(
