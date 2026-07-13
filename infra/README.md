@@ -70,12 +70,13 @@ Production vars include `DATABASE_URL` (pooler), `DIRECT_URL` (migrations), `COR
 
 ## Compose files
 
-| File                          | Use                                                                               |
-| ----------------------------- | --------------------------------------------------------------------------------- |
-| `docker-compose.yml`          | Local stack — backend dev image (Swagger on), bundled Postgres                    |
-| `docker-compose.prod.yml`     | Production-like — resource limits, production images, managed Postgres by default |
-| `docker-compose.caddy.yml`    | Optional TLS overlay (Caddy + Let's Encrypt) for self-hosted VPS deploys          |
-| `docker-compose.ci-smoke.yml` | CI smoke stack from pre-built `erp-*:ci` images                                   |
+| File                          | Use                                                                                                  |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `docker-compose.yml`          | Local stack — backend dev image (Swagger on), bundled Postgres                                       |
+| `docker-compose.prod.yml`     | Production-like — resource limits, production images, managed Postgres by default                    |
+| `docker-compose.caddy.yml`    | Optional TLS overlay (Caddy + Let's Encrypt) for self-hosted VPS deploys                             |
+| `docker-compose.ci-smoke.yml` | CI smoke stack from pre-built `erp-*:ci` images                                                      |
+| `docker-compose.loadtest.yml` | Load-test overlay — publishes the DB port and raises the API throttle (`npm run docker:up:loadtest`) |
 
 ### Postgres access
 
@@ -86,6 +87,8 @@ ports do not work on internal networks, and the demo stack never needs one). To 
 docker compose -f infra/docker-compose.yml --env-file infra/.env.compose exec db \
   psql -U erp_user erp_db
 ```
+
+The load-test overlay is the one exception: it attaches the database to a second, non-internal network and publishes 5432, so the outbox-lag reporter can read `OutboxEvent` from the host. See [loadtest/README.md](../loadtest/README.md).
 
 ## Production deployment
 

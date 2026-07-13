@@ -16,7 +16,7 @@ flowchart LR
   RT -->|WebSocket| KDS["Kitchen display"]
 ```
 
-```
+```text
 backend/          NestJS 11 API — 23 feature modules, Prisma 7, transactional outbox
 frontend/         Next.js 16 App Router — POS, KDS, back office (42 pages)
 packages/types    Shared enums generated from the Prisma schema
@@ -43,7 +43,7 @@ The schema behind these modules — core ERD and the invariants the database its
 The fastest path through ~77k lines, following one sale from POS to ledger:
 
 1. [`backend/src/orders/order-creation.service.ts`](../backend/src/orders/order-creation.service.ts) — the heart of the system in one file: a single transaction validates the order, deducts ingredient batches FEFO, and enqueues the outbox events that everything downstream runs on.
-2. [`backend/src/outbox/outbox.processor.ts`](../backend/src/outbox/outbox.processor.ts) — claims `PENDING` events, reclaims events stranded by a dead worker via their stale `claimedAt`, and dispatches through the validated registry in [`outbox-event.registry.ts`](../backend/src/outbox/outbox-event.registry.ts).
+2. [`backend/src/outbox/outbox.processor.ts`](../backend/src/outbox/outbox.processor.ts) — claims `PENDING` events in a drain loop until the queue is empty, reclaims events stranded by a dead worker via their stale `claimedAt`, and dispatches through the validated registry in [`outbox-event.registry.ts`](../backend/src/outbox/outbox-event.registry.ts).
 3. [`backend/src/accounting/accounting.service.ts`](../backend/src/accounting/accounting.service.ts) — the `@OnEvent` handlers that turn domain events into balanced journal entries, deduping on the unique `reference` so at-least-once delivery never double-posts.
 4. [`backend/src/auth/branch-scope.util.ts`](../backend/src/auth/branch-scope.util.ts) — the one authorization primitive every branch-owned endpoint resolves through.
 5. The tests that prove the hard claims: [`order-void-concurrency.e2e-spec.ts`](../backend/test/order-void-concurrency.e2e-spec.ts) (racing voids against real Postgres), [`outbox-stale-claim.e2e-spec.ts`](../backend/test/outbox-stale-claim.e2e-spec.ts) (recovery from a worker that dies mid-dispatch), and the cross-branch 403 in [`finance.e2e-spec.ts`](../backend/test/finance.e2e-spec.ts).
@@ -60,7 +60,9 @@ The core reliability decision in the system. The POS never writes journal entrie
 
 Delivery is **at-least-once** through both crash windows: an event that commits but never dispatches stays `PENDING`, and one whose worker dies mid-dispatch is reclaimed once its `claimedAt` stamp goes stale. Redelivery is harmless because the ledger dedupes on a unique natural `reference`. The consequence: side effects can be delayed, but they can never desync from committed state. There is no scenario where an order exists but its journal entry silently never will.
 
-Known hardening still on the roadmap: an operator replay path for `FAILED` events (terminal today, visible only in logs), exponential backoff with jitter, and payload schema versioning.
+Throughput is a measured property, not an assumption. A k6 load test caught the original processor — one batch of 10 events every 10 seconds — draining at exactly 1.00 events/sec while the till sold 20 orders/sec, leaving the ledger nine and a half minutes behind after a 30-second rush. The processor now drains in a loop until the queue is empty, polls every second behind a re-entrancy guard, and gives failed events a 30-second retry backoff so the faster tick cannot burn through their five attempts in seconds. Measured after the fix, the drain rate tracks the arrival rate up to at least 150 events/sec, with lag bounded by the poll interval (p50 0.5 s). The harness is in [loadtest/README.md](../loadtest/README.md); the before-and-after numbers are in the [README's Performance section](../README.md#performance--the-bottleneck-the-load-test-found-and-the-fix).
+
+Known hardening still on the roadmap: an operator replay path for `FAILED` events (terminal today, visible only in logs), jitter on the retry backoff, and payload schema versioning.
 
 ## Event-driven double-entry accounting
 
@@ -124,14 +126,14 @@ A backend change that breaks the frontend is a compile error and a red pipeline,
 
 ## Testing strategy
 
-426 tests, split by what each layer can actually prove:
+432 tests, split by what each layer can actually prove:
 
 | Suite | Tests | What it proves |
 |---|---|---|
-| Backend unit (Jest) | 219 | Money math and rounding ties, order lifecycle, concurrent-claim guards, outbox reclaim, accounting postings |
-| Backend e2e (supertest) | 18 | Auth, orders, branch scoping, concurrent order voids, and outbox recovery from a dead worker — all against a real Postgres |
-| Frontend unit (Vitest) | 176 | Validators, filters, VAT parity with the backend, API client behavior |
-| Frontend e2e (Playwright) | 13 | Login, full POS checkout, KDS, axe accessibility smoke |
+| Backend unit (Jest) | 220 | Money math and rounding ties, order lifecycle, concurrent-claim guards, outbox reclaim, accounting postings |
+| Backend e2e (supertest) | 20 | Auth, orders, branch scoping, concurrent order voids, and outbox recovery from a dead worker — all against a real Postgres |
+| Frontend unit (Vitest) | 177 | Validators, filters, VAT parity with the backend, API client behavior |
+| Frontend e2e (Playwright) | 15 | Login, full POS checkout, KDS, axe accessibility smoke |
 
 CI additionally runs type-checks, lint, coverage thresholds, a Docker Compose smoke test of the full stack, Trivy image scans, and the generated-artifact drift checks above.
 
@@ -162,4 +164,4 @@ Choices made knowingly for a portfolio-scale deployment, with the reasoning:
 - **Output VAT only** — sales post VAT to a liability account; input VAT on purchases is out of scope for the demo.
 - **No promotion usage limits** — promo codes validate eligibility but not redemption counts.
 
-Roadmap beyond demo scale: pagination across all list endpoints (audit and auth already paginate), branch-scoping and read-auditing for customer records, end-to-end `Decimal` stock quantities with a scheduled reconciliation between branch stock and batch-level quantities, outbox hardening (backoff, an operator replay path), and metrics with an alert on failed outbox events.
+Roadmap beyond demo scale: pagination across all list endpoints (audit and auth already paginate), branch-scoping and read-auditing for customer records, end-to-end `Decimal` stock quantities with a scheduled reconciliation between branch stock and batch-level quantities, outbox hardening (an operator replay path, jitter on the retry backoff), and metrics with an alert on failed outbox events.

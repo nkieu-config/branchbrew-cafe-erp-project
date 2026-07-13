@@ -4,7 +4,7 @@ BranchBrew uses **Tailwind CSS v4** with a CSS-first token architecture. This do
 
 ## Token layers
 
-```
+```text
 primitives.ts          →  globals.css (:root / .dark)  →  tokens.css (derived)
        ↓                         ↓                              ↓
 defaults.ts (SSR)          @theme inline                 lib/theme/*.ts (class helpers)

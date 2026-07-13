@@ -9,6 +9,7 @@ Portfolio demo script for reviewers and interview walkthroughs. New here? Start 
 ## Quick start
 
 ```bash
+npm install
 npm run migrate
 npm run db:seed
 npm run dev:backend   # terminal 1 — port 3000
@@ -116,7 +117,7 @@ Use the **Demo accounts** buttons on the login page for Manager, Admin, Staff, a
 
 1. **Central Kitchen** (`/kitchen`) — Kanban board: planned / in-progress / completed cold-brew production orders.
 2. **Production BOM** (`/kitchen/boms`) — Cold brew base recipe (espresso beans per ml).
-3. Completing a production order consumes raw batches FIFO, creates a finished-goods batch, and posts any standard-cost variance to account 5030.
+3. Completing a production order consumes raw batches FEFO, creates a finished-goods batch, and posts any standard-cost variance to account 5030.
 
 **Story to tell:** Central kitchen produces intermediates → finished batches transfer out to branches.
 

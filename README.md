@@ -11,9 +11,9 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
 
-**A full ERP for a multi-branch coffee-shop chain, built solo as my software-engineering capstone.** Point of sale, realtime kitchen display, batch inventory, procurement, central-kitchen production, HR & payroll, CRM loyalty — all wired into an event-driven double-entry ledger that always reconciles.
+**A full ERP for a multi-branch coffee-shop chain, built solo as my software-engineering capstone.** Point of sale, realtime kitchen display, batch inventory, procurement, central-kitchen production, HR & payroll, CRM loyalty — all wired into an event-driven double-entry ledger that never drifts.
 
-**23 backend modules · 130 REST endpoints · 41-table schema · 42 app pages · 426 automated tests · ~77k lines of strict TypeScript**
+**23 backend modules · 130 REST endpoints · 41-table schema · 42 app pages · 432 automated tests · ~77k lines of strict TypeScript**
 
 ![One sale end to end — POS checkout, the ticket appearing on the kitchen display, and its balanced journal entry in the general ledger](docs/images/demo.gif)
 
@@ -37,7 +37,7 @@ Prefer to run it yourself? The whole stack comes up in two commands — see [Qui
 
 ## Why I built this
 
-A coffee shop looks simple and is anything but. Milk expires, so stock has to be tracked in batches and used first-expired-first-out. Branches share a central kitchen that turns raw beans into cold-brew base. The Thai tax office wants a ภ.พ.30 VAT report. And when a barista taps **Pay**, five things must happen at once — deduct stock, award loyalty points, fire a kitchen ticket, record the sale, post the accounting — and they must **never disagree with each other**.
+A coffee shop looks simple and is anything but. Milk expires, so stock has to be tracked in batches and used first-expired-first-out. Branches share a central kitchen that turns raw beans into cold-brew base. The Thai tax office wants a ภ.พ.30 (PP.30) VAT report. And when a barista taps **Pay**, five things must happen at once — deduct stock, award loyalty points, fire a kitchen ticket, record the sale, post the accounting — and they must **never disagree with each other**.
 
 Most capstone projects stop at CRUD. I wanted to find out what it actually takes to keep money, stock, and realtime state consistent in one system, so I built the whole thing: from the cash-tendering keypad on the POS to the debit and credit lines it produces in the general ledger.
 
@@ -48,7 +48,7 @@ The rule I held myself to: **if two numbers in the system can drift apart, the d
 1. The POS posts the order over REST (httpOnly-cookie JWT). The recipe deducts ingredient batches **first-expired-first-out**, with a database `CHECK` making negative stock impossible.
 2. **In the same database transaction**, outbox events are written alongside the order — the order and its pending side effects commit or roll back together.
 3. Outbox handlers then take over: one posts a balanced journal entry (ex-VAT revenue + output VAT liability + COGS), one awards loyalty points, one pushes the ticket to the kitchen display over WebSocket.
-4. Because the ledger is written by the same events that move stock, **Finance → Ledger always reconciles with operations** — the AP balance matches the unpaid-PO aging list, and the accounting P&L agrees with the dashboard.
+4. Because the ledger is written by the same events that move stock, **it can trail operations, but it can never disagree with them** — the AP balance matches the unpaid-PO aging list, and the accounting P&L agrees with the dashboard. How far it trails is a measured number, not a hand-wave: a median of half a second, holding steady at 150 orders per second — see [Performance](#performance--the-bottleneck-the-load-test-found-and-the-fix).
 
 ```mermaid
 flowchart LR
@@ -117,7 +117,7 @@ Every screen is built mobile-first — the app **reshapes** for a phone rather t
 
 ## Engineering decisions I'd defend in an interview
 
-- **Transactional outbox over direct side effects** — business writes commit together with their events in one transaction, so accounting, loyalty, and realtime updates can be delayed but never lost or desynced.
+- **Transactional outbox over direct side effects** — business writes commit together with their events in one transaction, so accounting, loyalty, and realtime updates can be delayed but never lost or desynced. A k6 load test then caught the processor draining far slower than the till could sell; the [Performance](#performance--the-bottleneck-the-load-test-found-and-the-fix) section is the measurement, the diagnosis, and the fix.
 - **Money is never a float** — all financial math runs on `Prisma.Decimal` with explicit rounding; journal entries must balance to the cent before they persist.
 - **The API contract is a build artifact** — the backend exports `openapi.json`, the frontend generates its client types from it, shared enums generate from the Prisma schema, and CI fails on any drift. A breaking backend change is a red pipeline, not a runtime surprise.
 - **JWT with real revocation** — httpOnly cookie plus a per-user token version. Logout bumps it, and so does any admin change to a user's branch, role, or password, so a demoted or compromised account loses its live tokens immediately rather than at expiry.
@@ -162,9 +162,41 @@ npm run dev:frontend                   # UI on :3001
 
 Production modes, TLS on a VPS, and the env matrix: [infra/README.md](infra/README.md).
 
+## API
+
+All 130 endpoints are documented with Swagger. Once the stack is up, browse them at **http://localhost:3000/docs** — the schemas there are the same ones the frontend generates its client types from (`npm run openapi:export` writes the `openapi.json` that CI drift-checks). The docs route is mounted only outside production, so the live demo doesn't serve it.
+
+Auth is an httpOnly cookie, so a session is two calls — sign in, then reuse the cookie jar:
+
+```bash
+curl -s -c jar.txt -X POST http://localhost:3000/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"manager@branchbrew.dev","password":"password123"}'
+```
+
+```json
+{
+  "user": {
+    "id": 2,
+    "email": "manager@branchbrew.dev",
+    "name": "Downtown Manager",
+    "role": "MANAGER",
+    "branchId": 1,
+    "branch": "Downtown Branch"
+  }
+}
+```
+
+```bash
+curl -s -b jar.txt http://localhost:3000/orders          # scoped to the caller's branch
+curl -s -b jar.txt http://localhost:3000/orders/kds      # the kitchen display queue
+```
+
+Login is throttled to 5 attempts per minute, and branch-owned routes resolve their branch through one shared helper: staff and managers are pinned to their own branch, and asking for another one returns a 403 rather than someone else's orders. Only a super admin may pass a `branchId` across branches.
+
 ## Testing & quality
 
-426 tests across four suites — backend unit (219, Jest), backend e2e against a real Postgres (18, supertest), frontend unit (176, Vitest), and frontend e2e (13, Playwright with axe accessibility smoke).
+432 tests across four suites — backend unit (220, Jest), backend e2e against a real Postgres (20, supertest), frontend unit (177, Vitest), and frontend e2e (15, Playwright with axe accessibility smoke).
 
 CI runs type-checks, lint, coverage thresholds, all four suites, a Docker Compose smoke test of the full stack, Trivy image scans, and drift checks for every generated artifact. The full strategy — what each suite proves and why: [docs/architecture.md](docs/architecture.md#testing-strategy).
 
@@ -174,11 +206,35 @@ npm run test:e2e:backend
 npm run test:e2e:frontend
 ```
 
+## Performance — the bottleneck the load test found, and the fix
+
+I load-tested the checkout path with [k6](loadtest/) instead of guessing, and it caught a real bottleneck that no unit test could have. Everything below is measured on an Apple M4 (10 cores, 16 GB) with the whole stack — API and PostgreSQL 16 — in Docker Compose, ordering a real product so every request runs the full FEFO deduction.
+
+**The synchronous write was never the problem.** Even at 150 orders/sec, the transaction that deducts batches, guards stock, writes the order, and enqueues the outbox event holds a p95 of 42 ms and did not drop a single request in any run.
+
+**The outbox processor was.** It polled every 10 seconds for a batch of 10 events — a hard ceiling of **one event per second**, and the load test measured exactly that: a drain rate of 1.00 events/sec. So a 30-second rush of 601 orders left the general ledger **9 minutes 34 seconds behind operations**. Nothing was lost or wrong — the outbox guarantees that — but "the ledger trails by a moment" was not remotely true. The events themselves are cheap: each one takes a median of 2 ms to apply, so the processor was busy 0.3% of the time and asleep for the rest.
+
+The fix was in the processor, not the database: drain in a loop until the queue is empty instead of one batch per tick, poll every second, and guard against overlapping runs. Retries now get a 30-second backoff so the faster tick can't burn through an event's five attempts in five seconds.
+
+| Load (30s of orders) | Checkout p95 | Accepted | Outbox drain rate | Ledger lag p50 | Ledger lag max |
+| -------------------- | ------------ | -------- | ----------------- | -------------- | -------------- |
+| 20 orders/sec — **before** | 18 ms | 601/601 | 1.00 events/sec | 4 min 49s | 9 min 34s |
+| 20 orders/sec — **after** | 18 ms | 601/601 | 19.4 events/sec | **0.5s** | **1.0s** |
+| 50 orders/sec — after | 12 ms | 1000/1000 | 48.8 events/sec | 0.5s | 1.0s |
+| 150 orders/sec — after | 42 ms | 1501/1501 | 148.7 events/sec | 0.5s | 0.9s |
+
+The outbox now keeps pace with whatever the till throws at it, and the ledger's lag is bounded by the one-second poll rather than by a backlog — which is what "trails operations by a moment, but never disagrees" is supposed to mean. Same guarantees, 150× the throughput, no change to the checkout latency.
+
+I considered `LISTEN`/`NOTIFY` to push events instead of polling, which would cut the median lag from 0.5 s to single-digit milliseconds. I did not do it: it needs a dedicated connection outside Prisma and a cron fallback anyway for retries and stale claims, and half a second of lag on a coffee-shop ledger buys nothing worth that complexity.
+
+> [!NOTE]
+> The deployed API throttles to 60 requests/min per IP, so these rates need the limit lifted — the load-test Compose override does exactly that. Reproduce it with `npm run docker:up:loadtest && npm run loadtest:stock && RATE=20 DURATION=30s npm run loadtest`; details in [loadtest/README.md](loadtest/README.md).
+
 ## CI/CD
 
 A commit reaches the live demo in minutes, with no manual deploy step:
 
-- **Before every push** — a husky pre-push hook runs the local gate: type-check, lint, and both unit suites (395 tests). The e2e suites need a database and a running stack, so they are CI's job.
+- **Before every push** — a husky pre-push hook runs the local gate: type-check, lint, and both unit suites (397 tests). The e2e suites need a database and a running stack, so they are CI's job.
 - **On push to `main`** — [CI](.github/workflows/ci.yml) runs the four suites, a Compose smoke test, Trivy scans, and drift checks; in parallel Vercel rebuilds the frontend and Render rebuilds the API image.
 - **Every 3 hours** — [a scheduled workflow](.github/workflows/refresh-demo.yml) reseeds the demo database, so the dashboard and kitchen display always show live data instead of a stale snapshot.
 
@@ -192,6 +248,7 @@ Topology and the trade-offs — including why the deploys aren't gated on CI and
 | [docs/demo.md](docs/demo.md)                   | 15-minute guided demo, all demo accounts, interview talking points                      |
 | [docs/data-model.md](docs/data-model.md)       | Core ERD, database-enforced invariants, domain map of all 41 tables                     |
 | [docs/design-system.md](docs/design-system.md) | Design tokens, form patterns, UI conventions                                            |
+| [loadtest/README.md](loadtest/README.md)       | k6 checkout load test, the outbox-lag reporter, and how to reproduce the numbers above  |
 | [infra/README.md](infra/README.md)             | Docker stacks, env matrix, production modes, TLS on a VPS                               |
 | [backend/README.md](backend/README.md)         | API setup, architecture highlights, test commands                                       |
 | [frontend/README.md](frontend/README.md)       | UI setup, generated API types, test commands                                            |
@@ -200,12 +257,20 @@ Topology and the trade-offs — including why the deploys aren't gated on CI and
 
 Deliberate scope choices for a portfolio-scale deployment — each with its reasoning in [docs/architecture.md](docs/architecture.md#deliberate-trade-offs):
 
+- The outbox is still poll-based, so the ledger lags operations by up to a second by design (measured p50 0.5s); pushing that to milliseconds means `LISTEN`/`NOTIFY`, which I judged not worth the complexity
 - No account lockout (demo credentials are public; login is IP-throttled instead)
 - Standard costing — no weighted-average recalculation on purchase receipts
-- Whole-order refunds only; output VAT only (no input VAT on purchases)
+- Whole-order refunds only (no partial refunds)
+- Output VAT only — input VAT on purchases isn't tracked
 - Customer records are chain-level and unscoped, so any staff account can look up any member's phone — the top PDPA item on the roadmap
 
 Next on the roadmap: pagination across all list endpoints, end-to-end `Decimal` stock quantities, outbox dead-letter queue with replay, and scheduled stock reconciliation.
+
+## What building this taught me
+
+The hard part was never the CRUD — it was the seams between modules. My first version announced a sale with an in-process event emitter, fired from inside the transaction: the order committed, and the accounting and loyalty listeners ran afterwards on a best-effort basis. If one of them threw — or the process restarted at the wrong moment — the sale was real and its journal entry simply never existed, silently. Replacing that with the transactional outbox is the change I'd point to first, and the lesson behind it is that consistency is a property you design in from the start, not one you bolt on once the numbers already disagree.
+
+The second lesson was to stop trusting myself to remember things. A `CHECK` constraint makes negative stock unrepresentable, and a CI job that fails on API-contract drift turns a breaking change into a red pipeline — both of them catch classes of mistake that "just be careful" never will.
 
 ## About
 
