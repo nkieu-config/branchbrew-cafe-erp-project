@@ -13,6 +13,19 @@ Part of the [BranchBrew monorepo](../). See [`docs/demo.md`](../docs/demo.md) fo
 - Typed API client generated from the backend's OpenAPI schema
 - **Vitest** unit tests, **Playwright** e2e
 
+## Where the code lives
+
+| Path                                  | What's in it                                                                          |
+| ------------------------------------- | ------------------------------------------------------------------------------------- |
+| `src/app/(app)/` · `src/app/(auth)/`  | Route groups — the authenticated shell and the login flow                             |
+| `src/hooks/useKdsSocketSync.ts`       | WebSocket events patch the TanStack Query cache, so the kitchen board never refetches |
+| `src/lib/auth/server.ts`              | `getSession` — server-side auth gating, before a protected layout renders             |
+| `src/lib/query-keys/`                 | Every cache key and cross-resource invalidation, in one place                         |
+| `src/lib/money.ts` · `src/lib/vat.ts` | Money and VAT math, unit-tested against the same rules as the backend                 |
+| `src/types/generated/api.d.ts`        | Client types generated from the backend contract — never edited by hand               |
+
+**If you read one thing, read [`src/hooks/useKdsSocketSync.ts`](src/hooks/useKdsSocketSync.ts)** — the cache-patching path that keeps a busy kitchen from re-downloading the whole board on every ticket.
+
 ## Conventions
 
 - Auth gating is server-side: `getSession` (`src/lib/auth/server.ts`) runs before a protected layout renders.
@@ -23,8 +36,11 @@ Why it is built this way: [`docs/architecture.md`](../docs/architecture.md#front
 
 ## Setup
 
+Everything after `npm install` is a workspace script — run it from `frontend/`, not the monorepo root. (From the root, use `npm run dev:frontend`.)
+
 ```bash
-npm install                 # from the monorepo root
+npm install                  # once, from the monorepo root
+cd frontend
 cp .env.example .env.local   # set NEXT_PUBLIC_API_URL (defaults to http://localhost:3000)
 npm run dev                  # http://localhost:3001
 ```
@@ -36,13 +52,15 @@ The backend must be running (see [`../backend/README.md`](../backend/README.md))
 The client types in `src/types/generated/api.d.ts` are generated from the backend contract:
 
 ```bash
-npm run generate:api         # reads ../backend/openapi.json
+npm run generate:api         # from frontend/ — reads ../backend/openapi.json
 ```
 
 > [!NOTE]
 > Never edit the generated types by hand — regenerate them instead. CI fails on any drift between `openapi.json` and the committed client types.
 
 ## Tests
+
+From `frontend/`:
 
 ```bash
 npm run test         # unit tests (Vitest)

@@ -8,15 +8,18 @@ Portfolio demo script for reviewers and interview walkthroughs. New here? Start 
 
 ## Quick start
 
+One command with Docker — `npm run docker:up` (see the [root Quick start](../README.md#quick-start)) — or local Node against a running Postgres:
+
 ```bash
 npm install
+cp backend/.env.example backend/.env   # set DATABASE_URL, JWT_SECRET
 npm run migrate
 npm run db:seed
 npm run dev:backend   # terminal 1 — port 3000
 npm run dev:frontend  # terminal 2 — port 3001
 ```
 
-Open **http://localhost:3001/login**
+Open [localhost:3001/login](http://localhost:3001/login)
 
 ### Remote / staging database
 
@@ -36,23 +39,23 @@ Login as **Manager**, then run steps 1–4 of [Flow A](#flow-a--sell-5-min): sel
 
 ## Cheat sheet
 
-| Item | Value |
-|------|--------|
-| **Password (all accounts)** | `password123` |
-| **Primary demo login** | `manager@branchbrew.dev` — Downtown Manager |
-| **Super Admin** | `admin@branchbrew.dev` — all branches |
-| **POS cashier** | `staff.downtown@branchbrew.dev` — Downtown Cashier |
-| **Riverside Manager** | `manager.riverside@branchbrew.dev` |
-| **Riverside Barista** | `staff.riverside@branchbrew.dev` |
-| **CRM member phone** | `0811111111` — Demo Member, 120 pts, SILVER |
-| **Promo codes** | `WELCOME10` (10% off, min 100) · `SAVE20` (20 baht off, min 150) |
-| **PO to receive (live)** | `PO-DEMO-001` — APPROVED @ Downtown |
-| **PO to pay (live)** | `PO-DEMO-005` — RECEIVED · UNPAID, ~40 days old (AP aging 31–60 bucket) |
-| **Hero ledger chain** | `PO-DEMO-003` (received beans) → `ORD-*` sale (2× Iced Latte) → `PAY-PO-DEMO-003` (supplier paid) |
-| **Stock count to finish (live)** | Draft "Weekly spot check" @ Downtown — Inventory → Stocktake |
-| **Notifications** | Bell in the top bar — unread PO approval + expiring batches @ Downtown |
-| **Currency** | THB (฿) — Settings → Default currency |
-| **KDS** | Open tickets at Downtown (5+) and Riverside (1) after seed |
+| Item                             | Value                                                                                             |
+| -------------------------------- | ------------------------------------------------------------------------------------------------- |
+| **Password (all accounts)**      | `password123`                                                                                     |
+| **Primary demo login**           | `manager@branchbrew.dev` — Downtown Manager                                                       |
+| **Super Admin**                  | `admin@branchbrew.dev` — all branches                                                             |
+| **POS cashier**                  | `staff.downtown@branchbrew.dev` — Downtown Cashier                                                |
+| **Riverside Manager**            | `manager.riverside@branchbrew.dev`                                                                |
+| **Riverside Barista**            | `staff.riverside@branchbrew.dev`                                                                  |
+| **CRM member phone**             | `0811111111` — Demo Member, 120 pts, SILVER                                                       |
+| **Promo codes**                  | `WELCOME10` (10% off, min 100) · `SAVE20` (20 baht off, min 150)                                  |
+| **PO to receive (live)**         | `PO-DEMO-001` — APPROVED @ Downtown                                                               |
+| **PO to pay (live)**             | `PO-DEMO-005` — RECEIVED · UNPAID, ~40 days old (AP aging 31–60 bucket)                           |
+| **Hero ledger chain**            | `PO-DEMO-003` (received beans) → `ORD-*` sale (2× Iced Latte) → `PAY-PO-DEMO-003` (supplier paid) |
+| **Stock count to finish (live)** | Draft "Weekly spot check" @ Downtown — Inventory → Stocktake                                      |
+| **Notifications**                | Bell in the top bar — unread PO approval + expiring batches @ Downtown                            |
+| **Currency**                     | THB (฿) — Settings → Default currency                                                             |
+| **KDS**                          | Open tickets at Downtown (5+) and Riverside (1) after seed                                        |
 
 Use the **Demo accounts** buttons on the login page for Manager, Admin, Staff, and Riverside Manager.
 
@@ -60,10 +63,10 @@ Use the **Demo accounts** buttons on the login page for Manager, Admin, Staff, a
 
 ## Branches
 
-| Branch | Role in demo |
-|--------|----------------|
-| **Downtown Branch** | Primary — POS, KDS, finance, HR |
-| **Riverside Branch** | Second site — low stock alerts, Riverside KDS |
+| Branch                         | Role in demo                                                |
+| ------------------------------ | ----------------------------------------------------------- |
+| **Downtown Branch**            | Primary — POS, KDS, finance, HR                             |
+| **Riverside Branch**           | Second site — low stock alerts, Riverside KDS               |
 | **BranchBrew Central Kitchen** | Production / BOM / kitchen kanban (select in branch picker) |
 
 ---

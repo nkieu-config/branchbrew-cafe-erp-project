@@ -11,17 +11,19 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
 
-**A full ERP for a multi-branch coffee-shop chain, built solo as my software-engineering capstone.** Point of sale, realtime kitchen display, batch inventory, procurement, central-kitchen production, HR & payroll, CRM loyalty — all wired into an event-driven double-entry ledger that never drifts.
+**A full ERP for a multi-branch coffee-shop chain, built solo as my software-engineering capstone.** Point of sale, realtime kitchen display, batch inventory, procurement, central-kitchen production, HR & payroll, CRM loyalty — 42 app pages on a NestJS API. Every module feeds an event-driven double-entry ledger that never drifts. I built both halves: the screen a barista taps, and the debit and credit lines it posts.
 
-**23 backend modules · 130 REST endpoints · 41-table schema · 42 app pages · 432 automated tests · ~77k lines of strict TypeScript**
+**23 backend modules · 130 REST endpoints · 41-table schema · 42 app pages · 432 automated tests**
 
-![One sale end to end — POS checkout, the ticket appearing on the kitchen display, and its balanced journal entry in the general ledger](docs/images/demo.gif)
+**Load-tested to 150 orders/sec, with the ledger never more than a second behind.** It didn't start that way — the first k6 run left it 9 minutes behind the till, and [the diagnosis, the fix, and the re-run](#performance--the-bottleneck-the-load-test-found-and-the-fix) are all in this repo.
 
-<p align="center"><em>One latte, end to end: POS checkout → kitchen display → balanced journal entry (1.5× speed)</em></p>
+![One sale end to end — an Iced Latte rung up at the POS with modifiers, paid in cash, appearing on the kitchen display, and settling into a balanced journal entry in the general ledger](docs/images/demo.gif)
+
+<p align="center"><em>One latte, end to end: dashboard → POS checkout → kitchen display → general ledger (1.5× speed)</em></p>
 
 ## Try it in 60 seconds
 
-**🔗 Live demo: [branchbrew-cafe-erp.vercel.app](https://branchbrew-cafe-erp.vercel.app)** — the login page has one-click **demo account buttons** (Manager, Admin, Staff), no signup and nothing to type. To sign in manually instead:
+**🔗 Live demo: [branchbrew-cafe-erp.vercel.app](https://branchbrew-cafe-erp.vercel.app)** — the login page has one-click **demo account buttons** (Manager, Admin, Staff) — no signup, nothing to type. To sign in manually instead:
 
 | Field        | Value                    |
 | ------------ | ------------------------ |
@@ -104,7 +106,7 @@ Full deep-dive — module map, accounting event table, inventory model, auth des
 
 ## Responsive by design
 
-Every screen is built mobile-first — the app **reshapes** for a phone rather than shrinking. The sidebar becomes a bottom tab bar, the POS cart slides up as a bottom sheet, the KDS two-column board collapses into a swipeable New / Cooking switch, and data-dense tables fold each row into a card. It's driven by Tailwind breakpoints, a shared `useMediaQuery` hook, and Ant Design's responsive column hiding.
+Every screen is built mobile-first — the app **reshapes** for a phone rather than shrinking. The sidebar becomes a bottom tab bar, the POS cart slides up as a bottom sheet, the KDS two-column board collapses into a swipeable New / Cooking switch, and data-dense tables fold each row into a card. The token architecture and form conventions behind it: [docs/design-system.md](docs/design-system.md).
 
 <table>
 <tr>
@@ -117,23 +119,25 @@ Every screen is built mobile-first — the app **reshapes** for a phone rather t
 
 ## Engineering decisions I'd defend in an interview
 
-- **Transactional outbox over direct side effects** — business writes commit together with their events in one transaction, so accounting, loyalty, and realtime updates can be delayed but never lost or desynced. A k6 load test then caught the processor draining far slower than the till could sell; the [Performance](#performance--the-bottleneck-the-load-test-found-and-the-fix) section is the measurement, the diagnosis, and the fix.
+- **Transactional outbox over direct side effects** — business writes commit together with their events in one transaction, so accounting, loyalty, and realtime updates can be delayed but never lost or desynced.
 - **Money is never a float** — all financial math runs on `Prisma.Decimal` with explicit rounding; journal entries must balance to the cent before they persist.
 - **The API contract is a build artifact** — the backend exports `openapi.json`, the frontend generates its client types from it, shared enums generate from the Prisma schema, and CI fails on any drift. A breaking backend change is a red pipeline, not a runtime surprise.
 - **JWT with real revocation** — httpOnly cookie plus a per-user token version. Logout bumps it, and so does any admin change to a user's branch, role, or password, so a demoted or compromised account loses its live tokens immediately rather than at expiry.
 - **One authorization primitive** — branch-owned data resolves through a shared branch-scope helper rather than per-endpoint discipline, and an e2e test proves a cross-branch write is rejected with a 403. `Customer` is chain-level and has no branch, so loyalty lookups are the one unscoped surface — a gap I document rather than hide.
 - **Standard costing with an honest variance account** — production posts the gap between standard and actual cost to a dedicated GL account instead of pretending costs are always exact.
+- **The kitchen board never refetches** — WebSocket events patch the TanStack Query cache directly (`setQueryData`) rather than invalidating it, so a busy kitchen doesn't re-download the board on every ticket. Marking a ticket done is optimistic and race-safe: cancel in-flight queries, snapshot the cache, apply the change, and roll back to the snapshot if the server rejects it.
+- **The server decides who sees an app shell** — auth gating runs in the App Router server layout, so an unauthenticated visitor never renders a page frame and then flickers back to login. The session is read once per request and cached.
 
 Each of these is expanded with the reasoning and trade-offs in [docs/architecture.md](docs/architecture.md).
 
 ## Tech stack
 
-| Layer      | Stack                                                                             |
-| ---------- | --------------------------------------------------------------------------------- |
-| Frontend   | Next.js 16 (App Router), React 19, TanStack Query 5, Ant Design 6, Tailwind CSS 4 |
-| Backend    | NestJS 11, Prisma 7, PostgreSQL, Passport JWT, socket.io                          |
-| Testing    | Jest, Vitest, Playwright (with axe accessibility checks), supertest               |
-| Infra & CI | Docker multi-stage builds, Docker Compose, GitHub Actions, Trivy image scanning   |
+| Layer      | Stack                                                                             | Why                                                                                                                                                |
+| ---------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend   | Next.js 16 (App Router), React 19, TanStack Query 5, Ant Design 6, Tailwind CSS 4 | Server layouts gate auth before a shell renders, and TanStack Query gives the WebSocket a cache to patch instead of a refetch to fire              |
+| Backend    | NestJS 11, Prisma 7, PostgreSQL, Passport JWT, socket.io                          | DI and module boundaries keep 23 domains from collapsing into one service; one Postgres lets a business write and its outbox event commit together |
+| Testing    | Jest, Vitest, Playwright (with axe accessibility checks), supertest               | Unit tests for money math and validators; e2e against a real Postgres for the claims only concurrency can break                                    |
+| Infra & CI | Docker multi-stage builds, Docker Compose, GitHub Actions, Trivy image scanning   | One command brings up the whole stack, and CI runs the same Compose file it ships                                                                  |
 
 ## Quick start
 
@@ -144,7 +148,7 @@ cp infra/.env.compose.example infra/.env.compose
 npm run docker:up
 ```
 
-Open http://localhost:3001/login and sign in with the demo account above.
+Open [localhost:3001/login](http://localhost:3001/login) and sign in with the demo account above.
 
 **Local Node** (Node 22, a running Postgres):
 
@@ -164,7 +168,7 @@ Production modes, TLS on a VPS, and the env matrix: [infra/README.md](infra/READ
 
 ## API
 
-All 130 endpoints are documented with Swagger. Once the stack is up, browse them at **http://localhost:3000/docs** — the schemas there are the same ones the frontend generates its client types from (`npm run openapi:export` writes the `openapi.json` that CI drift-checks). The docs route is mounted only outside production, so the live demo doesn't serve it.
+All 130 endpoints are documented with Swagger. Once the stack is up, browse them at **[localhost:3000/docs](http://localhost:3000/docs)** — the schemas there are the same ones the frontend generates its client types from (`npm run openapi:export` writes the `openapi.json` that CI drift-checks). The docs route is mounted only outside production, so the live demo doesn't serve it.
 
 Auth is an httpOnly cookie, so a session is two calls — sign in, then reuse the cookie jar:
 
@@ -208,27 +212,23 @@ npm run test:e2e:frontend
 
 ## Performance — the bottleneck the load test found, and the fix
 
-I load-tested the checkout path with [k6](loadtest/) instead of guessing, and it caught a real bottleneck that no unit test could have. Everything below is measured on an Apple M4 (10 cores, 16 GB) with the whole stack — API and PostgreSQL 16 — in Docker Compose, ordering a real product so every request runs the full FEFO deduction.
+I load-tested the checkout path with [k6](loadtest/) instead of guessing, and it caught a bottleneck no unit test could have. Measured on an Apple M4 (10 cores, 16 GB) with the API and PostgreSQL 16 in Docker Compose, ordering a real product so every request runs the full FEFO deduction.
 
 **The synchronous write was never the problem.** Even at 150 orders/sec, the transaction that deducts batches, guards stock, writes the order, and enqueues the outbox event holds a p95 of 42 ms and did not drop a single request in any run.
 
-**The outbox processor was.** It polled every 10 seconds for a batch of 10 events — a hard ceiling of **one event per second**, and the load test measured exactly that: a drain rate of 1.00 events/sec. So a 30-second rush of 601 orders left the general ledger **9 minutes 34 seconds behind operations**. Nothing was lost or wrong — the outbox guarantees that — but "the ledger trails by a moment" was not remotely true. The events themselves are cheap: each one takes a median of 2 ms to apply, so the processor was busy 0.3% of the time and asleep for the rest.
+**The outbox processor was.** It polled every 10 seconds for a batch of 10 events — a hard ceiling of one event per second, and the test measured exactly that. A 30-second rush of 601 orders left the ledger **9 minutes 34 seconds behind operations**: nothing lost or wrong, but "trails by a moment" was not remotely true. Applying an event costs a median of 2 ms, so the processor was busy 0.3% of the time and asleep for the rest. The fix was in the processor, not the database — drain until the queue is empty rather than one batch per tick, and poll every second.
 
-The fix was in the processor, not the database: drain in a loop until the queue is empty instead of one batch per tick, poll every second, and guard against overlapping runs. Retries now get a 30-second backoff so the faster tick can't burn through an event's five attempts in five seconds.
+| Load                       | Duration | Checkout p95 | Accepted  | Outbox drain rate | Ledger lag p50 | Ledger lag max |
+| -------------------------- | -------- | ------------ | --------- | ----------------- | -------------- | -------------- |
+| 20 orders/sec — **before** | 30s      | 18 ms        | 601/601   | 1.00 events/sec   | 4 min 49s      | 9 min 34s      |
+| 20 orders/sec — **after**  | 30s      | 18 ms        | 601/601   | 19.4 events/sec   | **0.5s**       | **1.0s**       |
+| 50 orders/sec — after      | 20s      | 12 ms        | 1000/1000 | 48.8 events/sec   | 0.5s           | 1.0s           |
+| 150 orders/sec — after     | 10s      | 42 ms        | 1501/1501 | 148.7 events/sec  | 0.5s           | 0.9s           |
 
-| Load (30s of orders) | Checkout p95 | Accepted | Outbox drain rate | Ledger lag p50 | Ledger lag max |
-| -------------------- | ------------ | -------- | ----------------- | -------------- | -------------- |
-| 20 orders/sec — **before** | 18 ms | 601/601 | 1.00 events/sec | 4 min 49s | 9 min 34s |
-| 20 orders/sec — **after** | 18 ms | 601/601 | 19.4 events/sec | **0.5s** | **1.0s** |
-| 50 orders/sec — after | 12 ms | 1000/1000 | 48.8 events/sec | 0.5s | 1.0s |
-| 150 orders/sec — after | 42 ms | 1501/1501 | 148.7 events/sec | 0.5s | 0.9s |
-
-The outbox now keeps pace with whatever the till throws at it, and the ledger's lag is bounded by the one-second poll rather than by a backlog — which is what "trails operations by a moment, but never disagrees" is supposed to mean. Same guarantees, 150× the throughput, no change to the checkout latency.
-
-I considered `LISTEN`/`NOTIFY` to push events instead of polling, which would cut the median lag from 0.5 s to single-digit milliseconds. I did not do it: it needs a dedicated connection outside Prisma and a cron fallback anyway for retries and stale claims, and half a second of lag on a coffee-shop ledger buys nothing worth that complexity.
+The drain rate now tracks the arrival rate, so the ledger's lag is bounded by the one-second poll rather than by a backlog that grows with the rush — which is what "trails operations by a moment, but never disagrees" is supposed to mean. Same guarantees at roughly 150× the drain rate (1.0 → 148.7 events/sec), no change to checkout latency — and 150 orders/sec is where I stopped testing, not where it broke. Why polling rather than `LISTEN`/`NOTIFY`, and the retry-backoff that a faster tick made necessary: [docs/architecture.md](docs/architecture.md#transactional-outbox).
 
 > [!NOTE]
-> The deployed API throttles to 60 requests/min per IP, so these rates need the limit lifted — the load-test Compose override does exactly that. Reproduce it with `npm run docker:up:loadtest && npm run loadtest:stock && RATE=20 DURATION=30s npm run loadtest`; details in [loadtest/README.md](loadtest/README.md).
+> The deployed API throttles to 60 requests/min per IP, so these rates need the limit lifted — the load-test Compose override does exactly that. Reproduce with `npm run docker:up:loadtest && npm run loadtest:stock && RATE=20 DURATION=30s npm run loadtest`; details in [loadtest/README.md](loadtest/README.md).
 
 ## CI/CD
 
@@ -276,7 +276,7 @@ The second lesson was to stop trusting myself to remember things. A `CHECK` cons
 
 Built solo by [Natthachak (@nkieu-config)](https://github.com/nkieu-config) as a software-engineering capstone project — design, schema, backend, frontend, tests, CI, and deployment.
 
-📫 natthachak.config@gmail.com
+📫 natthachak.config@gmail.com · [LinkedIn](https://www.linkedin.com/in/natthachak)
 
 > [!IMPORTANT]
 > © 2026 Natthachak Jeungraksareechai — all rights reserved. This code is public so you can read it as a work sample; it is **not** licensed for reuse. Please don't copy it or submit it as your own. See [LICENSE](LICENSE).

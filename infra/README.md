@@ -1,4 +1,4 @@
-# Infrastructure & Deployment
+# BranchBrew ERP — Infrastructure & Deployment
 
 Compose files, environment templates, and deployment reference for BranchBrew ERP — local Docker stack, production modes (managed or bundled Postgres), and optional TLS for self-hosted VPS.
 
@@ -11,9 +11,9 @@ cp infra/.env.compose.example infra/.env.compose
 npm run docker:up
 ```
 
-Open http://localhost:3001/login — demo login `manager@branchbrew.dev` / `password123`.
+Open [localhost:3001/login](http://localhost:3001/login) — demo login `manager@branchbrew.dev` / `password123`.
 
-Migrations run automatically via the one-shot `migrate` service, and the demo seed runs via the one-shot `seed` service whenever the database has no users. The API is on http://localhost:3000, with Swagger UI at http://localhost:3000/docs on the dev image.
+Migrations run automatically via the one-shot `migrate` service, and the demo seed runs via the one-shot `seed` service whenever the database has no users. The API is on [localhost:3000](http://localhost:3000), with Swagger UI at [localhost:3000/docs](http://localhost:3000/docs) on the dev image.
 
 To reload demo data at any point:
 

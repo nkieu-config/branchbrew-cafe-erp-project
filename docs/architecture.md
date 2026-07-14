@@ -1,6 +1,12 @@
-# Architecture
+# BranchBrew ERP — Architecture
 
 How BranchBrew ERP is put together, and why. This is the deep-dive companion to the [project README](../README.md) — read that first for the one-page overview.
+
+## Goals and non-goals
+
+**Goals.** One rule drove the design: if two numbers in the system can drift apart, the design is wrong. Concretely — the ledger, stock levels, loyalty balances, and realtime state must be written from the same committed facts; consistency is allowed to be _delayed_ but never _wrong_. Second goal: every hard claim (no lost events, no negative stock, no cross-branch reads) is enforced by the database or proven by a test, not by discipline.
+
+**Non-goals.** Multi-region scale, sub-second ledger latency, and infrastructure beyond one Postgres — this is a portfolio-scale deployment, and [Deliberate trade-offs](#deliberate-trade-offs) lists what was knowingly cut (partial refunds, input VAT, weighted-average costing) and why.
 
 ## System shape
 
@@ -25,16 +31,18 @@ docs/             Demo script, design system, this document
 scripts/          CI and Docker helper scripts
 ```
 
+**Why one service and one database, not microservices:** the core guarantee — a business write and its events commit atomically — requires a single transaction boundary. Splitting services turns "the ledger can never disagree with operations" into a distributed-transactions problem, bought before any scale demands it. The module DAG below is what keeps the monolith modular instead of monolithic.
+
 ## Module map
 
 The backend is organized as NestJS feature modules with zero `forwardRef` — the dependency graph is a DAG.
 
-| Domain | Modules |
-|---|---|
-| Sales | `orders`, `products`, `modifiers`, `promotions`, `customers` (CRM loyalty) |
-| Supply chain | `inventory`, `ingredients`, `procurement`, `production` (central kitchen BOM) |
-| Back office | `hr`, `finance`, `accounting`, `reports`, `equipment`, `settings`, `audit` |
-| Platform | `auth`, `branches`, `notifications`, `outbox`, `realtime`, `navigation`, `common`, `config`, `prisma` |
+| Domain       | Modules                                                                                               |
+| ------------ | ----------------------------------------------------------------------------------------------------- |
+| Sales        | `orders`, `products`, `modifiers`, `promotions`, `customers` (CRM loyalty)                            |
+| Supply chain | `inventory`, `ingredients`, `procurement`, `production` (central kitchen BOM)                         |
+| Back office  | `hr`, `finance`, `accounting`, `reports`, `equipment`, `settings`, `audit`                            |
+| Platform     | `auth`, `branches`, `notifications`, `outbox`, `realtime`, `navigation`, `common`, `config`, `prisma` |
 
 The schema behind these modules — core ERD and the invariants the database itself enforces — is in [data-model.md](data-model.md).
 
@@ -58,9 +66,23 @@ The core reliability decision in the system. The POS never writes journal entrie
 2. A dispatcher picks up committed events and fans them out to handlers: accounting, loyalty, notifications, and the realtime gateway.
 3. Each event payload is checked by a runtime validator before a handler runs, so a malformed event fails loudly instead of posting garbage.
 
-Delivery is **at-least-once** through both crash windows: an event that commits but never dispatches stays `PENDING`, and one whose worker dies mid-dispatch is reclaimed once its `claimedAt` stamp goes stale. Redelivery is harmless because the ledger dedupes on a unique natural `reference`. The consequence: side effects can be delayed, but they can never desync from committed state. There is no scenario where an order exists but its journal entry silently never will.
+Delivery is **at-least-once** through both crash windows: an event that commits but never dispatches stays `PENDING`, and one whose worker dies mid-dispatch is reclaimed once its `claimedAt` stamp goes stale. Redelivery is harmless because the ledger dedupes on a unique natural `reference`. The consequence: side effects can be delayed, but they can never desync from committed state. There is no scenario where an order exists but its journal entry _silently_ never will — the worst case is an event that exhausts its five attempts and lands in `FAILED`, which is visible in logs but not yet alerted on (see the hardening roadmap below).
 
-Throughput is a measured property, not an assumption. A k6 load test caught the original processor — one batch of 10 events every 10 seconds — draining at exactly 1.00 events/sec while the till sold 20 orders/sec, leaving the ledger nine and a half minutes behind after a 30-second rush. The processor now drains in a loop until the queue is empty, polls every second behind a re-entrancy guard, and gives failed events a 30-second retry backoff so the faster tick cannot burn through their five attempts in seconds. Measured after the fix, the drain rate tracks the arrival rate up to at least 150 events/sec, with lag bounded by the poll interval (p50 0.5 s). The harness is in [loadtest/README.md](../loadtest/README.md); the before-and-after numbers are in the [README's Performance section](../README.md#performance--the-bottleneck-the-load-test-found-and-the-fix).
+Throughput is a measured property, not an assumption. A k6 load test caught the original processor — one batch of 10 events every 10 seconds — draining at exactly 1.00 events/sec while the till sold 20 orders/sec, leaving the ledger nine and a half minutes behind after a 30-second rush. Applying an event costs a median of 2 ms, so the ceiling was the schedule, not the work: the processor was busy 0.3% of the time.
+
+Three changes, each one forced by the last:
+
+1. **Drain, don't sip.** The processor now claims batch after batch until the queue is empty, instead of one batch per tick. Throughput stops being a function of the poll interval.
+2. **A re-entrancy guard.** `@nestjs/schedule` does not prevent a tick from starting while the previous one is still running, and a drain loop on a one-second cron makes overlap the normal case rather than the exception. A single `isDraining` flag keeps exactly one drain in flight; the atomic claim (`updateMany` guarded on `status` + `attempts`) already made concurrent workers safe, so this is about wasted queries, not correctness.
+3. **A retry backoff.** A failed dispatch is set back to `PENDING`, so polling ten times faster meant a poison event would burn all five of its attempts in five seconds instead of fifty. Retries now wait 30 seconds, keyed off the `claimedAt` stamp of the last attempt.
+
+Measured after the fix, the drain rate tracks the arrival rate up to the 150 events/sec measured, with lag bounded by the poll interval (p50 0.5 s). The harness is in [loadtest/README.md](../loadtest/README.md); the before-and-after numbers are in the [README's Performance section](../README.md#performance--the-bottleneck-the-load-test-found-and-the-fix).
+
+### Alternatives considered
+
+- **In-process event emitter — the v1 this replaced.** The first version announced a sale with `@nestjs/event-emitter` fired from inside the transaction: the order committed, and the accounting and loyalty listeners ran afterwards on a best-effort basis. A listener that threw — or a process restart at the wrong moment — made the sale real while its journal entry silently never existed. That failure mode is what the outbox exists to close, and living through it is why.
+- **Message broker (Kafka / RabbitMQ / BullMQ).** A broker publish cannot join the Postgres transaction, so a broker does not remove the outbox — it sits _behind_ one, adding a second piece of stateful infrastructure to operate. At one service and one database, Postgres itself is a perfectly good queue; a broker earns its place when there are multiple producing services or consumers that need independent scaling, neither of which exists here.
+- **`LISTEN`/`NOTIFY`.** Pushing events instead of polling would cut the median lag from 0.5 s to single-digit milliseconds. Rejected: it needs a dedicated connection held outside Prisma's pool, and it does not remove the cron anyway — retries and stale claims still need a periodic sweep, so `LISTEN`/`NOTIFY` would be a second delivery path layered on top of the one that already exists. Half a second of lag on a coffee-shop ledger does not buy that.
 
 Known hardening still on the roadmap: an operator replay path for `FAILED` events (terminal today, visible only in logs), jitter on the retry backoff, and payload schema versioning.
 
@@ -68,15 +90,15 @@ Known hardening still on the roadmap: an operator replay path for `FAILED` event
 
 Every money-moving domain event posts a **balanced** journal entry. The ledger is not a report bolted on afterwards — it is written by the same events that move stock and cash, so the operational numbers and the accounting numbers agree by construction.
 
-| Event | Journal entry |
-|---|---|
-| POS sale | Revenue split into ex-VAT sales + output VAT liability, plus COGS from the recipe cost |
-| Refund / void | Reversing entry; deducted batches are restored |
-| PO goods received | Inventory asset vs accounts payable |
-| Supplier payment | Settles AP — the AP account balance reconciles to the unpaid-PO list on the aging card |
-| Payroll approved | Gross pay, withholdings, and net cash |
-| Stocktake variance approved | Shrinkage expense; batches adjusted FEFO |
-| Production completed | Finished goods at standard cost; any cost variance posts to a dedicated variance account (5030) |
+| Event                       | Journal entry                                                                                   |
+| --------------------------- | ----------------------------------------------------------------------------------------------- |
+| POS sale                    | Revenue split into ex-VAT sales + output VAT liability, plus COGS from the recipe cost          |
+| Refund / void               | Reversing entry; deducted batches are restored                                                  |
+| PO goods received           | Inventory asset vs accounts payable                                                             |
+| Supplier payment            | Settles AP — the AP account balance reconciles to the unpaid-PO list on the aging card          |
+| Payroll approved            | Gross pay, withholdings, and net cash                                                           |
+| Stocktake variance approved | Shrinkage expense; batches adjusted FEFO                                                        |
+| Production completed        | Finished goods at standard cost; any cost variance posts to a dedicated variance account (5030) |
 
 Reporting built on top: P&L trend, AP aging, and a ภ.พ.30-style output VAT report with CSV export.
 
@@ -84,7 +106,7 @@ Reporting built on top: P&L trend, AP aging, and a ภ.พ.30-style output VAT r
 
 All financial math runs on `Prisma.Decimal` with explicit rounding scales and a half-up tie-break. Journal entries are validated to balance to the cent before they persist. Loyalty-point redemption is clamped to the discount it can actually absorb, and point clawback on refund floors at zero — no negative balances from arithmetic edge cases.
 
-Stock *quantities* are the exception — see inventory, below.
+Stock _quantities_ are the exception — see inventory, below.
 
 ### Standard costing
 
@@ -128,12 +150,12 @@ A backend change that breaks the frontend is a compile error and a red pipeline,
 
 432 tests, split by what each layer can actually prove:
 
-| Suite | Tests | What it proves |
-|---|---|---|
-| Backend unit (Jest) | 220 | Money math and rounding ties, order lifecycle, concurrent-claim guards, outbox reclaim, accounting postings |
-| Backend e2e (supertest) | 20 | Auth, orders, branch scoping, concurrent order voids, and outbox recovery from a dead worker — all against a real Postgres |
-| Frontend unit (Vitest) | 177 | Validators, filters, VAT parity with the backend, API client behavior |
-| Frontend e2e (Playwright) | 15 | Login, full POS checkout, KDS, axe accessibility smoke |
+| Suite                     | Tests | What it proves                                                                                                             |
+| ------------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------- |
+| Backend unit (Jest)       | 220   | Money math and rounding ties, order lifecycle, concurrent-claim guards, outbox reclaim, accounting postings                |
+| Backend e2e (supertest)   | 20    | Auth, orders, branch scoping, concurrent order voids, and outbox recovery from a dead worker — all against a real Postgres |
+| Frontend unit (Vitest)    | 177   | Validators, filters, VAT parity with the backend, API client behavior                                                      |
+| Frontend e2e (Playwright) | 15    | Login, full POS checkout, KDS, axe accessibility smoke                                                                     |
 
 CI additionally runs type-checks, lint, coverage thresholds, a Docker Compose smoke test of the full stack, Trivy image scans, and the generated-artifact drift checks above.
 
@@ -141,12 +163,12 @@ CI additionally runs type-checks, lint, coverage thresholds, a Docker Compose sm
 
 A commit reaches the live demo in minutes, with no manual step:
 
-| Trigger | What runs |
-|---|---|
-| `git push` | A husky pre-push hook runs the local gate — type-check, lint, and both unit suites. The e2e suites need a database and a running stack, so they are CI's job |
-| Push to `main` | GitHub Actions CI runs; **in parallel**, Vercel rebuilds the frontend and Render rebuilds the API image (`autoDeploy: true` in [`render.yaml`](../render.yaml)) |
-| Push to `main` touching `prisma/migrations/**` | [`migrate-demo.yml`](../.github/workflows/migrate-demo.yml) applies pending migrations to the Supabase demo database and fails if any remain pending |
-| Every 3 hours | [`refresh-demo.yml`](../.github/workflows/refresh-demo.yml) reseeds the Supabase demo database so today's sales, orders, and kitchen tickets stay live |
+| Trigger                                        | What runs                                                                                                                                                       |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `git push`                                     | A husky pre-push hook runs the local gate — type-check, lint, and both unit suites. The e2e suites need a database and a running stack, so they are CI's job    |
+| Push to `main`                                 | GitHub Actions CI runs; **in parallel**, Vercel rebuilds the frontend and Render rebuilds the API image (`autoDeploy: true` in [`render.yaml`](../render.yaml)) |
+| Push to `main` touching `prisma/migrations/**` | [`migrate-demo.yml`](../.github/workflows/migrate-demo.yml) applies pending migrations to the Supabase demo database and fails if any remain pending            |
+| Every 3 hours                                  | [`refresh-demo.yml`](../.github/workflows/refresh-demo.yml) reseeds the Supabase demo database so today's sales, orders, and kitchen tickets stay live          |
 
 The frontend is a Vercel project rooted at `frontend/`; the API is a Docker service built from `backend/Dockerfile`. Both talk to the same managed Postgres. The wiring that makes a split-domain deploy work — the same-origin `/backend` rewrite that keeps the auth cookie first-party, the pooler-vs-direct connection, free-tier cold starts — is documented in [infra/README.md](../infra/README.md).
 
