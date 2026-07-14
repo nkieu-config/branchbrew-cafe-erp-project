@@ -1,6 +1,6 @@
 # BranchBrew ERP ☕
 
-[![CI](https://github.com/nkieu-config/branchbrew-cafe-erp-project/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/nkieu-config/branchbrew-cafe-erp-project/actions/workflows/ci.yml)
+[![CI](https://github.com/nkieu-config/branchbrew-cafe-erp/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/nkieu-config/branchbrew-cafe-erp/actions/workflows/ci.yml)
 [![Live demo](https://img.shields.io/badge/demo-live-brightgreen?logo=vercel&logoColor=white)](https://branchbrew-cafe-erp.vercel.app)
 [![License: view-only](https://img.shields.io/badge/license-view--only-informational.svg)](LICENSE)
 
